@@ -1,0 +1,54 @@
+# ====================================
+# Common ignores for Gameverse-system
+# Covers: React frontend + Laravel backend
+# ====================================
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+php_errors.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.backup
+.env.production
+
+# IDE/editor configs
+/.idea
+/.vscode
+/.fleet
+/.zed
+.phpactor.json
+
+# =========================
+# React / Node (frontend)
+/node_modules
+/.pnp
+.pnp.js
+/coverage
+/build
+
+# =========================
+# Laravel (backend)
+/vendor
+/public/build
+/public/hot
+/public/storage
+/storage/*.key
+/storage/pail
+/.nova
+/.phpunit.cache
+/.phpunit.result.cache
+Homestead.json
+Homestead.yaml
+auth.json
