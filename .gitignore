@@ -16,12 +16,8 @@ Thumbs.db
 
 # Environment files
 .env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-.env.backup
-.env.production
+.env.*
+!.env.example   # keep env.example for reference
 
 # IDE/editor configs
 /.idea
@@ -32,23 +28,23 @@ Thumbs.db
 
 # =========================
 # React / Node (frontend)
-/node_modules
-/.pnp
-.pnp.js
-/coverage
-/build
+/frontend/node_modules
+/frontend/.pnp
+/frontend/.pnp.js
+/frontend/coverage
+/frontend/build
 
 # =========================
 # Laravel (backend)
-/vendor
-/public/build
-/public/hot
-/public/storage
-/storage/*.key
-/storage/pail
-/.nova
-/.phpunit.cache
-/.phpunit.result.cache
-Homestead.json
-Homestead.yaml
-auth.json
+/backend/vendor
+/backend/public/build
+/backend/public/hot
+/backend/public/storage
+/backend/storage
+/backend/bootstrap/cache
+/backend/.nova
+/backend/.phpunit.cache
+/backend/.phpunit.result.cache
+/backend/Homestead.json
+/backend/Homestead.yaml
+/backend/auth.json
