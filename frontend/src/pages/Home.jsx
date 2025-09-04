@@ -8,7 +8,7 @@ import { Routes, Route } from "react-router-dom";
 const Home = () => {
   return (
     <Box sx={{ display: "flex" }}>
-      {/* {/* <TopBar /> */}
+      <TopBar /> 
       <Sidebar />
       <Box component="main" sx={{ flexGrow: 1, bgcolor: "#111827", minHeight: "100vh" }}>
         <Routes>
