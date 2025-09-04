@@ -1,13 +1,28 @@
 import React from "react";
-import { AppBar, Toolbar, InputBase, Box, Typography, Avatar, IconButton } from "@mui/material";
+import {
+  AppBar,
+  Toolbar,
+  InputBase,
+  Box,
+  Typography,
+  Avatar,
+  IconButton,
+} from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 
-const TopBar = () => {
+const TopBar = ({ sidebarOpen }) => {
+  const drawerWidth = sidebarOpen ? 230 : 70;
+
   return (
     <AppBar
       position="fixed"
-      sx={{ backgroundColor: "#1f2937", zIndex: (theme) => theme.zIndex.drawer + 1 }}
+      sx={{
+        width: `calc(100% - ${drawerWidth}px)`,
+        ml: `${drawerWidth}px`,
+        backgroundColor: "#1f2937",
+        boxShadow: "none",
+      }}
     >
       <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
         {/* Search Bar */}
@@ -18,12 +33,16 @@ const TopBar = () => {
             backgroundColor: "#374151",
             borderRadius: "8px",
             px: 2,
+            marginLeft:"150px",
             py: 0.5,
             width: "50%",
           }}
         >
           <SearchIcon sx={{ mr: 1 }} />
-          <InputBase placeholder="Search…" sx={{ color: "white", width: "100%" }} />
+          <InputBase
+            placeholder="Search…"
+            sx={{ color: "white", width: "100%" }}
+          />
         </Box>
 
         {/* Right Side */}
