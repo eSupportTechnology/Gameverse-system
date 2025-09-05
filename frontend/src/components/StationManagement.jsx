@@ -196,11 +196,11 @@ export default function StationManagement() {
   const handleTabChange = (event, newValue) => setTab(newValue);
 
   return (
-    <Box sx={{ backgroundColor: "#000", minHeight: "100vh", color: "#fff", pt: "50px" }}>
+    <Box sx={{ backgroundColor: "#000", minHeight: "100vh", color: "#fff", pt: "0px" }}>
       {/* Main header container */}
-      <Box sx={{ backgroundColor: "#0E111B", p: 3, borderRadius: 2, mx: 3 }}>
+      <Box sx={{ backgroundColor: "#0E111B", p: 3, borderRadius: 2, mx: 0}}>
         {/* Header */}
-        <Box sx={{ mb: 3 }}>
+        <Box sx={{ mb: 2 }}>
           <Typography variant="h5" fontWeight={600}>Station Management</Typography>
           <Typography variant="body2" color="gray">Monitor and control gaming stations</Typography>
         </Box>
@@ -279,7 +279,7 @@ export default function StationManagement() {
                       fullWidth
                       sx={{
                         mt: 2,
-                        backgroundColor: "#9CA3AF",
+                        backgroundColor: "#963034",
                         color: "#000",
                         fontWeight: 600,
                         py: 1,

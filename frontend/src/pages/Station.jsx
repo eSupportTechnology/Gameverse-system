@@ -4,7 +4,7 @@ import Sidebar from "../components/Sidebar";
 import TopBar from "../components/TopBar";
 import StationManagement from "../components/StationManagement";
 
-const Home = () => {
+const Station = () => {
   const [collapsed, setCollapsed] = useState(false);
   const sidebarWidth = collapsed ? 70 : 230;
 
@@ -27,4 +27,4 @@ const Home = () => {
   );
 };
 
-export default Home;
+export default Station;
