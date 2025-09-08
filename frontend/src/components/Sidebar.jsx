@@ -192,6 +192,8 @@ import React, { useState } from "react";
 import { Drawer, List, ListItemButton, ListItemIcon, ListItemText, Box, Tooltip, Divider } from "@mui/material";
 import { Routes, Route, useNavigate, Navigate } from "react-router-dom";
 import StationManagement from "./StationManagement";
+import Booking from "../pages/Booking";
+import BookingManagement from "./BookingManagement";
 
 // Dummy Components
 const Bookings = () => <h2 style={{ color: "#fff" }}>Bookings Component</h2>;
@@ -209,7 +211,7 @@ const menuItems = [
     text: "Bookings",
     path: "/bookings",
     icon: <img src="../images/b.png" alt="Bookings" style={{ width: 20, height: 20 }} />,
-    component: <Bookings />,
+    component: <Booking />,
   },
   {
     text: "Stations",

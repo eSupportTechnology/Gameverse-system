@@ -2,6 +2,7 @@ import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
 import Station from "./pages/Station";
+import Booking from "./pages/Booking";
 
 function App() {
   return (
@@ -10,7 +11,7 @@ function App() {
        
         <Route path="/" element={<Home />} />
           <Route path="/stations" element={<Station />} />
-          <Route path="/bookings" element={<div>Bookings Page (Coming soon)</div>} />
+          <Route path="/bookings" element={<Booking/>} />
            <Route path="pos" element={<div style={{ color: "#fff", marginTop: "80px", padding: "16px" }}>POS System (Coming soon)</div>} />
           <Route path="games" element={<div style={{ color: "#fff", marginTop: "80px", padding: "16px" }}>Other Games (Coming soon)</div>} />
           <Route path="users" element={<div style={{ color: "#fff", marginTop: "80px", padding: "16px" }}>Users & Roles (Coming soon)</div>} />
