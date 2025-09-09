@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import {
   Box,
   Typography,
@@ -11,12 +11,14 @@ import {
   TextField,
 } from "@mui/material";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
+import BookingForm from './BookingForm';
 // import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 
 const BookingManagement = () => {
 
   const [view, setView] = React.useState("timeline");
   const [date, setDate] = React.useState(new Date());
+  const [openDialog, setOpenDialog] = useState(false);
 
   const handleViewChange = (event, newView) => {
     if (newView !== null) setView(newView);
@@ -129,6 +131,7 @@ const BookingManagement = () => {
             <ToggleButton sx={{ px: 2, py: 1, }} value="grid">Grid</ToggleButton>
           </ToggleButtonGroup>
 
+          <Box>
           <Button
             variant="contained"
             sx={{
@@ -142,9 +145,12 @@ const BookingManagement = () => {
                 background: "linear-gradient(to right, #0bbfe0, #732ed1)",
               },
             }}
+             onClick={() => setOpenDialog(true)}
           >
             + New Booking
           </Button>
+            <BookingForm open={openDialog} handleClose={() => setOpenDialog(false)} />
+          </Box>
 
         </Box>
       </Box>
