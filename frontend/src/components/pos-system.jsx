@@ -236,11 +236,11 @@ const PosSystem = () => {
           {/* Buttons */}
           <Box
             sx={{
-              flex: 1, // take remaining space
+              flex: 1, 
               display: "flex",
               flexDirection: "column",
-              alignItems: "center",     // center horizontally
-              justifyContent: "center", // center vertically
+              alignItems: "center",     
+              justifyContent: "center", 
               gap: 1,
             }}
           >
@@ -287,10 +287,10 @@ const PosSystem = () => {
             Cart
           </Typography>
           {[1, 2, 3, 4, 5].map((_, i) => (
-            <Box
+            <Box                               //each item box
               key={i}
               sx={{
-                bgcolor: "#1E293B", // 🔹 each item box background
+                bgcolor: "#1E293B", 
                 borderRadius: 2,
                 p: 2,
                 mb: 2,
