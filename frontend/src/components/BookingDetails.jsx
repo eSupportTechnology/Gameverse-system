@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import {
   Dialog,
   DialogTitle,
@@ -14,6 +14,7 @@ import CreditCardIcon from "@mui/icons-material/CreditCard";
 import arrowicon from '../assets/arrowicon.png'
 import editicon from '../assets/editicon.png'
 import crossicon from '../assets/crossicon.png'
+import CancelPopup from '../components/CancelPopup';
 
 // status colors mapping
 const statusColors = {
@@ -23,9 +24,21 @@ const statusColors = {
 };
 
 const BookingDetails = ({ open, handleClose, booking }) => {
-  if (!booking) return null; // no data yet
 
+  const [cancelOpen, setcancelOpen] = useState(false);
+
+  const handleCancelOpen = () => setcancelOpen(true);
+  const handleCancelClose = () => setcancelOpen(false);
+
+  const handleConfirm = () => {
+    console.log("Booking cancelled!");
+    setcancelOpen(false);
+    handleClose(false)
+  };
+  
+  if (!booking) return null; // no data yet
   const statusColor = statusColors[booking.status.toLowerCase()] || "#9CA3AF";
+
   return (
     <div>
       <Dialog
@@ -162,7 +175,7 @@ const BookingDetails = ({ open, handleClose, booking }) => {
             {/* right session box */}
             <Box
               sx={{
-                flex: 1, 
+                flex: 1,
                 bgcolor: "#18212F",
                 p: 2,
                 borderRadius: "12px",
@@ -213,7 +226,7 @@ const BookingDetails = ({ open, handleClose, booking }) => {
                 bgcolor: '#111827'
               }}
             >
-              
+
               <Box
                 sx={{
                   flex: 1,
@@ -276,7 +289,7 @@ const BookingDetails = ({ open, handleClose, booking }) => {
               {/* Payment Info */}
               <Box
                 sx={{
-                  flex: 1, 
+                  flex: 1,
                   display: 'flex',
                   justifyContent: 'center',
                   alignItems: 'center',
@@ -345,6 +358,7 @@ const BookingDetails = ({ open, handleClose, booking }) => {
                 </Button>
 
                 <Button
+                  onClick={handleCancelOpen}
                   fullWidth
                   sx={{
                     fontSize: 14,
@@ -405,6 +419,7 @@ const BookingDetails = ({ open, handleClose, booking }) => {
                 </Button>
 
                 <Button
+                  onClick={handleCancelOpen}
                   fullWidth
                   sx={{
                     fontSize: 14,
@@ -436,14 +451,16 @@ const BookingDetails = ({ open, handleClose, booking }) => {
                   />
                   Cancel
                 </Button>
+              
               </>
             )}
 
             {booking.status === "completed" && (
-              <Box sx={{ display: "flex", justifyContent: "flex-end", width: '100%' }}>
+              <Box sx={{ display: "flex", justifyContent: "flex-end", width: "100%" }}>
                 <Button
+                  onClick={handleCancelOpen}
                   sx={{
-                    width: '50%',
+                    width: "50%",
                     fontSize: 14,
                     color: "#E6212D",
                     position: "relative",
@@ -473,9 +490,17 @@ const BookingDetails = ({ open, handleClose, booking }) => {
                   />
                   Cancel
                 </Button>
+
               </Box>
             )}
+
           </Box>
+          {/* cances box */}
+                <CancelPopup
+                  open={cancelOpen} 
+                  handleCancelClose={handleCancelClose}
+                  handleConfirm={handleConfirm}
+                />
 
         </DialogContent>
       </Dialog>
