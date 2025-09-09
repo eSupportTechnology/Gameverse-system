@@ -1,6 +1,7 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Box, Card, CardContent, Typography, Button, Chip } from "@mui/material";
 import { sampleBookings } from '../assets/assets.js';
+import BookingDetails from './BookingDetails.jsx';
 
 // status colors mapping
 const statusColors = {
@@ -10,6 +11,18 @@ const statusColors = {
 };
 
 const BookingGrid = () => {
+  const [open, setOpen] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState(null);
+
+  const handleOpen = (booking) => {
+    setSelectedBooking(booking);
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+    setSelectedBooking(null);
+  };
   return (
     <div style={{ minHeight: "100vh", backgroundColor: '#0E111B', borderRadius: "10px", }}>
       <Box
@@ -90,7 +103,7 @@ const BookingGrid = () => {
                     Price:
                   </Typography>
                   <Typography fontSize={12} color="#0CD7FF">
-                    {booking.price}
+                    LKR {booking.price}
                   </Typography>
                 </Box>
 
@@ -113,17 +126,29 @@ const BookingGrid = () => {
                     bgcolor: "#374151",
                     color: "#fff",
                     borderRadius: "8px",
-                    py:0.2,
+                    py: 0.2,
                     textTransform: "none",
                     "&:hover": { bgcolor: "#1F2937" },
                   }}
+                  onClick={() => handleOpen(booking)}
                 >
                   View
                 </Button>
+                {/* bokking details */}
+                <BookingDetails
+                  open={open}
+                  handleClose={handleClose}
+                  booking={selectedBooking}
+                />
+
               </CardContent>
+              
+
             </Card>
+
           );
         })}
+
       </Box>
 
     </div>

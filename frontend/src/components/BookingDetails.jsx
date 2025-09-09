@@ -1,0 +1,487 @@
+import React from 'react'
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  Box,
+  Typography,
+  Button,
+  Grid
+} from "@mui/material";
+import StarIcon from "@mui/icons-material/Star";
+import SportsEsportsIcon from "@mui/icons-material/SportsEsports"; // gamepad icon
+import CreditCardIcon from "@mui/icons-material/CreditCard";
+import arrowicon from '../assets/arrowicon.png'
+import editicon from '../assets/editicon.png'
+import crossicon from '../assets/crossicon.png'
+
+// status colors mapping
+const statusColors = {
+  upcoming: "#0CD7FF",
+  inprogress: "#9A60E8",
+  completed: "#FD00B5",
+};
+
+const BookingDetails = ({ open, handleClose, booking }) => {
+  if (!booking) return null; // no data yet
+
+  const statusColor = statusColors[booking.status.toLowerCase()] || "#9CA3AF";
+  return (
+    <div>
+      <Dialog
+        open={open}
+        onClose={handleClose}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: { bgcolor: "#111827", borderRadius: "12px", color: "#fff" },
+        }}
+      >
+        <DialogTitle sx={{ fontSize: 18, fontWeight: 'bold' }}>Booking Details</DialogTitle>
+        <DialogContent>
+          {/* Top Section */}
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "flex-start",
+              bgcolor: "#18212F",
+              p: 2,
+              borderRadius: "12px",
+              mb: 1
+            }}
+          >
+            {/* LEFT SECTION */}
+            <Box display="flex" flexDirection="column" gap={0.5}>
+              {/* Status Row */}
+              <Box display="flex" alignItems="center" gap={3} mb={1}>
+
+                <Box
+                  sx={{
+                    width: 12,
+                    height: 12,
+                    borderRadius: "50%",
+                    bgcolor: statusColor,
+                  }}
+                />
+                <Box
+                  sx={{
+                    bgcolor: statusColor,
+                    color: "#fff",
+                    px: 2,
+                    py: 0.5,
+                    borderRadius: "16px",
+                    fontSize: "12px",
+
+                  }}
+                >
+                  {booking.status}
+                </Box>
+              </Box>
+
+              {/* User Info */}
+              <Typography variant="h6" fontWeight="500" fontSize={16} >
+                {booking.user}
+              </Typography>
+              <Typography variant="body2" fontSize={12} sx={{ color: "#9CA3AF" }}>
+                {booking.phone}
+              </Typography>
+              <Typography variant="body2" fontSize={10} sx={{ color: "#FFFFFF" }}>
+                {booking.email}
+              </Typography>
+            </Box>
+
+            {/* RIGHT SECTION */}
+            <Box textAlign="right">
+              <Typography variant="body2" fontSize={12} sx={{ color: "#FFFFFF" }} mb={1}>
+                Booking #1{booking.id}
+              </Typography>
+              <Box display="flex" flexDirection="column" alignItems="flex-end" justifyContent="flex-end" gap={1}>
+                <StarIcon sx={{ color: '#C2048F' }} /> {/* Magenta star */}
+                <Typography
+                  sx={{
+                    fontWeight: "bold",
+                    color: "#C2048F",
+                    fontSize: "18px",
+                  }}
+                >
+                  {booking.loyaltyPrice}
+                </Typography>
+              </Box>
+              <Typography variant="body2" fontSize={16} sx={{ color: "#fff" }}>
+                Loyalty Points
+              </Typography>
+            </Box>
+          </Box>
+
+          {/* Session Details */}
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: { xs: "column", md: "row" },
+              gap: 2,
+              mt: 2,
+            }}
+          >
+            {/* left Session  box */}
+            <Box
+              sx={{
+                flex: 1,
+                bgcolor: "#18212F",
+                p: 2,
+                borderRadius: "12px",
+              }}
+            >
+              {/* Title */}
+              <Box display="flex" alignItems="center" gap={1} mb={1}>
+                <SportsEsportsIcon sx={{ color: "#9CA3AF" }} />
+                <Typography variant="h6" fontSize={16} fontWeight="600">
+                  Session Details
+                </Typography>
+              </Box>
+
+              {/* Info Rows */}
+              <Box display="flex" justifyContent="space-between">
+                <Typography fontSize={14} color='#A6AAB0'> Station:</Typography>
+                <Typography fontSize={14} color='#FFFFFF'>{booking.station}</Typography>
+              </Box>
+              <Box display="flex" justifyContent="space-between">
+                <Typography fontSize={14} color='#A6AAB0'>Time:</Typography>
+                <Typography fontSize={14} color='#FFFFFF'>{booking.time}</Typography>
+              </Box>
+              <Box display="flex" justifyContent="space-between">
+                <Typography fontSize={14} color='#A6AAB0'>Duration:</Typography>
+                <Typography fontSize={14} color='#FFFFFF'>{booking.duration}</Typography>
+              </Box>
+              <Box display="flex" justifyContent="space-between">
+                <Typography fontSize={14} color='#A6AAB0'>Extended Time:</Typography>
+                <Typography fontSize={14} color='#FFFFFF'>{booking.extendedTime}</Typography>
+              </Box>
+            </Box>
+
+            {/* right session box */}
+            <Box
+              sx={{
+                flex: 1, 
+                bgcolor: "#18212F",
+                p: 2,
+                borderRadius: "12px",
+              }}
+            >
+              {/* Title */}
+              <Box display="flex" alignItems="center" gap={1} mb={1}>
+                <CreditCardIcon sx={{ color: "#8A38F5" }} />
+                <Typography variant="h6" fontSize={16} fontWeight="600">
+                  Payment Info
+                </Typography>
+              </Box>
+
+              {/* Info Rows */}
+              <Box display="flex" justifyContent="space-between">
+                <Typography fontSize={14} color='#A6AAB0'>Method:</Typography>
+                <Typography fontSize={14} color='#FFFFFF'>{booking.paymentMethod}</Typography>
+              </Box>
+              <Box display="flex" justifyContent="space-between">
+                <Typography fontSize={14} color='#A6AAB0'>Online Deposit:</Typography>
+                <Typography fontSize={14} color='#FFFFFF'>LKR {booking.onlineDeposit}</Typography>
+              </Box>
+              <hr style={{ border: "none", borderTop: "1px solid #374151" }} />
+              <Box display="flex" justifyContent="space-between">
+                <Typography fontSize={14} color='#A6AAB0' >Total amounts:</Typography>
+                <Typography fontSize={14} sx={{ color: "#0CD7FF", fontWeight: 600 }}>
+                  LKR {booking.price}
+                </Typography>
+              </Box>
+              <Box display="flex" justifyContent="space-between">
+                <Typography fontSize={14} color='#A6AAB0'>Balance amounts:</Typography>
+                <Typography fontSize={14} sx={{ color: "#0CD7FF", fontWeight: 600 }}>
+                  LKR {booking.balanceAmount}
+                </Typography>
+              </Box>
+            </Box>
+          </Box>
+
+          {/* inprogress button section */}
+          {booking.status === "inprogress" && (
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                flexDirection: { xs: "column", md: "row" },
+                gap: 2,
+                mt: 2,
+                bgcolor: '#111827'
+              }}
+            >
+              
+              <Box
+                sx={{
+                  flex: 1,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  borderRadius: "12px",
+                }}
+              >
+                <Box
+                  component="button"
+                  sx={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: "4px",
+                    border: "none",
+                    bgcolor: "#2c2f3a",
+                    color: "#fff",
+                    fontSize: "20px",
+                    cursor: "pointer",
+                  }}
+                >
+                  –
+                </Box>
+
+                {/* Time Display */}
+                <Box
+                  sx={{
+                    px: 5,
+                    py: 1,
+                    borderRadius: "4px",
+                    bgcolor: "#1f2230",
+                    color: "#aaa",
+                    fontWeight: 500,
+                    minWidth: "70px",
+                    textAlign: "center",
+                  }}
+                >
+                  15 min
+                </Box>
+
+                {/* Plus Button */}
+                <Box
+                  component="button"
+                  sx={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: "4px",
+                    border: "none",
+                    bgcolor: "#2c2f3a",
+                    color: "#fff",
+                    fontSize: "20px",
+                    cursor: "pointer",
+                  }}
+                >
+                  +
+                </Box>
+              </Box>
+
+              {/* Payment Info */}
+              <Box
+                sx={{
+                  flex: 1, 
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  background: "linear-gradient(90deg, #00c6ff 0%, #7d2cff 100%)",
+                  py: 1,
+                  borderRadius: "4px",
+                  color: "#fff",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                }}
+              >
+                Update Time
+              </Box>
+            </Box>
+
+          )}
+
+
+          {/* Buttons */}
+          <Box display="flex" gap={2} mt={2}>
+            {booking.status === "inprogress" && (
+              <>
+                <Button
+                  fullWidth
+                  sx={{
+                    background: "linear-gradient(90deg, #FD00B5 0%, #8A38F5 100%)",
+                    fontSize: 14,
+                    color: "#fff",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    textTransform: 'capitalize',
+                    "&:hover": {
+                      background: "linear-gradient(90deg, #8A38F5 0%, #FD00B5 100%)",
+                    },
+                  }}
+                >
+                  <img
+                    src={arrowicon}
+                    alt=""
+                    style={{ width: 12, marginRight: 8 }}
+                  />
+                  End Session
+                </Button>
+
+                <Button
+                  fullWidth
+                  sx={{
+                    fontSize: 14,
+                    bgcolor: '#1F2937',
+                    color: "#fff",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    textTransform: 'capitalize',
+                    "&:hover": {
+                      bgcolor: "#374151",
+                    },
+                  }}>
+                  <img
+                    src={editicon}
+                    alt=""
+                    style={{ width: 14, marginRight: 8 }}
+                  />
+                  Edit
+                </Button>
+
+                <Button
+                  fullWidth
+                  sx={{
+                    fontSize: 14,
+                    color: '#E6212D',
+                    position: "relative",
+                    overflow: "hidden",
+                    border: "2px solid #973339",
+                    bgcolor: "#3E212D",
+                    textTransform: 'capitalize',
+                    "&:hover": {
+                      bgcolor: "#973339",
+                    },
+                    "&::after": {
+                      content: '""',
+                      position: "absolute",
+                      top: 0,
+                      left: 0,
+                      width: "100%",
+                      height: "100%",
+                      bgcolor: "rgba(0,0,0,0.2)",
+                      borderRadius: "4px",
+                    },
+                  }}
+                >
+                  <img
+                    src={crossicon}
+                    alt=""
+                    style={{ width: 14, marginRight: 8 }}
+                  />
+                  Cancel
+                </Button>
+
+              </>
+            )}
+
+            {booking.status === "upcoming" && (
+              <>
+                <Button
+                  fullWidth
+                  sx={{
+                    fontSize: 14,
+                    bgcolor: '#1F2937',
+                    color: "#fff",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    textTransform: 'capitalize',
+                    "&:hover": {
+                      bgcolor: "#374151",
+                    },
+                  }}>
+                  <img
+                    src={editicon}
+                    alt=""
+                    style={{ width: 14, marginRight: 8 }}
+                  />
+                  Edit
+                </Button>
+
+                <Button
+                  fullWidth
+                  sx={{
+                    fontSize: 14,
+                    color: '#E6212D',
+                    position: "relative",
+                    overflow: "hidden",
+                    border: "2px solid #973339",
+                    bgcolor: "#3E212D",
+                    textTransform: 'capitalize',
+                    "&:hover": {
+                      bgcolor: "#973339",
+                    },
+                    "&::after": {
+                      content: '""',
+                      position: "absolute",
+                      top: 0,
+                      left: 0,
+                      width: "100%",
+                      height: "100%",
+                      bgcolor: "rgba(0,0,0,0.2)",
+                      borderRadius: "4px",
+                    },
+                  }}
+                >
+                  <img
+                    src={crossicon}
+                    alt=""
+                    style={{ width: 14, marginRight: 8 }}
+                  />
+                  Cancel
+                </Button>
+              </>
+            )}
+
+            {booking.status === "completed" && (
+              <Box sx={{ display: "flex", justifyContent: "flex-end", width: '100%' }}>
+                <Button
+                  sx={{
+                    width: '50%',
+                    fontSize: 14,
+                    color: "#E6212D",
+                    position: "relative",
+                    overflow: "hidden",
+                    border: "2px solid #973339",
+                    bgcolor: "#3E212D",
+                    textTransform: "capitalize",
+                    "&:hover": {
+                      bgcolor: "#973339",
+                    },
+                    "&::after": {
+                      content: '""',
+                      position: "absolute",
+                      top: 0,
+                      left: 0,
+                      width: "100%",
+                      height: "100%",
+                      bgcolor: "rgba(0,0,0,0.2)",
+                      borderRadius: "4px",
+                    },
+                  }}
+                >
+                  <img
+                    src={crossicon}
+                    alt=""
+                    style={{ width: 14, marginRight: 8 }}
+                  />
+                  Cancel
+                </Button>
+              </Box>
+            )}
+          </Box>
+
+        </DialogContent>
+      </Dialog>
+
+    </div>
+  )
+}
+
+export default BookingDetails
