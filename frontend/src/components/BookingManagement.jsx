@@ -12,6 +12,8 @@ import {
 } from "@mui/material";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import BookingForm from './BookingForm';
+import BookingGrid from './BookingGrid';
+import { bookings } from '../assets/assets.js';
 // import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 
 const BookingManagement = () => {
@@ -61,24 +63,7 @@ const BookingManagement = () => {
     "11:30",
   ];
 
-  const bookings = [
-    { station: "PSS Station 1", time: "12:30", user: "Nithin K", status: "inprogress" },
-    { station: "PSS Station 1", time: "01:00", user: "Nithin K", status: "inprogress" },
-    { station: "PSS Station 1", time: "01:30", user: "Nithin K", status: "inprogress" },
-    { station: "PSS Station 1", time: "02:00", user: "Nithin K", status: "inprogress" },
-    { station: "PSS Station 3", time: "02:00", user: "Sara Ch", status: "upcoming" },
-    { station: "PSS Station 3", time: "02:30", user: "Sara Ch", status: "upcoming" },
-    { station: "PSS Station 3", time: "03:00", user: "Sara Ch", status: "upcoming" },
-    { station: "PSS Station 3", time: "03:30", user: "Sara Ch", status: "upcoming" },
-    { station: "8 Ball Pool(Suprime)", time: "12:00", user: "Nikhil K", status: "completed" },
-    { station: "8 Ball Pool(Suprime)", time: "12:30", user: "Nikhil K", status: "completed" },
-    { station: "8 Ball Pool(Premium)", time: "12:00", user: "Nikhil K", status: "inprogress" },
-    { station: "8 Ball Pool(Premium)", time: "12:30", user: "Nikhil K", status: "inprogress" },
-    { station: "8 Ball Pool(Premium)", time: "01:00", user: "Nikhil K", status: "inprogress" },
-    { station: "8 Ball Pool(Premium)", time: "02:00", user: "Nikhil K", status: "upcoming" },
-    { station: "8 Ball Pool(Premium)", time: "02:30", user: "Nikhil K", status: "upcoming" },
-  ];
-
+  
   const statusColors = {
     upcoming: "#0CD7FF",
     inprogress: "#9A60E8",
@@ -230,6 +215,7 @@ const BookingManagement = () => {
       </Box>
 
       {/* Booking Timeline */}
+      {view === "timeline" && (
       <Paper sx={{ bgcolor: "#111", p: 2, borderRadius: "12px", bgcolor: '#0E111B' }}>
         <Box sx={{ display: "flex", width: "100%" }}>
           {/* Left Column (Station names) */}
@@ -383,7 +369,11 @@ const BookingManagement = () => {
           </Box>
         </Box>
       </Paper>
+      )}
 
+      {view === "grid" && 
+        <BookingGrid />
+      }
 
 
 
