@@ -9,17 +9,24 @@ const Station = () => {
   const sidebarWidth = collapsed ? 70 : 230;
 
   return (
-    <Box sx={{ display: "flex" }}>
+    <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "#000" }}>
       {/* Sidebar */}
       <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
 
-      {/* Main content area */}
-      <Box sx={{ flexGrow: 1, bgcolor: "#000", minHeight: "100vh" }}>
-        {/* TopBar always visible */}
+      {/* Main content */}
+      <Box
+        sx={{
+          flexGrow: 1,
+          display: "flex",
+          flexDirection: "column",
+          minHeight: "100vh",
+          bgcolor: "#000",
+        }}
+      >
         <TopBar sidebarWidth={sidebarWidth} />
 
-        {/* StationManagement content */}
-        <Box sx={{ mt: 8, p: 2 }}>
+        {/* Content */}
+        <Box sx={{ flexGrow: 1, p: 2 }}>
           <StationManagement />
         </Box>
       </Box>
