@@ -6,9 +6,10 @@ import {
   Box,
   Typography,
   Button,
-  Grid
+  IconButton
 } from "@mui/material";
 import StarIcon from "@mui/icons-material/Star";
+import CloseIcon from "@mui/icons-material/Close";
 import SportsEsportsIcon from "@mui/icons-material/SportsEsports"; // gamepad icon
 import CreditCardIcon from "@mui/icons-material/CreditCard";
 import arrowicon from '../assets/arrowicon.png'
@@ -53,8 +54,16 @@ const BookingDetails = ({ open, handleClose, booking }) => {
           sx: { bgcolor: "#111827", borderRadius: "12px", color: "#fff" },
         }}
       >
-        <DialogTitle sx={{ fontSize: 18, fontWeight: 'bold' }}>Booking Details</DialogTitle>
-        <DialogContent>
+        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", px: 1}}>
+          <DialogTitle sx={{ color: "#FFFFFF", fontSize: 18, fontWeight: "bold", }}>
+            Booking Details
+          </DialogTitle>
+
+          <IconButton onClick={handleClose} sx={{ color: "#FFFFFF" }}>
+            <CloseIcon />
+          </IconButton>
+        </Box>
+        <DialogContent sx={{py:0, pb:2}}>
           {/* Top Section */}
           <Box
             sx={{
@@ -62,9 +71,9 @@ const BookingDetails = ({ open, handleClose, booking }) => {
               justifyContent: "space-between",
               alignItems: "flex-start",
               bgcolor: "#18212F",
-              p: 2,
+              p: 1,
               borderRadius: "12px",
-              mb: 1
+              mb: 1,
             }}
           >
             {/* LEFT SECTION */}
