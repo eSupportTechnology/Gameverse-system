@@ -15,6 +15,8 @@ import arrowicon from '../assets/arrowicon.png'
 import editicon from '../assets/editicon.png'
 import crossicon from '../assets/crossicon.png'
 import CancelPopup from '../components/CancelPopup';
+import EditBookingFrom from './EditBookingFrom';
+
 
 // status colors mapping
 const statusColors = {
@@ -26,6 +28,7 @@ const statusColors = {
 const BookingDetails = ({ open, handleClose, booking }) => {
 
   const [cancelOpen, setcancelOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
 
   const handleCancelOpen = () => setcancelOpen(true);
   const handleCancelClose = () => setcancelOpen(false);
@@ -35,7 +38,7 @@ const BookingDetails = ({ open, handleClose, booking }) => {
     setcancelOpen(false);
     handleClose(false)
   };
-  
+
   if (!booking) return null; // no data yet
   const statusColor = statusColors[booking.status.toLowerCase()] || "#9CA3AF";
 
@@ -348,7 +351,9 @@ const BookingDetails = ({ open, handleClose, booking }) => {
                     "&:hover": {
                       bgcolor: "#374151",
                     },
-                  }}>
+                  }}
+                   onClick={() => setEditOpen(true)}
+                  >
                   <img
                     src={editicon}
                     alt=""
@@ -409,7 +414,10 @@ const BookingDetails = ({ open, handleClose, booking }) => {
                     "&:hover": {
                       bgcolor: "#374151",
                     },
-                  }}>
+
+                  }}
+                  onClick={() => setEditOpen(true)}
+                >
                   <img
                     src={editicon}
                     alt=""
@@ -417,6 +425,7 @@ const BookingDetails = ({ open, handleClose, booking }) => {
                   />
                   Edit
                 </Button>
+
 
                 <Button
                   onClick={handleCancelOpen}
@@ -451,7 +460,7 @@ const BookingDetails = ({ open, handleClose, booking }) => {
                   />
                   Cancel
                 </Button>
-              
+
               </>
             )}
 
@@ -496,11 +505,14 @@ const BookingDetails = ({ open, handleClose, booking }) => {
 
           </Box>
           {/* cances box */}
-                <CancelPopup
-                  open={cancelOpen} 
-                  handleCancelClose={handleCancelClose}
-                  handleConfirm={handleConfirm}
-                />
+          <CancelPopup
+            open={cancelOpen}
+            handleCancelClose={handleCancelClose}
+            handleConfirm={handleConfirm}
+          />
+          
+          {/* Edit booking from */}
+          <EditBookingFrom open={editOpen} handleClose={() => setEditOpen(false)} />
 
         </DialogContent>
       </Dialog>
