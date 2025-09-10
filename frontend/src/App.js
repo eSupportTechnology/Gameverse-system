@@ -14,7 +14,7 @@ function App() {
         <Route path="/" element={<Home />} />
           <Route path="/stations/*" element={<Station />} />
           <Route path="/pos/*" element={<Pos />} />
-          <Route path="/bookings" element={<div>Bookings Page (Coming soon)</div>} />
+          <Route path="/bookings" element={<Booking/>} />
           <Route path="games" element={<div style={{ color: "#fff", marginTop: "80px", padding: "16px" }}>Other Games (Coming soon)</div>} />
           <Route path="users" element={<div style={{ color: "#fff", marginTop: "80px", padding: "16px" }}>Users & Roles (Coming soon)</div>} />
           <Route path="reports" element={<div style={{ color: "#fff", marginTop: "80px", padding: "16px" }}>Reports (Coming soon)</div>} />

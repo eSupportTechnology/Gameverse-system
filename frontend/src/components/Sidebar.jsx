@@ -34,7 +34,7 @@ const menuItems = [
     text: "Bookings",
     path: "/bookings",
     icon: <img src="../images/b.png" alt="Bookings" style={{ width: 20, height: 20 }} />,
-    component: <Booking />,
+    // component: <Booking />,
   },
   {
     text: "Stations",

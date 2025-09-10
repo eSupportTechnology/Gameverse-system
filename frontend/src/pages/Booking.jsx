@@ -10,6 +10,7 @@ const Booking = () => {
 
   return (
     <Box sx={{ display: "flex" }}>
+      <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
       
       <Box sx={{ flexGrow: 1, bgcolor: "#000", minHeight: "100vh" }}>
         {/* TopBar always visible */}
