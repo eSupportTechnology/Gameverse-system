@@ -30,6 +30,18 @@ const BookingDetails = ({ open, handleClose, booking }) => {
 
   const [cancelOpen, setcancelOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  // state to store time in minutes
+  const [time, setTime] = useState(15);
+
+  // increase time
+  const handleIncrease = () => {
+    setTime((prev) => prev + 15);
+  };
+
+  // decrease time (prevent negative values)
+  const handleDecrease = () => {
+    setTime((prev) => Math.max(0, prev - 15));
+  };
 
   const handleCancelOpen = () => setcancelOpen(true);
   const handleCancelClose = () => setcancelOpen(false);
@@ -250,6 +262,7 @@ const BookingDetails = ({ open, handleClose, booking }) => {
               >
                 <Box
                   component="button"
+                  onClick={handleDecrease}
                   sx={{
                     width: 36,
                     height: 36,
@@ -280,12 +293,13 @@ const BookingDetails = ({ open, handleClose, booking }) => {
                     textAlign: "center",
                   }}
                 >
-                  15 min
+                   {time} min
                 </Box>
 
                 {/* Plus Button */}
                 <Box
                   component="button"
+                  onClick={handleIncrease}
                   sx={{
                     width: 36,
                     height: 36,
@@ -304,7 +318,7 @@ const BookingDetails = ({ open, handleClose, booking }) => {
                 </Box>
               </Box>
 
-              {/* Payment Info */}
+              {/* update time */}
               <Box
                 sx={{
                   flex: 1,
