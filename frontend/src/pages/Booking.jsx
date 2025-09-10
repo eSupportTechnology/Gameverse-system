@@ -12,12 +12,12 @@ const Booking = () => {
     <Box sx={{ display: "flex" }}>
       <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
       
-      <Box sx={{ flexGrow: 1, bgcolor: "#000", minHeight: "100vh" }}>
+      <Box sx={{ flexGrow: 1, bgcolor: "#000", minHeight: "100vh" ,}}>
         {/* TopBar always visible */}
         <TopBar sidebarWidth={sidebarWidth} />
 
         
-        <Box sx={{ mt: 8, p: 2 }}>
+        <Box sx={{ mt: 8, p: 2}}>
           <BookingManagement/>
         </Box>
       </Box>
