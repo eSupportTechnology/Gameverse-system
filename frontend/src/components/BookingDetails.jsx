@@ -15,6 +15,7 @@ import CreditCardIcon from "@mui/icons-material/CreditCard";
 import arrowicon from '../assets/arrowicon.png'
 import editicon from '../assets/editicon.png'
 import crossicon from '../assets/crossicon.png'
+import sucessicon from '../assets/sucessicon.png'
 import CancelPopup from '../components/CancelPopup';
 import EditBookingFrom from './EditBookingFrom';
 
@@ -30,8 +31,8 @@ const BookingDetails = ({ open, handleClose, booking }) => {
 
   const [cancelOpen, setcancelOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
-  // state to store time in minutes
   const [time, setTime] = useState(15);
+  const [timeUpdate, setTimeUpdate] = useState(false);
 
   // increase time
   const handleIncrease = () => {
@@ -52,6 +53,13 @@ const BookingDetails = ({ open, handleClose, booking }) => {
     handleClose(false)
   };
 
+  // handle update time button
+  const handleUpdateTime = () => {
+    console.log("Time updated successfully!");
+    setTimeUpdate(true)
+
+  };
+
   if (!booking) return null; // no data yet
   const statusColor = statusColors[booking.status.toLowerCase()] || "#9CA3AF";
 
@@ -66,7 +74,7 @@ const BookingDetails = ({ open, handleClose, booking }) => {
           sx: { bgcolor: "#111827", borderRadius: "12px", color: "#fff" },
         }}
       >
-        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", px: 1}}>
+        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", px: 1 }}>
           <DialogTitle sx={{ color: "#FFFFFF", fontSize: 18, fontWeight: "bold", }}>
             Booking Details
           </DialogTitle>
@@ -75,7 +83,7 @@ const BookingDetails = ({ open, handleClose, booking }) => {
             <CloseIcon />
           </IconButton>
         </Box>
-        <DialogContent sx={{py:0, pb:2}}>
+        <DialogContent sx={{ py: 0, pb: 2 }}>
           {/* Top Section */}
           <Box
             sx={{
@@ -83,7 +91,7 @@ const BookingDetails = ({ open, handleClose, booking }) => {
               justifyContent: "space-between",
               alignItems: "flex-start",
               bgcolor: "#18212F",
-              p:2,
+              p: 2,
               borderRadius: "12px",
               mb: 1,
             }}
@@ -293,7 +301,7 @@ const BookingDetails = ({ open, handleClose, booking }) => {
                     textAlign: "center",
                   }}
                 >
-                   {time} min
+                  {time} min
                 </Box>
 
                 {/* Plus Button */}
@@ -311,7 +319,7 @@ const BookingDetails = ({ open, handleClose, booking }) => {
                     cursor: "pointer",
                     "&:hover": {
                       bgcolor: "#374151",
-                    }, 
+                    },
                   }}
                 >
                   +
@@ -320,6 +328,7 @@ const BookingDetails = ({ open, handleClose, booking }) => {
 
               {/* update time */}
               <Box
+                onClick={handleUpdateTime}
                 sx={{
                   flex: 1,
                   display: 'flex',
@@ -336,6 +345,56 @@ const BookingDetails = ({ open, handleClose, booking }) => {
               >
                 Update Time
               </Box>
+              {/*time update Success Popup */}
+              <Dialog
+                open={timeUpdate}
+                PaperProps={{
+                  sx: {
+                    bgcolor: "#0A192F",
+                    borderRadius: "16px",
+                    py: 2,
+                    px: 8,
+                    textAlign: "center",
+                    color: "white",
+                    border: '1px solid #3B4859'
+                  },
+                }}
+              >
+                <DialogContent>
+                  <Box sx={{ mb: 1, }}>
+                    <img src={sucessicon} alt="" width={80} />
+                  </Box>
+                  <Typography
+                    variant="h6"
+                    sx={{
+                      background: "linear-gradient(90deg, #00C6FF, #FF00CC)",
+                      WebkitBackgroundClip: "text",
+                      WebkitTextFillColor: "transparent",
+                      fontSize: 24,
+                      fontWeight: 600,
+                      mb: 1
+                    }}
+                  >
+                    Update Successful !
+                  </Typography>
+                  <Button
+                    onClick={() => setTimeUpdate(false)}
+                    sx={{
+                      px: 8,
+                      fontSize: 14,
+                      textTransform: 'capitalize',
+                      borderRadius: "8px",
+                      background: "linear-gradient(90deg, rgba(12, 215, 255, 0.4) 0%, rgba(138, 56, 245, 0.4) 73%)",
+                      color: "white",
+                      "&:hover": {
+                        background: "linear-gradient(90deg, #0CD7FF 0%, #8A38F5 73%)",
+                      },
+                    }}
+                  >
+                    Ok
+                  </Button>
+                </DialogContent>
+              </Dialog>
             </Box>
 
           )}
@@ -382,8 +441,8 @@ const BookingDetails = ({ open, handleClose, booking }) => {
                       bgcolor: "#374151",
                     },
                   }}
-                   onClick={() => setEditOpen(true)}
-                  >
+                  onClick={() => setEditOpen(true)}
+                >
                   <img
                     src={editicon}
                     alt=""
@@ -540,7 +599,7 @@ const BookingDetails = ({ open, handleClose, booking }) => {
             handleCancelClose={handleCancelClose}
             handleConfirm={handleConfirm}
           />
-          
+
           {/* Edit booking from */}
           <EditBookingFrom open={editOpen} handleClose={() => setEditOpen(false)} />
 
