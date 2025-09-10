@@ -84,7 +84,7 @@ export default function StationManagement() {
 
   return (
     <Box
-      sx={{ backgroundColor: "#000", minHeight: "100vh", color: "#fff", pt: "70px" }}
+      sx={{ backgroundColor: "#000", minHeight: "500vh", color: "#fff", pt: "70px" }}
     >
       {/* Header */}
       <Box sx={{ backgroundColor: "#0E111B", p: 3, borderRadius: 2 }}>
