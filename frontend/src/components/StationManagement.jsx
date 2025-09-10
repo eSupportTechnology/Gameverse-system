@@ -36,7 +36,7 @@ export default function StationManagement() {
   const filteredStations =
     tab === 0
       ? stations
-      : stations.filter((s) => s.type === ["PlayStation", "Pool", "Arcade"][tab - 1]);
+      : stations.filter((s) => s.type === ["PlayStation", "Pool", "Simulator"][tab - 1]);
 
   return (
     <Box sx={{ backgroundColor: "#000", minHeight: "500vh", color: "#fff", pt: "70px" }}>
@@ -77,7 +77,7 @@ export default function StationManagement() {
             TabIndicatorProps={{ style: { display: "none" } }}
             sx={{ display: "flex", flexWrap: "wrap" }}
           >
-            {["All Stations", "PlayStation", "Pool", "Arcade"].map((label, index) => (
+            {["All Stations", "PlayStation", "Pool", "Simulator"].map((label, index) => (
               <Tab
                 key={label}
                 label={label}
