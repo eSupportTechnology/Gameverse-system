@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import {
   Dialog,
   DialogTitle,
@@ -10,9 +10,22 @@ import {
   Box,
   Typography,
   Select,
+  IconButton
 } from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
+import gameicon from '../assets/gameicon.png'
 
 const BookingForm = ({ open, handleClose }) => {
+
+  const [createSuccess, setcreateSuccess] = useState(false);
+
+  // handle edit
+  const handleUpdateBooking = () => {
+    console.log("Booking updated successfully!");
+    setcreateSuccess(true)
+
+  };
+
   return (
     <div>
       <Dialog
@@ -24,10 +37,18 @@ const BookingForm = ({ open, handleClose }) => {
           sx: { borderRadius: "12px", backgroundColor: "#111827", color: "white", py: 2, },
         }}
       >
-        <DialogTitle sx={{ color: '#FFFFF', fontSize: 18, fontWeight: 'bold' }}>Create New Booking</DialogTitle>
+        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", px: 1}}>
+          <DialogTitle sx={{ color: "#FFFFFF", fontSize: 18, fontWeight: "bold", }}>
+            Create New Booking
+          </DialogTitle>
 
-        <DialogContent dividers>
-          <Box display="grid" gridTemplateColumns="1fr 1fr" gap={2} mt={1}>
+          <IconButton onClick={handleClose} sx={{ color: "#FFFFFF" }}>
+            <CloseIcon />
+          </IconButton>
+        </Box>
+
+        <DialogContent dividers  sx={{py:0, pb:2}}>
+          <Box display="grid" gridTemplateColumns={{ xs: "1fr", md: "1fr 1fr" }} gap={2} mt={1}>
             {/* name */}
             <Box display="flex" flexDirection="column" gap={1}>
               {/* Label */}
@@ -119,12 +140,12 @@ const BookingForm = ({ open, handleClose }) => {
                 MenuProps={{
                   PaperProps: {
                     sx: {
-                      backgroundColor: "#1F2937", 
+                      backgroundColor: "#1F2937",
                       color: "white",
                       "& .MuiMenuItem-root": {
                         backgroundColor: "#1F2937",
                         "&:hover": {
-                          backgroundColor: "#374151", 
+                          backgroundColor: "#374151",
                         },
                       },
                     },
@@ -177,12 +198,12 @@ const BookingForm = ({ open, handleClose }) => {
                 MenuProps={{
                   PaperProps: {
                     sx: {
-                      backgroundColor: "#1F2937", 
+                      backgroundColor: "#1F2937",
                       color: "white",
                       "& .MuiMenuItem-root": {
                         backgroundColor: "#1F2937",
                         "&:hover": {
-                          backgroundColor: "#374151", 
+                          backgroundColor: "#374151",
                         },
                       },
                     },
@@ -222,12 +243,12 @@ const BookingForm = ({ open, handleClose }) => {
                 MenuProps={{
                   PaperProps: {
                     sx: {
-                      backgroundColor: "#1F2937", 
+                      backgroundColor: "#1F2937",
                       color: "white",
                       "& .MuiMenuItem-root": {
                         backgroundColor: "#1F2937",
                         "&:hover": {
-                          backgroundColor: "#374151", 
+                          backgroundColor: "#374151",
                         },
                       },
                     },
@@ -272,12 +293,12 @@ const BookingForm = ({ open, handleClose }) => {
                 MenuProps={{
                   PaperProps: {
                     sx: {
-                      backgroundColor: "#1F2937", 
+                      backgroundColor: "#1F2937",
                       color: "white",
                       "& .MuiMenuItem-root": {
                         backgroundColor: "#1F2937",
                         "&:hover": {
-                          backgroundColor: "#374151", 
+                          backgroundColor: "#374151",
                         },
                       },
                     },
@@ -321,19 +342,19 @@ const BookingForm = ({ open, handleClose }) => {
                 },
               }}
               MenuProps={{
-                  PaperProps: {
-                    sx: {
-                      backgroundColor: "#1F2937", 
-                      color: "white",
-                      "& .MuiMenuItem-root": {
-                        backgroundColor: "#1F2937",
-                        "&:hover": {
-                          backgroundColor: "#374151", 
-                        },
+                PaperProps: {
+                  sx: {
+                    backgroundColor: "#1F2937",
+                    color: "white",
+                    "& .MuiMenuItem-root": {
+                      backgroundColor: "#1F2937",
+                      "&:hover": {
+                        backgroundColor: "#374151",
                       },
                     },
                   },
-                }}
+                },
+              }}
             >
               <MenuItem value="">
                 <em style={{ fontSize: 14, color: "#9CA3AF", fontStyle: "normal" }}>Select payment method</em>
@@ -359,21 +380,72 @@ const BookingForm = ({ open, handleClose }) => {
 
         {/* cancel & create button */}
         <DialogActions sx={{ px: 2 }}>
-          <Button onClick={handleClose} variant="contained" sx={{ backgroundColor: "#1F2937", width: '50%', py: 1,textTransform:'capitalize' }}>
+          <Button onClick={handleClose} variant="contained" sx={{ backgroundColor: "#1F2937", width: '50%', py: 1, textTransform: 'capitalize' }}>
             Cancel
           </Button>
           <Button
+            onClick={handleUpdateBooking}
             variant="contained"
             sx={{
               width: '50%',
               py: 1,
-              textTransform:'capitalize',
+              textTransform: 'capitalize',
               background: "linear-gradient(to right, #0CD7FF, #8A38F5)",
               "&:hover": { background: "linear-gradient(to right, #0bbfe0, #732ed1)" },
             }}
           >
             Create Booking
           </Button>
+          {/* create Success Popup */}
+          <Dialog
+            open={createSuccess}
+            PaperProps={{
+              sx: {
+                bgcolor: "#0A192F",
+                borderRadius: "16px",
+                py: 2,
+                px: 8,
+                textAlign: "center",
+                color: "white",
+                border: '1px solid #3B4859'
+              },
+            }}
+          >
+            <DialogContent>
+              <Box sx={{ mb: 1, }}>
+                <img src={gameicon} alt="" width={80} />
+              </Box>
+              <Typography
+                variant="h6"
+                sx={{
+                  background: "linear-gradient(90deg, #00C6FF, #FF00CC)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  fontSize: 24,
+                  fontWeight: 600,
+                  mb: 1
+                }}
+              >
+                Create Successful !
+              </Typography>
+              <Button
+                onClick={() => setcreateSuccess(false)}
+                sx={{
+                  px: 8,
+                  fontSize: 14,
+                  textTransform: 'capitalize',
+                  borderRadius: "8px",
+                  background: "linear-gradient(90deg, rgba(12, 215, 255, 0.4) 0%, rgba(138, 56, 245, 0.4) 73%)",
+                  color: "white",
+                  "&:hover": {
+                    background: "linear-gradient(90deg, #0CD7FF 0%, #8A38F5 73%)",
+                  },
+                }}
+              >
+                Ok
+              </Button>
+            </DialogContent>
+          </Dialog>
         </DialogActions>
       </Dialog>
     </div>

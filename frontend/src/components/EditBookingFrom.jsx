@@ -48,7 +48,7 @@ const EditBookingFrom = ({ open, handleClose }) => {
         </Box>
 
         <DialogContent dividers>
-          <Box display="grid" gridTemplateColumns="1fr 1fr" gap={2} >
+          <Box display="grid" gridTemplateColumns={{ xs: "1fr", md: "1fr 1fr" }} gap={2} >
             {/* name */}
             <Box display="flex" flexDirection="column" gap={1}>
               {/* Label */}
@@ -431,7 +431,7 @@ const EditBookingFrom = ({ open, handleClose }) => {
           >
             Update Booking
           </Button>
-          {/* Success Popup */}
+          {/* edit Success Popup */}
           <Dialog
             open={updateSuccess}
             PaperProps={{
@@ -466,7 +466,7 @@ const EditBookingFrom = ({ open, handleClose }) => {
               <Button
                 onClick={() => setupdateSuccess(false)}
                 sx={{
-                  px: 6,
+                  px: 8,
                   fontSize: 14,
                   textTransform: 'capitalize',
                   borderRadius: "8px",
