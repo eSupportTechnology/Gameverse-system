@@ -71,7 +71,7 @@ const BookingDetails = ({ open, handleClose, booking }) => {
               justifyContent: "space-between",
               alignItems: "flex-start",
               bgcolor: "#18212F",
-              p: 1,
+              p:2,
               borderRadius: "12px",
               mb: 1,
             }}
@@ -259,6 +259,9 @@ const BookingDetails = ({ open, handleClose, booking }) => {
                     color: "#fff",
                     fontSize: "20px",
                     cursor: "pointer",
+                    "&:hover": {
+                      bgcolor: "#374151",
+                    },
                   }}
                 >
                   –
@@ -292,6 +295,9 @@ const BookingDetails = ({ open, handleClose, booking }) => {
                     color: "#fff",
                     fontSize: "20px",
                     cursor: "pointer",
+                    "&:hover": {
+                      bgcolor: "#374151",
+                    }, 
                   }}
                 >
                   +
@@ -306,6 +312,7 @@ const BookingDetails = ({ open, handleClose, booking }) => {
                   justifyContent: 'center',
                   alignItems: 'center',
                   background: "linear-gradient(90deg, #00c6ff 0%, #7d2cff 100%)",
+                  "&:hover": { background: "linear-gradient(to right, #8A38F5, #0CD7FF)" },
                   py: 1,
                   borderRadius: "4px",
                   color: "#fff",
