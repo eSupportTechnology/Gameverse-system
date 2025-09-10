@@ -14,6 +14,9 @@ import { Routes, Route, useNavigate, Navigate } from "react-router-dom";
 import StationManagement from "./StationManagement";
 import Booking from "../pages/Booking";
 import BookingManagement from "./BookingManagement";
+import Stations from "../pages/Station";
+
+
 
 // Dummy Components
 const Bookings = () => <h2 style={{ color: "#fff" }}>Bookings Component</h2>;
@@ -37,7 +40,7 @@ const menuItems = [
     text: "Stations",
     path: "/stations",
     icon: <img src="../images/huge.png" alt="Stations" style={{ width: 20, height: 20 }} />,
-   
+    component: <Stations />,
   },
   {
     text: "POS System",

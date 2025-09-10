@@ -2,35 +2,26 @@ import React, { useState } from "react";
 import { Box } from "@mui/material";
 import Sidebar from "../components/Sidebar";
 import TopBar from "../components/TopBar";
-import StationManagement from "../components/StationManagement";
 import PosSystem from "../components/pos-system";
 
-const Home = () => {
+const Pos = () => {
   const [collapsed, setCollapsed] = useState(false);
   const sidebarWidth = collapsed ? 70 : 230;
 
   return (
-    <Box sx={{ display: "flex" }}>
+    <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "#0f172a" }}>
       {/* Sidebar */}
       <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
 
-      {/* Main content area */}
-      <Box sx={{ flexGrow: 1, bgcolor: "#000", minHeight: "100vh" }}>
-        {/* TopBar always visible */}
+      {/* Main Content */}
+      <Box sx={{ flexGrow: 1 }}>
         <TopBar sidebarWidth={sidebarWidth} />
-
-        {/* StationManagement content */}
         <Box sx={{ mt: 8, p: 2 }}>
-          <StationManagement />
-
-        {/* POS System content */}
-        <Box sx={{ mt: 8, p: 2 }} >
           <PosSystem />
-        </Box>
         </Box>
       </Box>
     </Box>
   );
 };
 
-export default Home;
+export default Pos;

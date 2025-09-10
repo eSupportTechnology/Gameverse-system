@@ -1,3 +1,4 @@
+
 import React from "react";
 import {
   Dialog,
@@ -13,6 +14,10 @@ import {
   Typography,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { TimePicker } from "@mui/x-date-pickers/TimePicker";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import dayjs from "dayjs";
 
 export default function AddStationDialog({
   open,
@@ -67,23 +72,66 @@ export default function AddStationDialog({
           select
           margin="dense"
           name="name"
-          value={formData.name}
+          value={formData.name || ""}
           onChange={handleChange}
           fullWidth
-          placeholder="Select Station"
+          displayEmpty
           sx={{
             mb: 2,
+            backgroundColor: "#1e293b4b",
             "& .MuiOutlinedInput-root": {
               borderRadius: "10px",
               color: "white",
-              "& fieldset": { borderColor: "#334155" },
-              "&:hover fieldset": { borderColor: "#64748b" },
+              "& fieldset": { borderColor: "#809fcd4e" },
+              "&:hover fieldset": { borderColor: "#ffffff71" },
+              "& .MuiSelect-icon": { color: "#fff" },
             },
+            "& .MuiSelect-select:empty": { color: "#94a3b8" },
           }}
         >
+          <MenuItem disabled value="">
+            Select Station
+          </MenuItem>
           <MenuItem value="PS5 Station 1">PS5 Station 1</MenuItem>
           <MenuItem value="PS5 Station 2">PS5 Station 2</MenuItem>
           <MenuItem value="PS5+VR">PS5+VR</MenuItem>
+          <MenuItem value="8 Ball Pool (Supreme)">8 Ball Pool (Supreme)</MenuItem>
+          <MenuItem value="8 Ball Pool (Premium)">8 Ball Pool (Premium)</MenuItem>
+          <MenuItem value="CRS+VR (PS V R2)">CRS+VR (PS V R2)</MenuItem>
+          <MenuItem value="Car Racing Simulator">Car Racing Simulator</MenuItem>
+        </TextField>
+
+        {/* Station Type */}
+        <Typography variant="subtitle2" sx={{ color: "#94a3b8", mb: 0.5 }}>
+          Station Type
+        </Typography>
+        <TextField
+          select
+          margin="dense"
+          name="type"
+          value={formData.type || ""}
+          onChange={handleChange}
+          fullWidth
+          displayEmpty
+          sx={{
+            mb: 2,
+            backgroundColor: "#1e293b4b",
+            "& .MuiOutlinedInput-root": {
+              borderRadius: "10px",
+              color: "white",
+              "& fieldset": { borderColor: "#809fcd4e" },
+              "&:hover fieldset": { borderColor: "#ffffff71" },
+              "& .MuiSelect-icon": { color: "#fff" },
+            },
+            "& .MuiSelect-select:empty": { color: "#94a3b8" },
+          }}
+        >
+          <MenuItem disabled value="">
+            Select Type
+          </MenuItem>
+          <MenuItem value="PlayStation">PlayStation</MenuItem>
+          <MenuItem value="Pool">Pool</MenuItem>
+          <MenuItem value="Car Racing">Car Racing</MenuItem>
         </TextField>
 
         {/* Location */}
@@ -99,16 +147,27 @@ export default function AddStationDialog({
           placeholder="Zone A, Zone B, etc."
           sx={{
             mb: 2,
+            backgroundColor: "#1e293b4b",
             "& .MuiOutlinedInput-root": {
               borderRadius: "10px",
               color: "white",
               "& fieldset": { borderColor: "#334155" },
+              "& input": { backgroundColor: "#1e293b4b", color: "white" },
             },
           }}
         />
 
-        {/* Price + Time in one row */}
-        <Box display="flex" gap={2} mt={1}>
+        {/* Price Section */}
+        <Typography
+          variant="h6"
+          sx={{ color: "#fff", fontWeight: 600, mt: 2, mb: 1 }}
+        >
+          Price
+        </Typography>
+
+        {/* Price + Time row */}
+        <Box display="flex" gap={2}>
+          {/* Price */}
           <Box flex={1}>
             <Typography variant="subtitle2" sx={{ color: "#94a3b8", mb: 0.5 }}>
               Price
@@ -127,6 +186,7 @@ export default function AddStationDialog({
                 ),
               }}
               sx={{
+                backgroundColor: "#1e293b4b",
                 "& .MuiOutlinedInput-root": {
                   borderRadius: "10px",
                   color: "white",
@@ -136,29 +196,45 @@ export default function AddStationDialog({
             />
           </Box>
 
+          {/* Time */}
           <Box flex={1}>
-            <Typography variant="subtitle2" sx={{ color: "#94a3b8", mb: 0.5 }}>
+            <Typography variant="subtitle2" sx={{ color: "#f3f4f5ff", mb: 0.5 }}>
               Time
             </Typography>
-            <TextField
-              margin="dense"
-              name="time"
-              type="time"
-              value={formData.time || "12:00"}
-              onChange={handleChange}
-              fullWidth
-              inputProps={{ step: 300 }}
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: "10px",
-                  color: "white",
-                  "& input::-webkit-calendar-picker-indicator": {
-                    display: "none", // hides clock
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <TimePicker
+                ampm
+                value={formData.time ? dayjs(formData.time, "hh:mm A") : null}
+                onChange={(newValue) => {
+                  if (newValue) {
+                    setFormData((prev) => ({
+                      ...prev,
+                      time: newValue.format("hh:mm A"),
+                    }));
+                  }
+                }}
+                slotProps={{
+                  textField: {
+                    fullWidth: true,
+                    margin: "dense",
+                    placeholder: "hh:mm AM/PM",
+                    sx: {
+                      backgroundColor: "#1e293b4b",
+                      "& .MuiOutlinedInput-root": {
+                        borderRadius: "10px",
+                        borderColor: "#ffffff50",
+                        "& fieldset": { borderColor: "#fff" },
+                        "&:hover fieldset": { borderColor: "#fff" },
+                      },
+                      "& input": {
+                        color: formData.time ? "#fff" : "grey",
+                        "::placeholder": { color: "grey" },
+                      },
+                    },
                   },
-                  "& fieldset": { borderColor: "#334155" },
-                },
-              }}
-            />
+                }}
+              />
+            </LocalizationProvider>
           </Box>
         </Box>
       </DialogContent>

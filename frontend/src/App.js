@@ -4,6 +4,7 @@ import Home from "./pages/Home";
 import Station from "./pages/Station";
 import Booking from "./pages/Booking";
 // import Pos from "./pages/Pos";
+import Pos from "./pages/Pos";
 
 function App() {
   return (
@@ -11,9 +12,9 @@ function App() {
       <Routes>
        
         <Route path="/" element={<Home />} />
-          <Route path="/stations" element={<Station />} />
-          <Route path="/bookings" element={<Booking/>} />
-           <Route path="pos" element={<div style={{ color: "#fff", marginTop: "80px", padding: "16px" }}>POS System (Coming soon)</div>} />
+          <Route path="/stations/*" element={<Station />} />
+          <Route path="/pos/*" element={<Pos />} />
+          <Route path="/bookings" element={<div>Bookings Page (Coming soon)</div>} />
           <Route path="games" element={<div style={{ color: "#fff", marginTop: "80px", padding: "16px" }}>Other Games (Coming soon)</div>} />
           <Route path="users" element={<div style={{ color: "#fff", marginTop: "80px", padding: "16px" }}>Users & Roles (Coming soon)</div>} />
           <Route path="reports" element={<div style={{ color: "#fff", marginTop: "80px", padding: "16px" }}>Reports (Coming soon)</div>} />
