@@ -170,7 +170,7 @@ export default function SidebarLayout() {
         component="main"
         sx={{
           flexGrow: 1,
-          p: 3,
+          p: 0,
           width: "100%",
           backgroundColor: "#000000ff",
           minHeight: "100vh",
