@@ -11,6 +11,9 @@ import {
   Divider,
 } from "@mui/material";
 import { Routes, Route, useNavigate, Navigate } from "react-router-dom";
+import StationManagement from "./StationManagement";
+import Booking from "../pages/Booking";
+import BookingManagement from "./BookingManagement";
 import Stations from "../pages/Station";
 
 
@@ -31,7 +34,7 @@ const menuItems = [
     text: "Bookings",
     path: "/bookings",
     icon: <img src="../images/b.png" alt="Bookings" style={{ width: 20, height: 20 }} />,
-    component: <Bookings />,
+    // component: <Booking />,
   },
   {
     text: "Stations",
