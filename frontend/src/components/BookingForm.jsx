@@ -359,7 +359,7 @@ const BookingForm = ({ open, handleClose }) => {
 
         {/* cancel & create button */}
         <DialogActions sx={{ px: 2 }}>
-          <Button onClick={handleClose} variant="contained" sx={{ backgroundColor: "#1F2937", width: '50%', py: 1 }}>
+          <Button onClick={handleClose} variant="contained" sx={{ backgroundColor: "#1F2937", width: '50%', py: 1,textTransform:'capitalize' }}>
             Cancel
           </Button>
           <Button
@@ -367,6 +367,7 @@ const BookingForm = ({ open, handleClose }) => {
             sx={{
               width: '50%',
               py: 1,
+              textTransform:'capitalize',
               background: "linear-gradient(to right, #0CD7FF, #8A38F5)",
               "&:hover": { background: "linear-gradient(to right, #0bbfe0, #732ed1)" },
             }}
