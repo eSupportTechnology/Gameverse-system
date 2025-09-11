@@ -17,7 +17,7 @@ function App() {
           <Route path="/stations/*" element={<Station />} />
           <Route path="/pos/*" element={<Pos />} />
           <Route path="/bookings" element={<Booking/>} />
-          <Route path="games" element={<div style={{ color: "#fff", marginTop: "80px", padding: "16px" }}>Other Games (Coming soon)</div>} />
+          <Route path="/games" element={<OtherGames/>} />
           <Route path="users" element={<User />} />
           <Route path="reports" element={<div style={{ color: "#fff", marginTop: "80px", padding: "16px" }}>Reports (Coming soon)</div>} />
           <Route path="settings" element={<div style={{ color: "#fff", marginTop: "80px", padding: "16px" }}>Settings (Coming soon)</div>} />
