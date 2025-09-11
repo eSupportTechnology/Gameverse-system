@@ -86,3 +86,57 @@ export const sampleBookings = [
     status: "completed",
   },
 ];
+
+
+
+export const games = [
+  {
+    id: 1,
+    title: "Coin Operated Machines",
+    location: "Zone E",
+    quntity: "1 Coin",
+    price: 400,
+    category: "Arcade Machine",
+  },
+  {
+    id: 2,
+    title: "F1 Adult Target",
+    location: "Zone F",
+    quntity: "5 Arrows",
+    price: 600,
+    category: "Archery",
+  },
+  {
+    id: 3,
+    title: "Carrom",
+    location: "Zone F",
+    quntity: "Per hour",
+    price: 75,
+    category: "Carrom",
+  },
+  {
+    id: 4,
+    title: "F1 Youth Target",
+    location: "Zone E",
+    quntity: "5 Arrows",
+    price: 600,
+    category: "Arcade Machine",
+  },
+  {
+    id: 5,
+    title: "F1 Youth Target",
+    location: "Zone E",
+    quntity: "5 Arrows",
+    price: 600,
+    category: "Arcade Machine",
+  },
+  {
+    id: 6,
+    title: "F1 Adult Target",
+    location: "Zone F",
+    quntity: "5 Arrows",
+    price: 600,
+    category: "Arcade Machine",
+  },
+];
+
