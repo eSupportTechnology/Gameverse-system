@@ -1,0 +1,203 @@
+import React, { useState } from "react";
+import {
+  Box,
+  Typography,
+  Button,
+  TextField,
+  InputAdornment,
+  Avatar,
+  IconButton,
+} from "@mui/material";
+import SearchIcon from "@mui/icons-material/Search";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
+import AddUserDialog from "./AddUserDialog";
+
+export default function UserManagement() {
+  const [open, setOpen] = useState(false);
+  const [users, setUsers] = useState([
+    { fullName: "Alex Chen", role: "Admin", status: "Active", lastLogin: "02.35pm", avatar: "/images/user1.png" },
+    { fullName: "Sarah Kim", role: "Admin", status: "Active", lastLogin: "04.45pm", avatar: "/images/user2.png" },
+    { fullName: "Anne Nikolos", role: "Operator", status: "Inactive", lastLogin: "10.45pm", avatar: "/images/user3.png" },
+    { fullName: "Nithin Akesh", role: "Operator", status: "Active", lastLogin: "05.05pm", avatar: "/images/user1.png" },
+  ]);
+
+  const [formData, setFormData] = useState({
+    fullName: "", role: "Operator", username: "", password: "", status: "Active", lastLogin: "", avatar: ""
+  });
+
+  const [isEditing, setIsEditing] = useState(false);
+  const [editIndex, setEditIndex] = useState(null);
+
+  const [searchQuery, setSearchQuery] = useState(""); // <-- added search state
+
+  const handleOpen = () => {
+    setIsEditing(false);
+    setFormData({ fullName: "", role: "Operator", username: "", password: "", status: "Active", lastLogin: "", avatar: "" });
+    setOpen(true);
+  };
+
+  const handleEditClick = (user, index) => {
+    setIsEditing(true);
+    setEditIndex(index);
+    setFormData(user);
+    setOpen(true);
+  };
+
+  const handleDeleteClick = (index) => {
+    setUsers((prev) => prev.filter((_, idx) => idx !== index));
+  };
+
+  const handleClose = () => setOpen(false);
+
+  const handleCreateOrUpdate = () => {
+    if (isEditing && editIndex !== null) {
+      setUsers((prev) => prev.map((u, idx) => (idx === editIndex ? formData : u)));
+    } else {
+      setUsers((prev) => [...prev, formData]);
+    }
+    setOpen(false);
+  };
+
+  return (
+    <Box sx={{ backgroundColor: "#000", minHeight: "100vh", color: "#fff", pt: "70px", px: 3 }}>
+      {/* HEADER & SEARCH */}
+      <Box sx={{ mb: 3 }}>
+        <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
+          <Box>
+            <Typography variant="h6" fontWeight={600}>User Management</Typography>
+            <Typography variant="body2" color="gray">Manage users, roles, and permissions</Typography>
+          </Box>
+          <Button
+            onClick={handleOpen}
+            sx={{
+              background: "linear-gradient(90deg, #33B2F7, #CF36E1)",
+              color: "#fff",
+              px: 3,
+              py: 1,
+              borderRadius: "8px",
+              fontWeight: "600",
+              textTransform: "none",
+              "&:hover": { opacity: 0.9 },
+            }}
+          >
+            + Add User
+          </Button>
+        </Box>
+
+        <Box sx={{ backgroundColor: "#111827", p: 1, borderRadius: 2, mb: 1, display: "flex" }}>
+          <TextField
+            placeholder="Search"
+            variant="outlined"
+            fullWidth
+            value={searchQuery} // <-- bind search query
+            onChange={(e) => setSearchQuery(e.target.value)} // <-- update search query
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon sx={{ color: "#9CA3AF" }} />
+                </InputAdornment>
+              ),
+              sx: {
+                borderRadius: "8px",
+                backgroundColor: "#0e111b84",
+                input: { color: "white" },
+              },
+            }}
+            sx={{ width: "50%" }}
+          />
+        </Box>
+      </Box>
+
+      {/* OUTER CONTAINER - #0E111B */}
+      <Box sx={{ backgroundColor: "#0E111B", p: 2, borderRadius: 2, overflowX: "auto", paddingBottom:"100px" }}>
+        {/* TABLE CONTAINER - #374151 */}
+        <Box sx={{ backgroundColor: "#37415174", borderRadius: 1, p: 2 }}>
+          {/* Table Header */}
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: "1.5fr 1fr 1fr 1fr 0.5fr",
+              gap: 2,
+              py: 1,
+              px:2,
+              borderBottom: "1px solid #2d374876",
+              color: "#9ca3afff",
+              fontSize: "0.9rem",
+            }}
+          >
+            <span>User</span>
+            <span>Role</span>
+            <span>Status</span>
+            <span>Last Login</span>
+            <span>Action</span>
+          </Box>
+
+          {/* Table Rows */}
+          {users
+            .filter((user) => user.fullName.toLowerCase().includes(searchQuery.toLowerCase())) // <-- filter users by name
+            .map((user, idx) => (
+              <Box
+                key={idx}
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: "1.5fr 1fr 1fr 1fr 0.5fr",
+                  gap: 2,
+                  alignItems: "center",
+                  py: 1.5,
+                }}
+              >
+                {/* User */}
+                <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                  <Avatar src={user.avatar} alt={user.fullName} />
+                  <Typography color="white">{user.fullName}</Typography>
+                </Box>
+                <Typography color="white">{user.role}</Typography>
+                <Box
+                  sx={{
+                    backgroundColor: user.status === "Active" ? "#065F46" : "#7f1d1d",
+                    px: 2,
+                    py: 0.5,
+                    borderRadius: "12px",
+                    fontSize: "0.75rem",
+                    fontWeight: 600,
+                    color: "white",
+                    display: "inline-block",
+                    textAlign: "center",
+                    width: "fit-content",
+                  }}
+                >
+                  {user.status}
+                </Box>
+                <Typography color="white">{user.lastLogin}</Typography>
+                <Box sx={{ padding:1 }}>
+                  <IconButton
+                    onClick={() => handleEditClick(user, idx)}
+                    sx={{ color: "#9CA3AF", background:"#c0bdbd43", p:1, m:1, "&:hover": { color: "#fff" } }}
+                  >
+                    <EditIcon />
+                  </IconButton>
+                  <IconButton
+                    onClick={() => handleDeleteClick(idx)}
+                    sx={{ color: "#9CA3AF", background:"#c0bdbd43", p:1, "&:hover": { color: "#fff", background:"#c0bdbdfb" } }}
+                  >
+                    <DeleteIcon />
+                  </IconButton>
+                </Box>
+              </Box>
+            ))}
+        </Box>
+      </Box>
+
+      {/* Add/Edit Dialog */}
+      <AddUserDialog
+        open={open}
+        onClose={handleClose}
+        onCreate={handleCreateOrUpdate}
+        formData={formData}
+        setFormData={setFormData}
+        isEditing={isEditing}
+      />
+    </Box>
+  );
+}

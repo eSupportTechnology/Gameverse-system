@@ -1,4 +1,3 @@
-
 import React from "react";
 import {
   Dialog,
@@ -14,10 +13,6 @@ import {
   Typography,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { TimePicker } from "@mui/x-date-pickers/TimePicker";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import dayjs from "dayjs";
 
 export default function AddStationDialog({
   open,
@@ -25,10 +20,34 @@ export default function AddStationDialog({
   onCreate,
   formData,
   setFormData,
+  isEditing,
 }) {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleTimeChange = (e) => {
+    const val = e.target.value;
+    const timePattern = /^([0-1]?[0-9]|2[0-3]):([0-5][0-9])$/;
+
+    if (timePattern.test(val)) {
+      const [hours, minutes] = val.split(":").map(Number);
+      const totalMinutes = hours * 60 + minutes;
+      setFormData((prev) => ({ ...prev, time: `${totalMinutes} minutes` }));
+    } else {
+      setFormData((prev) => ({ ...prev, time: val }));
+    }
+  };
+
+  const handleSubmit = () => {
+    const timePattern = /^([0-9]+) minutes$/;
+    if (!timePattern.test(formData.time)) {
+      alert("Please enter valid time in HH:MM format (e.g., 00:30)");
+      return;
+    }
+
+    onCreate(formData);
   };
 
   return (
@@ -46,7 +65,6 @@ export default function AddStationDialog({
         },
       }}
     >
-      {/* Title with Close Button */}
       <DialogTitle
         sx={{
           fontWeight: 600,
@@ -56,13 +74,12 @@ export default function AddStationDialog({
           alignItems: "center",
         }}
       >
-        Add New Station
+        {isEditing ? "Edit Station" : "Add New Station"}
         <IconButton onClick={onClose} sx={{ color: "#94a3b8" }}>
           <CloseIcon />
         </IconButton>
       </DialogTitle>
 
-      {/* Content */}
       <DialogContent>
         {/* Station Name */}
         <Typography variant="subtitle2" sx={{ color: "#94a3b8", mb: 0.5 }}>
@@ -131,7 +148,7 @@ export default function AddStationDialog({
           </MenuItem>
           <MenuItem value="PlayStation">PlayStation</MenuItem>
           <MenuItem value="Pool">Pool</MenuItem>
-          <MenuItem value="Car Racing">Car Racing</MenuItem>
+          <MenuItem value="Simulator">Simulator</MenuItem>
         </TextField>
 
         {/* Location */}
@@ -152,12 +169,11 @@ export default function AddStationDialog({
               borderRadius: "10px",
               color: "white",
               "& fieldset": { borderColor: "#334155" },
-              "& input": { backgroundColor: "#1e293b4b", color: "white" },
             },
           }}
         />
 
-        {/* Price Section */}
+        {/* Price + Time */}
         <Typography
           variant="h6"
           sx={{ color: "#fff", fontWeight: 600, mt: 2, mb: 1 }}
@@ -165,7 +181,6 @@ export default function AddStationDialog({
           Price
         </Typography>
 
-        {/* Price + Time row */}
         <Box display="flex" gap={2}>
           {/* Price */}
           <Box flex={1}>
@@ -181,9 +196,7 @@ export default function AddStationDialog({
               fullWidth
               placeholder="0000"
               InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">LKR</InputAdornment>
-                ),
+                startAdornment: <InputAdornment position="start">LKR</InputAdornment>,
               }}
               sx={{
                 backgroundColor: "#1e293b4b",
@@ -199,47 +212,30 @@ export default function AddStationDialog({
           {/* Time */}
           <Box flex={1}>
             <Typography variant="subtitle2" sx={{ color: "#f3f4f5ff", mb: 0.5 }}>
-              Time
+              Time (HH:MM)
             </Typography>
-            <LocalizationProvider dateAdapter={AdapterDayjs}>
-              <TimePicker
-                ampm
-                value={formData.time ? dayjs(formData.time, "hh:mm A") : null}
-                onChange={(newValue) => {
-                  if (newValue) {
-                    setFormData((prev) => ({
-                      ...prev,
-                      time: newValue.format("hh:mm A"),
-                    }));
-                  }
-                }}
-                slotProps={{
-                  textField: {
-                    fullWidth: true,
-                    margin: "dense",
-                    placeholder: "hh:mm AM/PM",
-                    sx: {
-                      backgroundColor: "#1e293b4b",
-                      "& .MuiOutlinedInput-root": {
-                        borderRadius: "10px",
-                        borderColor: "#ffffff50",
-                        "& fieldset": { borderColor: "#fff" },
-                        "&:hover fieldset": { borderColor: "#fff" },
-                      },
-                      "& input": {
-                        color: formData.time ? "#fff" : "grey",
-                        "::placeholder": { color: "grey" },
-                      },
-                    },
-                  },
-                }}
-              />
-            </LocalizationProvider>
+            <TextField
+              margin="dense"
+              name="time"
+              value={formData.time || ""}
+              onChange={handleTimeChange}
+              fullWidth
+              placeholder="00:30"
+              sx={{
+                backgroundColor: "#1e293b4b",
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: "10px",
+                  color: "#fff",
+                  "& fieldset": { borderColor: "#fff" },
+                  "&:hover fieldset": { borderColor: "#fff" },
+                },
+                "& input": { color: "#fff" },
+              }}
+            />
           </Box>
         </Box>
       </DialogContent>
 
-      {/* Footer Buttons */}
       <DialogActions
         sx={{
           px: 3,
@@ -257,26 +253,26 @@ export default function AddStationDialog({
             py: 1,
             borderRadius: "8px",
             fontWeight: 500,
-            width: "200px",
+            width: "270px",
             "&:hover": { background: "#334155" },
           }}
         >
           Cancel
         </Button>
         <Button
-          onClick={onCreate}
+          onClick={handleSubmit}
           sx={{
             background: "linear-gradient(90deg,#33B2F7,#CF36E1)",
             color: "#fff",
             px: 3,
             py: 1,
             borderRadius: "8px",
-            width: "200px",
+            width: "270px",
             fontWeight: "600",
             "&:hover": { opacity: 0.9 },
           }}
         >
-          Create
+          {isEditing ? "Update" : "Create"}
         </Button>
       </DialogActions>
     </Dialog>
