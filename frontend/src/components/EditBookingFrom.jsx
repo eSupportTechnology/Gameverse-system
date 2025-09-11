@@ -144,8 +144,11 @@ const EditBookingFrom = ({ open, handleClose }) => {
                     sx: {
                       backgroundColor: "#1F2937",
                       color: "white",
+                      border: '1px solid #374151',
                       "& .MuiMenuItem-root": {
                         backgroundColor: "#1F2937",
+                        fontSize: 12,
+                        borderBottom: '1px solid #374151',
                         "&:hover": {
                           backgroundColor: "#374151",
                         },
@@ -215,6 +218,7 @@ const EditBookingFrom = ({ open, handleClose }) => {
               />
 
             </Box>
+
             {/* start time */}
             <Box display="flex" flexDirection="column" gap={1}>
               {/* Label */}
@@ -248,8 +252,11 @@ const EditBookingFrom = ({ open, handleClose }) => {
                     sx: {
                       backgroundColor: "#1F2937",
                       color: "white",
+                      border: '1px solid #374151',
                       "& .MuiMenuItem-root": {
                         backgroundColor: "#1F2937",
+                        fontSize: 12,
+                        borderBottom: '1px solid #374151',
                         "&:hover": {
                           backgroundColor: "#374151",
                         },
@@ -263,6 +270,8 @@ const EditBookingFrom = ({ open, handleClose }) => {
                 </MenuItem>
                 <MenuItem value="12.00">12.00</MenuItem>
                 <MenuItem value="1.00">01.00</MenuItem>
+                <MenuItem value="12.00">01.30</MenuItem>
+                <MenuItem value="1.00">02.00</MenuItem>
               </Select>
             </Box>
 
@@ -299,8 +308,11 @@ const EditBookingFrom = ({ open, handleClose }) => {
                     sx: {
                       backgroundColor: "#1F2937",
                       color: "white",
+                      border: '1px solid #374151',
                       "& .MuiMenuItem-root": {
                         backgroundColor: "#1F2937",
+                        fontSize: 12,
+                        borderBottom: '1px solid #374151',
                         "&:hover": {
                           backgroundColor: "#374151",
                         },
@@ -312,8 +324,10 @@ const EditBookingFrom = ({ open, handleClose }) => {
                 <MenuItem value="">
                   <em style={{ fontSize: 14, color: "#9CA3AF", fontStyle: "normal" }}>Select duration</em>
                 </MenuItem>
-                <MenuItem value="1h">1 Hour</MenuItem>
-                <MenuItem value="2h">2 Hours</MenuItem>
+                <MenuItem value="30m">30 min</MenuItem>
+                <MenuItem value="1h 30m">1 hour 30min </MenuItem>
+                <MenuItem value="2h">2 hour</MenuItem>
+                <MenuItem value="2h 30m">2 hour 30min</MenuItem>
               </Select>
             </Box>
           </Box>
@@ -381,8 +395,11 @@ const EditBookingFrom = ({ open, handleClose }) => {
                   sx: {
                     backgroundColor: "#1F2937",
                     color: "white",
+                    border: '1px solid #374151',
                     "& .MuiMenuItem-root": {
                       backgroundColor: "#1F2937",
+                      fontSize: 12,
+                      borderBottom: '1px solid #374151',
                       "&:hover": {
                         backgroundColor: "#374151",
                       },
@@ -396,6 +413,7 @@ const EditBookingFrom = ({ open, handleClose }) => {
               </MenuItem>
               <MenuItem value="cash">Cash</MenuItem>
               <MenuItem value="card">Card</MenuItem>
+              <MenuItem value="card">Online transfer</MenuItem>
             </Select>
           </Box>
           {/* amount section */}
@@ -415,7 +433,7 @@ const EditBookingFrom = ({ open, handleClose }) => {
 
         {/* cancel & create button */}
         <DialogActions sx={{ px: 2 }}>
-          <Button onClick={handleClose} variant="contained" sx={{ backgroundColor: "#1F2937", width: '50%', py: 1, textTransform: 'capitalize' }}>
+          <Button onClick={handleClose} variant="contained" sx={{ backgroundColor: "#1F2937", width: '50%', py: 1, textTransform: 'capitalize', "&:hover": { bgcolor: "#374151", }, }}>
             Cancel
           </Button>
           <Button
@@ -426,7 +444,6 @@ const EditBookingFrom = ({ open, handleClose }) => {
               py: 1,
               textTransform: 'capitalize',
               background: "linear-gradient(to right, #0CD7FF, #8A38F5)",
-              "&:hover": { background: "linear-gradient(to right, #8A38F5, #0CD7FF)" },
             }}
           >
             Update Booking

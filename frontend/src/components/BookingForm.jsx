@@ -109,6 +109,7 @@ const BookingForm = ({ open, handleClose }) => {
                 }}
               />
             </Box>
+
             {/* station */}
             <Box display="flex" flexDirection="column" gap={1}>
               {/* Label */}
@@ -142,8 +143,11 @@ const BookingForm = ({ open, handleClose }) => {
                     sx: {
                       backgroundColor: "#1F2937",
                       color: "white",
+                      border:'1px solid #374151',
                       "& .MuiMenuItem-root": {
                         backgroundColor: "#1F2937",
+                        borderBottom:'1px solid #374151',
+                        fontSize:12,
                         "&:hover": {
                           backgroundColor: "#374151",
                         },
@@ -160,6 +164,7 @@ const BookingForm = ({ open, handleClose }) => {
               </Select>
 
             </Box>
+
             {/* date */}
             <Box display="flex" flexDirection="column" gap={1}>
               {/* Label */}
@@ -212,6 +217,7 @@ const BookingForm = ({ open, handleClose }) => {
               />
 
             </Box>
+
             {/* start time */}
             <Box display="flex" flexDirection="column" gap={1}>
               {/* Label */}
@@ -234,7 +240,7 @@ const BookingForm = ({ open, handleClose }) => {
                   fontWeight: 500,
                   "& .MuiSelect-displayEmpty": {
                     color: "#9CA3AF",
-                    fontSize: "14px",
+                    fontSize:12,
                   },
                   "& .MuiSelect-select": {
                     padding: "8px 14px",
@@ -245,8 +251,11 @@ const BookingForm = ({ open, handleClose }) => {
                     sx: {
                       backgroundColor: "#1F2937",
                       color: "white",
+                      border:'1px solid #374151',
                       "& .MuiMenuItem-root": {
                         backgroundColor: "#1F2937",
+                        fontSize:12,
+                        borderBottom:'1px solid #374151',
                         "&:hover": {
                           backgroundColor: "#374151",
                         },
@@ -260,8 +269,11 @@ const BookingForm = ({ open, handleClose }) => {
                 </MenuItem>
                 <MenuItem value="12.00">12.00</MenuItem>
                 <MenuItem value="1.00">01.00</MenuItem>
+                <MenuItem value="12.00">01.30</MenuItem>
+                <MenuItem value="1.00">02.00</MenuItem>
               </Select>
             </Box>
+
             {/* Duration */}
             <Box display="flex" flexDirection="column" gap={1}>
               {/* Label */}
@@ -295,8 +307,11 @@ const BookingForm = ({ open, handleClose }) => {
                     sx: {
                       backgroundColor: "#1F2937",
                       color: "white",
+                      border:'1px solid #374151',
                       "& .MuiMenuItem-root": {
                         backgroundColor: "#1F2937",
+                        borderBottom:'1px solid #374151',
+                        fontSize:12,
                         "&:hover": {
                           backgroundColor: "#374151",
                         },
@@ -308,11 +323,14 @@ const BookingForm = ({ open, handleClose }) => {
                 <MenuItem value="">
                   <em style={{ fontSize: 14, color: "#9CA3AF", fontStyle: "normal" }}>Select duration</em>
                 </MenuItem>
-                <MenuItem value="1h">1 Hour</MenuItem>
-                <MenuItem value="2h">2 Hours</MenuItem>
+                <MenuItem value="30m">30 min</MenuItem>
+                <MenuItem value="1h 30m">1 hour 30min </MenuItem>
+                <MenuItem value="2h">2 hour</MenuItem>
+                <MenuItem value="2h 30m">2 hour 30min</MenuItem>
               </Select>
             </Box>
           </Box>
+
           {/* payment method */}
           <Box display="flex" mt={1} flexDirection="column" gap={1}>
             {/* Label */}
@@ -346,8 +364,11 @@ const BookingForm = ({ open, handleClose }) => {
                   sx: {
                     backgroundColor: "#1F2937",
                     color: "white",
+                    border:'1px solid #374151',
                     "& .MuiMenuItem-root": {
                       backgroundColor: "#1F2937",
+                      fontSize:12,                      
+                      borderBottom:'1px solid #374151',
                       "&:hover": {
                         backgroundColor: "#374151",
                       },
@@ -361,6 +382,7 @@ const BookingForm = ({ open, handleClose }) => {
               </MenuItem>
               <MenuItem value="cash">Cash</MenuItem>
               <MenuItem value="card">Card</MenuItem>
+              <MenuItem value="card">Online transfer</MenuItem>
             </Select>
           </Box>
           {/* amount section */}
@@ -380,7 +402,7 @@ const BookingForm = ({ open, handleClose }) => {
 
         {/* cancel & create button */}
         <DialogActions sx={{ px: 2 }}>
-          <Button onClick={handleClose} variant="contained" sx={{ backgroundColor: "#1F2937", width: '50%', py: 1, textTransform: 'capitalize' }}>
+          <Button onClick={handleClose} variant="contained" sx={{ backgroundColor: "#1F2937", width: '50%', py: 1, textTransform: 'capitalize',"&:hover": { bgcolor: "#374151" }, }}>
             Cancel
           </Button>
           <Button
