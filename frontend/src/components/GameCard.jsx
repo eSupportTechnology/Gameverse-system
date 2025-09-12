@@ -1,6 +1,7 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Card, CardContent, Typography, Button, Box } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
+import EditGame from './EditGame';
 
 
 const methodLabels = {
@@ -9,7 +10,9 @@ const methodLabels = {
   Carrom: "Per hour:",
 };
 
-const GameCard = ({ game , onPlay  }) => {
+const GameCard = ({ game, onPlay }) => {
+  const [editOpen, setEditOpen] = useState(false);
+
   return (
     <div>
 
@@ -26,7 +29,9 @@ const GameCard = ({ game , onPlay  }) => {
           {/* Title */}
           <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
             <Typography variant="h6" fontWeight={500} fontSize={16} color="#fff">{game.title}</Typography>
-            <EditIcon sx={{ fontSize: 16, color: "gray", cursor: "pointer" }} />
+            <EditIcon
+              onClick={() => setEditOpen(true)}
+              sx={{ fontSize: 16, color: "gray", cursor: "pointer" }} />
           </Box>
 
           {/* Location */}
@@ -58,7 +63,7 @@ const GameCard = ({ game , onPlay  }) => {
               textTransform: "none",
               "&:hover": { bgcolor: "#1F2937" },
             }}
-           onClick={onPlay}
+            onClick={onPlay}
           >
             Play
           </Button>
@@ -68,6 +73,9 @@ const GameCard = ({ game , onPlay  }) => {
             handleClose={handleClose}
             booking={selectedBooking}
           /> */}
+
+          {/* Edit game from */}
+          <EditGame open={editOpen} handleClose={() => setEditOpen(false)} />
 
         </CardContent>
       </Card>
