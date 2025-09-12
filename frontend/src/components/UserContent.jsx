@@ -12,9 +12,14 @@ import SearchIcon from "@mui/icons-material/Search";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddUserDialog from "./AddUserDialog";
+import DeleteConfirmDialog from "./DeleteConfirmDialog";
+import DeleteSuccessDialog from "./DeleteSuccessDialog"; // ✅ import success dialog
+import UpdateSuccessDialog from "./UpdateSuccess";
+
 
 export default function UserManagement() {
   const [open, setOpen] = useState(false);
+  const [updateSuccessOpen, setUpdateSuccessOpen] = useState(false);
   const [users, setUsers] = useState([
     { fullName: "Alex Chen", role: "Admin", status: "Active", lastLogin: "02.35pm", avatar: "/images/user1.png" },
     { fullName: "Sarah Kim", role: "Admin", status: "Active", lastLogin: "04.45pm", avatar: "/images/user2.png" },
@@ -28,8 +33,14 @@ export default function UserManagement() {
 
   const [isEditing, setIsEditing] = useState(false);
   const [editIndex, setEditIndex] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const [searchQuery, setSearchQuery] = useState(""); // <-- added search state
+  // delete dialog states
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteIndex, setDeleteIndex] = useState(null);
+
+  // delete success popup
+  const [deleteSuccessOpen, setDeleteSuccessOpen] = useState(false);
 
   const handleOpen = () => {
     setIsEditing(false);
@@ -45,19 +56,36 @@ export default function UserManagement() {
   };
 
   const handleDeleteClick = (index) => {
-    setUsers((prev) => prev.filter((_, idx) => idx !== index));
+    setDeleteIndex(index);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = () => {
+    setUsers((prev) => prev.filter((_, idx) => idx !== deleteIndex));
+    setDeleteDialogOpen(false);
+    setDeleteIndex(null);
+    setDeleteSuccessOpen(true); // ✅ show success popup
   };
 
   const handleClose = () => setOpen(false);
 
   const handleCreateOrUpdate = () => {
-    if (isEditing && editIndex !== null) {
-      setUsers((prev) => prev.map((u, idx) => (idx === editIndex ? formData : u)));
-    } else {
-      setUsers((prev) => [...prev, formData]);
-    }
-    setOpen(false);
-  };
+  if (isEditing && editIndex !== null) {
+    setUsers((prev) => prev.map((u, idx) => (idx === editIndex ? formData : u)));
+    setUpdateSuccessOpen(true); // ✅ show update success popup
+  } else {
+    setUsers((prev) => [...prev, formData]);
+  }
+  setOpen(false);
+};
+
+  
+  
+  
+  
+  
+  
+  
 
   return (
     <Box sx={{ backgroundColor: "#000", minHeight: "100vh", color: "#fff", pt: "70px", px: 3 }}>
@@ -90,8 +118,8 @@ export default function UserManagement() {
             placeholder="Search"
             variant="outlined"
             fullWidth
-            value={searchQuery} // <-- bind search query
-            onChange={(e) => setSearchQuery(e.target.value)} // <-- update search query
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -135,7 +163,7 @@ export default function UserManagement() {
 
           {/* Table Rows */}
           {users
-            .filter((user) => user.fullName.toLowerCase().includes(searchQuery.toLowerCase())) // <-- filter users by name
+            .filter((user) => user.fullName.toLowerCase().includes(searchQuery.toLowerCase()))
             .map((user, idx) => (
               <Box
                 key={idx}
@@ -198,6 +226,24 @@ export default function UserManagement() {
         setFormData={setFormData}
         isEditing={isEditing}
       />
+
+      {/* Delete Confirm Dialog */}
+      <DeleteConfirmDialog
+        open={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+        onConfirm={confirmDelete}
+      />
+
+      {/* Delete Success Dialog */}
+      <DeleteSuccessDialog
+        open={deleteSuccessOpen}
+        onClose={() => setDeleteSuccessOpen(false)}
+      />
+
+      <UpdateSuccessDialog
+  open={updateSuccessOpen}
+  onClose={() => setUpdateSuccessOpen(false)}
+/>
     </Box>
   );
 }
