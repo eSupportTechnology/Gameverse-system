@@ -201,7 +201,7 @@ const AddNewGame = ({ open, handleClose }) => {
 
         {/* cancel & create button */}
         <DialogActions sx={{ px: 3 }}>
-          <Button  onClick={handleCancelOpen} variant="contained" sx={{ fontSize: 16, fontWeight: 'bold', backgroundColor: "#1F2937", width: '50%', py: 1, textTransform: 'capitalize', "&:hover": { bgcolor: "#374151" }, }}>
+          <Button  onClick={handleCancelOpen} variant="contained" sx={{ fontSize: 16, fontWeight: 'bold', backgroundColor: "#1F2937", width: '50%', py: 0.5, textTransform: 'capitalize', "&:hover": { bgcolor: "#374151" }, }}>
             Cancel
           </Button>
           <Button
@@ -211,7 +211,7 @@ const AddNewGame = ({ open, handleClose }) => {
               fontSize: 16,
               fontWeight: 'bold',
               width: '50%',
-              py: 1,
+              py: 0.5,
               textTransform: 'capitalize',
               background: "linear-gradient(to right, #0CD7FF, #8A38F5)",
               "&:hover": { background: "linear-gradient(to right, #0bbfe0, #732ed1)" },
