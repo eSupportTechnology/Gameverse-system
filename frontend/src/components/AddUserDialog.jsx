@@ -92,6 +92,7 @@ const handleConfirmCancel = () => {
           <CloseIcon />
         </IconButton>
       </DialogTitle>
+      {/* image to can be upload here */}
 
       
       <Box display="flex" flexDirection="column" alignItems="center" my={2}>
