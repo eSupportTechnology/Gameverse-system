@@ -58,7 +58,7 @@ export default function AddStationDialog({
       fullWidth
       PaperProps={{
         sx: {
-          backgroundColor: "#0f172a",
+          backgroundColor: "#111827",
           color: "#fff",
           borderRadius: "16px",
           p: 2,
@@ -88,6 +88,7 @@ export default function AddStationDialog({
         <TextField
           select
           margin="dense"
+        
           name="name"
           value={formData.name || ""}
           onChange={handleChange}
@@ -95,9 +96,11 @@ export default function AddStationDialog({
           displayEmpty
           sx={{
             mb: 2,
+            py: 0,
             backgroundColor: "#1e293b4b",
             "& .MuiOutlinedInput-root": {
               borderRadius: "10px",
+               backgroundColor: "#1e293b4b",
               color: "white",
               "& fieldset": { borderColor: "#809fcd4e" },
               "&:hover fieldset": { borderColor: "#ffffff71" },
@@ -106,22 +109,26 @@ export default function AddStationDialog({
             "& .MuiSelect-select:empty": { color: "#94a3b8" },
           }}
         >
-          <MenuItem disabled value="">
-            Select Station
-          </MenuItem>
-          <MenuItem value="PS5 Station 1">PS5 Station 1</MenuItem>
-          <MenuItem value="PS5 Station 2">PS5 Station 2</MenuItem>
-          <MenuItem value="PS5+VR">PS5+VR</MenuItem>
-          <MenuItem value="8 Ball Pool (Supreme)">8 Ball Pool (Supreme)</MenuItem>
-          <MenuItem value="8 Ball Pool (Premium)">8 Ball Pool (Premium)</MenuItem>
-          <MenuItem value="CRS+VR (PS V R2)">CRS+VR (PS V R2)</MenuItem>
-          <MenuItem value="Car Racing Simulator">Car Racing Simulator</MenuItem>
+          
+          
+          
+          
+          <MenuItem value="PS5 Station 1" sx={{background: "#171C2D",border: "0.3px solid #c9c0c096",py:1,}} >PS5 Station 1</MenuItem>
+          <MenuItem value="PS5 Station 2" sx={{background: "#171C2D",border: "0.3px solid #c9c0c096",py:1,}} >PS5 Station 2</MenuItem>
+          <MenuItem value="PS5+VR" sx={{background: "#171C2D",border: "0.3px solid #c9c0c096",py:1,}} >PS5+VR</MenuItem>
+          <MenuItem value="8 Ball Pool (Supreme)" sx={{background: "#171C2D",border: "0.3px solid #c9c0c096",py:1,}} >8 Ball Pool (Supreme)</MenuItem>
+          <MenuItem value="8 Ball Pool (Premium)" sx={{background: "#171C2D",border: "0.3px solid #c9c0c096",py:1,}} >8 Ball Pool (Premium)</MenuItem>
+          <MenuItem value="CRS+VR (PS V R2)" sx={{background: "#171C2D",border: "0.3px solid #c9c0c096",py:1,}} >CRS+VR (PS V R2)</MenuItem>
+          <MenuItem value="Car Racing Simulator" sx={{background: "#171C2D",border: "1px solid #c9c0c096",py:1,}} >Car Racing Simulator</MenuItem>
         </TextField>
 
         {/* Station Type */}
         <Typography variant="subtitle2" sx={{ color: "#94a3b8", mb: 0.5 }}>
           Station Type
         </Typography>
+
+        
+        
         <TextField
           select
           margin="dense"
@@ -132,23 +139,28 @@ export default function AddStationDialog({
           displayEmpty
           sx={{
             mb: 2,
-            backgroundColor: "#1e293b4b",
+             borderColor: "#203e7b8c",
+            padding: 0,
+           backgroundColor: "#1e293b4b",
             "& .MuiOutlinedInput-root": {
               borderRadius: "10px",
+              backgroundColor: "#1e293b4b",
               color: "white",
-              "& fieldset": { borderColor: "#809fcd4e" },
-              "&:hover fieldset": { borderColor: "#ffffff71" },
+              
+              "& fieldset": { borderColor: "#809fcd4e"  , padding: 0,},
+              "&:hover fieldset": { borderColor: "#ffffff71", background: "#172336ff" },
               "& .MuiSelect-icon": { color: "#fff" },
             },
             "& .MuiSelect-select:empty": { color: "#94a3b8" },
           }}
         >
-          <MenuItem disabled value="">
-            Select Type
-          </MenuItem>
-          <MenuItem value="PlayStation">PlayStation</MenuItem>
-          <MenuItem value="Pool">Pool</MenuItem>
-          <MenuItem value="Simulator">Simulator</MenuItem>
+          <box   sx={{background: "#171C2D",border: "0.3px solid #c9c0c065",py:0,}} >
+          
+          
+          <MenuItem value="PlayStation" sx={{background: "#171C2D",border: "0.3px solid #c9c0c096"}}>PlayStation</MenuItem>
+          <MenuItem value="Pool" sx={{background: "#171C2D",border: "0.3px solid #c9c0c096"}}>Pool</MenuItem>
+          <MenuItem value="Simulator" sx={{background: "#171C2D",border: "0.3px solid #c9c0c096"}}>Simulator</MenuItem>
+          </box>
         </TextField>
 
         {/* Location */}
@@ -248,11 +260,14 @@ export default function AddStationDialog({
           onClick={onClose}
           sx={{
             background: "#1e293b",
-            color: "gray",
+            color: "white",
             px: 3,
             py: 1,
             borderRadius: "8px",
+            // borderColor: "#809fcd4e" ,
+            border: "0.3px solid #809fcd4e",
             fontWeight: 500,
+            fontSize: "20px",
             width: "270px",
             "&:hover": { background: "#334155" },
           }}
@@ -267,6 +282,8 @@ export default function AddStationDialog({
             px: 3,
             py: 1,
             borderRadius: "8px",
+            fontSize: "20px",
+            border: "0.3px solid #809fcd4e",
             width: "270px",
             fontWeight: "600",
             "&:hover": { opacity: 0.9 },
