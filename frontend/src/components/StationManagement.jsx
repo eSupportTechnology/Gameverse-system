@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import {
   Box,
@@ -12,6 +13,8 @@ import {
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import AddStationDialog from "./AddStationDialog";
+import CreateSuccessDialog from "./CreateSuccessDialog"; 
+import UpdateSuccessDialog from "./UpdateSuccess"; 
 
 export default function StationManagement() {
   const [tab, setTab] = useState(0);
@@ -29,6 +32,10 @@ export default function StationManagement() {
     bookings: 0,
     time: "",
   });
+
+  
+  const [createSuccessOpen, setCreateSuccessOpen] = useState(false);
+  const [updateSuccessOpen, setUpdateSuccessOpen] = useState(false);
 
   const handleTabChange = (event, newValue) => setTab(newValue);
 
@@ -60,9 +67,12 @@ export default function StationManagement() {
       setStations((prev) =>
         prev.map((s, idx) => (idx === editIndex ? formData : s))
       );
+      setUpdateSuccessOpen(true); 
     } else {
       setStations((prev) => [...prev, formData]);
+      setCreateSuccessOpen(true); 
     }
+
     setFormData({
       name: "",
       type: "",
@@ -86,7 +96,7 @@ export default function StationManagement() {
     <Box
       sx={{ backgroundColor: "#000", minHeight: "500vh", color: "#fff", pt: "70px" }}
     >
-      {/* Header */}
+      {/* Header & Tabs */}
       <Box sx={{ backgroundColor: "#0E111B", p: 3, borderRadius: 2 }}>
         <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
           <Box>
@@ -114,7 +124,6 @@ export default function StationManagement() {
           </Button>
         </Box>
 
-        {/* Tabs */}
         <Box sx={{ backgroundColor: "#171c2da1", p: 1, borderRadius: 2, mb: 3 }}>
           <Tabs
             value={tab}
@@ -142,23 +151,23 @@ export default function StationManagement() {
           </Tabs>
         </Box>
 
-        {/* Stations List */}
+       
         <Box sx={{ backgroundColor: "#0e111b78", p: 3, borderRadius: 2 }}>
           <Grid container spacing={3} justifyContent="flex-start">
             {filteredStations.map((station, idx) => (
               <Grid key={idx} item xs={12} sm={6} md={6} lg={4}>
                 <Card
                   sx={{
-                    p: 3, // more padding inside card
+                    p: 3,
                     borderRadius: 2,
-                    minWidth: 280, // ensures card never gets too small
+                    minWidth: 280,
                     backgroundColor: "#171C2D",
                     border: "1px solid #2D3748",
                     boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
                   }}
                 >
                   <CardContent sx={{ p: 1 }}>
-                    {/* Top row: dot + status left, pencil right */}
+                   
                     <Box
                       sx={{
                         display: "flex",
@@ -168,25 +177,20 @@ export default function StationManagement() {
                       }}
                     >
                       <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                        {/* Round status dot */}
                         <Box
                           sx={{
                             width: 12,
                             height: 12,
+                            color: "#47e882ff",
                             borderRadius: "50%",
                             backgroundColor:
-                              station.status === "Available"
-                                ? "#22C55E"
-                                : "#F59E0B",
+                              station.status === "Available" ? "#0a5a294d" : "#f59f0b74",
                           }}
                         />
-                        {/* Status pill */}
                         <Box
                           sx={{
                             backgroundColor:
-                              station.status === "Available"
-                                ? "#065F46"
-                                : "#92400E",
+                              station.status === "Available" ? "#065f465d" : "#92410e9f",
                             px: 2,
                             py: 0.5,
                             borderRadius: "12px",
@@ -199,35 +203,22 @@ export default function StationManagement() {
                         </Box>
                       </Box>
 
-                      {/* Pencil Icon */}
                       <IconButton
                         size="small"
                         onClick={() => handleEdit(station, idx)}
-                        sx={{
-                          color: "#9CA3AF",
-                          "&:hover": { color: "#fff" },
-                        }}
+                        sx={{ color: "#9CA3AF", "&:hover": { color: "#fff" } }}
                       >
                         <EditIcon fontSize="small" />
                       </IconButton>
                     </Box>
 
-                    {/* Station Name */}
-                    <Typography
-                      variant="subtitle1"
-                      fontWeight={600}
-                      color="white"
-                      sx={{ mb: 0.5 }}
-                    >
+                    <Typography variant="subtitle1" fontWeight={600} color="white" sx={{ mb: 0.5 }}>
                       {station.name}
                     </Typography>
-
-                    {/* Station Type */}
                     <Typography variant="body2" color="#9CA3AF" sx={{ mb: 1 }}>
                       {station.type}
                     </Typography>
 
-                    {/* Time + Price */}
                     <Box
                       sx={{
                         display: "flex",
@@ -245,7 +236,6 @@ export default function StationManagement() {
                       </Typography>
                     </Box>
 
-                    {/* Location + Bookings */}
                     <Typography variant="body2" color="#9CA3AF" sx={{ mb: 0.5 }}>
                       Location: <span style={{ color: "white" }}>{station.location}</span>
                     </Typography>
@@ -254,7 +244,6 @@ export default function StationManagement() {
                       No of bookings: <span style={{ color: "white" }}>{station.bookings}</span>
                     </Typography>
 
-                    {/* Set Offline Button */}
                     <Button
                       fullWidth
                       sx={{
@@ -277,7 +266,7 @@ export default function StationManagement() {
         </Box>
       </Box>
 
-      {/* Dialog */}
+     
       <AddStationDialog
         open={open}
         onClose={handleClose}
@@ -285,6 +274,16 @@ export default function StationManagement() {
         formData={formData}
         setFormData={setFormData}
         isEditing={isEditing}
+      />
+
+      {/* Success Dialogs */}
+      <CreateSuccessDialog
+        open={createSuccessOpen}
+        onClose={() => setCreateSuccessOpen(false)}
+      />
+      <UpdateSuccessDialog
+        open={updateSuccessOpen}
+        onClose={() => setUpdateSuccessOpen(false)}
       />
     </Box>
   );
