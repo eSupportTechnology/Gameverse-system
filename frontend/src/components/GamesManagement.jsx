@@ -10,6 +10,7 @@ import {
 import AddNewGame from './AddNewGame';
 import { games } from "../assets/assets.js";
 import GameCard from './GameCard.jsx';
+import CheckoutGame from './CheckoutGame.jsx';
 
 const categories = ["All Games", "Arcade Machine", "Archery", "Carrom"];
 
@@ -17,6 +18,7 @@ const categories = ["All Games", "Arcade Machine", "Archery", "Carrom"];
 const GamesManagement = () => {
   const [openAddGame, setOpenAddGame] = useState(false);
   const [activeCategory, setActiveCategory] = useState("All Games");
+  const [selectedGame, setSelectedGame] = useState(null);
 
 
   const filteredGames =
@@ -142,10 +144,14 @@ const GamesManagement = () => {
         >
           {filteredGames.map((game) => (
             <Box key={game.id} sx={{ flex: "1 1 250px", maxWidth: 280 }}>
-              <GameCard game={game} />
+              <GameCard game={game} onPlay={() => setSelectedGame(game)} />
             </Box>
           ))}
         </Box>
+        {/* Checkout Box (only show if a game is selected) */}
+        {selectedGame && (
+          <CheckoutGame game={selectedGame} handleClose={() => setSelectedGame(null)} />
+        )}
       </Box>
 
 

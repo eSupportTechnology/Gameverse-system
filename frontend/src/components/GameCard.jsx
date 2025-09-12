@@ -2,7 +2,14 @@ import React from 'react'
 import { Card, CardContent, Typography, Button, Box } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 
-const GameCard = ({ game }) => {
+
+const methodLabels = {
+  "Arcade Machine": "Coin",
+  Archery: "Arrows:",
+  Carrom: "Per hour:",
+};
+
+const GameCard = ({ game , onPlay  }) => {
   return (
     <div>
 
@@ -32,7 +39,7 @@ const GameCard = ({ game }) => {
           {/* Price */}
           <Box display="flex" justifyContent="space-between" mb={2}>
             <Typography fontSize={12} color="#FFFFFF">
-              {game.quntity}
+              {game.quntity} {methodLabels[game.category] || "Price:"}
             </Typography>
             <Typography fontSize={12} color="#0CD7FF">
               LKR {game.price}
@@ -51,7 +58,7 @@ const GameCard = ({ game }) => {
               textTransform: "none",
               "&:hover": { bgcolor: "#1F2937" },
             }}
-          // onClick={() => handleOpen(booking)}
+           onClick={onPlay}
           >
             Play
           </Button>
