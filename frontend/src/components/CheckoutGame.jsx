@@ -21,10 +21,16 @@ const CheckoutGame = ({ game, handleClose }) => {
       <Dialog
         open={Boolean(game)}
         onClose={handleClose}
-        maxWidth="xs"
-        fullWidth
         PaperProps={{
-          sx: { bgcolor: "#0E111B", borderRadius: "12px", color: "#fff", px: 1, pb: 1 },
+          sx: {
+            bgcolor: "#0E111B",
+            borderRadius: "12px",
+            color: "#fff",
+            px: 1,
+            pb: 1,
+            width: "360px",
+            maxWidth: "90vw",
+          },
         }}
       >
         {/*Header  */}
@@ -40,7 +46,7 @@ const CheckoutGame = ({ game, handleClose }) => {
 
         <DialogContent sx={{ py: 0 }}>
           {/* Arrow/coins/hour price */}
-          <Box display="flex" justifyContent="space-between" mb={1}>
+          <Box display="flex" justifyContent="space-between" mb={1.5}>
             <Typography fontSize={14} color="#FFFFFF">
               {priceLabels[game.category] || "Price:"}
             </Typography>
@@ -50,25 +56,41 @@ const CheckoutGame = ({ game, handleClose }) => {
           </Box>
 
           {/* Arrow/coins/hour */}
-          <Box display="flex" justifyContent="space-between" mb={1}>
+          <Box display="flex" justifyContent="space-between" mb={1.5}>
             <Typography fontSize={14} color="#FFFFFF">
               {game.playing_method}:
             </Typography>
-            <Typography fontSize={13} color="#9CA3AF" sx={{ border: '1px solid #374151', py: 0.2, px: 2 }}>
+            <Typography fontSize={13} color="#9CA3AF"
+              sx={{
+                border: '1px solid #374151',
+                py: 0.2,
+                px: 2,
+                minWidth: "50px",
+                textAlign: "center",
+                display: "inline-block",
+              }}
+            >
               {game.quntity} {methodLabels[game.category] || "Price:"}
             </Typography>
           </Box>
 
           {/* Show only for Carrom */}
           {game.category === "Carrom" && (
-            <Box display="flex" justifyContent="space-between" mb={1}>
+            <Box display="flex" justifyContent="space-between" mb={1.5}>
               <Typography fontSize={14} color="#FFFFFF">
                 Players:
               </Typography>
               <Typography
                 fontSize={13}
                 color="#9CA3AF"
-                sx={{ border: "1px solid #374151", py: 0.2, px: 2 }}
+                sx={{
+                  border: '1px solid #374151',
+                  py: 0.2,
+                  px: 2,
+                  minWidth: "50px",
+                  textAlign: "center",
+                  display: "inline-block",
+                }}
               >
                 {game.players}
               </Typography>
@@ -77,7 +99,7 @@ const CheckoutGame = ({ game, handleClose }) => {
 
 
           {/* Full amount */}
-          <Box display="flex" justifyContent="space-between" mb={1}>
+          <Box display="flex" justifyContent="space-between" mb={1.5}>
             <Typography fontSize={14} color="#FFFFFF">
               Full Amount:
             </Typography>
@@ -87,18 +109,26 @@ const CheckoutGame = ({ game, handleClose }) => {
           </Box>
 
           {/* Discount price */}
-          <Box display="flex" justifyContent="space-between" mb={1}>
+          <Box display="flex" justifyContent="space-between" mb={1.5}>
             <Typography fontSize={14} color="#FFFFFF">
               Discount Price:
             </Typography>
-            <Typography fontSize={12} color="#9CA3AF" sx={{ border: '1px solid #374151', py: 0.2, px: 2 }}>
+            <Typography fontSize={12} color="#9CA3AF"
+              sx={{
+                border: '1px solid #374151',
+                py: 0.2,
+                px: 2,
+                minWidth: "50px",
+                textAlign: "center",
+                display: "inline-block",
+              }}>
               LKR {game.discount_price}
             </Typography>
           </Box>
           <hr style={{ border: "none", borderTop: "1px solid #374151" }} />
 
           {/* Balnce payement */}
-          <Box display="flex" justifyContent="space-between" mb={1}>
+          <Box display="flex" justifyContent="space-between" mb={1.5}>
             <Typography fontSize={16} fontWeight='bold' color="#FFFFFF">
               Balance payment:
             </Typography>
