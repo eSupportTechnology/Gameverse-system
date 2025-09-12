@@ -87,7 +87,7 @@ const handleConfirmCancel = () => {
           alignItems: "center",
         }}
       >
-        {isEditing ? "Edit User" : " + Add New User"}
+        {isEditing ? "Edit User" : "Add New User"}
         <IconButton onClick={onClose} sx={{ color: "#94a3b8" }}>
           <CloseIcon />
         </IconButton>
