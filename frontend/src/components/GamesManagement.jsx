@@ -137,7 +137,7 @@ const GamesManagement = () => {
           sx={{
             display: "flex",
             flexWrap: "wrap",
-            justifyContent: "flex- start",
+            justifyContent: {xs:'center', sm:'center', md:'flex-start'},
             gap: 2,
             p: 2,
           }}
