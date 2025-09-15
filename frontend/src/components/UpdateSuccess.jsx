@@ -10,10 +10,11 @@ export default function UpdateSuccessDialog({ open, onClose }) {
         sx: {
           backgroundColor: "#070F1E",
           color: "white",
-          width: "350px",
+          width: "400px",
           padding: "20px",
+          border: "2px solid #0aaffb59",
           borderRadius: "12px",
-          boxShadow: "0px 0px 30px rgba(0, 17, 255, 0.39)", // glow shadow
+         // boxShadow: "0px 0px 30px rgba(0, 17, 255, 0.39)", // glow shadow
           textAlign: "center",
           p: 2,
         },
@@ -24,13 +25,15 @@ export default function UpdateSuccessDialog({ open, onClose }) {
           fontWeight: "600",
           background: "linear-gradient(to right, #0aaefbff, #ed06deff)",
           WebkitBackgroundClip: "text",
+           fontSize: "24px",
           WebkitTextFillColor: "transparent",
         }}
       >
         <img
           src="/images/successu.png" // ✅ your update success icon
           alt="success"
-          width="40"
+          width="80"
+          height={80}
           style={{ marginBottom: 8 }}
         />
         <br />
@@ -43,9 +46,9 @@ export default function UpdateSuccessDialog({ open, onClose }) {
         <Button
           onClick={onClose}
           sx={{
-            background: "linear-gradient(to right, #0a152bd0, #8a38f557)",
+            background: "linear-gradient(to right, #135b70d0, #8a38f557)",
             color: "#fff",
-            width: "100px",
+            width: "150px",
             textTransform: "none",
             px: 3,
             "&:hover": { opacity: 0.9 },
