@@ -17,18 +17,21 @@ export default function DeleteConfirmDialog({ open, onClose, onConfirm }) {
         sx: {
           backgroundColor: "#070F1E",
           color: "white",
+          width: "400px",
           borderRadius: "12px",
-          boxShadow: "0px 0px 30px rgba(0, 17, 255, 0.39)", // 🔥 glow shadow
+           border: "2px solid #0aaffb59",
+          //boxShadow: "0px 0px 30px rgba(0, 17, 255, 0.39)", // 🔥 glow shadow
           textAlign: "center",
           p: 2,
         },
       }}
     >
-      <DialogTitle sx={{ fontWeight: "600" }}>
+      <DialogTitle sx={{ fontWeight: "600",fontSize: "24px",}}>
         <img
           src="/images/q.png" // 🔹 your delete icon PNG
           alt="delete"
-          width="40"
+          width="80"
+          height={80}
           style={{ marginBottom: 8 }}
         />
         <br />
@@ -50,6 +53,7 @@ export default function DeleteConfirmDialog({ open, onClose, onConfirm }) {
                background: "linear-gradient(to right, #0a152bd0, #8a38f557)",
             color: "#fff",
             textTransform: "none",
+           // width: "150px",
             px: 3,
             "&:hover": { opacity: 0.9 },
           }}
