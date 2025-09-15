@@ -1,6 +1,7 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Box, Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, IconButton } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
+import PaymentSuccess from '../assets/PaymentSuccess.png'
 
 
 const priceLabels = {
@@ -16,6 +17,16 @@ const methodLabels = {
 };
 
 const CheckoutGame = ({ game, handleClose }) => {
+
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
+   
+    // handle payment
+    const handlpay = () => {
+      console.log("payament successfully!");
+      setPaymentSuccess(true)
+  
+    };
+
   return (
     <div>
       <Dialog
@@ -144,6 +155,7 @@ const CheckoutGame = ({ game, handleClose }) => {
             Cancel
           </Button>
           <Button
+            onClick={handlpay}
             variant="contained"
             sx={{
               fontSize: 16,
@@ -159,6 +171,56 @@ const CheckoutGame = ({ game, handleClose }) => {
           </Button>
 
         </DialogActions>
+        {/* create Success Popup */}
+        <Dialog
+          open={paymentSuccess}
+          PaperProps={{
+            sx: {
+              bgcolor: "#0A192F",
+              borderRadius: "16px",
+              py: 2,
+              px: 8,
+              textAlign: "center",
+              color: "white",
+              border: '1px solid #3B4859'
+            },
+          }}
+        >
+          <DialogContent>
+            <Box sx={{ mb: 1, }}>
+              <img src={PaymentSuccess} alt="" width={80} />
+            </Box>
+            <Typography
+              variant="h6"
+              sx={{
+                background: "linear-gradient(90deg, #00C6FF, #FF00CC)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                fontSize: 24,
+                fontWeight: 600,
+                mb: 1
+              }}
+            >
+             Payment Successful !
+            </Typography>
+            <Button
+              onClick={() => setPaymentSuccess(false)}
+              sx={{
+                px: 8,
+                fontSize: 14,
+                textTransform: 'capitalize',
+                borderRadius: "8px",
+                background: "linear-gradient(90deg, rgba(12, 215, 255, 0.4) 0%, rgba(138, 56, 245, 0.4) 73%)",
+                color: "white",
+                "&:hover": {
+                  background: "linear-gradient(90deg, #0CD7FF 0%, #8A38F5 73%)",
+                },
+              }}
+            >
+              Ok
+            </Button>
+          </DialogContent>
+        </Dialog>
 
       </Dialog>
 
