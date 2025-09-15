@@ -267,7 +267,7 @@ const PosSystem = () => {
           </Button>
         </Box>
 
-        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 2 }}>
+        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 2 , bgcolor: "#0E111B", p: 1, }}>
           {categories.map((cat) => (
             <Button
               key={cat}
@@ -278,7 +278,6 @@ const PosSystem = () => {
                 color: "white",
                 textTransform: "none",
                 "&:hover": { bgcolor: "#374151" },
-                flex: "1 1 auto",
                 minWidth: 80,
               }}
             >
