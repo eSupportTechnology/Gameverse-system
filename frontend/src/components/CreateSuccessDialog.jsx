@@ -16,10 +16,11 @@ export default function CreateSuccessDialog({ open, onClose }) {
         sx: {
           backgroundColor: "#070F1E",
           color: "white",
-          width: "350px",
+          width: "400px",
           padding: "20px",
           borderRadius: "12px",
-          boxShadow: "0px 0px 30px rgba(8, 0, 255, 0.39)", // green glow
+          border: "2px solid #0aaffb59",
+          //boxShadow: "0px 0px 30px rgba(8, 0, 255, 0.39)", // green glow
           textAlign: "center",
         },
       }}
@@ -29,13 +30,16 @@ export default function CreateSuccessDialog({ open, onClose }) {
           fontWeight: "600",
           background: "linear-gradient(to right, #1963f6d0, #e428edff)",
           WebkitBackgroundClip: "text",
+          fontSize: "24px",
           WebkitTextFillColor: "transparent",
         }}
       >
         <img
           src="/images/create.png" // ✅ your success icon for create
           alt="success"
-          width="40"
+          width="80"
+          
+          height={80}
           style={{ marginBottom: 8 }}
         />
         <br />
@@ -46,9 +50,9 @@ export default function CreateSuccessDialog({ open, onClose }) {
         <Button
           onClick={onClose}
           sx={{
-             background: "linear-gradient(to right, #0a152bd0, #8a38f557)",
+             background: "linear-gradient(to right, #2287a3d0, #8a38f557)",
             color: "#fff",
-            width: "100px",
+            width: "150px",
             textTransform: "none",
             "&:hover": { opacity: 0.9 },
           }}
