@@ -30,7 +30,7 @@ const initialProducts = [
   // { id: 9, price: 200, name: "Chocolate Cup", category: "Ice-Cream", stock: 24, fav: true },
 ];
 
-const initialCategories = ["All", "Drinks", "Snacks", "Dessert", "Ice-Cream"];
+const initialCategories = ["All", "Drinks", "Snacks", "Dessert", "Ice Cream"];
 
 const textFieldSx = {
   bgcolor: "#1e293b",
@@ -53,6 +53,9 @@ const PosSystem = () => {
   const [openAddItem, setOpenAddItem] = useState(false);
   const [openWalkIn, setOpenWalkIn] = useState(false);
   const [openCheckout, setOpenCheckout] = useState(false);
+  const [openCancelConfirm, setOpenCancelConfirm] = useState(false);
+  const [openPaymentSuccess, setOpenPaymentSuccess] = useState(false);
+  const [openNFCPoints, setOpenNFCPoints] = useState(false);
 
   const [newCategory, setNewCategory] = useState("");
   const [showNewCategory, setShowNewCategory] = useState(false);
@@ -69,17 +72,11 @@ const PosSystem = () => {
     name: "",
     phone: "",
     email: "",
+    points: 0,
+    isFirstTime: true,
   });
 
-  //  NFC Points State
-  const [openNFCPoints, setOpenNFCPoints] = useState(false);
   const [nfcPoints, setNfcPoints] = useState(0);
-
-  // Cancel Confirmation State
-  const [openCancelConfirm, setOpenCancelConfirm] = useState(false);
-
-  // Payment Success
-  const [openPaymentSuccess, setOpenPaymentSuccess] = useState(false);
 
   // Cart operations
   const addToCart = (product) => {
@@ -109,7 +106,6 @@ const PosSystem = () => {
   };
 
   //  Add Item
-  const handleAddItemOpen = () => setOpenAddItem(true);
   const handleAddItemClose = () => {
     setShowNewCategory(false);
     setNewItem({
@@ -122,7 +118,19 @@ const PosSystem = () => {
     setOpenAddItem(false);
   };
 
+  const validateNewItem = () => {
+    const { category, name, price, stock } = newItem;
+    if (!category) return alert("Please select a category") && false;
+    if (!name.trim()) return alert("Please enter item name") && false;
+    if (!price || Number(price) <= 0)
+      return alert("Please enter a valid price") && false;
+    if (!stock || Number(stock) < 0)
+      return alert("Please enter valid stock") && false;
+    return true;
+  };
+
   const handleAddNewItem = () => {
+    if (!validateNewItem()) return;
     const id = products.length + 1;
     setProducts([
       ...products,
@@ -134,6 +142,7 @@ const PosSystem = () => {
         fav: false,
       },
     ]);
+
     setNewItem({
       category: "",
       name: "",
@@ -157,8 +166,26 @@ const PosSystem = () => {
   const handleWalkInOpen = () => setOpenWalkIn(true);
   const handleWalkInClose = () => setOpenWalkIn(false);
 
+  const validateWalkInCustomer = () => {
+    const phoneRegex = /^[0-9]{10}$/;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (walkInCustomer.phone && !phoneRegex.test(walkInCustomer.phone)) {
+      alert("Enter a valid 10-digit phone number");
+      return false;
+    }
+    if (walkInCustomer.email && !emailRegex.test(walkInCustomer.email)) {
+      alert("Enter a valid email");
+      return false;
+    }
+    return true;
+  };
+
   // Checkout modal handlers
-  const handleCheckoutOpen = () => setOpenCheckout(true);
+  const handleCheckoutOpenWithValidation = () => {
+    if (cart.length === 0) return alert("Cart is empty");
+    setOpenCheckout(true);
+  };
+
   const handleCheckoutClose = () => setOpenCheckout(false);
 
   // Cancel confirmation handlers
@@ -176,10 +203,18 @@ const PosSystem = () => {
   const discount = 0;
   const total = subtotal - discount;
 
-  // NFC Points Calculation
   const calculatePoints = () => {
-    // Example: 1 point for every LKR100
-    const points = Math.floor(subtotal / 100);
+    let points = walkInCustomer.points;
+    let isFirstTime = walkInCustomer.isFirstTime;
+
+    if (isFirstTime) {
+      points += 30;
+      isFirstTime = false;
+    }
+
+    points += Math.floor(cart.reduce((acc, item) => acc + item.price * item.qty, 0) / 100);
+
+    setWalkInCustomer({ ...walkInCustomer, points, isFirstTime });
     setNfcPoints(points);
     setOpenNFCPoints(true);
   };
@@ -223,7 +258,7 @@ const PosSystem = () => {
               fontWeight: "bold",
               textTransform: "none",
             }}
-            onClick={handleAddItemOpen}
+            onClick={() => setOpenAddItem(true)}
           >
             + Add New Item
           </Button>
@@ -455,7 +490,7 @@ const PosSystem = () => {
             fontWeight: "bold",
             textTransform: "none",
           }}
-          onClick={handleCheckoutOpen}
+          onClick={handleCheckoutOpenWithValidation}
         >
           Checkout
         </Button>
@@ -792,8 +827,11 @@ const PosSystem = () => {
                   width: "48%",
                 }}
                 onClick={() => {
+                  // Validate walk-in customer first
+                  if (!validateWalkInCustomer()) return; // stop if invalid
+
                   handleWalkInClose();
-                  handleCheckoutOpen();
+                  handleCheckoutOpenWithValidation(); // open checkout modal
                 }}
               >
                 Continue
@@ -1053,7 +1091,7 @@ const PosSystem = () => {
             textAlign: "center",
             outline: "none",
             boxShadow: 24,
-            display: "flex", 
+            display: "flex",
             flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
@@ -1075,7 +1113,7 @@ const PosSystem = () => {
               display: "inline-block",
               background:
                 "linear-gradient(to right, #0CD7FF, #A837CA, #B737B5, #C6379F)",
-              backgroundSize: "100%", 
+              backgroundSize: "100%",
               backgroundRepeat: "no-repeat",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
