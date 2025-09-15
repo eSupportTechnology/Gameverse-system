@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { Box, Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, IconButton } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import PaymentSuccess from '../assets/PaymentSuccess.png'
+import CancelPopup from './CancelPopup';
 
 
 const priceLabels = {
@@ -19,13 +20,23 @@ const methodLabels = {
 const CheckoutGame = ({ game, handleClose }) => {
 
   const [paymentSuccess, setPaymentSuccess] = useState(false);
-   
-    // handle payment
-    const handlpay = () => {
-      console.log("payament successfully!");
-      setPaymentSuccess(true)
-  
-    };
+  const [cancelOpen, setcancelOpen] = useState(false);
+
+  const handleCancelOpen = () => setcancelOpen(true);
+  const handleCancelClose = () => setcancelOpen(false);
+
+  const handleConfirm = () => {
+    console.log("cancelled!");
+    setcancelOpen(false);
+    handleClose(false)
+  };
+
+  // handle payment
+  const handlpay = () => {
+    console.log("payament successfully!");
+    setPaymentSuccess(true)
+
+  };
 
   return (
     <div>
@@ -151,7 +162,7 @@ const CheckoutGame = ({ game, handleClose }) => {
 
         </DialogContent>
         <DialogActions sx={{ px: 2 }}>
-          <Button onClick={handleClose} variant="contained" sx={{ fontSize: 16, fontWeight: 'bold', backgroundColor: "#1F2937", width: '50%', py: 0.5, textTransform: 'capitalize', "&:hover": { bgcolor: "#374151" }, }}>
+          <Button onClick={handleCancelOpen} variant="contained" sx={{ fontSize: 16, fontWeight: 'bold', backgroundColor: "#1F2937", width: '50%', py: 0.5, textTransform: 'capitalize', "&:hover": { bgcolor: "#374151" }, }}>
             Cancel
           </Button>
           <Button
@@ -201,7 +212,7 @@ const CheckoutGame = ({ game, handleClose }) => {
                 mb: 1
               }}
             >
-             Payment Successful !
+              Payment Successful !
             </Typography>
             <Button
               onClick={() => setPaymentSuccess(false)}
@@ -221,6 +232,13 @@ const CheckoutGame = ({ game, handleClose }) => {
             </Button>
           </DialogContent>
         </Dialog>
+
+        {/* cances box */}
+        <CancelPopup
+          open={cancelOpen}
+          handleCancelClose={handleCancelClose}
+          handleConfirm={handleConfirm}
+        />
 
       </Dialog>
 
