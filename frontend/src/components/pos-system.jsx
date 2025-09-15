@@ -54,7 +54,7 @@ const PosSystem = () => {
   const [openWalkIn, setOpenWalkIn] = useState(false);
   const [openCheckout, setOpenCheckout] = useState(false);
 
-  const [newCategory, setNewCategory] = useState(""); 
+  const [newCategory, setNewCategory] = useState("");
   const [showNewCategory, setShowNewCategory] = useState(false);
 
   const [newItem, setNewItem] = useState({
@@ -71,7 +71,7 @@ const PosSystem = () => {
     email: "",
   });
 
-  //  NFC Points State 
+  //  NFC Points State
   const [openNFCPoints, setOpenNFCPoints] = useState(false);
   const [nfcPoints, setNfcPoints] = useState(0);
 
@@ -85,7 +85,9 @@ const PosSystem = () => {
   const addToCart = (product) => {
     const exists = cart.find((p) => p.id === product.id);
     if (exists) {
-      setCart(cart.map(p => p.id === product.id ? { ...p, qty: p.qty + 1 } : p));
+      setCart(
+        cart.map((p) => (p.id === product.id ? { ...p, qty: p.qty + 1 } : p))
+      );
     } else {
       setCart([...cart, { ...product, qty: 1 }]);
     }
@@ -94,20 +96,29 @@ const PosSystem = () => {
   const removeFromCart = (product) => {
     const exists = cart.find((p) => p.id === product.id);
     if (exists.qty === 1) {
-      setCart(cart.filter(p => p.id !== product.id));
+      setCart(cart.filter((p) => p.id !== product.id));
     } else {
-      setCart(cart.map(p => p.id === product.id ? { ...p, qty: p.qty - 1 } : p));
+      setCart(
+        cart.map((p) => (p.id === product.id ? { ...p, qty: p.qty - 1 } : p))
+      );
     }
   };
 
   const handleDeleteCart = (product) => {
-    setCart(cart.filter(p => p.id !== product.id));
+    setCart(cart.filter((p) => p.id !== product.id));
   };
 
- //  Add Item 
+  //  Add Item
   const handleAddItemOpen = () => setOpenAddItem(true);
   const handleAddItemClose = () => {
     setShowNewCategory(false);
+    setNewItem({
+      category: "",
+      name: "",
+      price: "",
+      stock: "",
+      loyalty: "Yes",
+    });
     setOpenAddItem(false);
   };
 
@@ -115,9 +126,21 @@ const PosSystem = () => {
     const id = products.length + 1;
     setProducts([
       ...products,
-      { ...newItem, id, price: Number(newItem.price), stock: Number(newItem.stock), fav: false }
+      {
+        ...newItem,
+        id,
+        price: Number(newItem.price),
+        stock: Number(newItem.stock),
+        fav: false,
+      },
     ]);
-    setNewItem({ category: "", name: "", price: "", stock: "", loyalty: "Yes" });
+    setNewItem({
+      category: "",
+      name: "",
+      price: "",
+      stock: "",
+      loyalty: "Yes",
+    });
     handleAddItemClose();
   };
 
@@ -138,13 +161,15 @@ const PosSystem = () => {
   const handleCheckoutOpen = () => setOpenCheckout(true);
   const handleCheckoutClose = () => setOpenCheckout(false);
 
-   // Cancel confirmation handlers
+  // Cancel confirmation handlers
   const handleCancelClick = () => setOpenCancelConfirm(true);
   const handleCancelClose = () => setOpenCancelConfirm(false);
 
   // Filters
-  const filteredProducts = 
-    activeCategory === "All" ? products : products.filter((p) => p.category === activeCategory);
+  const filteredProducts =
+    activeCategory === "All"
+      ? products
+      : products.filter((p) => p.category === activeCategory);
 
   // Totals
   const subtotal = cart.reduce((acc, item) => acc + item.price * item.qty, 0);
@@ -159,16 +184,33 @@ const PosSystem = () => {
     setOpenNFCPoints(true);
   };
 
-
   return (
-    <Box sx={{ display: "flex", bgcolor: "black", color: "white", p: 2, height: "100vh", gap: 2 }}>
-
+    <Box
+      sx={{
+        display: "flex",
+        bgcolor: "black",
+        color: "white",
+        p: 2,
+        height: "100vh",
+        gap: 2,
+      }}
+    >
       {/* ---------------- Left Section (Products) ---------------- */}
       <Box sx={{ flex: 3, display: "flex", flexDirection: "column", gap: 2 }}>
-        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
           <Box>
-            <Typography variant="h6" fontWeight="bold">POS System</Typography>
-            <Typography variant="body2" color="gray">Point of Sale and Product Management</Typography>
+            <Typography variant="h6" fontWeight="bold">
+              POS System
+            </Typography>
+            <Typography variant="body2" color="gray">
+              Point of Sale and Product Management
+            </Typography>
           </Box>
           <Button
             sx={{
@@ -220,20 +262,46 @@ const PosSystem = () => {
                 }}
               >
                 <CardContent>
-                  <Typography sx={{ color: "#0CD7FF", fontWeight: "bold", fontSize: 14 }}>LKR{item.price}</Typography>
-                  <Typography variant="subtitle1" color="white" fontSize={12}>{item.name}</Typography>
-                  <Typography variant="body2" color="#9CA3AF" fontSize={10}>{item.category}</Typography>
-                  <Typography variant="body2" color="white" sx={{ mt: 1 }} fontSize={12}>Stock: {item.stock}</Typography>
-                  <IconButton 
-                      size="small" 
-                      sx={{ position: "absolute", bottom: 12, right: 12 }} 
-                      onClick={() => addToCart(item)}
+                  <Typography
+                    sx={{ color: "#0CD7FF", fontWeight: "bold", fontSize: 14 }}
                   >
-                    <img src="/images/add.png" alt="add" style={{ width: 25, height: 25 }} />
+                    LKR{item.price}
+                  </Typography>
+                  <Typography variant="subtitle1" color="white" fontSize={12}>
+                    {item.name}
+                  </Typography>
+                  <Typography variant="body2" color="#9CA3AF" fontSize={10}>
+                    {item.category}
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    color="white"
+                    sx={{ mt: 1 }}
+                    fontSize={12}
+                  >
+                    Stock: {item.stock}
+                  </Typography>
+                  <IconButton
+                    size="small"
+                    sx={{ position: "absolute", bottom: 12, right: 12 }}
+                    onClick={() => addToCart(item)}
+                  >
+                    <img
+                      src="/images/add.png"
+                      alt="add"
+                      style={{ width: 25, height: 25 }}
+                    />
                   </IconButton>
                   {item.fav && (
-                    <StarIcon 
-                      sx={{ position: "absolute", top: 10, right: 10, color: "#C6379F", width: 15, height: 14 }} 
+                    <StarIcon
+                      sx={{
+                        position: "absolute",
+                        top: 10,
+                        right: 10,
+                        color: "#C6379F",
+                        width: 15,
+                        height: 14,
+                      }}
                     />
                   )}
                 </CardContent>
@@ -246,18 +314,54 @@ const PosSystem = () => {
       {/* ---------------- Right Section ---------------- */}
       <Box sx={{ flex: 1, display: "flex", flexDirection: "column", gap: 2 }}>
         {/* Customer Box */}
-        <Box sx={{ bgcolor: "#0E111B", p: 2, borderRadius: 2, width: 388, height: 124, display: "flex", flexDirection: "column", gap: 1 }}>
-           <Typography fontWeight="bold" mb={0.05}>Customer</Typography>
-           <Box sx={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 1 }}>
+        <Box
+          sx={{
+            bgcolor: "#0E111B",
+            p: 2,
+            borderRadius: 2,
+            width: 388,
+            height: 124,
+            display: "flex",
+            flexDirection: "column",
+            gap: 1,
+          }}
+        >
+          <Typography fontWeight="bold" mb={0.05}>
+            Customer
+          </Typography>
+          <Box
+            sx={{
+              flex: 1,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 1,
+            }}
+          >
             <Button
-              sx={{ bgcolor: "#334155", color: "#9CA3AF", textTransform: "none", width: 350, height: 35, borderRadius: 1.5 }}
+              sx={{
+                bgcolor: "#334155",
+                color: "#9CA3AF",
+                textTransform: "none",
+                width: 350,
+                height: 35,
+                borderRadius: 1.5,
+              }}
               onClick={calculatePoints}
             >
               Read NFC Card
             </Button>
             <Button
               fullWidth
-              sx={{ background: "linear-gradient(to right,  #400935ff, #5717a4ff)", color: "white", textTransform: "none", width: 350, height: 35, borderRadius: 1.5 }}
+              sx={{
+                background: "linear-gradient(to right,  #400935ff, #5717a4ff)",
+                color: "white",
+                textTransform: "none",
+                width: 350,
+                height: 35,
+                borderRadius: 1.5,
+              }}
               onClick={handleWalkInOpen}
             >
               Walk in customer
@@ -266,10 +370,24 @@ const PosSystem = () => {
         </Box>
 
         {/* Cart Box */}
-        <Box sx={{ bgcolor: "#171E2A", p: 2, borderRadius: 2, flex: 1, height: 391, width: 388, overflowY: "auto" }}>
-        <Typography fontWeight={600} mb={2} fontSize={16}>Cart</Typography>
+        <Box
+          sx={{
+            bgcolor: "#171E2A",
+            p: 2,
+            borderRadius: 2,
+            flex: 1,
+            height: 391,
+            width: 388,
+            overflowY: "auto",
+          }}
+        >
+          <Typography fontWeight={600} mb={2} fontSize={16}>
+            Cart
+          </Typography>
           {cart.length === 0 ? (
-            <Typography color="gray" fontSize={14}>Cart is empty</Typography>
+            <Typography color="gray" fontSize={14}>
+              Cart is empty
+            </Typography>
           ) : (
             cart.map((item) => (
               <Box
@@ -315,7 +433,11 @@ const PosSystem = () => {
                     sx={{ bgcolor: "#42262F", borderRadius: "8px", p: 1 }}
                     onClick={() => handleDeleteCart(item)}
                   >
-                    <img src="/images/delete.png" alt="delete" style={{ width: 20, height: 20 }} />
+                    <img
+                      src="/images/delete.png"
+                      alt="delete"
+                      style={{ width: 20, height: 20 }}
+                    />
                   </IconButton>
                 </Box>
               </Box>
@@ -342,9 +464,22 @@ const PosSystem = () => {
       {/* ---------------- Add Item Modal ---------------- */}
       <Modal open={openAddItem} onClose={handleAddItemClose}>
         <Box
-          sx={{ bgcolor: "#111827", color: "white", p: 3,borderRadius: 2,width: 400, mx: "auto",mt: "2%", outline: "none", }}  
+          sx={{
+            bgcolor: "#111827",
+            color: "white",
+            p: 3,
+            borderRadius: 2,
+            width: 400,
+            mx: "auto",
+            mt: "2%",
+            outline: "none",
+          }}
         >
-          <Box display="flex" justifyContent="space-between" alignItems="center">
+          <Box
+            display="flex"
+            justifyContent="space-between"
+            alignItems="center"
+          >
             <Typography variant="h6" fontWeight="bold" fontSize={18}>
               Add Item
             </Typography>
@@ -355,160 +490,176 @@ const PosSystem = () => {
 
           <Box mt={1} display="flex" flexDirection="column" gap={0.9}>
             {/* Category Selector */}
-            <Typography variant="body2" sx={{ color: "white" }}>Category</Typography>
+            <Typography variant="body2" sx={{ color: "white" }}>
+              Category
+            </Typography>
             <TextField
               select
               label="Select Category"
               value={newItem.category}
               onChange={(e) => {
-                 if (e.target.value === "Other") {
+                if (e.target.value === "Other") {
                   setShowNewCategory(true);
                   setNewItem({ ...newItem, category: "" }); // reset selection for new category
-                 } else {
+                } else {
                   setNewItem({ ...newItem, category: e.target.value });
                   setShowNewCategory(false);
-                 }
+                }
               }}
               fullWidth
               sx={{
                 ...textFieldSx,
                 "& .MuiInputLabel-root": {
-                color: "#9CA3AF", // change to your desired color
+                  color: "#9CA3AF", // change to your desired color
                 },
               }}
             >
-            {categories.slice(1).map((cat) => (
-            <MenuItem key={cat} value={cat}>
-               {cat}
-            </MenuItem>
-          ))}
-          <MenuItem value="Other" onClick={() => setShowNewCategory(true)} > 
-              Other category +
-          </MenuItem>
-        </TextField>
+              {categories.slice(1).map((cat) => (
+                <MenuItem key={cat} value={cat}>
+                  {cat}
+                </MenuItem>
+              ))}
+              <MenuItem value="Other" onClick={() => setShowNewCategory(true)}>
+                Other category +
+              </MenuItem>
+            </TextField>
 
-      {/* Input box for Other Category */}
-      {showNewCategory && (
-      <Box sx={{ mt: 2, display: "flex", gap: 1 }}>
-      <TextField
-        placeholder="Enter Category"
-        value={newCategory}
-        onChange={(e) => setNewCategory(e.target.value)}
-        fullWidth
-        sx={textFieldSx}
-      />
-      <Button
-        variant="contained"
-        onClick={handleAddCategory}
-        disabled={!newCategory.trim()}
-        sx={{
-         background: "linear-gradient(to right, #3b82f6, #9333ea)",
-          textTransform: "none",
-        }}
-      >
-        Add
-      </Button>
-      </Box>
-      )}
+            {/* Input box for Other Category */}
+            {showNewCategory && (
+              <Box sx={{ mt: 2, display: "flex", gap: 1 }}>
+                <TextField
+                  placeholder="Enter Category"
+                  value={newCategory}
+                  onChange={(e) => setNewCategory(e.target.value)}
+                  fullWidth
+                  sx={textFieldSx}
+                />
+                <Button
+                  variant="contained"
+                  onClick={handleAddCategory}
+                  disabled={!newCategory.trim()}
+                  sx={{
+                    background: "linear-gradient(to right, #3b82f6, #9333ea)",
+                    textTransform: "none",
+                  }}
+                >
+                  Add
+                </Button>
+              </Box>
+            )}
 
-    {/* Item */}
-    <Typography variant="body2" sx={{ color: "white" }}>Item</Typography>
-    <TextField
-      label="Enter Item"
-      name="item"
-      value={newItem.name}
-      onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
-      fullWidth
-      variant="outlined"
-      sx={{
-        ...textFieldSx,
-        "& .MuiInputLabel-root": {
-        color: "#9CA3AF", 
-        },
-      }}
-    />
-    {/* Price */}
-    <Typography variant="body2" sx={{ color: "white" }}>Price</Typography>
-    <TextField
-       label="Enter price"
-       type="number"
-       value={newItem.price}
-       onChange={(e) => setNewItem({ ...newItem, price: e.target.value })}
-       fullWidth
-       variant="outlined"
-       sx={{
-        ...textFieldSx,
-        "& .MuiInputLabel-root": {
-        color: "#9CA3AF", 
-        },
-       }}
-      />
-    {/* Stock */}
-    <Typography variant="body2" sx={{ color: "white"}}>Stock</Typography>
-    <TextField
-       label="Available stock"
-       type="number"
-       value={newItem.stock}
-       onChange={(e) => setNewItem({ ...newItem, stock: e.target.value })}
-       fullWidth
-       variant="outlined"
-       sx={{
-        ...textFieldSx,
-        "& .MuiInputLabel-root": {
-        color: "#9CA3AF", 
-        },
-       }}
-    />
-    {/* Loyalty */}
-    <Box>
-      <Typography variant="body2" sx={{ color: "white", mb: 1 }}>
-      Loyalty Point
-    </Typography>
-    <RadioGroup
-    row
-    name="loyalty"
-    value={newItem.loyalty}
-    onChange={(e) => setNewItem({ ...newItem, loyalty: e.target.value })}
-    sx={{ display: "flex", gap: 2 }}
-  >
-    {["Yes", "No"].map((option) => (
-      <Box
-        key={option}
-        sx={{
-          width: "150px",
-          height: "40px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          px: 2,
-          borderRadius: 1,
-          bgcolor: "#171C2D",
-          border: "1px solid #4b5563",
-          cursor: "pointer",
-        }}
-        onClick={() => setNewItem({ ...newItem, loyalty: option })}
-      >
-        {/* Label Left */}
-        <Typography sx={{ color: "#9CA3AF", fontSize: "0.9rem" }}>
-          {option}
-        </Typography>
+            {/* Item */}
+            <Typography variant="body2" sx={{ color: "white" }}>
+              Item
+            </Typography>
+            <TextField
+              label="Enter Item"
+              name="item"
+              value={newItem.name}
+              onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
+              fullWidth
+              variant="outlined"
+              sx={{
+                ...textFieldSx,
+                "& .MuiInputLabel-root": {
+                  color: "#9CA3AF",
+                },
+              }}
+            />
+            {/* Price */}
+            <Typography variant="body2" sx={{ color: "white" }}>
+              Price
+            </Typography>
+            <TextField
+              label="Enter price"
+              type="number"
+              value={newItem.price}
+              onChange={(e) =>
+                setNewItem({ ...newItem, price: e.target.value })
+              }
+              fullWidth
+              variant="outlined"
+              sx={{
+                ...textFieldSx,
+                "& .MuiInputLabel-root": {
+                  color: "#9CA3AF",
+                },
+              }}
+            />
+            {/* Stock */}
+            <Typography variant="body2" sx={{ color: "white" }}>
+              Stock
+            </Typography>
+            <TextField
+              label="Available stock"
+              type="number"
+              value={newItem.stock}
+              onChange={(e) =>
+                setNewItem({ ...newItem, stock: e.target.value })
+              }
+              fullWidth
+              variant="outlined"
+              sx={{
+                ...textFieldSx,
+                "& .MuiInputLabel-root": {
+                  color: "#9CA3AF",
+                },
+              }}
+            />
+            {/* Loyalty */}
+            <Box>
+              <Typography variant="body2" sx={{ color: "white", mb: 1 }}>
+                Loyalty Point
+              </Typography>
+              <RadioGroup
+                row
+                name="loyalty"
+                value={newItem.loyalty}
+                onChange={(e) =>
+                  setNewItem({ ...newItem, loyalty: e.target.value })
+                }
+                sx={{ display: "flex", gap: 2 }}
+              >
+                {["Yes", "No"].map((option) => (
+                  <Box
+                    key={option}
+                    sx={{
+                      width: "150px",
+                      height: "40px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      px: 2,
+                      borderRadius: 1,
+                      bgcolor: "#171C2D",
+                      border: "1px solid #4b5563",
+                      cursor: "pointer",
+                    }}
+                    onClick={() => setNewItem({ ...newItem, loyalty: option })}
+                  >
+                    {/* Label Left */}
+                    <Typography sx={{ color: "#9CA3AF", fontSize: "0.9rem" }}>
+                      {option}
+                    </Typography>
 
-        {/* Radio Right */}
-        <Radio
-          value={option}
-          checked={newItem.loyalty === option}
-          onChange={(e) => setNewItem({ ...newItem, loyalty: e.target.value })}
-          sx={{
-            color: "gray",
-            "&.Mui-checked": {
-              color: "#9CA3AF", // purple highlight
-            },
-          }}
-        />
-      </Box>
-    ))}
-  </RadioGroup>
-</Box>
+                    {/* Radio Right */}
+                    <Radio
+                      value={option}
+                      checked={newItem.loyalty === option}
+                      onChange={(e) =>
+                        setNewItem({ ...newItem, loyalty: e.target.value })
+                      }
+                      sx={{
+                        color: "gray",
+                        "&.Mui-checked": {
+                          color: "#9CA3AF", // purple highlight
+                        },
+                      }}
+                    />
+                  </Box>
+                ))}
+              </RadioGroup>
+            </Box>
             <Button
               variant="contained"
               fullWidth
@@ -527,65 +678,126 @@ const PosSystem = () => {
 
       {/* ---------------- Walk-in Customer Modal ---------------- */}
       <Modal open={openWalkIn} onClose={handleWalkInClose}>
-        <Box sx={{ bgcolor:"#111827", color:"white", p:3, borderRadius:2, width:400, mx:"auto", mt:"10%", outline:"none" }}>
-          <Box display="flex" justifyContent="space-between" alignItems="center">
-            <Typography variant="h6" fontWeight="bold" fontSize={18}>Walk-in Customer</Typography>
-            <IconButton onClick={handleWalkInClose} sx={{ color: "white" }}><CloseIcon/></IconButton>
+        <Box
+          sx={{
+            bgcolor: "#111827",
+            color: "white",
+            p: 3,
+            borderRadius: 2,
+            width: 400,
+            mx: "auto",
+            mt: "10%",
+            outline: "none",
+          }}
+        >
+          <Box
+            display="flex"
+            justifyContent="space-between"
+            alignItems="center"
+          >
+            <Typography variant="h6" fontWeight="bold" fontSize={18}>
+              Walk-in Customer
+            </Typography>
+            <IconButton onClick={handleWalkInClose} sx={{ color: "white" }}>
+              <CloseIcon />
+            </IconButton>
           </Box>
 
           <Box mt={3} display="flex" flexDirection="column" gap={2}>
             <TextField
               label="Customer Name (Optional)"
               value={walkInCustomer.name}
-              onChange={(e) => setWalkInCustomer({ ...walkInCustomer, name: e.target.value })}
+              onChange={(e) =>
+                setWalkInCustomer({ ...walkInCustomer, name: e.target.value })
+              }
               fullWidth
               variant="outlined"
               sx={{
-               ...textFieldSx,
-               "& .MuiInputLabel-root": {
-               color: "#9CA3AF", 
-               },
+                ...textFieldSx,
+                "& .MuiInputLabel-root": {
+                  color: "#9CA3AF",
+                },
               }}
             />
             <TextField
               label="Phone Number (Optional)"
               value={walkInCustomer.phone}
-              onChange={(e) => setWalkInCustomer({ ...walkInCustomer, phone: e.target.value })}
+              onChange={(e) =>
+                setWalkInCustomer({ ...walkInCustomer, phone: e.target.value })
+              }
               fullWidth
               variant="outlined"
               sx={{
-               ...textFieldSx,
-               "& .MuiInputLabel-root": {
-               color: "#9CA3AF", 
-               },
+                ...textFieldSx,
+                "& .MuiInputLabel-root": {
+                  color: "#9CA3AF",
+                },
               }}
             />
             <TextField
               label="Email (Optional)"
               value={walkInCustomer.email}
-              onChange={(e) => setWalkInCustomer({ ...walkInCustomer, email: e.target.value })}
+              onChange={(e) =>
+                setWalkInCustomer({ ...walkInCustomer, email: e.target.value })
+              }
               fullWidth
               variant="outlined"
               sx={{
-               ...textFieldSx,
-               "& .MuiInputLabel-root": {
-               color: "#9CA3AF", 
-               },
+                ...textFieldSx,
+                "& .MuiInputLabel-root": {
+                  color: "#9CA3AF",
+                },
               }}
             />
-            <Box display="flex" alignItems="center" gap={1} bgcolor="#1F2937" p={1} borderRadius={1}>
-               <img 
-                src="/images/warning-line.png" 
-                alt="warning-line" 
-                style={{ width: 16, height: 16 }} 
+            <Box
+              display="flex"
+              alignItems="center"
+              gap={1}
+              bgcolor="#1F2937"
+              p={1}
+              borderRadius={1}
+            >
+              <img
+                src="/images/warning-line.png"
+                alt="warning-line"
+                style={{ width: 16, height: 16 }}
               />
-            <Typography variant="body2" color="#9CA3AF" fontSize={10} textAlign="center" >
-               Walk-in customers don't earn loyalty points but can still make purchases
-            </Typography>
+              <Typography
+                variant="body2"
+                color="#9CA3AF"
+                fontSize={10}
+                textAlign="center"
+              >
+                Walk-in customers don't earn loyalty points but can still make
+                purchases
+              </Typography>
             </Box>
             <Box display="flex" justifyContent="space-between" mt={2}>
-              <Button variant="contained" sx={{ bgcolor:"#1e293b", "&:hover":{bgcolor:"#334155"}, color:"white", width:"48%" }} onClick={handleCancelClick}>Cancel</Button>
-              <Button variant="contained" sx={{ background:"linear-gradient(to right, #3b82f6, #9333ea)", width:"48%" }}>Continue</Button>
+              <Button
+                variant="contained"
+                sx={{
+                  bgcolor: "#1e293b",
+                  "&:hover": { bgcolor: "#334155" },
+                  color: "white",
+                  width: "48%",
+                }}
+                onClick={handleCancelClick}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="contained"
+                sx={{
+                  background: "linear-gradient(to right, #3b82f6, #9333ea)",
+                  width: "48%",
+                }}
+                onClick={() => {
+                  handleWalkInClose();
+                  handleCheckoutOpen();
+                }}
+              >
+                Continue
+              </Button>
             </Box>
           </Box>
         </Box>
@@ -609,7 +821,7 @@ const PosSystem = () => {
         >
           <Box sx={{ mb: 2 }}>
             <img
-              src="/images/cancel.png" 
+              src="/images/cancel.png"
               alt="cancel"
               style={{ width: 60, height: 60, margin: "0 auto" }}
             />
@@ -619,7 +831,8 @@ const PosSystem = () => {
             sx={{
               mb: 2,
               fontWeight: "bold",
-              background: "linear-gradient(to right, #0CD7FF, #A837CA, #B737B5, #C6379F)",
+              background:
+                "linear-gradient(to right, #0CD7FF, #A837CA, #B737B5, #C6379F)",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
             }}
@@ -638,7 +851,8 @@ const PosSystem = () => {
               onClick={() => {
                 setOpenCancelConfirm(false);
                 setOpenWalkIn(false); //  close Walk-in modal as well
-                setWalkInCustomer({   // Clear walk-in customer info
+                setWalkInCustomer({
+                  // Clear walk-in customer info
                   name: "",
                   phone: "",
                   email: "",
@@ -679,7 +893,13 @@ const PosSystem = () => {
           }}
         >
           {/* Header */}
-          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
             <Typography variant="h6" fontWeight="bold">
               Checkout
             </Typography>
@@ -723,7 +943,13 @@ const PosSystem = () => {
               <Typography>LKR{discount}</Typography>
             </Box>
             <Box sx={{ borderBottom: "1px solid #334155", my: 1 }} />
-            <Box sx={{ display: "flex", justifyContent: "space-between", fontWeight: "bold" }}>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                fontWeight: "bold",
+              }}
+            >
               <Typography>Total:</Typography>
               <Typography sx={{ color: "#38bdf8" }}>LKR{total}</Typography>
             </Box>
@@ -741,11 +967,15 @@ const PosSystem = () => {
             </Button>
             <Button
               fullWidth
-              sx={{ background: "linear-gradient(90deg,#6366f1,#ec4899)", color: "white", "&:hover": { opacity: 0.9 } }}
+              sx={{
+                background: "linear-gradient(90deg,#6366f1,#ec4899)",
+                color: "white",
+                "&:hover": { opacity: 0.9 },
+              }}
               onClick={() => {
-              setOpenPaymentSuccess(true); //  Open payment success
-              setCart([]); //  Clear cart
-              handleCheckoutClose(); //  Close checkout
+                setOpenPaymentSuccess(true); //  Open payment success
+                setCart([]); //  Clear cart
+                handleCheckoutClose(); //  Close checkout
               }}
             >
               Pay Now
@@ -755,11 +985,27 @@ const PosSystem = () => {
       </Modal>
 
       {/* -------------- Payment Successful Modal ---------------- */}
-      <Modal open={openPaymentSuccess} onClose={() => setOpenPaymentSuccess(false)}>
-        <Box sx={{ bgcolor: "#0f172a", color: "white", p: 4, borderRadius: 3, width: 350, mx: "auto", mt: "15%", textAlign: "center", outline: "none", boxShadow: 24 }}>
+      <Modal
+        open={openPaymentSuccess}
+        onClose={() => setOpenPaymentSuccess(false)}
+      >
+        <Box
+          sx={{
+            bgcolor: "#0f172a",
+            color: "white",
+            p: 4,
+            borderRadius: 3,
+            width: 350,
+            mx: "auto",
+            mt: "15%",
+            textAlign: "center",
+            outline: "none",
+            boxShadow: 24,
+          }}
+        >
           <Box sx={{ mb: 2 }}>
             <img
-              src="/images/successful.png" 
+              src="/images/successful.png"
               alt="cancel"
               style={{ width: 60, height: 60, margin: "0 auto" }}
             />
@@ -769,16 +1015,23 @@ const PosSystem = () => {
             fontWeight="bold"
             mb={2}
             sx={{
-              background: "linear-gradient(to right, #0CD7FF, #A837CA, #B737B5, #C6379F)",
+              background:
+                "linear-gradient(to right, #0CD7FF, #A837CA, #B737B5, #C6379F)",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
             }}
           >
-              Payment Successful!
+            Payment Successful!
           </Typography>
 
           <Button
-            sx={{ background: "linear-gradient(to right, #0CD7FF, #8A38F5)", color: "white", textTransform: "none", width: "160px", height: "35px" }}
+            sx={{
+              background: "linear-gradient(to right, #0CD7FF, #8A38F5)",
+              color: "white",
+              textTransform: "none",
+              width: "160px",
+              height: "35px",
+            }}
             onClick={() => setOpenPaymentSuccess(false)}
           >
             Ok
@@ -800,18 +1053,37 @@ const PosSystem = () => {
             textAlign: "center",
             outline: "none",
             boxShadow: 24,
+            display: "flex", 
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
           }}
         >
-          <Box sx={{ fontSize: 50, mb: 2 }}>
-              <img 
-                src="/images/star.png" 
-                alt="star" 
-                style={{ width: 60, height: 60 }} 
-              />
+          <Box sx={{ fontSize: 50, mb: 1 }}>
+            <img
+              src="/images/star.png"
+              alt="star"
+              style={{ width: 60, height: 60, margin: "0 auto" }}
+            />
           </Box>
-          <Typography variant="h6" sx={{ mb: 2, color: "#38bdf8", fontWeight: "bold" }}>
+
+          <Typography
+            variant="h6"
+            fontWeight="bold"
+            mb={3}
+            sx={{
+              display: "inline-block",
+              background:
+                "linear-gradient(to right, #0CD7FF, #A837CA, #B737B5, #C6379F)",
+              backgroundSize: "100%", 
+              backgroundRepeat: "no-repeat",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+            }}
+          >
             NFC {nfcPoints} Points !
           </Typography>
+
           <Button
             onClick={() => setOpenNFCPoints(false)}
             sx={{
