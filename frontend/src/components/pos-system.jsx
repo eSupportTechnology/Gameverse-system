@@ -223,20 +223,23 @@ const PosSystem = () => {
     <Box
       sx={{
         display: "flex",
+        flexDirection: { xs: "column", md: "row" },
         bgcolor: "black",
         color: "white",
         p: 2,
+         gap: 2,
         height: "100vh",
-        gap: 2,
       }}
     >
       {/* ---------------- Left Section (Products) ---------------- */}
-      <Box sx={{ flex: 3, display: "flex", flexDirection: "column", gap: 2 }}>
+      <Box sx={{ flex: 3, width: { xs: "100%", md: 800 }, display: "flex", flexDirection: "column", gap: 2, overflowY: "auto", }}>
         <Box
           sx={{
             display: "flex",
+            flexDirection: { xs: "column", sm: "row" },
             justifyContent: "space-between",
             alignItems: "center",
+            gap: 1,
           }}
         >
           <Box>
@@ -252,7 +255,7 @@ const PosSystem = () => {
               background: "linear-gradient(to right, #06b6d4, #9333ea)",
               color: "white",
               borderRadius: 2,
-              width: 213,
+              width: { xs: "100%", sm: 213 },
               height: 50,
               fontSize: 16,
               fontWeight: "bold",
@@ -264,7 +267,7 @@ const PosSystem = () => {
           </Button>
         </Box>
 
-        <Box sx={{ display: "flex", gap: 1, mt: 2 }}>
+        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 2 }}>
           {categories.map((cat) => (
             <Button
               key={cat}
@@ -275,6 +278,8 @@ const PosSystem = () => {
                 color: "white",
                 textTransform: "none",
                 "&:hover": { bgcolor: "#374151" },
+                flex: "1 1 auto",
+                minWidth: 80,
               }}
             >
               {cat}
@@ -291,7 +296,7 @@ const PosSystem = () => {
                   borderRadius: 2,
                   position: "relative",
                   height: 132,
-                  width: 230,
+                  width: "100%",
                   border: 2,
                   borderColor: "#374151",
                 }}
@@ -308,12 +313,7 @@ const PosSystem = () => {
                   <Typography variant="body2" color="#9CA3AF" fontSize={10}>
                     {item.category}
                   </Typography>
-                  <Typography
-                    variant="body2"
-                    color="white"
-                    sx={{ mt: 1 }}
-                    fontSize={12}
-                  >
+                  <Typography variant="body2" color="white" sx={{ mt: 1 }} fontSize={12}>
                     Stock: {item.stock}
                   </Typography>
                   <IconButton
@@ -347,7 +347,7 @@ const PosSystem = () => {
       </Box>
 
       {/* ---------------- Right Section ---------------- */}
-      <Box sx={{ flex: 1, display: "flex", flexDirection: "column", gap: 2 }}>
+      <Box sx={{ flex: 1, display: "flex", flexDirection: "column", gap: 2,  width: "100%" }}>
         {/* Customer Box */}
         <Box
           sx={{
@@ -523,9 +523,9 @@ const PosSystem = () => {
             </IconButton>
           </Box>
 
-          <Box mt={1} display="flex" flexDirection="column" gap={0.9}>
+          <Box mt={1} display="flex" flexDirection="column" gap={0.9} sx={{ color: "#374151" }} >
             {/* Category Selector */}
-            <Typography variant="body2" sx={{ color: "white" }}>
+            <Typography variant="body2" sx={{ color: "374151" }}>
               Category
             </Typography>
             <TextField
