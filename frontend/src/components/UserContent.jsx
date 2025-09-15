@@ -89,7 +89,7 @@ const handleCreateOrUpdate = () => {
   
 
   return (
-    <Box sx={{ backgroundColor: "#000", minHeight: "100vh", color: "#fff", pt: "70px", px: 3 }}>
+    <Box sx={{ backgroundColor: "#000", minHeight: "500vh", color: "#fff", pt: "70px", px: 3 }}>
       {/* HEADER & SEARCH */}
       <Box sx={{ mb: 3 }}>
         <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
