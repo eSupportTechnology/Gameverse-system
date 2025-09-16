@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   AppBar,
   Toolbar,
@@ -11,8 +11,15 @@ import {
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import NotificationsIcon from "@mui/icons-material/Notifications";
+import { Dialog, DialogContent } from "@mui/material";
+import LoginForm from "./LoginForm";
 
 const TopBar = ({ sidebarOpen }) => {
+  const [loginOpen, setLoginOpen] = useState(false);
+
+  const handleOpen = () => setLoginOpen(true);
+  const handleClose = () => setLoginOpen(false);
+
   const drawerWidth = sidebarOpen ? 290 : 70;
 
   return (
@@ -38,9 +45,9 @@ const TopBar = ({ sidebarOpen }) => {
             height: "40px",
             width: "518px",
             px: 2,
-            marginLeft:"150px",
-            
-           }}
+            marginLeft: "150px",
+
+          }}
         >
           <SearchIcon sx={{ mr: 1 }} />
           <InputBase
@@ -50,87 +57,89 @@ const TopBar = ({ sidebarOpen }) => {
         </Box>
 
         {/* Right Section */}
-          <Box sx={{ display: "flex", alignItems: "center", gap: { xs: 1, sm: 2 } }}>
-            {/* Notification */}
-            <Box
-              sx={{
-                width: 40,
-                height: 40,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                backgroundColor: "#202939",
-                borderRadius: "8px",
-              }}
+        <Box sx={{ display: "flex", alignItems: "center", gap: { xs: 1, sm: 2 } }}>
+          {/* Notification */}
+          <Box
+            sx={{
+              width: 40,
+              height: 40,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: "#202939",
+              borderRadius: "8px",
+            }}
+          >
+            <IconButton
+              size="small"
+              sx={{ color: "#8A8F98", width: 24, height: 24 }}
             >
-              <IconButton
-                size="small"
-                sx={{ color: "#8A8F98", width: 24, height: 24 }}
+              <Badge
+                badgeContent={1}
+                color="secondary"
+                overlap="circular"
+                anchorOrigin={{ vertical: "top", horizontal: "right" }}
               >
-                <Badge
-                  badgeContent={1}
-                  color="secondary"
-                  overlap="circular"
-                  anchorOrigin={{ vertical: "top", horizontal: "right" }}
-                >
-                  <NotificationsIcon />
-                </Badge>
-              </IconButton>
-            </Box>
+                <NotificationsIcon />
+              </Badge>
+            </IconButton>
+          </Box>
 
-            {/* User Info */}
+          {/* User Info */}
+          <Box
+            onClick={handleOpen}
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              backgroundColor: "#202939",
+              width: "217px",
+              height: "40px",
+              borderRadius: "6px",
+              px: 1.5,
+              gap: 1.5,
+            }}
+          >
+            <Avatar
+              src="https://via.placeholder.com/40"
+              alt="Admin User"
+              sx={{ width: 30, height: 30 }}
+            />
+
             <Box
               sx={{
                 display: "flex",
-                alignItems: "center",
-                backgroundColor: "#202939",
-                width: "217px",
-                height: "40px",
-                borderRadius: "6px",
-                px: 1.5,
-                gap: 1.5,
+                flexDirection: "column",
+                justifyContent: "center",
+                gap: 0.1,
               }}
             >
-              <Avatar
-                src="https://via.placeholder.com/40"
-                alt="Admin User"
-                sx={{ width: 30, height: 30 }}
-              />
-
-              <Box
+              <Typography
+                variant="body2"
                 sx={{
-                  display: "flex",
-                  flexDirection: "column",
-                  justifyContent: "center",
-                  gap: 0.1,
+                  fontWeight: 600,
+                  fontSize: "14px",
+                  color: "#D1D5DB",
+                  lineHeight: 1.2,
                 }}
               >
-                <Typography
-                  variant="body2"
-                  sx={{
-                    fontWeight: 600,
-                    fontSize: "14px",
-                    color: "#D1D5DB",
-                    lineHeight: 1.2,
-                  }}
-                >
-                  Admin User
-                </Typography>
+                Admin User
+              </Typography>
 
-                <Typography
-                  variant="caption"
-                  sx={{
-                    fontWeight: 400,
-                    fontSize: "10px",
-                    color: "#8B8B8D",
-                    lineHeight: 1.2,
-                  }}
-                >
-                  Super Admin
-                </Typography>
-              </Box>
+              <Typography
+                variant="caption"
+                sx={{
+                  fontWeight: 400,
+                  fontSize: "10px",
+                  color: "#8B8B8D",
+                  lineHeight: 1.2,
+                }}
+              >
+                Super Admin
+              </Typography>
             </Box>
           </Box>
+        </Box>
+
       </Toolbar>
       {/* Horizontal Line */}
       <Box
@@ -144,9 +153,28 @@ const TopBar = ({ sidebarOpen }) => {
           zIndex: 1100,
         }}
       />
+
+      {/* Dialog with Login Form */}
+      <Dialog
+        open={loginOpen}
+        onClose={handleClose}
+        maxWidth="xs"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3, // 3 = 24px
+            boxShadow: 6,    // stronger shadow
+            bgcolor: "#0A192F"
+          },
+        }}
+      >
+        <DialogContent>
+          <LoginForm onClose={handleClose} />
+        </DialogContent>
+      </Dialog>
     </AppBar>
 
-    
+
   );
 };
 
