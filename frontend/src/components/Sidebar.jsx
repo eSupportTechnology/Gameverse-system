@@ -52,7 +52,7 @@ const menuItems = [
     text: "Other Games",
     path: "/games",
     icon: <img src="../images/ic.png" alt="Other Games" style={{ width: 20, height: 20 }} />,
-    component: <OtherGames />,
+    // component: <OtherGames />,
   },
   {
     text: "Users& Roles",
