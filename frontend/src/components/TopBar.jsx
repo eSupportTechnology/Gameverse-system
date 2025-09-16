@@ -13,6 +13,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import { Dialog, DialogContent } from "@mui/material";
 import LoginForm from "./LoginForm";
+import { ToastContainer} from 'react-toastify';
 
 const TopBar = ({ sidebarOpen }) => {
   const [loginOpen, setLoginOpen] = useState(false);
@@ -23,6 +24,8 @@ const TopBar = ({ sidebarOpen }) => {
   const drawerWidth = sidebarOpen ? 290 : 70;
 
   return (
+    <>
+    <ToastContainer/>
     <AppBar
       position="fixed"
       sx={{
@@ -173,7 +176,7 @@ const TopBar = ({ sidebarOpen }) => {
         </DialogContent>
       </Dialog>
     </AppBar>
-
+</>
 
   );
 };

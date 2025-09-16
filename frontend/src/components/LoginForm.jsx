@@ -1,19 +1,28 @@
 import React, { useState } from "react";
-import { Box, Button, TextField, Typography, Paper, Link } from "@mui/material";
+import { Box, Button, TextField, Typography} from "@mui/material";
+import axios from "axios";
+import { toast } from "react-toastify";
 
 const LoginForm = ({ onClose }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
 
-  const onSubmitHandler = (e) => {
+  const onSubmitHandler = async (e) => {
     e.preventDefault();
-    console.log("login creted");
-    
+   try {
+    const res = await axios.post("http://127.0.0.1:8000/api/admin/login", {
+      email,
+      password,
+    });
 
+    localStorage.setItem("token", res.data.token);
+    toast.success("Login successful!");
+    if (onClose) onClose();  // Close the dialog after successful login
 
-    // ✅ Close the dialog after successful login
-    if (onClose) onClose();
+  } catch (error) {
+    toast.error("Invalid credentials");
+  }
   };
 
   return (
