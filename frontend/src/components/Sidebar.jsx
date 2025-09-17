@@ -10,18 +10,15 @@ import {
   Tooltip,
   Divider,
 } from "@mui/material";
-import { Routes, Route, useNavigate, Navigate } from "react-router-dom";
-import StationManagement from "./StationManagement";
-import Booking from "../pages/Booking";
-import BookingManagement from "./BookingManagement";
+import {  useNavigate } from "react-router-dom";
 import Stations from "../pages/Station";
 
 
 
 // Dummy Components
-const Bookings = () => <h2 style={{ color: "#fff" }}>Bookings Component</h2>;
+//const Bookings = () => <h2 style={{ color: "#fff" }}>Bookings Component</h2>;
 
-const OtherGames = () => <h2 style={{ color: "#fff" }}>Other Games Component</h2>;
+//const OtherGames = () => <h2 style={{ color: "#fff" }}>Other Games Component</h2>;
 const UsersRoles = () => <h2 style={{ color: "#fff" }}>Users & Roles Component</h2>;
 const Reports = () => <h2 style={{ color: "#fff" }}>Reports Component</h2>;
 const SettingsPage = () => <h2 style={{ color: "#fff" }}>Settings Component</h2>;
