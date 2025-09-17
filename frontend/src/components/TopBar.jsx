@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   AppBar,
   Toolbar,
@@ -11,15 +11,9 @@ import {
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import NotificationsIcon from "@mui/icons-material/Notifications";
-import { Dialog, DialogContent } from "@mui/material";
-import LoginForm from "./LoginForm";
 import { ToastContainer} from 'react-toastify';
 
 const TopBar = ({ sidebarOpen }) => {
-  const [loginOpen, setLoginOpen] = useState(false);
-
-  const handleOpen = () => setLoginOpen(true);
-  const handleClose = () => setLoginOpen(false);
 
   const drawerWidth = sidebarOpen ? 290 : 70;
 
@@ -90,7 +84,6 @@ const TopBar = ({ sidebarOpen }) => {
 
           {/* User Info */}
           <Box
-            onClick={handleOpen}
             sx={{
               display: "flex",
               alignItems: "center",
@@ -156,25 +149,6 @@ const TopBar = ({ sidebarOpen }) => {
           zIndex: 1100,
         }}
       />
-
-      {/* Dialog with Login Form */}
-      <Dialog
-        open={loginOpen}
-        onClose={handleClose}
-        maxWidth="xs"
-        fullWidth
-        PaperProps={{
-          sx: {
-            borderRadius: 3, // 3 = 24px
-            boxShadow: 6,    // stronger shadow
-            bgcolor: "#0A192F"
-          },
-        }}
-      >
-        <DialogContent>
-          <LoginForm onClose={handleClose} />
-        </DialogContent>
-      </Dialog>
     </AppBar>
 </>
 

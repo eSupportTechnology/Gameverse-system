@@ -1,12 +1,14 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { Box, Button, TextField, Typography} from "@mui/material";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { AdminContext } from "../context/AdminContext";
 
-const LoginForm = ({ onClose }) => {
+const LoginForm = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  const {setAToken} = useContext(AdminContext)
 
   const onSubmitHandler = async (e) => {
     e.preventDefault();
@@ -16,9 +18,10 @@ const LoginForm = ({ onClose }) => {
       password,
     });
 
-    localStorage.setItem("token", res.data.token);
+    localStorage.setItem("aToken", res.data.token);
+    setAToken(res.data.token);
     toast.success("Login successful!");
-    if (onClose) onClose();  // Close the dialog after successful login
+    
 
   } catch (error) {
     toast.error("Invalid credentials");
