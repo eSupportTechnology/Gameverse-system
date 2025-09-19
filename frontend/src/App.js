@@ -53,7 +53,9 @@ function App() {
         ) : (
           <>
             {/* Only login */}
-            <Route path="*" element={<Login />} />
+            <Route path="/admin/login" element={<Login />} />
+            {/* redirect all other routes to login */}
+            <Route path="*" element={<Navigate to="/admin/login" replace />} />
           </>
         )}
       </Routes>

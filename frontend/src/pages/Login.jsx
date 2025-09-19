@@ -1,46 +1,147 @@
-
-import React, { useState } from 'react'
-import { Box, Dialog, DialogContent } from "@mui/material";
-import TopBar from "../components/TopBar";
-import Sidebar from '../components/Sidebar';
-import LoginForm from '../components/LoginForm';
+import React, { useContext, useState } from "react";
+import { Box, Button, TextField, Typography, Container } from "@mui/material";
+import axios from "axios";
+import { toast } from "react-toastify";
+import { AdminContext } from "../context/AdminContext";
 
 const Login = () => {
-  const [collapsed, setCollapsed] = useState(false);
-  const [open, setOpen] = useState(true);
-  const sidebarWidth = collapsed ? 70 : 230;
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const { setAToken } = useContext(AdminContext)
+
+  const onSubmitHandler = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await axios.post("http://127.0.0.1:8000/api/admin/login", {
+        email,
+        password,
+      });
+
+      localStorage.setItem("aToken", res.data.token);
+      setAToken(res.data.token);
+      toast.success("Login successful!");
+
+
+    } catch (error) {
+      toast.error("Invalid credentials");
+    }
+  };
 
   return (
-    <Box sx={{ display: "flex" }}>
-      <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
+    <div style={{ background: '#0B0B0F' }}>
+      <Box
+        sx={{
+          maxWidth: 400,
+          mx: "auto",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          px: 2,
+          minHeight: "100vh",
+        }}
+      >
+        <Box
+          component="form"
+          onSubmit={onSubmitHandler}
+          sx={{
+            width: "100%",
+            display: "flex",
+            flexDirection: "column",
+            gap: 2,
+            bgcolor: "#0A192F",
+            p: 2,
+            borderRadius: 3,
+            boxShadow: 6,
 
-      <Box sx={{ flexGrow: 1, bgcolor: "#000", minHeight: "100vh", }}>
-        {/* TopBar always visible */}
-        <TopBar sidebarWidth={sidebarWidth} />
+          }}
+        >
+          <Typography variant="h5" fontWeight="600" align="center"
+            sx={{
+              mb: 1,
+              background: "linear-gradient(90deg, #00C6FF, #FF00CC)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+            }}>
+            Admin Login
+          </Typography>
 
+          <Box>
+            <Typography fontSize={14} fontWeight={500} color="#FFFFFF" gutterBottom>
+              Email
+            </Typography>
+            <TextField
+              fullWidth
+              size="small"
+              variant="outlined"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              placeholder="Enter Email Address"
+              InputProps={{
+                sx: {
+                  backgroundColor: "#1F2937",
+                  borderRadius: "6px",
+                  "& input::placeholder": {
+                    color: "#9CA3AF",
+                    fontSize: "14px",
+                  },
+                  color: "white",
+                  fontWeight: 500,
+                },
+              }}
+            />
+          </Box>
 
-        <Box sx={{ mt: 8, p: 2 }}>
-          <Dialog
-            open={open}
-            maxWidth="xs"
+          <Box>
+            <Typography fontSize={14} fontWeight={500} color="#FFFFFF" gutterBottom>
+              Password
+            </Typography>
+            <TextField
+              fullWidth
+              size="small"
+              variant="outlined"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              placeholder="Enter password"
+              InputProps={{
+                sx: {
+                  backgroundColor: "#1F2937",
+                  borderRadius: "6px",
+                  "& input::placeholder": {
+                    color: "#9CA3AF",
+                    fontSize: "14px",
+                  },
+                  color: "white",
+                  fontWeight: 500,
+                },
+              }}
+            />
+          </Box>
+
+          <Button
+            type="submit"
             fullWidth
-            PaperProps={{
-              sx: {
-                borderRadius: 3,
-                boxShadow: 6,
-                bgcolor: "#0A192F"
-              },
+            variant="contained"
+            sx={{
+              textTransform: "none",
+              fontSize: 14,
+              fontWeight: 'bold',
+              mt: 1,
+              py: 1,
+              borderRadius: 2,
+              background: "linear-gradient(to right, #0CD7FF, #8A38F5)",
+              "&:hover": { background: "linear-gradient(to right, #0bbfe0, #732ed1)" },
             }}
           >
-            <DialogContent>
-              <LoginForm />
-            </DialogContent>
-          </Dialog>
+            Login
+          </Button>
         </Box>
       </Box>
-    </Box>
+    </div>
   )
 }
 
 export default Login
-
