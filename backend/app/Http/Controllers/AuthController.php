@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\Admin;
+use App\Models\UserRole;
 use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
@@ -16,18 +16,30 @@ class AuthController extends Controller
         'password' => 'required'
     ]);
 
-    $admin = Admin::where('email', $request->email)->first();
+    $user = UserRole::where('email', $request->email)
+                        ->where('role', 'admin')
+                        ->first();
 
-    if (!$admin || !Hash::check($request->password, $admin->password)) {
-        return response()->json(['message' => 'Invalid credentials'], 401);
-    }
+        if (!$user || !Hash::check($request->password, $user->password)) {
+            return response()->json(['message' => 'Invalid credentials'], 401);
+        }
 
-    $token = $admin->createToken('admin-token')->plainTextToken;
+        if (!$user->active_status) {
+            return response()->json(['message' => 'Account is inactive'], 403);
+        }
 
-    return response()->json([
-        'user' => $admin,
-        'token' => $token
-    ]);
+        $token = $user->createToken('user-token')->plainTextToken;
+
+        return response()->json([
+            'user' => [
+                'id'       => $user->id,
+                'fullname' => $user->fullname,
+                'username' => $user->username,
+                'email'    => $user->email,
+                'role'     => $user->role,
+            ],
+            'token' => $token
+        ]);
 }
     public function logout(Request $request)
 {
