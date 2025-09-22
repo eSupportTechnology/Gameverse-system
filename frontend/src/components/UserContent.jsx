@@ -32,7 +32,14 @@ export default function UserManagement() {
   ]);
 
   const [formData, setFormData] = useState({
-    fullName: "", role: "Operator", username: "", password: "", status: "Active", lastLogin: "", avatar: ""
+    fullname: "", 
+    role: "Operator", 
+    username: "", 
+    email:"",
+    password: "", 
+    active_status: true, 
+    // lastLogin: "", 
+    // avatar: ""
   });
 
   const [isEditing, setIsEditing] = useState(false);
@@ -48,7 +55,9 @@ export default function UserManagement() {
 
   const handleOpen = () => {
     setIsEditing(false);
-    setFormData({ fullName: "", role: "Operator", username: "", password: "", status: "Active", lastLogin: "", avatar: "" });
+    setFormData({ fullname: "", role: "operator", username: "", email:"", password: "", active_status: true, 
+      // lastLogin: "", avatar: ""
+    });
     setOpen(true);
   };
 

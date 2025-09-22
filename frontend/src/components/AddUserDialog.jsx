@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -16,6 +16,8 @@ import {
 import CloseIcon from "@mui/icons-material/Close";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import CancelPopup from "./CancelPopup";
+import { toast } from "react-toastify";
+import axios from "axios";
 
 export default function AddUserDialog({
 
@@ -27,45 +29,88 @@ export default function AddUserDialog({
   isEditing,
 }) {
   const handleChange = (e) => {
-    
+
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-   
-const [openCancelPopup, setOpenCancelPopup] = React.useState(false);
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
+  const [openCancelPopup, setOpenCancelPopup] = React.useState(false);
 
-const handleOpenCancelPopup = () => setOpenCancelPopup(true);
-const handleCloseCancelPopup = () => setOpenCancelPopup(false);
+  const handleOpenCancelPopup = () => setOpenCancelPopup(true);
+  const handleCloseCancelPopup = () => setOpenCancelPopup(false);
 
-const handleConfirmCancel = () => {
-  setOpenCancelPopup(false);
-  onClose(); // actually close the Add User dialog
-};
-
-  const handleToggle = (e) => {
-    setFormData((prev) => ({ ...prev, active: e.target.checked }));
+  const handleConfirmCancel = () => {
+    setOpenCancelPopup(false);
+    onClose(); // actually close the Add User dialog
   };
 
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        setFormData((prev) => ({ ...prev, avatar: reader.result }));
-      };
-      reader.readAsDataURL(file);
+  const handleToggle = (e) => {
+    setFormData((prev) => ({ ...prev, active_status: e.target.checked }));
+  };
+
+  // const handleImageUpload = (e) => {
+  //   const file = e.target.files[0];
+  //   if (file) {
+  //     const reader = new FileReader();
+  //     reader.onload = () => {
+  //       setFormData((prev) => ({ ...prev, avatar: reader.result }));
+  //     };
+  //     reader.readAsDataURL(file);
+  //   }
+  // };
+
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setMessage("");
+
+    try {
+      const token = localStorage.getItem("aToken");
+      console.log("Token:", token);
+
+      if (!token) {
+        toast.error("No token found. Please login again.");
+        return;
+      }
+      console.table(formData)
+      const response = await axios.post(
+        "http://localhost:8000/api/admin/users",
+        formData, 
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      toast.success("User created successfully!");
+      console.log("Created user:", response.data.user);
+
+      setFormData({
+        fullname: "",
+        username: "",
+        email: "",
+        password: "",
+        role: "operator",
+        active_status: false,
+      });
+    } catch (err) {
+      console.error(err);
+      toast.error(err.response?.data?.message || "Request failed");
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleSubmit = () => {
-    onCreate(formData);
-  };
 
   return (
     <Dialog
       open={open}
-      onClose={() => {}}
+      onClose={() => { }}
       maxWidth="sm"
       fullWidth
       PaperProps={{
@@ -77,7 +122,7 @@ const handleConfirmCancel = () => {
         },
       }}
     >
-      
+
       <DialogTitle
         sx={{
           fontWeight: 600,
@@ -94,7 +139,7 @@ const handleConfirmCancel = () => {
       </DialogTitle>
       {/* image to can be upload here */}
 
-      
+
       <Box display="flex" flexDirection="column" alignItems="center" my={2}>
         <label htmlFor="avatar-upload">
           <input
@@ -102,7 +147,7 @@ const handleConfirmCancel = () => {
             id="avatar-upload"
             type="file"
             style={{ display: "none" }}
-            onChange={handleImageUpload}
+          // onChange={handleImageUpload}
           />
           {formData.avatar ? (
             <Avatar
@@ -133,14 +178,14 @@ const handleConfirmCancel = () => {
       </Box>
 
       <DialogContent>
-        
+
         <Typography variant="subtitle2" sx={{ color: "#94a3b8", mb: 0.5 }}>
           Full Name
         </Typography>
         <TextField
           margin="dense"
-          name="fullName"
-          value={formData.fullName || ""}
+          name="fullname"
+          value={formData.fullname || ""}
           onChange={handleChange}
           fullWidth
           placeholder="Enter Full Name"
@@ -155,7 +200,7 @@ const handleConfirmCancel = () => {
           }}
         />
 
-        
+
         <Typography variant="subtitle2" sx={{ color: "#94a3b8", mb: 0.5 }}>
           User Role
         </Typography>
@@ -181,20 +226,20 @@ const handleConfirmCancel = () => {
           }}
         >
           <MenuItem
-            value="Admin"
+            value="admin"
             sx={{ background: "#171C2D", border: "0.3px solid #c9c0c096" }}
           >
             Admin
           </MenuItem>
           <MenuItem
-            value="Operator"
+            value="operator"
             sx={{ background: "#171C2D", border: "0.3px solid #c9c0c096" }}
           >
             Operator
           </MenuItem>
         </TextField>
 
-        
+
         <Typography variant="subtitle2" sx={{ color: "#94a3b8", mb: 0.5 }}>
           User Name
         </Typography>
@@ -216,7 +261,29 @@ const handleConfirmCancel = () => {
           }}
         />
 
-        
+
+        <Typography variant="subtitle2" sx={{ color: "#94a3b8", mb: 0.5 }}>
+          email
+        </Typography>
+        <TextField
+          margin="dense"
+          name="email"
+          value={formData.email || ""}
+          onChange={handleChange}
+          fullWidth
+          placeholder="Enter email"
+          sx={{
+            mb: 2,
+            backgroundColor: "#1e293b4b",
+            "& .MuiOutlinedInput-root": {
+              borderRadius: "10px",
+              color: "white",
+              "& fieldset": { borderColor: "#334155" },
+            },
+          }}
+        />
+
+
         <Typography variant="subtitle2" sx={{ color: "#94a3b8", mb: 0.5 }}>
           Password
         </Typography>
@@ -239,13 +306,13 @@ const handleConfirmCancel = () => {
           }}
         />
 
-       
+
         <Box display="flex" alignItems="center" gap={1} mt={2}>
           <Typography variant="subtitle2" sx={{ color: "#94a3b8" }}>
             Active User
           </Typography>
           <Switch
-            checked={formData.active || false}
+            checked={formData.active_status || false}
             onChange={handleToggle}
             sx={{
               "& .MuiSwitch-thumb": { backgroundColor: "#33B2F7" },
@@ -255,7 +322,7 @@ const handleConfirmCancel = () => {
         </Box>
       </DialogContent>
 
-      
+
       <DialogActions
         sx={{
           px: 3,
