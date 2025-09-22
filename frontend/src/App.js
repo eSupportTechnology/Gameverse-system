@@ -24,7 +24,7 @@ function App() {
         {aToken ? (
           <>
             {/* Admin routes */}
-            <Route path="/" element={<Home />} />
+            <Route path="/" element={<Booking />} />
             <Route path="/stations/*" element={<Station />} />
             <Route path="/pos/*" element={<Pos />} />
             <Route path="/bookings" element={<Booking />} />
