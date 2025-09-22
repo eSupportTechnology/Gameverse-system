@@ -54,7 +54,9 @@ function App() {
           <>
             {/* Only login */}
             <Route path="/admin/login" element={<Login />} />
-            {/* redirect all other routes to login */}
+            {/* redirect `/` to login explicitly */}
+            <Route path="/" element={<Navigate to="/admin/login" replace />} />
+            {/* redirect everything else to login */}
             <Route path="*" element={<Navigate to="/admin/login" replace />} />
           </>
         )}

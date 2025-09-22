@@ -3,12 +3,15 @@ import { Box, Button, TextField, Typography, Container } from "@mui/material";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { AdminContext } from "../context/AdminContext";
+import { useNavigate } from "react-router-dom";
+
+
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
-  const { setAToken } = useContext(AdminContext)
+  const { setAToken } = useContext(AdminContext);
+  const navigate = useNavigate(); // <-- add this
 
   const onSubmitHandler = async (e) => {
     e.preventDefault();
@@ -22,7 +25,8 @@ const Login = () => {
       setAToken(res.data.token);
       toast.success("Login successful!");
 
-
+    
+      navigate("/", { replace: true });
     } catch (error) {
       toast.error("Invalid credentials");
     }
