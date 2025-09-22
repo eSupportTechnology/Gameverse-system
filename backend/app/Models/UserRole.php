@@ -18,7 +18,8 @@ class UserRole extends Model
         'email',
         'password',
         'role',
-        'active_status'
+        'active_status',
+        'last_login_at'
     ];
 
     protected $hidden = [
