@@ -8,8 +8,14 @@ use App\Http\Controllers\AdminUserController;
 Route::post('/admin/login', [AuthController::class, 'login']);
 
 Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/admin/users', [AdminUserController::class, 'store']);
+    // add user
+    Route::post('/add-user', [AdminUserController::class, 'store']);
+    // update user
+    Route::put('/update-user/{id}', [AdminUserController::class, 'update']);
 });
+
+// fetch all users
+Route::get('/users', [AdminUserController::class, 'fetchUsers']);
 
 // Protected routes
 Route::middleware('auth:sanctum')->prefix('admin')->group(function () {

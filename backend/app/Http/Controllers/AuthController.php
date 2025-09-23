@@ -34,6 +34,15 @@ class AuthController extends Controller
                 'last_login_at' => now(),
             ]);
         }
+
+        // if ($user && $user->active_status) {
+        //     // Format current time as 12-hour with AM/PM
+        //     $lastLoginTime = now()->format('h:i A'); // e.g., 10:30 PM
+
+        //     $user->update([
+        //         'last_login_at' => $lastLoginTime,
+        //     ]);
+        // }
         $token = $user->createToken('user-token')->plainTextToken;
 
         return response()->json([

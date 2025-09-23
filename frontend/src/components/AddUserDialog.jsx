@@ -76,20 +76,33 @@ export default function AddUserDialog({
         return;
       }
       console.table(formData)
-      const response = await axios.post(
-        "http://localhost:8000/api/admin/users",
-        formData, 
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      toast.success("User created successfully!");
-      console.log("Created user:", response.data.user);
-
+      if (isEditing) {
+        //  UPDATE user
+        const response = await axios.put(
+          `http://localhost:8000/api/update-user/${formData.id}`,
+          formData,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        onCreate(response.data.user, true);
+      } else {
+          //  Add user
+        const response = await axios.post(
+          "http://localhost:8000/api/add-user",
+          formData,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        onCreate(response.data.user, true);
+      }
       setFormData({
         fullname: "",
         username: "",
