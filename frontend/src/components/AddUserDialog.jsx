@@ -50,16 +50,19 @@ export default function AddUserDialog({
     setFormData((prev) => ({ ...prev, active_status: e.target.checked }));
   };
 
-  // const handleImageUpload = (e) => {
-  //   const file = e.target.files[0];
-  //   if (file) {
-  //     const reader = new FileReader();
-  //     reader.onload = () => {
-  //       setFormData((prev) => ({ ...prev, avatar: reader.result }));
-  //     };
-  //     reader.readAsDataURL(file);
-  //   }
-  // };
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // keep the real file for backend upload
+      setFormData((prev) => ({ ...prev, avatar: file }));
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        setFormData((prev) => ({ ...prev, profile_img: reader.result }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
 
   const handleSubmit = async (e) => {
@@ -69,40 +72,57 @@ export default function AddUserDialog({
 
     try {
       const token = localStorage.getItem("aToken");
-      console.log("Token:", token);
-
       if (!token) {
         toast.error("No token found. Please login again.");
         return;
       }
-      console.table(formData)
-      if (isEditing) {
-        //  UPDATE user
-        const response = await axios.put(
-          `http://localhost:8000/api/update-user/${formData.id}`,
-          formData,
-          {
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        onCreate(response.data.user, true);
-      } else {
-          //  Add user
-        const response = await axios.post(
-          "http://localhost:8000/api/add-user",
-          formData,
-          {
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        onCreate(response.data.user, true);
+
+      const data = new FormData();
+      data.append("fullname", formData.fullname);
+      data.append("username", formData.username);
+      data.append("email", formData.email);
+      data.append("role", formData.role);
+
+      // active_status always integer
+      data.append("active_status", formData.active_status ? 1 : 0);
+
+      // only append password if not empty
+      if (formData.password && formData.password.trim() !== "") {
+        data.append("password", formData.password);
       }
+
+      // only append avatar if user uploaded new File
+      if (formData.avatar instanceof File) {
+        data.append("avatar", formData.avatar);
+      }
+
+      let response;
+      if (isEditing) {
+        data.append("_method", "PUT");
+
+        response = await axios.post(
+          `http://localhost:8000/api/update-user/${formData.id}`,
+          data,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+      } else {
+        // Add user
+        response = await axios.post("http://localhost:8000/api/add-user", data, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+      }
+
+      onCreate(response.data.user, true);
+
+      // Reset form
       setFormData({
         fullname: "",
         username: "",
@@ -110,6 +130,7 @@ export default function AddUserDialog({
         password: "",
         role: "operator",
         active_status: false,
+        avatar: null,
       });
     } catch (err) {
       console.error(err);
@@ -160,11 +181,11 @@ export default function AddUserDialog({
             id="avatar-upload"
             type="file"
             style={{ display: "none" }}
-          // onChange={handleImageUpload}
+            onChange={handleImageUpload}
           />
-          {formData.avatar ? (
+          {formData.profile_img ? (
             <Avatar
-              src={formData.avatar}
+              src={formData.profile_img}
               alt="User Avatar"
               sx={{ width: 80, height: 80, cursor: "pointer" }}
             />
@@ -186,7 +207,7 @@ export default function AddUserDialog({
           )}
         </label>
         <Typography variant="body2" sx={{ color: "#94a3b8", mt: 1 }}>
-          Click to {formData.avatar ? "change" : "upload"} image
+          Click to {formData.profile_img ? "change" : "upload"} image
         </Typography>
       </Box>
 

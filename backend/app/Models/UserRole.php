@@ -18,6 +18,7 @@ class UserRole extends Model
         'email',
         'password',
         'role',
+        'avatar',
         'active_status',
         'last_login_at'
     ];

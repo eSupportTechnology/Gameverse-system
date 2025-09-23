@@ -13,7 +13,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddUserDialog from "./AddUserDialog";
 import DeleteConfirmDialog from "./DeleteConfirmDialog";
-import DeleteSuccessDialog from "./DeleteSuccessDialog"; // ✅ import success dialog
+import DeleteSuccessDialog from "./DeleteSuccessDialog"; 
 import UpdateSuccessDialog from "./UpdateSuccess";
 import CreateSuccessDialog from "./CreateSuccessDialog";
 import axios from "axios";
@@ -32,8 +32,8 @@ export default function UserManagement() {
     email: "",
     password: "",
     active_status: true,
-    // lastLogin: "", 
-    // avatar: ""
+    avatar: null,
+    profile_img: ''
   });
 
   const [isEditing, setIsEditing] = useState(false);
@@ -49,12 +49,13 @@ export default function UserManagement() {
 
   const mapUser = (user) => ({
     id: user.id,
-    fullName: user.fullname,      // map correctly
+    fullName: user.fullname,      
     username: user.username,
     email: user.email,
     role: user.role,
-    status: user.active_status ? "Active" : "Inactive",
+    status: Number(user.active_status) === 1 ? "Active" : "Inactive",
     lastLogin: user.last_login_at || "N/A",
+    avatar: user.avatar || "/images/default.png",
   });
 
 
@@ -63,15 +64,9 @@ export default function UserManagement() {
     const fetchUsers = async () => {
       try {
         const res = await axios.get("http://localhost:8000/api/users");
-        // 👆 replace with your real API endpoint (e.g., /api/userroles)
 
         // Map API data into your UI format
         const formattedUsers = res.data.map((user) => ({
-          // fullName: user.fullname,         // match your DB column
-          // role: user.role,                 // from userroles table
-          // status: user.active_status ? "Active" : "Inactive",
-          // lastLogin: user.last_login_at || "N/A", // handle missing data
-          // // avatar: user.avatar || "/images/default.png",
           id: user.id,
           fullName: user.fullname,
           username: user.username,
@@ -79,6 +74,7 @@ export default function UserManagement() {
           role: user.role,
           status: user.active_status ? "Active" : "Inactive",
           lastLogin: user.last_login_at || "N/A",
+          avatar: user.avatar || "/images/default.png",
         }));
 
         setUsers(formattedUsers);
@@ -94,7 +90,7 @@ export default function UserManagement() {
     setIsEditing(false);
     setFormData({
       fullname: "", role: "operator", username: "", email: "", password: "", active_status: true,
-      // lastLogin: "", avatar: ""
+      avatar: null,
     });
     setOpen(true);
   };
@@ -102,7 +98,7 @@ export default function UserManagement() {
   const handleEditClick = (user, index) => {
     setIsEditing(true);
     setEditIndex(index);
-    // setFormData(user);
+
     setFormData({
       id: user.id,
       fullname: user.fullName,
@@ -111,21 +107,41 @@ export default function UserManagement() {
       role: user.role,
       active_status: user.status === "Active",
       password: "", // don’t preload password
+      avatar: user.avatar || null,  
     });
 
     setOpen(true);
   };
+
+
 
   const handleDeleteClick = (index) => {
     setDeleteIndex(index);
     setDeleteDialogOpen(true);
   };
 
-  const confirmDelete = () => {
-    setUsers((prev) => prev.filter((_, idx) => idx !== deleteIndex));
-    setDeleteDialogOpen(false);
-    setDeleteIndex(null);
-    setDeleteSuccessOpen(true); // ✅ show success popup
+  const confirmDelete = async () => {
+    if (deleteIndex === null) return;
+
+    const userId = users[deleteIndex].id;
+    try {
+      const token = localStorage.getItem("aToken");
+
+      await axios.delete(`http://localhost:8000/api/delete-user/${userId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      setUsers((prev) => prev.filter((_, idx) => idx !== deleteIndex));
+      setDeleteDialogOpen(false);
+      setDeleteIndex(null);
+      setDeleteSuccessOpen(true); // ✅ show success popup
+    } catch (error) {
+      console.error("Delete failed:", error);
+    }
+
   };
 
   const handleClose = () => setOpen(false);

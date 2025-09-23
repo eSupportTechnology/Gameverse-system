@@ -17,7 +17,7 @@ class EnsureAdmin
      */
     public function handle(Request $request, Closure $next)
     {
-         Log::info('Auth user:', [$request->user()]);
+        Log::info('Auth user:', [$request->user()]);
         $user = $request->user();
         if (!$user || ($user->role ?? '') !== 'admin') {
             return response()->json(['message' => 'Forbidden — admins only.'], 403);

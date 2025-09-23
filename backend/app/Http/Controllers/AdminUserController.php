@@ -10,6 +10,7 @@ use Illuminate\Validation\ValidationException;
 
 class AdminUserController extends Controller
 {
+    // add  user
     public function store(Request $request)
     {
         try {
@@ -21,6 +22,7 @@ class AdminUserController extends Controller
                 'password'      => 'required|string|min:6',
                 'role'          => 'required|in:admin,operator',
                 'active_status' => 'sometimes|boolean',
+                'avatar'        => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             ]);
 
             if ($validator->fails()) {
@@ -32,6 +34,12 @@ class AdminUserController extends Controller
 
             $validated = $validator->validated();
 
+            // Handle avatar upload
+            $avatarPath = null;
+            if ($request->hasFile('avatar')) {
+                $avatarPath = $request->file('avatar')->store('avatars', 'public');
+            }
+
             $user = UserRole::create([
                 'fullname'      => $validated['fullname'],
                 'username'      => $validated['username'],
@@ -39,11 +47,23 @@ class AdminUserController extends Controller
                 'password'      => Hash::make($validated['password']),
                 'role'          => $validated['role'],
                 'active_status' => $validated['active_status'] ?? true,
+                'avatar'        => $avatarPath ? '/storage/' . $avatarPath : null,
             ]);
 
             return response()->json([
                 'message' => 'User created successfully',
-                'user'    => $user
+                'user'    => [
+                    'id'            => $user->id,
+                    'fullname'      => $user->fullname,
+                    'username'      => $user->username,
+                    'email'         => $user->email,
+                    'role'          => $user->role,
+                    'active_status' => (bool) $user->active_status,
+                    'last_login_at' => $user->last_login_at,
+                    'avatar'        => $user->avatar
+                        ? url($user->avatar)
+                        : url('images/default.png'),
+                ]
             ], 201);
         } catch (\Exception $e) {
             return response()->json([
@@ -53,16 +73,25 @@ class AdminUserController extends Controller
         }
     }
 
-
+    // update user details
     public function update(Request $request, $id)
     {
-        $request->validate([
-            'fullname' => 'required|string|max:255',
-            'username' => 'required|string|max:255|unique:userroles,username,' . $id,
-            'email'    => 'required|email|unique:userroles,email,' . $id,
-            'role'     => 'required|string',
-            'active_status' => 'boolean',
+        $validator = Validator::make($request->all(), [
+            'fullname'      => 'required|string|max:255',
+            'username'      => 'required|string|max:255|unique:userroles,username,' . $id,
+            'email'         => 'required|email|unique:userroles,email,' . $id,
+            'role'          => 'required|in:admin,operator',
+            'active_status' => 'sometimes|in:0,1',
+            'password'      => 'nullable|string|min:6',
+            'avatar'        => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors'  => $validator->errors()
+            ], 422);
+        }
+        $validated = $validator->validated();
 
         $user = UserRole::findOrFail($id);
 
@@ -77,20 +106,58 @@ class AdminUserController extends Controller
         if ($request->filled('password')) {
             $user->password = bcrypt($request->password);
         }
+        // Handle avatar upload
+        if ($request->hasFile('avatar')) {
+            // Delete old avatar if exists
+            if ($user->avatar && file_exists(public_path($user->avatar))) {
+                unlink(public_path($user->avatar));
+            }
+
+            $avatarPath = $request->file('avatar')->store('avatars', 'public');
+            $user->avatar = '/storage/' . $avatarPath;
+        }
 
         $user->save();
 
         return response()->json([
-            'message' => 'User updated successfully',
-            'user' => $user
-        ]);
+            'message' => 'User created successfully',
+            'user'    => [
+                'id'            => $user->id,
+                'fullname'      => $user->fullname,
+                'username'      => $user->username,
+                'email'         => $user->email,
+                'role'          => $user->role,
+                'active_status' => (bool) $user->active_status,
+                'last_login_at' => $user->last_login_at,
+                'avatar'        => $user->avatar
+                    ? url($user->avatar)
+                    : url('images/default.png'),
+            ]
+        ], 201);
     }
 
+    // delete user
+    public function delete($id)
+    {
+        $user = UserRole::find($id);
+        if (!$user) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+
+        $user->delete();
+        return response()->json(['message' => 'User deleted successfully']);
+    }
 
     // ✅ Fetch all users (renamed from index)
     public function fetchUsers()
     {
         $users = UserRole::all();
+        $users->transform(function ($user) {
+            $user->avatar = $user->avatar
+                ? url($user->avatar)  
+                : url('images/default.png');      
+            return $user;
+        });
         return response()->json($users);
     }
 }

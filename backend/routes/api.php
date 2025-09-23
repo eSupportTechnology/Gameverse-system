@@ -7,11 +7,13 @@ use App\Http\Controllers\AdminUserController;
 // Public route
 Route::post('/admin/login', [AuthController::class, 'login']);
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'admin'])->group(function () {
     // add user
     Route::post('/add-user', [AdminUserController::class, 'store']);
     // update user
     Route::put('/update-user/{id}', [AdminUserController::class, 'update']);
+    // delete user
+    Route::delete('/delete-user/{id}', [AdminUserController::class, 'delete']);
 });
 
 // fetch all users
