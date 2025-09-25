@@ -40,6 +40,7 @@ export default function AddStationDialog({
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  // --- Corrected time handler ---
   const handleTimeChange = (e) => {
     const val = e.target.value;
     const timePattern = /^([0-1]?[0-9]|2[0-3]):([0-5][0-9])$/;
@@ -47,15 +48,14 @@ export default function AddStationDialog({
     if (timePattern.test(val)) {
       const [hours, minutes] = val.split(":").map(Number);
       const totalMinutes = hours * 60 + minutes;
-      setFormData((prev) => ({ ...prev, time: `${totalMinutes} minutes` }));
+      setFormData((prev) => ({ ...prev, time: totalMinutes })); // send as integer
     } else {
-      setFormData((prev) => ({ ...prev, time: val }));
+      setFormData((prev) => ({ ...prev, time: 0 })); // fallback 0
     }
   };
 
   const handleSubmit = async () => {
-    const timePattern = /^([0-9]+) minutes$/;
-    if (!timePattern.test(formData.time)) {
+    if (!Number.isInteger(formData.time) || formData.time <= 0) {
       alert("Please enter valid time in HH:MM format (e.g., 00:30)");
       return;
     }
@@ -63,7 +63,7 @@ export default function AddStationDialog({
     try {
       const token = localStorage.getItem("aToken"); // get token dynamically
       const url = isEditing
-        ? `http://127.0.0.1:8000/api/stations/${formData.id}` // assuming update endpoint
+        ? `http://127.0.0.1:8000/api/stations/${formData.id}` // update endpoint
         : "http://127.0.0.1:8000/api/stations";
 
       const method = isEditing ? "put" : "post";
@@ -71,7 +71,7 @@ export default function AddStationDialog({
       const res = await axios({
         method,
         url,
-        data: formData,
+        data: formData, // time is integer now
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -80,7 +80,8 @@ export default function AddStationDialog({
 
       toast.success(`Station ${isEditing ? "updated" : "created"} successfully!`);
 
-      onCreate(res.data); // update parent state
+      onCreate(res.data, isEditing);
+
       setFormData({
         name: "",
         type: "",

@@ -90,6 +90,14 @@ export default function StationManagement() {
     setIsEditing(false);
   };
 
+  // Format minutes → HH:MM style text
+  const formatTime = (minutes) => {
+    if (!minutes) return "0 min";
+    const h = Math.floor(minutes / 60);
+    const m = minutes % 60;
+    return h > 0 ? `${h}h ${m}m` : `${m} min`;
+  };
+
   // Filter stations based on selected tab
   const filteredStations =
     tab === 0
@@ -243,7 +251,7 @@ export default function StationManagement() {
                       }}
                     >
                       <Typography variant="body2" color="#9CA3AF">
-                        {station.time || "30 min"}
+                        {formatTime(station.time)}
                       </Typography>
                       <Typography variant="body2" color="white">
                         LKR {station.price}
@@ -251,7 +259,8 @@ export default function StationManagement() {
                     </Box>
 
                     <Typography variant="body2" color="#9CA3AF" sx={{ mb: 0.5 }}>
-                      Location: <span style={{ color: "white" }}>{station.location}</span>
+                      Location:{" "}
+                      <span style={{ color: "white" }}>{station.location}</span>
                     </Typography>
                   </CardContent>
                 </Card>
