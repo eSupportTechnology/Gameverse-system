@@ -14,6 +14,8 @@ import {
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import CancelPopup from "./CancelPopup";
+import axios from "axios";
+import { toast } from "react-toastify";
 
 export default function AddStationDialog({
   open,
@@ -51,14 +53,50 @@ export default function AddStationDialog({
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const timePattern = /^([0-9]+) minutes$/;
     if (!timePattern.test(formData.time)) {
       alert("Please enter valid time in HH:MM format (e.g., 00:30)");
       return;
     }
 
-    onCreate(formData);
+    try {
+      const token = localStorage.getItem("aToken"); // get token dynamically
+      const url = isEditing
+        ? `http://127.0.0.1:8000/api/stations/${formData.id}` // assuming update endpoint
+        : "http://127.0.0.1:8000/api/stations";
+
+      const method = isEditing ? "put" : "post";
+
+      const res = await axios({
+        method,
+        url,
+        data: formData,
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      toast.success(`Station ${isEditing ? "updated" : "created"} successfully!`);
+
+      onCreate(res.data); // update parent state
+      setFormData({
+        name: "",
+        type: "",
+        location: "",
+        price: "",
+        status: "Available",
+        bookings: 0,
+        time: "",
+      });
+      onClose();
+    } catch (err) {
+      console.log(err);
+      toast.error(
+        err.response?.data?.message || "Failed to save station. Make sure you are logged in."
+      );
+    }
   };
 
   return (
@@ -120,13 +158,13 @@ export default function AddStationDialog({
               "& .MuiSelect-select:empty": { color: "#94a3b8" },
             }}
           >
-            <MenuItem value="PS5 Station 1" sx={{ background: "#171C2D", border: "0.3px solid #c9c0c096", py: 1 }}>PS5 Station 1</MenuItem>
-            <MenuItem value="PS5 Station 2" sx={{ background: "#171C2D", border: "0.3px solid #c9c0c096", py: 1 }}>PS5 Station 2</MenuItem>
-            <MenuItem value="PS5+VR" sx={{ background: "#171C2D", border: "0.3px solid #c9c0c096", py: 1 }}>PS5+VR</MenuItem>
-            <MenuItem value="8 Ball Pool (Supreme)" sx={{ background: "#171C2D", border: "0.3px solid #c9c0c096", py: 1 }}>8 Ball Pool (Supreme)</MenuItem>
-            <MenuItem value="8 Ball Pool (Premium)" sx={{ background: "#171C2D", border: "0.3px solid #c9c0c096", py: 1 }}>8 Ball Pool (Premium)</MenuItem>
-            <MenuItem value="CRS+VR (PS V R2)" sx={{ background: "#171C2D", border: "0.3px solid #c9c0c096", py: 1 }}>CRS+VR (PS V R2)</MenuItem>
-            <MenuItem value="Car Racing Simulator" sx={{ background: "#171C2D", border: "1px solid #c9c0c096", py: 1 }}>Car Racing Simulator</MenuItem>
+            <MenuItem value="PS5 Station 1">PS5 Station 1</MenuItem>
+            <MenuItem value="PS5 Station 2">PS5 Station 2</MenuItem>
+            <MenuItem value="PS5+VR">PS5+VR</MenuItem>
+            <MenuItem value="8 Ball Pool (Supreme)">8 Ball Pool (Supreme)</MenuItem>
+            <MenuItem value="8 Ball Pool (Premium)">8 Ball Pool (Premium)</MenuItem>
+            <MenuItem value="CRS+VR (PS V R2)">CRS+VR (PS V R2)</MenuItem>
+            <MenuItem value="Car Racing Simulator">Car Racing Simulator</MenuItem>
           </TextField>
 
           {/* Station Type */}
@@ -153,9 +191,9 @@ export default function AddStationDialog({
               "& .MuiSelect-select:empty": { color: "#94a3b8" },
             }}
           >
-            <MenuItem value="PlayStation" sx={{ background: "#171C2D", border: "0.3px solid #c9c0c096" }}>PlayStation</MenuItem>
-            <MenuItem value="Pool" sx={{ background: "#171C2D", border: "0.3px solid #c9c0c096" }}>Pool</MenuItem>
-            <MenuItem value="Simulator" sx={{ background: "#171C2D", border: "0.3px solid #c9c0c096" }}>Simulator</MenuItem>
+            <MenuItem value="PlayStation">PlayStation</MenuItem>
+            <MenuItem value="Pool">Pool</MenuItem>
+            <MenuItem value="Simulator">Simulator</MenuItem>
           </TextField>
 
           {/* Location, Price, Time */}
@@ -266,7 +304,6 @@ export default function AddStationDialog({
           </Button>
         </DialogActions>
 
-        {/* Cancel Confirmation Popup */}
         <CancelPopup
           open={openCancelPopup}
           handleCancelClose={handleCloseCancelPopup}
