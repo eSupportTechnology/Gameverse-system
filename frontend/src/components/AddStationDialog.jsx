@@ -32,7 +32,7 @@ export default function AddStationDialog({
 
   const handleConfirmCancel = () => {
     setOpenCancelPopup(false);
-    onClose(); // actually close the AddStation dialog
+    onClose(); 
   };
 
   const handleChange = (e) => {
@@ -40,7 +40,7 @@ export default function AddStationDialog({
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // --- FIX: store raw string while typing ---
+  // here neeed to type as like placeholder "HH:MM"
   const handleTimeChange = (e) => {
     const val = e.target.value;
     setFormData((prev) => ({ ...prev, time: val })); // keep raw "HH:MM"
