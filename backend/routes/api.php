@@ -6,6 +6,10 @@ use App\Http\Controllers\AdminUserController;
 
 // Public route
 Route::post('/admin/login', [AuthController::class, 'login']);
+Route::post('/operator/login', [AuthController::class, 'operatoLogin']);
+// routes/api.php
+Route::middleware('auth:sanctum')->post('/reset-password', [AuthController::class, 'resetPassword']);
+
 
 Route::middleware(['auth:sanctum', 'admin'])->group(function () {
     // add user

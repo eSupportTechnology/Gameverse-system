@@ -6,6 +6,10 @@ use Illuminate\Http\Request;
 use App\Models\UserRole;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\SendTempPassword;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 
 class AdminUserController extends Controller
@@ -15,15 +19,17 @@ class AdminUserController extends Controller
     {
         try {
             // Manual validation for more control
-            $validator = Validator::make($request->all(), [
+             $validator = Validator::make($request->all(), [
                 'fullname'      => 'required|string|max:255',
                 'username'      => 'required|string|max:50|unique:userroles,username',
                 'email'         => 'required|email|unique:userroles,email',
-                'password'      => 'required|string|min:6',
+                // password now optional on creation (we generate if omitted)
+                'password'      => 'nullable|string|min:6',
                 'role'          => 'required|in:admin,operator',
                 'active_status' => 'sometimes|boolean',
                 'avatar'        => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             ]);
+            
 
             if ($validator->fails()) {
                 return response()->json([
@@ -40,15 +46,56 @@ class AdminUserController extends Controller
                 $avatarPath = $request->file('avatar')->store('avatars', 'public');
             }
 
-            $user = UserRole::create([
+            // Decide password: use provided password OR generate temporary one
+            $mustReset = false;
+            $tempPasswordForEmail = null;
+
+            if ($request->has('password') && $request->input('password') !== '') {
+                $passwordToStore = Hash::make($request->input('password')); 
+                $mustReset = false;
+                $tempPasswordCreatedAt = null; // explicitly set null
+                Log::error('get send password: ');
+            } else {
+                // generate a strong temporary password
+                $tempPasswordForEmail = Str::random(12); // 12 chars
+                $passwordToStore = Hash::make($tempPasswordForEmail);
+                $mustReset = true;
+                $tempPasswordCreatedAt = now();
+                 Log::error('get randome password: ');
+            }
+
+            $userData = [
                 'fullname'      => $validated['fullname'],
                 'username'      => $validated['username'],
                 'email'         => $validated['email'],
-                'password'      => Hash::make($validated['password']),
+                'password'      => $passwordToStore,
                 'role'          => $validated['role'],
                 'active_status' => $validated['active_status'] ?? true,
                 'avatar'        => $avatarPath ? '/storage/' . $avatarPath : null,
-            ]);
+                'must_reset_password' => $mustReset,
+                'temp_password_created_at' => $mustReset ? $tempPasswordCreatedAt : null,
+            ];
+
+            Log::error('Insert user data: ', $userData);
+
+            $user = UserRole::create($userData);
+
+            // Try sending email only when we generated a temp password
+            $tempForCreator = null;
+            if ($mustReset) {
+                try {
+                    Mail::to($user->email)->send(new SendTempPassword($user, $tempPasswordForEmail));
+                } catch (\Exception $e) {
+                    Log::error('Failed to send temp password email: '.$e->getMessage());
+                    
+                }
+                // For local/testing only — return temp password to creator
+                    if (app()->environment('local')) {
+                        $tempForCreator = $tempPasswordForEmail;
+                    }
+                    Log::error('Temp password: ' . $tempForCreator);
+
+            }
 
             return response()->json([
                 'message' => 'User created successfully',
@@ -63,7 +110,9 @@ class AdminUserController extends Controller
                     'avatar'        => $user->avatar
                         ? url($user->avatar)
                         : url('images/default.png'),
-                ]
+                ],
+                // IMPORTANT: temp_password only returned in local when email couldn't be sent.
+                'temp_password' => $tempForCreator
             ], 201);
         } catch (\Exception $e) {
             return response()->json([
@@ -148,7 +197,7 @@ class AdminUserController extends Controller
         return response()->json(['message' => 'User deleted successfully']);
     }
 
-    // ✅ Fetch all users (renamed from index)
+    //  Fetch all users (renamed from index)
     public function fetchUsers()
     {
         $users = UserRole::all();
