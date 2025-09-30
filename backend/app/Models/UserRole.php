@@ -20,10 +20,19 @@ class UserRole extends Model
         'role',
         'avatar',
         'active_status',
-        'last_login_at'
+        'last_login_at',
+        'must_reset_password',
+        'temp_password_created_at',
+
     ];
 
     protected $hidden = [
         'password',
+    ];
+
+    protected $casts = [
+        'active_status' => 'boolean',
+        'must_reset_password' => 'boolean',
+        'temp_password_created_at' => 'datetime',
     ];
 }

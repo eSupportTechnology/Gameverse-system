@@ -88,14 +88,13 @@ export default function AddUserDialog({
 
       // only append password if not empty
       if (formData.password && formData.password.trim() !== "") {
-        data.append("password", formData.password);
-      }
+      data.append("password", formData.password);
+    }
 
       // only append avatar if user uploaded new File
       if (formData.avatar instanceof File) {
         data.append("avatar", formData.avatar);
       }
-
       let response;
       if (isEditing) {
         data.append("_method", "PUT");
@@ -112,12 +111,21 @@ export default function AddUserDialog({
         );
       } else {
         // Add user
+        console.table(Object.fromEntries(data.entries()));
         response = await axios.post("http://localhost:8000/api/add-user", data, {
           headers: {
             "Content-Type": "multipart/form-data",
             Authorization: `Bearer ${token}`,
           },
         });
+      }
+      setLoading(false);
+      setMessage(response.data.message || "User saved");
+      console.log("Temp password from backend:", response.data.temp_password);
+      if (response.data.hasOwnProperty("temp_password")) {
+        toast.info(`Temporary password (dev only): ${response.data.temp_password}`);
+      } else {
+        toast.success("User created and (if configured) email sent to user.");
       }
 
       onCreate(response.data.user, true);

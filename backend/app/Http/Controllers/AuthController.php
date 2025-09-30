@@ -54,8 +54,83 @@ class AuthController extends Controller
                 'role'     => $user->role,
                 'last_login_at'  => $user->last_login_at,
             ],
+            'must_reset_password' => $user->must_reset_password,
             'token' => $token
         ]);
+    }
+
+    // oparator login
+    public function operatoLogin(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'password' => 'required'
+        ]);
+
+        $user = UserRole::where('email', $request->email)
+            ->where('role', 'operator') // check operator role
+            ->first();
+
+        if (!$user || !Hash::check($request->password, $user->password)) {
+            return response()->json(['message' => 'Invalid credentials'], 401);
+        }
+
+        if (!$user->active_status) {
+            return response()->json(['message' => 'Account is inactive'], 403);
+        }
+
+        if ($user && $user->active_status) {
+            $user->update([
+                'last_login_at' => now(),
+            ]);
+        }
+
+        $token = $user->createToken('operator-token')->plainTextToken;
+
+        return response()->json([
+            'user' => [
+                'id'       => $user->id,
+                'fullname' => $user->fullname,
+                'username' => $user->username,
+                'email'    => $user->email,
+                'role'     => $user->role,
+                'last_login_at' => $user->last_login_at,
+            ],
+            'must_reset_password' => $user->must_reset_password,
+            'token' => $token
+        ]);
+    }
+
+
+    public function resetPassword(Request $request)
+    {
+        $request->validate([
+            'password' => 'required|string|min:8|confirmed',
+            // requires `password` + `password_confirmation`
+        ]);
+
+        $user = $request->user(); // comes from Sanctum token
+
+        if (!$user) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        // Update password and reset flags
+        $user->update([
+            'password' => Hash::make($request->password),
+            'must_reset_password' => false,
+            'temp_password_created_at' => null,
+        ]);
+
+        return response()->json([
+            'message' => 'Password reset successful',
+            'user' => [
+                'id' => $user->id,
+                'fullname' => $user->fullname,
+                'email' => $user->email,
+                'role' => $user->role,
+            ]
+        ], 200);
     }
     public function logout(Request $request)
     {
