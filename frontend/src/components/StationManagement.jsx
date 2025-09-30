@@ -1,5 +1,5 @@
-
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import {
   Box,
   Typography,
@@ -13,78 +13,92 @@ import {
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import AddStationDialog from "./AddStationDialog";
-import CreateSuccessDialog from "./CreateSuccessDialog"; 
-import UpdateSuccessDialog from "./UpdateSuccess"; 
+import CreateSuccessDialog from "./CreateSuccessDialog";
+import UpdateSuccessDialog from "./UpdateSuccess";
 
 export default function StationManagement() {
   const [tab, setTab] = useState(0);
   const [stations, setStations] = useState([]);
   const [open, setOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [editIndex, setEditIndex] = useState(null);
+  const [editStation, setEditStation] = useState(null);
 
   const [formData, setFormData] = useState({
     name: "",
     type: "",
     location: "",
     price: "",
-    status: "Available",
-    bookings: 0,
     time: "",
   });
 
-  
   const [createSuccessOpen, setCreateSuccessOpen] = useState(false);
   const [updateSuccessOpen, setUpdateSuccessOpen] = useState(false);
 
+  // Fetch stations on mount
+  useEffect(() => {
+    fetchStations();
+  }, []);
+
+  const fetchStations = async () => {
+    try {
+      const res = await axios.get("http://localhost:8000/api/stations");
+      setStations(res.data); // backend should return array of stations
+    } catch (err) {
+      console.error("Failed to fetch stations", err);
+    }
+  };
+
   const handleTabChange = (event, newValue) => setTab(newValue);
 
-  const handleOpen = () => {
+  const handleOpenAddDialog = () => {
     setIsEditing(false);
+    setEditStation(null);
     setFormData({
       name: "",
       type: "",
       location: "",
       price: "",
-      status: "Available",
-      bookings: 0,
       time: "",
     });
     setOpen(true);
   };
 
-  const handleEdit = (station, index) => {
+  const handleEditStation = (station) => {
     setIsEditing(true);
-    setEditIndex(index);
+    setEditStation(station);
     setFormData(station);
     setOpen(true);
   };
 
-  const handleClose = () => setOpen(false);
+  const handleCloseDialog = () => setOpen(false);
 
-  const handleCreateOrUpdate = () => {
-    if (isEditing) {
-      setStations((prev) =>
-        prev.map((s, idx) => (idx === editIndex ? formData : s))
-      );
-      setUpdateSuccessOpen(true); 
-    } else {
-      setStations((prev) => [...prev, formData]);
-      setCreateSuccessOpen(true); 
+  // Receives station data after successful create/update from AddStationDialog
+  const handleStationCreatedOrUpdated = (station, updated) => {
+    if (updated) {
+      if (isEditing && editStation) {
+        setStations((prev) =>
+          prev.map((s) => (s.id === editStation.id ? station : s))
+        );
+        setUpdateSuccessOpen(true);
+      } else {
+        setStations((prev) => [...prev, station]);
+        setCreateSuccessOpen(true);
+      }
     }
-
-    setFormData({
-      name: "",
-      type: "",
-      location: "",
-      price: "",
-      status: "Available",
-      bookings: 0,
-      time: "",
-    });
     setOpen(false);
+    setEditStation(null);
+    setIsEditing(false);
   };
 
+  // Format minutes → HH:MM style text
+  const formatTime = (minutes) => {
+    if (!minutes) return "0 min";
+    const h = Math.floor(minutes / 60);
+    const m = minutes % 60;
+    return h > 0 ? `${h}h ${m}m` : `${m} min`;
+  };
+
+  // Filter stations based on selected tab
   const filteredStations =
     tab === 0
       ? stations
@@ -108,7 +122,7 @@ export default function StationManagement() {
             </Typography>
           </Box>
           <Button
-            onClick={handleOpen}
+            onClick={handleOpenAddDialog}
             sx={{
               background: "linear-gradient(90deg, #33B2F7, #CF36E1)",
               color: "#fff",
@@ -151,11 +165,11 @@ export default function StationManagement() {
           </Tabs>
         </Box>
 
-       
+        {/* Stations Grid */}
         <Box sx={{ backgroundColor: "#0e111b78", p: 3, borderRadius: 2 }}>
           <Grid container spacing={3} justifyContent="flex-start">
-            {filteredStations.map((station, idx) => (
-              <Grid key={idx} item xs={12} sm={6} md={6} lg={4}>
+            {filteredStations.map((station) => (
+              <Grid key={station.id} item xs={12} sm={6} md={6} lg={4}>
                 <Card
                   sx={{
                     p: 3,
@@ -167,7 +181,6 @@ export default function StationManagement() {
                   }}
                 >
                   <CardContent sx={{ p: 1 }}>
-                   
                     <Box
                       sx={{
                         display: "flex",
@@ -184,13 +197,17 @@ export default function StationManagement() {
                             color: "#47e882ff",
                             borderRadius: "50%",
                             backgroundColor:
-                              station.status === "Available" ? "#0a5a294d" : "#f59f0b74",
+                              station.status === "Available"
+                                ? "#0a5a294d"
+                                : "#f59f0b74",
                           }}
                         />
                         <Box
                           sx={{
                             backgroundColor:
-                              station.status === "Available" ? "#065f465d" : "#92410e9f",
+                              station.status === "Available"
+                                ? "#065f465d"
+                                : "#92410e9f",
                             px: 2,
                             py: 0.5,
                             borderRadius: "12px",
@@ -205,14 +222,19 @@ export default function StationManagement() {
 
                       <IconButton
                         size="small"
-                        onClick={() => handleEdit(station, idx)}
+                        onClick={() => handleEditStation(station)}
                         sx={{ color: "#9CA3AF", "&:hover": { color: "#fff" } }}
                       >
                         <EditIcon fontSize="small" />
                       </IconButton>
                     </Box>
 
-                    <Typography variant="subtitle1" fontWeight={600} color="white" sx={{ mb: 0.5 }}>
+                    <Typography
+                      variant="subtitle1"
+                      fontWeight={600}
+                      color="white"
+                      sx={{ mb: 0.5 }}
+                    >
                       {station.name}
                     </Typography>
                     <Typography variant="body2" color="#9CA3AF" sx={{ mb: 1 }}>
@@ -229,7 +251,7 @@ export default function StationManagement() {
                       }}
                     >
                       <Typography variant="body2" color="#9CA3AF">
-                        {station.time || "30 min"}
+                        {formatTime(station.time)}
                       </Typography>
                       <Typography variant="body2" color="white">
                         LKR {station.price}
@@ -237,27 +259,9 @@ export default function StationManagement() {
                     </Box>
 
                     <Typography variant="body2" color="#9CA3AF" sx={{ mb: 0.5 }}>
-                      Location: <span style={{ color: "white" }}>{station.location}</span>
+                      Location:{" "}
+                      <span style={{ color: "white" }}>{station.location}</span>
                     </Typography>
-
-                    <Typography variant="body2" color="#9CA3AF">
-                      No of bookings: <span style={{ color: "white" }}>{station.bookings}</span>
-                    </Typography>
-
-                    <Button
-                      fullWidth
-                      sx={{
-                        mt: 2,
-                        backgroundColor: "#c51a1f41",
-                        color: "#fff",
-                        border: "1px solid #c51a1f",
-                        fontWeight: 600,
-                        py: 1,
-                        "&:hover": { backgroundColor: "#b91c1c" },
-                      }}
-                    >
-                      Set offline
-                    </Button>
                   </CardContent>
                 </Card>
               </Grid>
@@ -266,11 +270,11 @@ export default function StationManagement() {
         </Box>
       </Box>
 
-     
+      {/* Add/Edit Station Dialog */}
       <AddStationDialog
         open={open}
-        onClose={handleClose}
-        onCreate={handleCreateOrUpdate}
+        onClose={handleCloseDialog}
+        onCreate={handleStationCreatedOrUpdated}
         formData={formData}
         setFormData={setFormData}
         isEditing={isEditing}

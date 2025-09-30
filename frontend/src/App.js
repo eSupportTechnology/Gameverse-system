@@ -26,7 +26,7 @@ function App() {
         {aToken ? (
           <>
             {/* Admin routes */}
-            <Route path="/" element={<Home />} />
+            <Route path="/" element={<Booking />} />
             <Route path="/stations/*" element={<Station />} />
             <Route path="/pos/*" element={<Pos />} />
             <Route path="/bookings" element={<Booking />} />
@@ -60,7 +60,9 @@ function App() {
           <>
             {/* Login routes */}
             <Route path="/admin/login" element={<Login />} />
-            {/* redirect all other routes to login */}
+            {/* redirect `/` to login explicitly */}
+            <Route path="/" element={<Navigate to="/admin/login" replace />} />
+            {/* redirect everything else to login */}
             <Route path="*" element={<Navigate to="/admin/login" replace />} />
           </>
         )}

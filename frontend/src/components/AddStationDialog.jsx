@@ -14,6 +14,8 @@ import {
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import CancelPopup from "./CancelPopup";
+import axios from "axios";
+import { toast } from "react-toastify";
 
 export default function AddStationDialog({
   open,
@@ -30,7 +32,7 @@ export default function AddStationDialog({
 
   const handleConfirmCancel = () => {
     setOpenCancelPopup(false);
-    onClose(); // actually close the AddStation dialog
+    onClose(); 
   };
 
   const handleChange = (e) => {
@@ -38,27 +40,64 @@ export default function AddStationDialog({
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  // here neeed to type as like placeholder "HH:MM"
   const handleTimeChange = (e) => {
     const val = e.target.value;
-    const timePattern = /^([0-1]?[0-9]|2[0-3]):([0-5][0-9])$/;
-
-    if (timePattern.test(val)) {
-      const [hours, minutes] = val.split(":").map(Number);
-      const totalMinutes = hours * 60 + minutes;
-      setFormData((prev) => ({ ...prev, time: `${totalMinutes} minutes` }));
-    } else {
-      setFormData((prev) => ({ ...prev, time: val }));
-    }
+    setFormData((prev) => ({ ...prev, time: val })); // keep raw "HH:MM"
   };
 
-  const handleSubmit = () => {
-    const timePattern = /^([0-9]+) minutes$/;
+  const handleSubmit = async () => {
+    const timePattern = /^([0-1]?[0-9]|2[0-3]):([0-5][0-9])$/;
+
     if (!timePattern.test(formData.time)) {
       alert("Please enter valid time in HH:MM format (e.g., 00:30)");
       return;
     }
 
-    onCreate(formData);
+    // convert to integer minutes for backend
+    const [hours, minutes] = formData.time.split(":").map(Number);
+    const totalMinutes = hours * 60 + minutes;
+
+    const payload = { ...formData, time: totalMinutes };
+
+    try {
+      const token = localStorage.getItem("aToken"); // get token dynamically
+      const url = isEditing
+        ? `http://127.0.0.1:8000/api/stations/${formData.id}` // update endpoint
+        : "http://127.0.0.1:8000/api/stations";
+
+      const method = isEditing ? "put" : "post";
+
+      const res = await axios({
+        method,
+        url,
+        data: payload, // send integer here ✅
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      toast.success(`Station ${isEditing ? "updated" : "created"} successfully!`);
+
+      onCreate(res.data, isEditing);
+
+      setFormData({
+        name: "",
+        type: "",
+        location: "",
+        price: "",
+        status: "Available",
+        bookings: 0,
+        time: "",
+      });
+      onClose();
+    } catch (err) {
+      console.log(err);
+      toast.error(
+        err.response?.data?.message || "Failed to save station. Make sure you are logged in."
+      );
+    }
   };
 
   return (
@@ -120,17 +159,19 @@ export default function AddStationDialog({
               "& .MuiSelect-select:empty": { color: "#94a3b8" },
             }}
           >
-            <MenuItem value="PS5 Station 1" sx={{ background: "#171C2D", border: "0.3px solid #c9c0c096", py: 1 }}>PS5 Station 1</MenuItem>
-            <MenuItem value="PS5 Station 2" sx={{ background: "#171C2D", border: "0.3px solid #c9c0c096", py: 1 }}>PS5 Station 2</MenuItem>
-            <MenuItem value="PS5+VR" sx={{ background: "#171C2D", border: "0.3px solid #c9c0c096", py: 1 }}>PS5+VR</MenuItem>
-            <MenuItem value="8 Ball Pool (Supreme)" sx={{ background: "#171C2D", border: "0.3px solid #c9c0c096", py: 1 }}>8 Ball Pool (Supreme)</MenuItem>
-            <MenuItem value="8 Ball Pool (Premium)" sx={{ background: "#171C2D", border: "0.3px solid #c9c0c096", py: 1 }}>8 Ball Pool (Premium)</MenuItem>
-            <MenuItem value="CRS+VR (PS V R2)" sx={{ background: "#171C2D", border: "0.3px solid #c9c0c096", py: 1 }}>CRS+VR (PS V R2)</MenuItem>
-            <MenuItem value="Car Racing Simulator" sx={{ background: "#171C2D", border: "1px solid #c9c0c096", py: 1 }}>Car Racing Simulator</MenuItem>
+            <MenuItem value="PS5 Station 1">PS5 Station 1</MenuItem>
+            <MenuItem value="PS5 Station 2">PS5 Station 2</MenuItem>
+            <MenuItem value="PS5+VR">PS5+VR</MenuItem>
+            <MenuItem value="8 Ball Pool (Supreme)">8 Ball Pool (Supreme)</MenuItem>
+            <MenuItem value="8 Ball Pool (Premium)">8 Ball Pool (Premium)</MenuItem>
+            <MenuItem value="CRS+VR (PS V R2)">CRS+VR (PS V R2)</MenuItem>
+            <MenuItem value="Car Racing Simulator">Car Racing Simulator</MenuItem>
           </TextField>
 
           {/* Station Type */}
-          <Typography variant="subtitle2" sx={{ color: "#94a3b8", mb: 0.5 }}>Station Type</Typography>
+          <Typography variant="subtitle2" sx={{ color: "#94a3b8", mb: 0.5 }}>
+            Station Type
+          </Typography>
           <TextField
             select
             margin="dense"
@@ -153,13 +194,15 @@ export default function AddStationDialog({
               "& .MuiSelect-select:empty": { color: "#94a3b8" },
             }}
           >
-            <MenuItem value="PlayStation" sx={{ background: "#171C2D", border: "0.3px solid #c9c0c096" }}>PlayStation</MenuItem>
-            <MenuItem value="Pool" sx={{ background: "#171C2D", border: "0.3px solid #c9c0c096" }}>Pool</MenuItem>
-            <MenuItem value="Simulator" sx={{ background: "#171C2D", border: "0.3px solid #c9c0c096" }}>Simulator</MenuItem>
+            <MenuItem value="PlayStation">PlayStation</MenuItem>
+            <MenuItem value="Pool">Pool</MenuItem>
+            <MenuItem value="Simulator">Simulator</MenuItem>
           </TextField>
 
           {/* Location, Price, Time */}
-          <Typography variant="subtitle2" sx={{ color: "#94a3b8", mb: 0.5 }}>Location</Typography>
+          <Typography variant="subtitle2" sx={{ color: "#94a3b8", mb: 0.5 }}>
+            Location
+          </Typography>
           <TextField
             margin="dense"
             name="location"
@@ -181,7 +224,9 @@ export default function AddStationDialog({
           <Box display="flex" gap={2} mt={1}>
             {/* Price */}
             <Box flex={1}>
-              <Typography variant="subtitle2" sx={{ color: "#94a3b8", mb: 0.5 }}>Price</Typography>
+              <Typography variant="subtitle2" sx={{ color: "#94a3b8", mb: 0.5 }}>
+                Price
+              </Typography>
               <TextField
                 margin="dense"
                 name="price"
@@ -206,7 +251,9 @@ export default function AddStationDialog({
 
             {/* Time */}
             <Box flex={1}>
-              <Typography variant="subtitle2" sx={{ color: "#f3f4f5ff", mb: 0.5 }}>Time (HH:MM)</Typography>
+              <Typography variant="subtitle2" sx={{ color: "#f3f4f5ff", mb: 0.5 }}>
+                Time (HH:MM)
+              </Typography>
               <TextField
                 margin="dense"
                 name="time"
@@ -229,7 +276,9 @@ export default function AddStationDialog({
           </Box>
         </DialogContent>
 
-        <DialogActions sx={{ px: 3, pb: 2, display: "flex", justifyContent: "space-between" }}>
+        <DialogActions
+          sx={{ px: 3, pb: 2, display: "flex", justifyContent: "space-between" }}
+        >
           <Button
             onClick={handleOpenCancelPopup}
             sx={{
@@ -266,7 +315,6 @@ export default function AddStationDialog({
           </Button>
         </DialogActions>
 
-        {/* Cancel Confirmation Popup */}
         <CancelPopup
           open={openCancelPopup}
           handleCancelClose={handleCloseCancelPopup}

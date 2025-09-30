@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AdminUserController;
+use App\Http\Controllers\StationController;
 
 // Public route
 Route::post('/admin/login', [AuthController::class, 'login']);
@@ -29,4 +30,14 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     Route::get('/dashboard', function () {
         return response()->json(['message' => 'Welcome Admin']);
     });
+});
+
+
+Route::get('/stations', [StationController::class, 'index']);
+
+// Protected routes (only authenticated admin)
+Route::middleware(['auth:sanctum', 'admin'])->group(function () {
+    Route::post('/stations', [StationController::class, 'store']);
+    Route::put('/stations/{id}', [StationController::class, 'update']);
+    Route::delete('/stations/{id}', [StationController::class, 'destroy']);
 });
