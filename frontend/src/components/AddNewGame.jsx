@@ -8,7 +8,8 @@ import {
   Button,
   Box,
   Typography,
-  IconButton
+  IconButton,
+  MenuItem
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import CancelPopup from './CancelPopup';
@@ -16,28 +17,29 @@ import gameicon from '../assets/gameicon.png';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 
+const paymentMethods = ["Coin", "Arrow", "Per Hour"];
+const methodValue = { Coin: 100, Arrow: 150, "Per Hour": 75 };
+
 const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmit }) => {
   const [createSuccess, setCreateSuccess] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
 
-  // form states
   const [title, setTitle] = useState("");
   const [location, setLocation] = useState("");
-  const [coin, setCoin] = useState("");
-  const [price, setPrice] = useState("");
+  const [method, setMethod] = useState("Coin");
+  const [price, setPrice] = useState(""); // total price
 
-  // preload when dialog opens
   useEffect(() => {
     if (open) {
       if (mode === "edit" && initialData) {
         setTitle(initialData.title ?? "");
         setLocation(initialData.location ?? "");
-        setCoin(initialData.coin ?? "");
+        setMethod(initialData.method ?? "Coin");
         setPrice(initialData.price ?? "");
       } else {
         setTitle("");
         setLocation("");
-        setCoin("");
+        setMethod("Coin");
         setPrice("");
       }
     }
@@ -45,14 +47,13 @@ const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmi
 
   const handleCancelOpen = () => setCancelOpen(true);
   const handleCancelClose = () => setCancelOpen(false);
-
   const handleConfirmCancel = () => {
     setCancelOpen(false);
     handleClose(false);
   };
 
   const handleSubmit = async () => {
-    if (!title || !location || !coin || !price) {
+    if (!title || !location || !price) {
       toast.error("All fields are required!");
       return;
     }
@@ -60,7 +61,7 @@ const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmi
     const gameData = {
       title,
       location,
-      coin: Number(coin),
+      method,
       price: Number(price)
     };
 
@@ -69,10 +70,10 @@ const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmi
       const url = mode === "edit"
         ? `http://127.0.0.1:8000/api/games/${initialData.id}`
         : "http://127.0.0.1:8000/api/games";
-      const method = mode === "edit" ? "put" : "post";
+      const methodType = mode === "edit" ? "put" : "post";
 
       const response = await axios({
-        method,
+        method: methodType,
         url,
         headers: {
           Authorization: `Bearer ${token}`,
@@ -82,9 +83,7 @@ const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmi
       });
 
       toast.success(`Game ${mode === "edit" ? "updated" : "created"} successfully!`);
-
       if (onSubmit) onSubmit(response.data);
-
       setCreateSuccess(true);
     } catch (err) {
       console.error(err);
@@ -118,6 +117,7 @@ const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmi
         </Box>
 
         <DialogContent dividers sx={{ py: 0, pb: 2 }}>
+          {/* Game Name */}
           <Box display="flex" flexDirection="column" gap={1} mb={1}>
             <Typography variant="body2" sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF" }}>
               Game Name
@@ -129,19 +129,11 @@ const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmi
               placeholder="Enter game name"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              InputProps={{
-                sx: {
-                  backgroundColor: "#1F2937",
-                  borderRadius: "6px",
-                  border: '1px solid #374151',
-                  "& input::placeholder": { color: "#9CA3AF", fontSize: "14px" },
-                  color: "white",
-                  fontWeight: 500,
-                },
-              }}
+              InputProps={{ sx: { backgroundColor: "#1F2937", borderRadius: "6px", border: '1px solid #374151', color: "white" } }}
             />
           </Box>
 
+          {/* Location */}
           <Box display="flex" flexDirection="column" gap={1} mb={1}>
             <Typography variant="body2" sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF" }}>
               Location
@@ -153,132 +145,63 @@ const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmi
               placeholder="Zone A, Zone B, etc."
               value={location}
               onChange={(e) => setLocation(e.target.value)}
-              InputProps={{
-                sx: {
-                  backgroundColor: "#1F2937",
-                  borderRadius: "6px",
-                  border: '1px solid #374151',
-                  "& input::placeholder": { color: "#9CA3AF", fontSize: "14px" },
-                  color: "white",
-                  fontWeight: 500,
-                },
-              }}
+              InputProps={{ sx: { backgroundColor: "#1F2937", borderRadius: "6px", border: '1px solid #374151', color: "white" } }}
             />
           </Box>
 
+          {/* Pricing Method */}
+          <Typography variant="body2" sx={{ fontSize: 12, color: "#9CA3AF", mb: 0.5 }}>Pricing Method</Typography>
+
           <Box display="grid" gridTemplateColumns={{ xs: "1fr", md: "1fr 1fr" }} gap={2} mt={1}>
+            {/* Method */}
             <Box display="flex" flexDirection="column" gap={1}>
-              <Typography variant="body2" sx={{ fontSize: 12, color: "#9CA3AF" }}>Coins</Typography>
               <TextField
-                variant="outlined"
+                select
                 fullWidth
                 size="small"
-                type="number"
-                placeholder="Enter number of coins"
-                value={coin}
-                onChange={(e) => setCoin(e.target.value)}
-                InputProps={{
-                  sx: {
-                    backgroundColor: "#1F2937",
-                    borderRadius: "6px",
-                    border: '1px solid #374151',
-                    "& input::placeholder": { color: "#9CA3AF", fontSize: "14px" },
-                    color: "white",
-                    fontWeight: 500,
-                  },
-                }}
-              />
+                value={method}
+                onChange={(e) => setMethod(e.target.value)}
+                InputProps={{ sx: { backgroundColor: "#1F2937", borderRadius: "6px", border: '1px solid #374151', color: "white" } }}
+              >
+                {paymentMethods.map((m) => (
+                  <MenuItem key={m} value={m}>{m}</MenuItem>
+                ))}
+              </TextField>
             </Box>
 
+            {/* Price */}
             <Box display="flex" flexDirection="column" gap={1}>
-              <Typography variant="body2" sx={{ fontSize: 12, color: "#9CA3AF" }}>Price</Typography>
               <TextField
                 variant="outlined"
                 fullWidth
                 size="small"
                 type="number"
-                placeholder="LKR 100"
+                placeholder="Enter total price"
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
-                InputProps={{
-                  sx: {
-                    backgroundColor: "#1F2937",
-                    borderRadius: "6px",
-                    border: '1px solid #374151',
-                    "& input::placeholder": { color: "#9CA3AF", fontSize: "14px" },
-                    color: "white",
-                    fontWeight: 500,
-                  },
-                }}
+                InputProps={{ sx: { backgroundColor: "#1F2937", borderRadius: "6px", border: '1px solid #374151', color: "white" } }}
               />
             </Box>
           </Box>
         </DialogContent>
 
         <DialogActions sx={{ px: 3 }}>
-          <Button
-            onClick={handleCancelOpen}
-            variant="contained"
-            sx={{
-              fontSize: 16,
-              fontWeight: 'bold',
-              backgroundColor: "#1F2937",
-              width: '50%',
-              py: 0.5,
-              textTransform: 'capitalize',
-              "&:hover": { bgcolor: "#374151" },
-            }}
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={handleSubmit}
-            variant="contained"
-            sx={{
-              fontSize: 16,
-              fontWeight: 'bold',
-              width: '50%',
-              py: 0.5,
-              textTransform: 'capitalize',
-              background: "linear-gradient(to right, #0CD7FF, #8A38F5)",
-              "&:hover": { background: "linear-gradient(to right, #0bbfe0, #732ed1)" },
-            }}
-          >
+          <Button onClick={handleCancelOpen} variant="contained"
+            sx={{ fontSize: 16, fontWeight: 'bold', backgroundColor: "#1F2937", width: '50%', py: 0.5 }}>Cancel</Button>
+          <Button onClick={handleSubmit} variant="contained"
+            sx={{ fontSize: 16, fontWeight: 'bold', width: '50%', py: 0.5, background: "linear-gradient(to right, #0CD7FF, #8A38F5)" }}>
             {mode === "edit" ? "Update" : "Create"}
           </Button>
         </DialogActions>
 
-        <Dialog open={createSuccess} PaperProps={{
-          sx: {
-            bgcolor: "#0A192F",
-            borderRadius: "16px",
-            py: 2, px: 8,
-            textAlign: "center",
-            color: "white",
-            border: '1px solid #3B4859'
-          },
-        }}>
+        <Dialog open={createSuccess} PaperProps={{ sx: { bgcolor: "#0A192F", borderRadius: "16px", py: 2, px: 8, textAlign: "center", color: "white", border: '1px solid #3B4859' } }}>
           <DialogContent>
-            <Box sx={{ mb: 1 }}>
-              <img src={gameicon} alt="" width={80} />
-            </Box>
-            <Typography variant="h6" sx={{
-              background: "linear-gradient(90deg, #00C6FF, #FF00CC)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              fontSize: 24,
-              fontWeight: 600,
-              mb: 1
-            }}>
+            <Box sx={{ mb: 1 }}><img src={gameicon} alt="" width={80} /></Box>
+            <Typography variant="h6" sx={{ background: "linear-gradient(90deg, #00C6FF, #FF00CC)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", fontSize: 24, fontWeight: 600, mb: 1 }}>
               {mode === "edit" ? "Update Successful!" : "Create Successful!"}
             </Typography>
-            <Button onClick={() => { setCreateSuccess(false); handleClose(); }} sx={{
-              px: 8, fontSize: 14, textTransform: 'capitalize',
-              borderRadius: "8px",
-              background: "linear-gradient(90deg, rgba(12, 215, 255, 0.4) 0%, rgba(138, 56, 245, 0.4) 73%)",
-              color: "white",
-              "&:hover": { background: "linear-gradient(90deg, #0CD7FF 0%, #8A38F5 73%)" },
-            }}>
+            <Button onClick={() => { setCreateSuccess(false); handleClose(); }}
+              sx={{ px: 8, fontSize: 14, borderRadius: "8px", background: "linear-gradient(90deg, rgba(12, 215, 255, 0.4) 0%, rgba(138, 56, 245, 0.4) 73%)", color: "white" }}>
               Ok
             </Button>
           </DialogContent>
