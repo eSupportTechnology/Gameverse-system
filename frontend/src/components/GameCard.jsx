@@ -1,8 +1,7 @@
-import React, { useState } from 'react'
+import React, { useState } from 'react';
 import { Card, CardContent, Typography, Button, Box } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
-import EditGame from './EditGame';
-
+import AddNewGame from './AddNewGame';
 
 const methodLabels = {
   "Arcade Machine": "Coin",
@@ -10,12 +9,11 @@ const methodLabels = {
   Carrom: "Per hour:",
 };
 
-const GameCard = ({ game, onPlay }) => {
+const GameCard = ({ game, onPlay, onUpdate }) => {
   const [editOpen, setEditOpen] = useState(false);
 
   return (
     <div>
-
       <Card
         sx={{
           bgcolor: "#171C2D",
@@ -28,10 +26,13 @@ const GameCard = ({ game, onPlay }) => {
         <CardContent>
           {/* Title */}
           <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
-            <Typography variant="h6" fontWeight={500} fontSize={16} color="#fff">{game.title}</Typography>
+            <Typography variant="h6" fontWeight={500} fontSize={16} color="#fff">
+              {game.title}
+            </Typography>
             <EditIcon
               onClick={() => setEditOpen(true)}
-              sx={{ fontSize: 16, color: "gray", cursor: "pointer" }} />
+              sx={{ fontSize: 16, color: "gray", cursor: "pointer" }}
+            />
           </Box>
 
           {/* Location */}
@@ -41,13 +42,13 @@ const GameCard = ({ game, onPlay }) => {
             </Typography>
           </Box>
 
-          {/* Price */}
+          {/* Coin and Price */}
           <Box display="flex" justifyContent="space-between" mb={2}>
             <Typography fontSize={12} color="#FFFFFF">
-              {game.quntity} {methodLabels[game.category] || "Price:"}
+              {game.coin} {methodLabels[game.category] || "Coins"}
             </Typography>
             <Typography fontSize={12} color="#0CD7FF">
-              LKR {game.price}
+              {game.price ? `LKR ${game.price}` : "N/A"}
             </Typography>
           </Box>
 
@@ -63,25 +64,26 @@ const GameCard = ({ game, onPlay }) => {
               textTransform: "none",
               "&:hover": { bgcolor: "#1F2937" },
             }}
-            onClick={onPlay}
+            onClick={() => onPlay(game)}
           >
             Play
           </Button>
-          {/* bokking details */}
-          {/* <BookingDetails
-            open={open}
-            handleClose={handleClose}
-            booking={selectedBooking}
-          /> */}
 
-          {/* Edit game from */}
-          <EditGame open={editOpen} handleClose={() => setEditOpen(false)} />
-
+          {/* Edit dialog */}
+          <AddNewGame
+            open={editOpen}
+            handleClose={() => setEditOpen(false)}
+            mode="edit"
+            initialData={game}
+            onSubmit={(updatedGame) => {
+              setEditOpen(false);
+              if (onUpdate) onUpdate(updatedGame);
+            }}
+          />
         </CardContent>
       </Card>
-
     </div>
   )
 }
 
-export default GameCard
+export default GameCard;
