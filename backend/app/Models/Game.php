@@ -9,14 +9,16 @@ class Game extends Model
 {
     use HasFactory;
 
-    // ✅ Table name (optional if it matches plural of model)
-    protected $table = 'games';
-
-    // ✅ Fields that can be mass-assigned
     protected $fillable = [
         'title',
         'location',
-        'coin',
+        'method',
         'price',
     ];
+
+    // Optional: you can add a computed attribute for quantity
+    // public function getQuantityAttribute() {
+        // $values = ['Coin' => 100, 'Arrow' => 150, 'Per Hour' => 75];
+        // return isset($values[$this->method]) ? intval($this->price / $values[$this->method]) : 0;
+    // }
 }
