@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AdminUserController;
+use App\Http\Controllers\BookingController;
 
 // Public route
 Route::post('/admin/login', [AuthController::class, 'login']);
@@ -26,3 +27,6 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
         return response()->json(['message' => 'Welcome Admin']);
     });
 });
+
+Route::post('/bookings', [BookingController::class, 'store']);
+Route::get('/bookings', [BookingController::class, 'index']);
