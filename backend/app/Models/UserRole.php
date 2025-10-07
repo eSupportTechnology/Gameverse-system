@@ -36,8 +36,4 @@ class UserRole extends Model
         'temp_password_created_at' => 'datetime',
     ];
 
-    public function bookings()
-{
-    return $this->hasMany(AdminBooking::class, 'user_id', 'id');
-}
 }

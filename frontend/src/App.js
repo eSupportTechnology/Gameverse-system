@@ -15,7 +15,6 @@ import { AdminContext } from "./context/AdminContext";
 import { ToastContainer } from "react-toastify";
 import Login from "./pages/Login";
 import ResetPassword from "./pages/ResetPassword";
-import AdminBooking from "./pages/AdminBooking";
 
 function App() {
   const { aToken, oToken } = useContext(AdminContext);
@@ -27,10 +26,10 @@ function App() {
         {aToken ? (
           <>
             {/* Admin routes */}
-            <Route path="/" element={<AdminBooking />} />
+            <Route path="/" element={<Booking />} />
             <Route path="/stations/*" element={<Station />} />
             <Route path="/pos/*" element={<Pos />} />
-            <Route path="/bookings" element={<AdminBooking />} />
+            <Route path="/bookings" element={<Booking />} />
             <Route path="/games" element={<OtherGames />} />
             <Route path="/users" element={<User />} />
             <Route
