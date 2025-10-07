@@ -66,7 +66,7 @@ const GameCard = ({ game, onPlay, onUpdate, onDelete, isApiGame = false }) => {
           {/* Price */}
           <Box display="flex" justifyContent="space-between" mb={2}>
             <Typography fontSize={12} color="#FFFFFF">
-              {game.quntity} {methodLabels[game.category] || "Price:"}
+              {game.quantity} {methodLabels[game.category] || "Price:"}
             </Typography>
             <Typography fontSize={12} color="#0CD7FF">
               LKR {game.price}

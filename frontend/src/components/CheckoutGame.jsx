@@ -92,7 +92,7 @@ const CheckoutGame = ({ game, handleClose }) => {
                 display: "inline-block",
               }}
             >
-              {game.quntity} {methodLabels[game.category] || "Price:"}
+              {game.quantity} {methodLabels[game.category] || "Price:"}
             </Typography>
           </Box>
 
