@@ -14,17 +14,19 @@ import BookingManagement from "./components/BookingManagement";
 import { AdminContext } from "./context/AdminContext";
 import { ToastContainer } from "react-toastify";
 import Login from "./pages/Login";
+import ResetPassword from "./pages/ResetPassword";
 
 function App() {
-  const { aToken } = useContext(AdminContext);
+  const { aToken, oToken } = useContext(AdminContext);
 
   return (
     <Router>
       <Routes>
+        <Route path="/reset-password" element={<ResetPassword />} />
         {aToken ? (
           <>
             {/* Admin routes */}
-            <Route path="/" element={<Home />} />
+            <Route path="/" element={<Booking />} />
             <Route path="/stations/*" element={<Station />} />
             <Route path="/pos/*" element={<Pos />} />
             <Route path="/bookings" element={<Booking />} />
@@ -38,8 +40,12 @@ function App() {
               path="/settings"
               element={<div style={{ color: "#fff", marginTop: "80px", padding: "16px" }}>Settings (Coming soon)</div>}
             />
-
-            {/* Operator nested routes */}
+            {/* fallback */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </>
+        ) : oToken ? (
+          <>
+            {/* Operator-only routes */}
             <Route path="/operator/*" element={<OperatorLayout />}>
               <Route path="booking" element={<BookingManagement />} />
               <Route path="pos" element={<PosSystem />} />
@@ -48,13 +54,15 @@ function App() {
             </Route>
 
             {/* fallback */}
-            <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="*" element={<Navigate to="/operator/booking" replace />} />
           </>
         ) : (
           <>
-            {/* Only login */}
+            {/* Login routes */}
             <Route path="/admin/login" element={<Login />} />
-            {/* redirect all other routes to login */}
+            {/* redirect `/` to login explicitly */}
+            <Route path="/" element={<Navigate to="/admin/login" replace />} />
+            {/* redirect everything else to login */}
             <Route path="*" element={<Navigate to="/admin/login" replace />} />
           </>
         )}
@@ -65,3 +73,4 @@ function App() {
 }
 
 export default App;
+

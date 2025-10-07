@@ -3,30 +3,56 @@ import { Box, Button, TextField, Typography, Container } from "@mui/material";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { AdminContext } from "../context/AdminContext";
+import { useNavigate } from "react-router-dom";
+
+
 
 const Login = () => {
+  
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const { setAToken } = useContext(AdminContext)
+  const { setAToken, setOToken,loginRole, setLoginRole } = useContext(AdminContext)
 
   const onSubmitHandler = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post("http://127.0.0.1:8000/api/admin/login", {
-        email,
-        password,
-      });
+      let res;
 
-      localStorage.setItem("aToken", res.data.token);
-      setAToken(res.data.token);
-      toast.success("Login successful!");
+      if (loginRole === "admin") {
+        res = await axios.post("http://127.0.0.1:8000/api/admin/login", {
+          email,
+          password,
+        });
+        localStorage.setItem("aToken", res.data.token);
+        setAToken(res.data.token);
+        localStorage.setItem("loginRole", res.data.user.role); 
+        setLoginRole(res.data.user.role);
+      } else if (loginRole === "operator") {
+        res = await axios.post("http://127.0.0.1:8000/api/operator/login", {
+          email,
+          password,
+        });
+        localStorage.setItem("oToken", res.data.token); 
+        setOToken(res.data.token);
+        localStorage.setItem("loginRole", res.data.user.role); 
+        setLoginRole(res.data.user.role);
+      }
 
+      const { must_reset_password } = res.data;
 
+      if (must_reset_password) {
+        toast.info("You must reset your password before continuing");
+        window.location.href = "/reset-password";
+      } else {
+        toast.success(`${loginRole} login successful!`);
+        window.location.href = "/";
+      }
     } catch (error) {
       toast.error("Invalid credentials");
     }
   };
+
 
   return (
     <div style={{ background: '#0B0B0F' }}>
@@ -63,7 +89,7 @@ const Login = () => {
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
             }}>
-            Admin Login
+            {loginRole} Login
           </Typography>
 
           <Box>
@@ -138,6 +164,39 @@ const Login = () => {
           >
             Login
           </Button>
+
+          {/* Switch between Admin & Operator */}
+          {loginRole === "admin" ? (
+            <Typography
+              fontSize={13}
+              align="center"
+              color="white"
+              sx={{ mt: 1 }}
+            >
+              Operator Login?{" "}
+              <span
+                onClick={() => setLoginRole("operator")}
+                style={{ cursor: "pointer", color: "#0CD7FF", textDecoration: "underline" }}
+              >
+                Click here
+              </span>
+            </Typography>
+          ) : (
+            <Typography
+              fontSize={13}
+              align="center"
+              color="white"
+              sx={{ mt: 1 }}
+            >
+              Admin Login?{" "}
+              <span
+                onClick={() => setLoginRole("admin")}
+                style={{ cursor: "pointer", color: "#0CD7FF", textDecoration: "underline" }}
+              >
+                Click here
+              </span>
+            </Typography>
+          )}
         </Box>
       </Box>
     </div>
