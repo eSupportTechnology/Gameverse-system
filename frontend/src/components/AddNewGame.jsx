@@ -8,7 +8,8 @@ import {
   Button,
   Box,
   Typography,
-  IconButton
+  IconButton,
+  MenuItem
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import gameicon from '../assets/gameicon.png'
@@ -24,7 +25,10 @@ const AddNewGame = ({ open, handleClose, onCreate }) => {
     title: '',
     location: '',
     playing_method: '',
-    price: ''
+    price: '',
+    quantity: '',
+    players: '',
+    category: 'Arcade Machine'
   });
 
   const handleCancelOpen = () => setcancelOpen(true);
@@ -39,7 +43,7 @@ const AddNewGame = ({ open, handleClose, onCreate }) => {
   const handlNewGame = async () => {
     try {
       // Validate required fields
-      if (!formData.title || !formData.location || !formData.playing_method || !formData.price) {
+      if (!formData.title || !formData.location || !formData.playing_method || !formData.price || !formData.category) {
         toast.error("Please fill all required fields");
         return;
       }
@@ -55,9 +59,9 @@ const AddNewGame = ({ open, handleClose, onCreate }) => {
         location: formData.location,
         playing_method: formData.playing_method,
         price: parseFloat(formData.price),
-        quantity: 1, // Default quantity
-        players: null, // Default for non-Carrom games
-        category: 'Arcade Machine', // Default category
+        quantity: formData.category !== 'Carrom' ? (formData.quantity ? parseInt(formData.quantity) : 1) : null,
+        players: formData.category === 'Carrom' ? (formData.players ? parseInt(formData.players) : 4) : null,
+        category: formData.category,
         status: 'Active'
       };
 
@@ -84,7 +88,10 @@ const AddNewGame = ({ open, handleClose, onCreate }) => {
         title: '',
         location: '',
         playing_method: '',
-        price: ''
+        price: '',
+        quantity: '',
+        players: '',
+        category: 'Arcade Machine'
       });
 
     } catch (err) {
@@ -104,7 +111,10 @@ const AddNewGame = ({ open, handleClose, onCreate }) => {
       title: '',
       location: '',
       playing_method: '',
-      price: ''
+      price: '',
+      quantity: '',
+      players: '',
+      category: 'Arcade Machine'
     });
   };
 
@@ -201,6 +211,38 @@ const AddNewGame = ({ open, handleClose, onCreate }) => {
             />
           </Box>
 
+          {/* Game Category */}
+          <Box display="flex" flexDirection="column" gap={1} mb={2}>
+            <Typography
+              variant="body2"
+              sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF" }}
+            >
+              Game Category
+            </Typography>
+            <TextField
+              name="category"
+              value={formData.category}
+              onChange={handleChange}
+              select
+              variant="outlined"
+              fullWidth
+              size="small"
+              InputProps={{
+                sx: {
+                  backgroundColor: "#1F2937",
+                  borderRadius: "6px",
+                  border: '1px solid #374151',
+                  color: "white",
+                  fontWeight: 500,
+                },
+              }}
+            >
+              <MenuItem value="Arcade Machine">Arcade Machine</MenuItem>
+              <MenuItem value="Archery">Archery</MenuItem>
+              <MenuItem value="Carrom">Carrom</MenuItem>
+            </TextField>
+          </Box>
+
           <Box display="flex" justifyContent="flex-start" width="50%">
             <Typography
               variant="body2"
@@ -229,7 +271,7 @@ const AddNewGame = ({ open, handleClose, onCreate }) => {
                 variant="outlined"
                 fullWidth
                 size="small"
-                placeholder="Coin"
+                placeholder={formData.category === 'Arcade Machine' ? 'Coin' : formData.category === 'Archery' ? 'Arrows' : 'Per hour'}
                 InputProps={{
                   sx: {
                     backgroundColor: "#1F2937",
@@ -283,6 +325,72 @@ const AddNewGame = ({ open, handleClose, onCreate }) => {
             </Box>
           </Box>
 
+          {/* Quantity/Players field based on category */}
+          {formData.category !== 'Carrom' ? (
+            <Box display="flex" flexDirection="column" gap={1} mt={2}>
+              <Typography
+                variant="body2"
+                sx={{ fontSize: 12, color: "#9CA3AF" }}
+              >
+                Quantity
+              </Typography>
+              <TextField
+                name="quantity"
+                value={formData.quantity}
+                onChange={handleChange}
+                type="number"
+                variant="outlined"
+                fullWidth
+                size="small"
+                placeholder="1"
+                InputProps={{
+                  sx: {
+                    backgroundColor: "#1F2937",
+                    borderRadius: "6px",
+                    border: '1px solid #374151',
+                    "& input::placeholder": {
+                      color: "#9CA3AF",
+                      fontSize: "14px",
+                    },
+                    color: "white",
+                    fontWeight: 500,
+                  },
+                }}
+              />
+            </Box>
+          ) : (
+            <Box display="flex" flexDirection="column" gap={1} mt={2}>
+              <Typography
+                variant="body2"
+                sx={{ fontSize: 12, color: "#9CA3AF" }}
+              >
+                Number of Players
+              </Typography>
+              <TextField
+                name="players"
+                value={formData.players}
+                onChange={handleChange}
+                type="number"
+                variant="outlined"
+                fullWidth
+                size="small"
+                placeholder="4"
+                InputProps={{
+                  sx: {
+                    backgroundColor: "#1F2937",
+                    borderRadius: "6px",
+                    border: '1px solid #374151',
+                    "& input::placeholder": {
+                      color: "#9CA3AF",
+                      fontSize: "14px",
+                    },
+                    color: "white",
+                    fontWeight: 500,
+                  },
+                }}
+              />
+            </Box>
+          )}
 
         </DialogContent>
 
