@@ -24,6 +24,14 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
 // fetch all users
 Route::get('/users', [AdminUserController::class, 'fetchUsers']);
 
+// Booking routes (you can add auth middleware if needed)
+Route::get('/bookings', [BookingController::class, 'index']);      // get all bookings
+Route::post('/bookings', [BookingController::class, 'store']);     // create a booking
+Route::get('/bookings/{id}', [BookingController::class, 'show']);  // get single booking
+Route::put('/bookings/{id}', [BookingController::class, 'update']); // update booking
+Route::delete('/bookings/{id}', [BookingController::class, 'destroy']); // delete booking
+
+
 // Protected routes
 Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
