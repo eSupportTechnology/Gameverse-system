@@ -10,15 +10,10 @@ import {
   Tooltip,
   Divider,
 } from "@mui/material";
-import {  useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import Stations from "../pages/Station";
 
-
-
 // Dummy Components
-//const Bookings = () => <h2 style={{ color: "#fff" }}>Bookings Component</h2>;
-
-//const OtherGames = () => <h2 style={{ color: "#fff" }}>Other Games Component</h2>;
 const UsersRoles = () => <h2 style={{ color: "#fff" }}>Users & Roles Component</h2>;
 const Reports = () => <h2 style={{ color: "#fff" }}>Reports Component</h2>;
 const SettingsPage = () => <h2 style={{ color: "#fff" }}>Settings Component</h2>;
@@ -31,7 +26,6 @@ const menuItems = [
     text: "Bookings",
     path: "/bookings",
     icon: <img src="../images/b.png" alt="Bookings" style={{ width: 20, height: 20 }} />,
-    // component: <Booking />,
   },
   {
     text: "Stations",
@@ -43,13 +37,11 @@ const menuItems = [
     text: "POS System",
     path: "/pos",
     icon: <img src="../images/card.png" alt="POS System" style={{ width: 20, height: 20 }} />,
-   
   },
   {
     text: "Other Games",
     path: "/games",
     icon: <img src="../images/ic.png" alt="Other Games" style={{ width: 20, height: 20 }} />,
-    // component: <OtherGames />,
   },
   {
     text: "Users& Roles",
@@ -73,8 +65,8 @@ const menuItems = [
 
 export default function SidebarLayout() {
   const [open, setOpen] = useState(true);
-  const [active, setActive] = useState("Stations");
   const navigate = useNavigate();
+  const location = useLocation(); // track current route
 
   return (
     <Box sx={{ display: "flex" }}>
@@ -85,7 +77,7 @@ export default function SidebarLayout() {
           flexShrink: 0,
           "& .MuiDrawer-paper": {
             width: open ? expandedWidth : collapsedWidth,
-            transition: "width 0.3s",
+            transition: "width 0.s",
             overflowX: "hidden",
             backgroundColor: "#000000ff",
             color: "#fff",
@@ -93,6 +85,7 @@ export default function SidebarLayout() {
           },
         }}
       >
+        {/* Logo + Toggle */}
         <Box
           sx={{
             display: "flex",
@@ -112,57 +105,59 @@ export default function SidebarLayout() {
 
         <Divider sx={{ borderColor: "#1F2937", mb: 2 }} />
 
+        {/* Menu */}
         <List>
-          {menuItems.map((item) => (
-            <Tooltip key={item.text} title={!open ? item.text : ""} placement="right">
-              <ListItemButton
-                onClick={() => {
-                  setActive(item.text);
-                  navigate(item.path);
-                }}
-                sx={{
-                  mb: 0.5,
-                  marginRight: 1,
-                  marginLeft: 1,
-                  borderRadius: 1,
-                  padding: 0.5,
-                  justifyContent: open ? "flex-start" : "center",
-                  background:
-                    active === item.text
+          {menuItems.map((item) => {
+            const isActive = location.pathname === item.path;
+            return (
+              <Tooltip key={item.text} title={!open ? item.text : ""} placement="right">
+                <ListItemButton
+                  onClick={() => navigate(item.path)}
+                  sx={{
+                    mb: 0.5,
+                    marginRight: 1,
+                    marginLeft: 1,
+                    borderRadius: 1,
+                    padding: 0.5,
+                    justifyContent: open ? "flex-start" : "center",
+                    background: isActive
                       ? "linear-gradient(90deg, #09375089, #520b5aff)"
                       : "transparent",
-                  "&:hover": {
-                    backgroundColor: "rgba(255,255,255,0.1)",
-                  },
-                }}
-              >
-                <ListItemIcon
-                  sx={{
-                    color: "#fff",
-                    minWidth: 0,
-                    fontSize: "16px",
-                    paddingLeft: 0.75,
-                    mr: open ? 2 : "auto",
-                    justifyContent: "center",
+                    transition: "background 0.2s ease-in-out", // smooth quick change
+                    "&:hover": {
+                      backgroundColor: "rgba(255,255,255,0.1)",
+                    },
                   }}
                 >
-                  {item.icon}
-                </ListItemIcon>
-                {open && (
-                  <ListItemText
-                    primary={item.text}
-                    primaryTypographyProps={{
-                      fontSize: 14,
-                      fontWeight: active === item.text ? 600 : 400,
+                  <ListItemIcon
+                    sx={{
+                      color: "#fff",
+                      minWidth: 0,
+                      fontSize: "16px",
+                      paddingLeft: 0.75,
+                      mr: open ? 2 : "auto",
+                      justifyContent: "center",
                     }}
-                  />
-                )}
-              </ListItemButton>
-            </Tooltip>
-          ))}
+                  >
+                    {item.icon}
+                  </ListItemIcon>
+                  {open && (
+                    <ListItemText
+                      primary={item.text}
+                      primaryTypographyProps={{
+                        fontSize: 14,
+                        fontWeight: isActive ? 600 : 400,
+                      }}
+                    />
+                  )}
+                </ListItemButton>
+              </Tooltip>
+            );
+          })}
         </List>
       </Drawer>
 
+      {/* Main content */}
       <Box
         component="main"
         sx={{
@@ -172,8 +167,7 @@ export default function SidebarLayout() {
           backgroundColor: "#000000ff",
           minHeight: "100vh",
         }}
-      >
-      </Box>
+      />
     </Box>
   );
 }

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -13,26 +13,27 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddUserDialog from "./AddUserDialog";
 import DeleteConfirmDialog from "./DeleteConfirmDialog";
-import DeleteSuccessDialog from "./DeleteSuccessDialog"; // ✅ import success dialog
+import DeleteSuccessDialog from "./DeleteSuccessDialog"; 
 import UpdateSuccessDialog from "./UpdateSuccess";
 import CreateSuccessDialog from "./CreateSuccessDialog";
+import axios from "axios";
 
 
 export default function UserManagement() {
   const [open, setOpen] = useState(false);
   const [updateSuccessOpen, setUpdateSuccessOpen] = useState(false);
- const [createSuccessOpen, setCreateSuccessOpen] = useState(false);
-
-
-  const [users, setUsers] = useState([
-    { fullName: "Alex Chen", role: "Admin", status: "Active", lastLogin: "02.35pm", avatar: "/images/user1.png" },
-    { fullName: "Sarah Kim", role: "Admin", status: "Active", lastLogin: "04.45pm", avatar: "/images/user2.png" },
-    { fullName: "Anne Nikolos", role: "Operator", status: "Inactive", lastLogin: "10.45pm", avatar: "/images/user3.png" },
-    { fullName: "Nithin Akesh", role: "Operator", status: "Active", lastLogin: "05.05pm", avatar: "/images/user1.png" },
-  ]);
+  const [createSuccessOpen, setCreateSuccessOpen] = useState(false);
+  const [users, setUsers] = useState([]);
 
   const [formData, setFormData] = useState({
-    fullName: "", role: "Operator", username: "", password: "", status: "Active", lastLogin: "", avatar: ""
+    fullname: "",
+    role: "Operator",
+    username: "",
+    email: "",
+    password: "",
+    active_status: true,
+    avatar: null,
+    profile_img: ''
   });
 
   const [isEditing, setIsEditing] = useState(false);
@@ -46,47 +47,120 @@ export default function UserManagement() {
   // delete success popup
   const [deleteSuccessOpen, setDeleteSuccessOpen] = useState(false);
 
+  const mapUser = (user) => ({
+    id: user.id,
+    fullName: user.fullname,      
+    username: user.username,
+    email: user.email,
+    role: user.role,
+    status: Number(user.active_status) === 1 ? "Active" : "Inactive",
+    lastLogin: user.last_login_at || "N/A",
+    avatar: user.avatar || "/images/default.png",
+  });
+
+
+  // Fetch users from backend
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const res = await axios.get("http://localhost:8000/api/users");
+
+        // Map API data into your UI format
+        const formattedUsers = res.data.map((user) => ({
+          id: user.id,
+          fullName: user.fullname,
+          username: user.username,
+          email: user.email,
+          role: user.role,
+          status: user.active_status ? "Active" : "Inactive",
+          lastLogin: user.last_login_at || "N/A",
+          avatar: user.avatar || "/images/default.png",
+        }));
+
+        setUsers(formattedUsers);
+      } catch (err) {
+        console.error("Error fetching users:", err);
+      }
+    };
+
+    fetchUsers();
+  }, []);
+
   const handleOpen = () => {
     setIsEditing(false);
-    setFormData({ fullName: "", role: "Operator", username: "", password: "", status: "Active", lastLogin: "", avatar: "" });
+    setFormData({
+      fullname: "", role: "operator", username: "", email: "", password: "", active_status: true,
+      avatar: null,
+    });
     setOpen(true);
   };
 
   const handleEditClick = (user, index) => {
     setIsEditing(true);
     setEditIndex(index);
-    setFormData(user);
+
+    setFormData({
+      id: user.id,
+      fullname: user.fullName,
+      username: user.username || "",
+      email: user.email || "",
+      role: user.role,
+      active_status: user.status === "Active",
+      password: "", // don’t preload password
+      avatar: user.avatar || null,  
+    });
+
     setOpen(true);
   };
+
+
 
   const handleDeleteClick = (index) => {
     setDeleteIndex(index);
     setDeleteDialogOpen(true);
   };
 
-  const confirmDelete = () => {
-    setUsers((prev) => prev.filter((_, idx) => idx !== deleteIndex));
-    setDeleteDialogOpen(false);
-    setDeleteIndex(null);
-    setDeleteSuccessOpen(true); // ✅ show success popup
+  const confirmDelete = async () => {
+    if (deleteIndex === null) return;
+
+    const userId = users[deleteIndex].id;
+    try {
+      const token = localStorage.getItem("aToken");
+
+      await axios.delete(`http://localhost:8000/api/delete-user/${userId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      setUsers((prev) => prev.filter((_, idx) => idx !== deleteIndex));
+      setDeleteDialogOpen(false);
+      setDeleteIndex(null);
+      setDeleteSuccessOpen(true); // ✅ show success popup
+    } catch (error) {
+      console.error("Delete failed:", error);
+    }
+
   };
 
   const handleClose = () => setOpen(false);
 
-const handleCreateOrUpdate = () => {
-  if (isEditing && editIndex !== null) {
-    setUsers((prev) => prev.map((u, idx) => (idx === editIndex ? formData : u)));
-    //updateSuccessOpen(true);
-    setUpdateSuccessOpen(true); // update success popup
-  } else {
-    setUsers((prev) => [...prev, formData]);
-    setCreateSuccessOpen(true); // ✅ create success popup
-  }
-  setOpen(false);
-};
+  const handleCreateOrUpdate = (user) => {
+    const formattedUser = mapUser(user);
+    if (isEditing && editIndex !== null) {
+      setUsers((prev) => prev.map((u, idx) => (idx === editIndex ? formattedUser : u)));
+      //updateSuccessOpen(true);
+      setUpdateSuccessOpen(true); // update success popup
+    } else {
+      setUsers((prev) => [...prev, formattedUser]);
+      setCreateSuccessOpen(true); // ✅ create success popup
+    }
+    setOpen(false);
+  };
 
 
-  
+
 
   return (
     <Box sx={{ backgroundColor: "#000", minHeight: "500vh", color: "#fff", pt: "70px", px: 3 }}>
@@ -140,7 +214,7 @@ const handleCreateOrUpdate = () => {
       </Box>
 
       {/* OUTER CONTAINER - #0E111B */}
-      <Box sx={{ backgroundColor: "#0E111B", p: 2, borderRadius: 2, overflowX: "auto", paddingBottom:"100px" }}>
+      <Box sx={{ backgroundColor: "#0E111B", p: 2, borderRadius: 2, overflowX: "auto", paddingBottom: "100px" }}>
         {/* TABLE CONTAINER - #374151 */}
         <Box sx={{ backgroundColor: "#37415174", borderRadius: 1, p: 2 }}>
           {/* Table Header */}
@@ -149,10 +223,10 @@ const handleCreateOrUpdate = () => {
               display: "grid",
               //gridTemplateColumns: "1.5fr 1fr 1fr 1fr 0.5fr",
               display: "grid",
-gridTemplateColumns: "0.75fr 1fr 1fr 0.5fr 0.61fr",
+              gridTemplateColumns: "0.75fr 1fr 1fr 0.5fr 0.61fr",
               gap: 2,
               py: 0.25,
-              px:2,
+              px: 2,
               borderBottom: "1px solid #2d374876",
               color: "#9ca3afff",
               fontSize: "0.9rem",
@@ -202,16 +276,16 @@ gridTemplateColumns: "0.75fr 1fr 1fr 0.5fr 0.61fr",
                   {user.status}
                 </Box>
                 <Typography color="white">{user.lastLogin}</Typography>
-                <Box sx={{ padding:1 }}>
+                <Box sx={{ padding: 1 }}>
                   <IconButton
                     onClick={() => handleEditClick(user, idx)}
-                    sx={{ color: "#9CA3AF", background:"#c0bdbd43", p:1, m:1, "&:hover": { color: "#fff" } }}
+                    sx={{ color: "#9CA3AF", background: "#c0bdbd43", p: 1, m: 1, "&:hover": { color: "#fff" } }}
                   >
                     <EditIcon />
                   </IconButton>
                   <IconButton
                     onClick={() => handleDeleteClick(idx)}
-                    sx={{ color: "#9CA3AF", background:"#c0bdbd43", p:1, "&:hover": { color: "#fff", background:"#c0bdbdfb" } }}
+                    sx={{ color: "#9CA3AF", background: "#c0bdbd43", p: 1, "&:hover": { color: "#fff", background: "#c0bdbdfb" } }}
                   >
                     <DeleteIcon />
                   </IconButton>
@@ -244,15 +318,15 @@ gridTemplateColumns: "0.75fr 1fr 1fr 0.5fr 0.61fr",
         onClose={() => setDeleteSuccessOpen(false)}
       />
 
-{/* Create Success Dialog */}
-<CreateSuccessDialog
-  open={createSuccessOpen}
-  onClose={() => setCreateSuccessOpen(false)}
-/>
-<UpdateSuccessDialog
-  open={updateSuccessOpen}
-  onClose={() => setUpdateSuccessOpen(false)}
-/>
+      {/* Create Success Dialog */}
+      <CreateSuccessDialog
+        open={createSuccessOpen}
+        onClose={() => setCreateSuccessOpen(false)}
+      />
+      <UpdateSuccessDialog
+        open={updateSuccessOpen}
+        onClose={() => setUpdateSuccessOpen(false)}
+      />
 
 
 
