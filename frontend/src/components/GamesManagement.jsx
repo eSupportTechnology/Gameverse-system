@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   Box,
   Typography,
@@ -11,20 +11,102 @@ import AddNewGame from './AddNewGame';
 import { games } from "../assets/assets.js";
 import GameCard from './GameCard.jsx';
 import CheckoutGame from './CheckoutGame.jsx';
+import axios from 'axios';
+import { toast } from 'react-toastify';
 
 const categories = ["All Games", "Arcade Machine", "Archery", "Carrom"];
-
 
 const GamesManagement = () => {
   const [openAddGame, setOpenAddGame] = useState(false);
   const [activeCategory, setActiveCategory] = useState("All Games");
   const [selectedGame, setSelectedGame] = useState(null);
+  const [apiGames, setApiGames] = useState([]);
+  const [loading, setLoading] = useState(false);
 
+  // Fetch games from API
+  const fetchGames = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem("aToken");
+      
+      if (!token) {
+        console.log("No token found, using dummy data only");
+        return;
+      }
+
+      const res = await axios.get('http://127.0.0.1:8000/api/games', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (res.data.success) {
+        setApiGames(res.data.data);
+      }
+    } catch (err) {
+      console.error("Error fetching games:", err);
+      // Don't show error toast, just log it and continue with dummy data
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Load games on component mount
+  useEffect(() => {
+    fetchGames();
+  }, []);
+
+  // Handle new game creation
+  const handleGameCreated = (newGame) => {
+    setApiGames(prev => [newGame, ...prev]);
+    setOpenAddGame(false);
+  };
+
+  // Handle game update
+  const handleGameUpdated = (updatedGame) => {
+    setApiGames(prev => 
+      prev.map(game => game.id === updatedGame.id ? updatedGame : game)
+    );
+  };
+
+  // Handle game deletion
+  const handleGameDeleted = async (gameToDelete) => {
+    try {
+      const token = localStorage.getItem("aToken");
+      
+      if (!token) {
+        toast.error("Authentication required");
+        return;
+      }
+
+      const res = await axios.delete(`http://127.0.0.1:8000/api/games/${gameToDelete.id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (res.data.success) {
+        // Remove the game from the API games list
+        setApiGames(prev => prev.filter(game => game.id !== gameToDelete.id));
+        toast.success("Game deleted successfully!");
+      } else {
+        toast.error(res.data.message || "Failed to delete game");
+      }
+    } catch (err) {
+      console.error("Error deleting game:", err);
+      toast.error("Failed to delete game");
+    }
+  };
+
+  // Always show both dummy games and API games together
+  const allGames = [...games, ...apiGames];
 
   const filteredGames =
     activeCategory === "All Games"
-      ? games
-      : games.filter((g) => g.category === activeCategory);
+      ? allGames
+      : allGames.filter((g) => g.category === activeCategory);
 
 
   return (
@@ -79,7 +161,11 @@ const GamesManagement = () => {
             >
               + New Game
             </Button>
-            <AddNewGame open={openAddGame} handleClose={() => setOpenAddGame(false)} />
+            <AddNewGame 
+              open={openAddGame} 
+              handleClose={() => setOpenAddGame(false)} 
+              onCreate={handleGameCreated}
+            />
           </Box>
         </Box>
       </Box>
@@ -142,11 +228,23 @@ const GamesManagement = () => {
             p: 2,
           }}
         >
-          {filteredGames.map((game) => (
-            <Box key={game.id} sx={{ flex: "1 1 250px", maxWidth: 280 }}>
-              <GameCard game={game} onPlay={() => setSelectedGame(game)} />
-            </Box>
-          ))}
+          {filteredGames.map((game) => {
+            // Check if this game is from API (not from dummy games array)
+            // API games will have different structure or be found in apiGames array
+            const isApiGame = apiGames.some(apiGame => apiGame.id === game.id && apiGame.title === game.title);
+            
+            return (
+              <Box key={`${isApiGame ? 'api' : 'dummy'}-${game.id}`} sx={{ flex: "1 1 250px", maxWidth: 280 }}>
+                <GameCard 
+                  game={game} 
+                  onPlay={() => setSelectedGame(game)} 
+                  onUpdate={handleGameUpdated}
+                  onDelete={isApiGame ? handleGameDeleted : null}
+                  isApiGame={isApiGame}
+                />
+              </Box>
+            );
+          })}
         </Box>
         {/* Checkout Box (only show if a game is selected) */}
         {selectedGame && (

@@ -13,27 +13,99 @@ import {
 import CloseIcon from "@mui/icons-material/Close";
 import gameicon from '../assets/gameicon.png'
 import CancelPopup from './CancelPopup';
+import axios from 'axios';
+import { toast } from 'react-toastify';
 
-const AddNewGame = ({ open, handleClose }) => {
+const AddNewGame = ({ open, handleClose, onCreate }) => {
 
   const [createSuccess, setcreateSuccess] = useState(false);
   const [cancelOpen, setcancelOpen] = useState(false);
-
+  const [formData, setFormData] = useState({
+    title: '',
+    location: '',
+    playing_method: '',
+    price: ''
+  });
 
   const handleCancelOpen = () => setcancelOpen(true);
   const handleCancelClose = () => setcancelOpen(false);
 
-  // handle New game
-  const handlNewGame = () => {
-    console.log("Booking updated successfully!");
-    setcreateSuccess(true)
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
 
+  // handle New game - Connect to backend API
+  const handlNewGame = async () => {
+    try {
+      // Validate required fields
+      if (!formData.title || !formData.location || !formData.playing_method || !formData.price) {
+        toast.error("Please fill all required fields");
+        return;
+      }
+
+      const token = localStorage.getItem("aToken");
+      if (!token) {
+        toast.error("Please login first");
+        return;
+      }
+
+      const payload = {
+        title: formData.title,
+        location: formData.location,
+        playing_method: formData.playing_method,
+        price: parseFloat(formData.price),
+        quantity: 1, // Default quantity
+        players: null, // Default for non-Carrom games
+        category: 'Arcade Machine', // Default category
+        status: 'Active'
+      };
+
+      const res = await axios({
+        method: 'post',
+        url: 'http://127.0.0.1:8000/api/games',
+        data: payload,
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      toast.success("Game created successfully!");
+      setcreateSuccess(true);
+      
+      // Call onCreate callback if provided
+      if (onCreate) {
+        onCreate(res.data.data);
+      }
+
+      // Reset form
+      setFormData({
+        title: '',
+        location: '',
+        playing_method: '',
+        price: ''
+      });
+
+    } catch (err) {
+      console.error(err);
+      toast.error(
+        err.response?.data?.message || "Failed to create game. Make sure you are logged in."
+      );
+    }
   };
 
   const handleConfirm = () => {
-    console.log("Booking cancelled!");
+    console.log("Game creation cancelled!");
     setcancelOpen(false);
-    handleClose(false)
+    handleClose(false);
+    // Reset form on cancel
+    setFormData({
+      title: '',
+      location: '',
+      playing_method: '',
+      price: ''
+    });
   };
 
 
@@ -71,6 +143,9 @@ const AddNewGame = ({ open, handleClose }) => {
 
             {/* Input */}
             <TextField
+              name="title"
+              value={formData.title}
+              onChange={handleChange}
               variant="outlined"
               fullWidth
               size="small"
@@ -103,6 +178,9 @@ const AddNewGame = ({ open, handleClose }) => {
 
             {/* Input */}
             <TextField
+              name="location"
+              value={formData.location}
+              onChange={handleChange}
               variant="outlined"
               fullWidth
               size="small"
@@ -145,6 +223,9 @@ const AddNewGame = ({ open, handleClose }) => {
 
               {/* Input */}
               <TextField
+                name="playing_method"
+                value={formData.playing_method}
+                onChange={handleChange}
                 variant="outlined"
                 fullWidth
                 size="small"
@@ -177,10 +258,14 @@ const AddNewGame = ({ open, handleClose }) => {
 
               {/* Input */}
               <TextField
+                name="price"
+                value={formData.price}
+                onChange={handleChange}
+                type="number"
                 variant="outlined"
                 fullWidth
                 size="small"
-                placeholder="LKR  100"
+                placeholder="100"
                 InputProps={{
                   sx: {
                     backgroundColor: "#1F2937",
@@ -197,6 +282,8 @@ const AddNewGame = ({ open, handleClose }) => {
               />
             </Box>
           </Box>
+
+
         </DialogContent>
 
         {/* cancel & create button */}

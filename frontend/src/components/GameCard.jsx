@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Card, CardContent, Typography, Button, Box } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
 import EditGame from './EditGame';
 
 
@@ -10,8 +11,21 @@ const methodLabels = {
   Carrom: "Per hour:",
 };
 
-const GameCard = ({ game, onPlay }) => {
+const GameCard = ({ game, onPlay, onUpdate, onDelete, isApiGame = false }) => {
   const [editOpen, setEditOpen] = useState(false);
+
+  const handleGameUpdate = (updatedGame) => {
+    setEditOpen(false);
+    if (onUpdate) {
+      onUpdate(updatedGame);
+    }
+  };
+
+  const handleDelete = () => {
+    if (onDelete && window.confirm(`Are you sure you want to delete "${game.title}"?`)) {
+      onDelete(game);
+    }
+  };
 
   return (
     <div>
@@ -29,9 +43,17 @@ const GameCard = ({ game, onPlay }) => {
           {/* Title */}
           <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
             <Typography variant="h6" fontWeight={500} fontSize={16} color="#fff">{game.title}</Typography>
-            <EditIcon
-              onClick={() => setEditOpen(true)}
-              sx={{ fontSize: 16, color: "gray", cursor: "pointer" }} />
+            <Box display="flex" gap={1}>
+              <EditIcon
+                onClick={() => setEditOpen(true)}
+                sx={{ fontSize: 16, color: "gray", cursor: "pointer" }} />
+              {/* Only show delete icon for API games, not dummy games */}
+              {isApiGame && (
+                <DeleteIcon
+                  onClick={handleDelete}
+                  sx={{ fontSize: 16, color: "gray", cursor: "pointer", "&:hover": { color: "#999" } }} />
+              )}
+            </Box>
           </Box>
 
           {/* Location */}
@@ -75,7 +97,12 @@ const GameCard = ({ game, onPlay }) => {
           /> */}
 
           {/* Edit game from */}
-          <EditGame open={editOpen} handleClose={() => setEditOpen(false)} />
+          <EditGame 
+            open={editOpen} 
+            handleClose={() => setEditOpen(false)} 
+            game={game}
+            onUpdate={handleGameUpdate}
+          />
 
         </CardContent>
       </Card>
