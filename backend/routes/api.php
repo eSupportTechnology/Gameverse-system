@@ -3,10 +3,13 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AdminUserController;
-use App\Http\Controllers\BookingController;
 
 // Public route
 Route::post('/admin/login', [AuthController::class, 'login']);
+Route::post('/operator/login', [AuthController::class, 'operatoLogin']);
+// routes/api.php
+Route::middleware('auth:sanctum')->post('/reset-password', [AuthController::class, 'resetPassword']);
+
 
 Route::middleware(['auth:sanctum', 'admin'])->group(function () {
     // add user
@@ -30,3 +33,13 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
 
 Route::post('/bookings', [BookingController::class, 'store']);
 Route::get('/bookings', [BookingController::class, 'index']);
+
+
+Route::get('/stations', [StationController::class, 'index']);
+
+// Protected routes (only authenticated admin)
+Route::middleware(['auth:sanctum', 'admin'])->group(function () {
+    Route::post('/stations', [StationController::class, 'store']);
+    Route::put('/stations/{id}', [StationController::class, 'update']);
+    Route::delete('/stations/{id}', [StationController::class, 'destroy']);
+});
