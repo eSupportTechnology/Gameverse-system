@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   Box,
   Typography,
@@ -7,10 +7,12 @@ import {
   ToggleButtonGroup,
   Paper,
   TextField,
+  CircularProgress,
 } from "@mui/material";
 import BookingForm from './BookingForm';
 import BookingGrid from './BookingGrid';
-import { bookings } from '../assets/assets.js';
+import { bookings as dummyBookings } from '../assets/assets.js';
+import axios from 'axios';
 // import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 
 const BookingManagement = () => {
@@ -18,6 +20,66 @@ const BookingManagement = () => {
   const [view, setView] = React.useState("timeline");
   const [date, setDate] = React.useState(new Date());
   const [openDialog, setOpenDialog] = useState(false);
+  const [apiBookings, setApiBookings] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  // Function to fetch bookings from the API
+  const fetchBookings = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.get('http://127.0.0.1:8000/api/bookings');
+      
+      if (response.data.success) {
+        console.log('API bookings fetched:', response.data.data);
+        // Map API bookings to the frontend's expected shape
+        const mapBooking = (b) => {
+          // Normalize status mapping between backend and frontend
+          const statusMap = {
+            pending: 'upcoming',
+            confirmed: 'inprogress',
+            cancelled: 'completed', // choose an appropriate fallback
+            completed: 'completed',
+          };
+
+          return {
+            id: b.id,
+            // frontend uses `customer_name` in many places
+            customer_name: b.customer_name || b.customerName || b.user || '',
+            // booking grid expects `station` string like 'station1' or human readable names
+            station: b.station || '',
+            // timeline and grid use `start_time` / `time`
+            start_time: b.start_time || b.startTime || b.time || '',
+            time: b.start_time || b.time || '',
+            duration: b.duration || '',
+            amount: b.amount ?? b.full_amount ?? b.price ?? 0,
+            // normalize status
+            status: (statusMap[b.status] || b.status || 'upcoming').toLowerCase(),
+            // include other optional fields used by sampleBookings
+            user: b.customer_name || b.user || '',
+            phone: b.phone_number || b.phone || '',
+          };
+        };
+
+        const normalized = response.data.data.map(mapBooking);
+        setApiBookings(normalized);
+      }
+    } catch (error) {
+      console.error('Error fetching bookings:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch bookings on component mount and when refreshTrigger changes
+  useEffect(() => {
+    fetchBookings();
+  }, [refreshTrigger]);
+
+  // Function to trigger refresh (to be passed to BookingForm)
+  const refreshBookings = () => {
+    setRefreshTrigger(prev => prev + 1);
+  };
 
   const handleViewChange = (event, newView) => {
     if (newView !== null) setView(newView);
@@ -154,7 +216,11 @@ const BookingManagement = () => {
             >
               + New Booking
             </Button>
-            <BookingForm open={openDialog} handleClose={() => setOpenDialog(false)} />
+            <BookingForm 
+              open={openDialog} 
+              handleClose={() => setOpenDialog(false)}
+              onBookingCreated={refreshBookings} 
+            />
           </Box>
         </Box>
       </Box>
@@ -323,9 +389,27 @@ const BookingManagement = () => {
                 {stations.map((station, i) => (
                   <Box key={i} sx={{ display: "flex", mb: 2 }}>
                     {timeSlots.map((slot) => {
-                      const booking = bookings.find(
+                      // First look for a booking in the API data
+                      // Match stations more flexibly since API uses "station1", "station2" while UI shows "PSS Station 1", etc.
+                      const apiBooking = apiBookings.find(
+                        (b) => {
+                          const stationMatch = 
+                            (b.station === 'station1' && station.name.includes('Station 1')) ||
+                            (b.station === 'station2' && station.name.includes('Station 2')) ||
+                            (b.station === 'Station 1' && station.name.includes('Station 1')) ||
+                            (b.station === 'Station 2' && station.name.includes('Station 2')) ||
+                            b.station === station.name;
+                          return stationMatch && b.start_time === slot;
+                        }
+                      );
+                      
+                      // If no API booking is found, look in the dummy data
+                      const dummyBooking = dummyBookings.find(
                         (b) => b.station === station.name && b.time === slot
                       );
+                      
+                      // Prioritize API booking, fall back to dummy booking
+                      const booking = apiBooking || dummyBooking;
                       return (
                         // <Box
                         //   key={slot}
@@ -377,7 +461,7 @@ const BookingManagement = () => {
                         >
                           {booking && (
                             <Typography fontSize={10} fontWeight={400} zIndex={1} color='#FFFFFF'>
-                              {booking.user}
+                              {booking.customer_name || booking.user}
                             </Typography>
                           )}
                         </Box>
@@ -393,8 +477,15 @@ const BookingManagement = () => {
       )}
 
       {view === "grid" &&
-        <BookingGrid />
+        <BookingGrid apiBookings={apiBookings} loading={loading} onBookingUpdated={refreshBookings} />
       }
+      
+      {/* Loading indicator for API data */}
+      {loading && (
+        <Box position="fixed" bottom={20} right={20} zIndex={9999}>
+          <CircularProgress size={30} sx={{ color: "#0CD7FF" }} />
+        </Box>
+      )}
 
 
 
