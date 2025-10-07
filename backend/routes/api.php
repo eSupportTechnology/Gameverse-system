@@ -4,8 +4,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\StationController;
-use App\Http\Controllers\AdminBookingController;
-
+use App\Http\Controllers\GameController;
+use App\Http\Controllers\BookingController;
 // Public route
 Route::post('/admin/login', [AuthController::class, 'login']);
 Route::post('/operator/login', [AuthController::class, 'operatoLogin']);
@@ -24,6 +24,14 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
 
 // fetch all users
 Route::get('/users', [AdminUserController::class, 'fetchUsers']);
+
+// Booking routes (you can add auth middleware if needed)
+Route::get('/bookings', [BookingController::class, 'index']);      // get all bookings
+Route::post('/bookings', [BookingController::class, 'store']);     // create a booking
+Route::get('/bookings/{id}', [BookingController::class, 'show']);  // get single booking
+Route::put('/bookings/{id}', [BookingController::class, 'update']); // update booking
+Route::delete('/bookings/{id}', [BookingController::class, 'destroy']); // delete booking
+
 
 // Protected routes
 Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
@@ -44,9 +52,15 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
 });
 
 
-// Admin Booking 
-Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/add-booking', [AdminBookingController::class, 'addBooking']);
-    Route::get('/get-booking', [AdminBookingController::class, 'getBooking']);
 
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/games', [GameController::class, 'index']);
+    Route::get('/games/{id}', [GameController::class, 'show']);
+    Route::post('/games', [GameController::class, 'store']);
+    Route::put('/games/{id}', [GameController::class, 'update']);
+    Route::delete('/games/{id}', [GameController::class, 'destroy']);
 });
+
+
+
