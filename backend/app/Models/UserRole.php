@@ -35,4 +35,9 @@ class UserRole extends Model
         'must_reset_password' => 'boolean',
         'temp_password_created_at' => 'datetime',
     ];
+
+    public function bookings()
+{
+    return $this->hasMany(AdminBooking::class, 'user_id', 'id');
+}
 }

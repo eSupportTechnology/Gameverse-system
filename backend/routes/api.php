@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\StationController;
+use App\Http\Controllers\AdminBookingController;
 
 // Public route
 Route::post('/admin/login', [AuthController::class, 'login']);
@@ -40,4 +41,12 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
     Route::post('/stations', [StationController::class, 'store']);
     Route::put('/stations/{id}', [StationController::class, 'update']);
     Route::delete('/stations/{id}', [StationController::class, 'destroy']);
+});
+
+
+// Admin Booking 
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/add-booking', [AdminBookingController::class, 'addBooking']);
+    Route::get('/get-booking', [AdminBookingController::class, 'getBooking']);
+
 });

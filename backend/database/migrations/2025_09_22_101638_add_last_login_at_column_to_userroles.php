@@ -9,8 +9,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('userroles', function (Blueprint $table) {
+        if (!Schema::hasColumn('userroles', 'last_login_at')) {
             $table->timestamp('last_login_at')->nullable()->after('active_status');
-        });
+        }
+    });
     }
 
     public function down(): void
