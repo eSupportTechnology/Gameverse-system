@@ -3,9 +3,9 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AdminUserController;
-use App\Http\Controllers\StationController;
 use App\Http\Controllers\BookingController;
-
+use App\Http\Controllers\StationController;
+use App\Http\Controllers\GameController;
 // Public route
 Route::post('/admin/login', [AuthController::class, 'login']);
 Route::post('/operator/login', [AuthController::class, 'operatoLogin']);
@@ -50,3 +50,17 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
     Route::put('/stations/{id}', [StationController::class, 'update']);
     Route::delete('/stations/{id}', [StationController::class, 'destroy']);
 });
+
+
+
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/games', [GameController::class, 'index']);
+    Route::get('/games/{id}', [GameController::class, 'show']);
+    Route::post('/games', [GameController::class, 'store']);
+    Route::put('/games/{id}', [GameController::class, 'update']);
+    Route::delete('/games/{id}', [GameController::class, 'destroy']);
+});
+
+
+
