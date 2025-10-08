@@ -1,9 +1,10 @@
-import React, { useState } from 'react'
+import React, { useState } from 'react';
 import { Card, CardContent, Typography, Button, Box } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditGame from './EditGame';
 
+const methodValue = { Coin: 100, Arrow: 150, "Per Hour": 75 };
 
 const methodLabels = {
   "Arcade Machine": "Coin",
@@ -29,18 +30,8 @@ const GameCard = ({ game, onPlay, onUpdate, onDelete, isApiGame = false }) => {
 
   return (
     <div>
-
-      <Card
-        sx={{
-          bgcolor: "#171C2D",
-          borderRadius: "5px",
-          pb: 2,
-          boxShadow: "0 2px 8px rgba(0,0,0,0.4)",
-          height: 135
-        }}
-      >
+      <Card sx={{ bgcolor: "#171C2D", borderRadius: "5px", pb: 2, boxShadow: "0 2px 8px rgba(0,0,0,0.4)", height: 135 }}>
         <CardContent>
-          {/* Title */}
           <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
             <Typography variant="h6" fontWeight={500} fontSize={16} color="#fff">{game.title}</Typography>
             <Box display="flex" gap={1}>
@@ -56,14 +47,12 @@ const GameCard = ({ game, onPlay, onUpdate, onDelete, isApiGame = false }) => {
             </Box>
           </Box>
 
-          {/* Location */}
           <Box display="flex" justifyContent="flex-start" mb={1}>
             <Typography fontWeight={200} fontSize={12} color="#fff">
               Location: <span style={{ fontWeight: 700 }}>{game.location}</span>
             </Typography>
           </Box>
 
-          {/* Price */}
           <Box display="flex" justifyContent="space-between" mb={2}>
             <Typography fontSize={12} color="#FFFFFF">
               {game.quantity} {methodLabels[game.category] || "Price:"}
@@ -73,20 +62,9 @@ const GameCard = ({ game, onPlay, onUpdate, onDelete, isApiGame = false }) => {
             </Typography>
           </Box>
 
-          {/* Action Button */}
-          <Button
-            fullWidth
-            variant="contained"
-            sx={{
-              bgcolor: "rgba(138, 56, 245, 0.2)",
-              color: "#fff",
-              borderRadius: "5px",
-              py: 0.2,
-              textTransform: "none",
-              "&:hover": { bgcolor: "#1F2937" },
-            }}
-            onClick={onPlay}
-          >
+          <Button fullWidth variant="contained"
+            sx={{ bgcolor: "rgba(138, 56, 245, 0.2)", color: "#fff", borderRadius: "5px", py: 0.2, textTransform: "none", "&:hover": { bgcolor: "#1F2937" } }}
+            onClick={() => onPlay(game)}>
             Play
           </Button>
           {/* bokking details */}
@@ -103,12 +81,10 @@ const GameCard = ({ game, onPlay, onUpdate, onDelete, isApiGame = false }) => {
             game={game}
             onUpdate={handleGameUpdate}
           />
-
         </CardContent>
       </Card>
-
     </div>
   )
 }
 
-export default GameCard
+export default GameCard;

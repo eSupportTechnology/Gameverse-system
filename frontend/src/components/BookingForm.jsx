@@ -14,17 +14,98 @@ import {
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import gameicon from '../assets/gameicon.png'
+import axios from 'axios';
 
-const BookingForm = ({ open, handleClose }) => {
+const BookingForm = ({ open, handleClose, onBookingCreated }) => {
 
   const [createSuccess, setcreateSuccess] = useState(false);
+  const [loading, setLoading] = useState(false);
+  
+  // Form state
+  const [formData, setFormData] = useState({
+    customerName: '',
+    phoneNumber: '',
+    station: '',
+    bookingDate: '',
+    startTime: '',
+    duration: '',
+    amount: 400
+  });
 
-  // handle edit
-  const handleUpdateBooking = () => {
-    console.log("Booking updated successfully!");
-    setcreateSuccess(true)
-
+  // Handle form input changes
+  const handleInputChange = (field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
   };
+
+// ---------- CONNECT TO BACKEND USING AXIOS ----------
+  const handleCreateBooking = async () => {
+    // Validate required fields
+    if (!formData.customerName || !formData.phoneNumber || !formData.station || 
+        !formData.bookingDate || !formData.startTime || !formData.duration) {
+      alert("Please fill in all required fields");
+      return;
+    }
+    
+    console.log("Submitting booking data:", formData);
+    setLoading(true);
+
+    try {
+      const payload = {
+        customer_name: formData.customerName,
+        phone_number: formData.phoneNumber,
+        station: formData.station,
+        booking_date: formData.bookingDate,
+        start_time: formData.startTime,
+        duration: formData.duration,
+        amount: formData.amount
+      };
+
+      const token = localStorage.getItem("aToken"); // optional if auth is used
+
+      const response = await axios.post(
+        "http://127.0.0.1:8000/api/bookings", // Laravel API endpoint
+        payload,
+        {
+          headers: {
+            Authorization: token ? `Bearer ${token}` : "",
+            "Content-Type": "application/json"
+          }
+        }
+      );
+
+      if (response.data.success) {
+        console.log("Booking created successfully!", response.data);
+        setcreateSuccess(true);
+        
+        // Notify parent component to refresh bookings list
+        if (onBookingCreated) {
+          onBookingCreated();
+        }
+
+        // Reset form
+        setFormData({
+          customerName: '',
+          phoneNumber: '',
+          station: '',
+          bookingDate: '',
+          startTime: '',
+          duration: '',
+          amount: 400
+        });
+      }
+    } catch (error) {
+      console.error("Error creating booking:", error.response?.data || error);
+      alert(
+        error.response?.data?.message || "Failed to create booking. Check console."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
   return (
     <div>
@@ -65,6 +146,8 @@ const BookingForm = ({ open, handleClose }) => {
                 fullWidth
                 size="small"
                 placeholder="Enter customer name"
+                value={formData.customerName}
+                onChange={(e) => handleInputChange('customerName', e.target.value)}
                 InputProps={{
                   sx: {
                     backgroundColor: "#1F2937",
@@ -95,6 +178,8 @@ const BookingForm = ({ open, handleClose }) => {
                 fullWidth
                 size="small"
                 placeholder="Enter Phone number"
+                value={formData.phoneNumber}
+                onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
                 InputProps={{
                   sx: {
                     backgroundColor: "#1F2937",
@@ -123,7 +208,8 @@ const BookingForm = ({ open, handleClose }) => {
               {/* Input */}
               <Select
                 displayEmpty
-                defaultValue=""
+                value={formData.station}
+                onChange={(e) => handleInputChange('station', e.target.value)}
                 fullWidth
                 sx={{
                   backgroundColor: "#1F2937",
@@ -181,6 +267,8 @@ const BookingForm = ({ open, handleClose }) => {
                 variant="outlined"
                 fullWidth
                 size="small"
+                value={formData.bookingDate}
+                onChange={(e) => handleInputChange('bookingDate', e.target.value)}
                 InputLabelProps={{ shrink: true }}
                 InputProps={{
                   sx: {
@@ -231,7 +319,8 @@ const BookingForm = ({ open, handleClose }) => {
               {/* Input */}
               <Select
                 displayEmpty
-                defaultValue=""
+                value={formData.startTime}
+                onChange={(e) => handleInputChange('startTime', e.target.value)}
                 fullWidth
                 sx={{
                   backgroundColor: "#1F2937",
@@ -265,12 +354,12 @@ const BookingForm = ({ open, handleClose }) => {
                 }}
               >
                 <MenuItem value="">
-                  <em style={{ fontSize: 14, color: "#9CA3AF", fontStyle: "normal" }}>12.00</em>
+                  <em style={{ fontSize: 14, color: "#9CA3AF", fontStyle: "normal" }}>Select time</em>
                 </MenuItem>
-                <MenuItem value="12.00">12.00</MenuItem>
-                <MenuItem value="1.00">01.00</MenuItem>
-                <MenuItem value="12.00">01.30</MenuItem>
-                <MenuItem value="1.00">02.00</MenuItem>
+                <MenuItem value="12:00">12:00</MenuItem>
+                <MenuItem value="01:00">01:00</MenuItem>
+                <MenuItem value="01:30">01:30</MenuItem>
+                <MenuItem value="02:00">02:00</MenuItem>
               </Select>
             </Box>
 
@@ -287,7 +376,8 @@ const BookingForm = ({ open, handleClose }) => {
               {/* Input */}
               <Select
                 displayEmpty
-                defaultValue=""
+                value={formData.duration}
+                onChange={(e) => handleInputChange('duration', e.target.value)}
                 fullWidth
                 sx={{
                   backgroundColor: "#1F2937",
@@ -406,17 +496,18 @@ const BookingForm = ({ open, handleClose }) => {
             Cancel
           </Button>
           <Button
-            onClick={handleUpdateBooking}
+            onClick={handleCreateBooking}
+            disabled={loading}
             variant="contained"
             sx={{
               width: '50%',
               py: 1,
               textTransform: 'capitalize',
-              background: "linear-gradient(to right, #0CD7FF, #8A38F5)",
-              "&:hover": { background: "linear-gradient(to right, #0bbfe0, #732ed1)" },
+              background: loading ? "#374151" : "linear-gradient(to right, #0CD7FF, #8A38F5)",
+              "&:hover": { background: loading ? "#374151" : "linear-gradient(to right, #0bbfe0, #732ed1)" },
             }}
           >
-            Create Booking
+            {loading ? 'Creating...' : 'Create Booking'}
           </Button>
           {/* create Success Popup */}
           <Dialog

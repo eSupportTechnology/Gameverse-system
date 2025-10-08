@@ -1,27 +1,27 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
   Button,
   ToggleButton,
   ToggleButtonGroup,
-  Grid
-} from '@mui/material'
+} from '@mui/material';
+import axios from 'axios';
 import AddNewGame from './AddNewGame';
-import { games } from "../assets/assets.js";
 import GameCard from './GameCard.jsx';
 import CheckoutGame from './CheckoutGame.jsx';
-import axios from 'axios';
 import { toast } from 'react-toastify';
+import { games as dummyGames } from '../assets/assets.js';
 
 const categories = ["All Games", "Arcade Machine", "Archery", "Carrom"];
 
 const GamesManagement = () => {
   const [openAddGame, setOpenAddGame] = useState(false);
-  const [activeCategory, setActiveCategory] = useState("All Games");
+  const [activeCategory, setActiveCategory] = useState('All Games');
   const [selectedGame, setSelectedGame] = useState(null);
   const [apiGames, setApiGames] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [editGame, setEditGame] = useState(null);
 
   // Fetch games from API
   const fetchGames = async () => {
@@ -101,34 +101,76 @@ const GamesManagement = () => {
   };
 
   // Always show both dummy games and API games together
-  const allGames = [...games, ...apiGames];
+  const allGames = [...dummyGames, ...apiGames];
 
   const filteredGames =
     activeCategory === "All Games"
       ? allGames
       : allGames.filter((g) => g.category === activeCategory);
 
+  useEffect(() => {
+    fetchGames();
+  }, []);
+
+  // Filter buttons and keywords (filter by title only)
+  // const categories = [
+  //   { label: 'All Games', keyword: '' },
+  //   { label: 'Arcade Machine', keyword: 'Arcade' },
+  //   { label: 'Archery', keyword: 'Archery' },
+  //   { label: 'Carrom', keyword: 'Carrom' },
+  // ];
+
+  // Filter games by title containing keyword
+  // const filteredGames = games.filter(game => {
+  //   const keyword = categories.find(cat => cat.label === activeCategory)?.keyword;
+  //   return !keyword || game.title.toLowerCase().includes(keyword.toLowerCase());
+  // });
+
+  // Handle adding/updating game
+  const handleSaveGame = async (gameData) => {
+    try {
+      const token = localStorage.getItem("aToken");
+      if (editGame) {
+        // Update existing game
+        const response = await axios.put(
+          `http://127.0.0.1:8000/api/games/${editGame.id}`,
+          gameData,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        setApiGames(prevGames => prevGames.map(g => g.id === editGame.id ? response.data : g));
+        setEditGame(null);
+      } else {
+        // Add new game
+        const response = await axios.post(
+          'http://127.0.0.1:8000/api/games',
+          gameData,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        setApiGames(prevGames => [response.data, ...prevGames]); // ✅ Prevent duplicate cards
+      }
+      setOpenAddGame(false);
+    } catch (error) {
+      console.error('Error saving game:', error);
+    }
+  };
+
+  // Open edit modal
+  const handleEditGame = (game) => {
+    setEditGame(game);
+    setOpenAddGame(true);
+  };
 
   return (
-    <Box sx={{ p: 2, bgcolor: "1E1E1E", color: "#fff", minHeight: "100vh", overflowX: "hidden", ml: 0, }}>
-
+    <Box sx={{ p: 2, bgcolor: '1E1E1E', color: '#fff', minHeight: '100vh', overflowX: 'hidden', ml: 0 }}>
       {/* Header */}
       <Box
         display="flex"
-        flexDirection={{ xs: "column", sm: "column", md: "row" }}
-        justifyContent={{ xs: "flex-start", sm: "flex-start", md: "space-between" }}
-        alignItems={{ xs: "flex-start", sm: "flex-start", md: "center" }}
+        flexDirection={{ xs: 'column', md: 'row' }}
+        justifyContent={{ xs: 'flex-start', md: 'space-between' }}
+        alignItems={{ xs: 'flex-start', md: 'center' }}
         mb={2}
       >
-        {/* Left Section */}
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "flex-start",
-            justifyContent: "flex-start",
-          }}
-        >
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
           <Typography variant="h5" fontWeight="bold" fontSize={24}>
             Other Games Management
           </Typography>
@@ -171,48 +213,40 @@ const GamesManagement = () => {
       </Box>
 
       {/* Toolbar */}
-      <Box display="flex" flexDirection={{ xs: "column", sm: "column", md: "row" }}
-        justifyContent={{ xs: "flex-start", sm: "flex-start", md: "space-between" }} px={1.5} py={1.5} borderRadius='10px' bgcolor='#0E111B' alignItems={{ xs: "flex-start", sm: "flex-start", md: "center" }} mb={2}>
-
+      <Box display="flex" flexDirection={{ xs: 'column', md: 'row' }}
+        justifyContent={{ xs: 'flex-start', md: 'space-between' }}
+        px={1.5} py={1.5} borderRadius='10px' bgcolor='#0E111B' alignItems={{ xs: 'flex-start', md: 'center' }} mb={2}
+      >
         <ToggleButtonGroup
           value={activeCategory}
           exclusive
           onChange={(e, newCategory) => newCategory && setActiveCategory(newCategory)}
           sx={{
-            borderRadius: "12px",
+            borderRadius: '12px',
             gap: 1,
-            flexWrap: "wrap",
-            "& .MuiToggleButton-root": {
+            flexWrap: 'wrap',
+            '& .MuiToggleButton-root': {
               flex: 1,
               minWidth: 100,
               width: '100%',
-              bgcolor: "#374151",
-              color: "#9CA3AF",
-              border: "none",
-              borderRadius: "6px",
-              textTransform: "none",
-              fontWeight: "600",
+              bgcolor: '#374151',
+              color: '#9CA3AF',
+              border: 'none',
+              borderRadius: '6px',
+              textTransform: 'none',
+              fontWeight: '600',
               fontSize: 12,
-              whiteSpace: "nowrap",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              "&.Mui-selected": {
-                bgcolor: "rgba(12, 215, 255, 0.3)",
-                border: "1px solid #0CD7FF",
-                color: "#0CD7FF",
-                "&:hover": {
-                  bgcolor: "rgba(12, 215, 255, 0.3)",
-                  border: "1px solid #0CD7FF",
-                  color: "#0CD7FF",
-                },
+              '&.Mui-selected': {
+                bgcolor: 'rgba(12, 215, 255, 0.3)',
+                border: '1px solid #0CD7FF',
+                color: '#0CD7FF',
               },
-
             },
           }}
         >
-          {categories.map((cat) => (
-            <ToggleButton key={cat} value={cat} sx={{ px: 2, py: 1 }}>
-              {cat}
+          {categories.map(cat => (
+            <ToggleButton key={cat.label} value={cat.label} sx={{ px: 2, py: 1 }}>
+              {cat.label}
             </ToggleButton>
           ))}
         </ToggleButtonGroup>
@@ -246,15 +280,13 @@ const GamesManagement = () => {
             );
           })}
         </Box>
-        {/* Checkout Box (only show if a game is selected) */}
+
         {selectedGame && (
           <CheckoutGame game={selectedGame} handleClose={() => setSelectedGame(null)} />
         )}
       </Box>
-
-
     </Box>
-  )
-}
+  );
+};
 
-export default GamesManagement
+export default GamesManagement;

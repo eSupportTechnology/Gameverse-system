@@ -18,6 +18,7 @@ import crossicon from '../assets/crossicon.png'
 import sucessicon from '../assets/sucessicon.png'
 import CancelPopup from '../components/CancelPopup';
 import EditBookingFrom from './EditBookingFrom';
+import axios from 'axios';
 
 
 // status colors mapping
@@ -27,7 +28,7 @@ const statusColors = {
   completed: "#FD00B5",
 };
 
-const BookingDetails = ({ open, handleClose, booking }) => {
+const BookingDetails = ({ open, handleClose, booking, onBookingUpdated }) => {
 
   const [cancelOpen, setcancelOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
@@ -47,16 +48,76 @@ const BookingDetails = ({ open, handleClose, booking }) => {
   const handleCancelOpen = () => setcancelOpen(true);
   const handleCancelClose = () => setcancelOpen(false);
 
-  const handleConfirm = () => {
-    console.log("Booking cancelled!");
-    setcancelOpen(false);
-    handleClose(false)
+  const handleConfirm = async () => {
+    if (!booking || !booking.id) {
+      console.log("No booking ID available for cancellation");
+      setcancelOpen(false);
+      return;
+    }
+    
+    try {
+      // Update booking status to cancelled
+      const response = await axios.put(`http://127.0.0.1:8000/api/bookings/${booking.id}`, {
+        status: 'cancelled'
+      }, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: localStorage.getItem("aToken") ? `Bearer ${localStorage.getItem("aToken")}` : ""
+        }
+      });
+      
+      if (response.data.success) {
+        console.log("Booking cancelled successfully!", response.data);
+        setcancelOpen(false);
+        handleClose(false);
+        // Call parent refresh callback instead of page reload
+        if (onBookingUpdated) {
+          onBookingUpdated();
+        }
+      }
+    } catch (error) {
+      console.error("Error cancelling booking:", error.response?.data || error);
+      alert(error.response?.data?.message || "Failed to cancel booking");
+      setcancelOpen(false);
+    }
   };
 
   // handle update time button
-  const handleUpdateTime = () => {
-    console.log("Time updated successfully!");
-    setTimeUpdate(true)
+  const handleUpdateTime = async () => {
+    if (!booking || !booking.id) {
+      console.log("No booking ID available for time update");
+      return;
+    }
+    
+    try {
+      // Calculate the new duration based on added time
+      const updatedDuration = `${time} min`;
+      
+      // Update booking duration
+      const response = await axios.put(`http://127.0.0.1:8000/api/bookings/${booking.id}`, {
+        duration: updatedDuration
+      }, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: localStorage.getItem("aToken") ? `Bearer ${localStorage.getItem("aToken")}` : ""
+        }
+      });
+      
+      if (response.data.success) {
+        console.log("Time updated successfully!", response.data);
+        setTimeUpdate(true);
+        // Call parent refresh callback instead of page reload
+        if (onBookingUpdated) {
+          onBookingUpdated();
+        }
+        setTimeout(() => {
+          setTimeUpdate(false);
+        }, 2000);
+      }
+    } catch (error) {
+      console.error("Error updating booking time:", error.response?.data || error);
+      alert(error.response?.data?.message || "Failed to update booking time");
+    }
 
   };
 
@@ -126,13 +187,13 @@ const BookingDetails = ({ open, handleClose, booking }) => {
 
               {/* User Info */}
               <Typography variant="h6" fontWeight="500" fontSize={16} >
-                {booking.user}
+                {booking.customer_name || booking.user || 'Unknown'}
               </Typography>
               <Typography variant="body2" fontSize={12} sx={{ color: "#9CA3AF" }}>
-                {booking.phone}
+                {booking.phone_number || booking.phone || 'No phone'}
               </Typography>
               <Typography variant="body2" fontSize={10} sx={{ color: "#FFFFFF" }}>
-                {booking.email}
+                {booking.email || 'No email provided'}
               </Typography>
             </Box>
 
@@ -150,7 +211,7 @@ const BookingDetails = ({ open, handleClose, booking }) => {
                     fontSize: "18px",
                   }}
                 >
-                  {booking.loyaltyPrice}
+                  {booking.loyaltyPrice || '0pts'}
                 </Typography>
               </Box>
               <Typography variant="body2" fontSize={16} sx={{ color: "#fff" }}>
@@ -192,7 +253,7 @@ const BookingDetails = ({ open, handleClose, booking }) => {
               </Box>
               <Box display="flex" justifyContent="space-between">
                 <Typography fontSize={14} color='#A6AAB0'>Time:</Typography>
-                <Typography fontSize={14} color='#FFFFFF'>{booking.time}</Typography>
+                <Typography fontSize={14} color='#FFFFFF'>{booking.start_time || booking.time}</Typography>
               </Box>
               <Box display="flex" justifyContent="space-between">
                 <Typography fontSize={14} color='#A6AAB0'>Duration:</Typography>
@@ -200,7 +261,7 @@ const BookingDetails = ({ open, handleClose, booking }) => {
               </Box>
               <Box display="flex" justifyContent="space-between">
                 <Typography fontSize={14} color='#A6AAB0'>Extended Time:</Typography>
-                <Typography fontSize={14} color='#FFFFFF'>{booking.extendedTime}</Typography>
+                <Typography fontSize={14} color='#FFFFFF'>{booking.extendedTime || booking.extended_time || '00:00'}</Typography>
               </Box>
             </Box>
 
@@ -224,23 +285,23 @@ const BookingDetails = ({ open, handleClose, booking }) => {
               {/* Info Rows */}
               <Box display="flex" justifyContent="space-between">
                 <Typography fontSize={14} color='#A6AAB0'>Method:</Typography>
-                <Typography fontSize={14} color='#FFFFFF'>{booking.paymentMethod}</Typography>
+                <Typography fontSize={14} color='#FFFFFF'>{booking.paymentMethod || 'Cash'}</Typography>
               </Box>
               <Box display="flex" justifyContent="space-between">
                 <Typography fontSize={14} color='#A6AAB0'>Online Deposit:</Typography>
-                <Typography fontSize={14} color='#FFFFFF'>LKR {booking.onlineDeposit}</Typography>
+                <Typography fontSize={14} color='#FFFFFF'>LKR {booking.onlineDeposit || '0'}</Typography>
               </Box>
               <hr style={{ border: "none", borderTop: "1px solid #374151" }} />
               <Box display="flex" justifyContent="space-between">
                 <Typography fontSize={14} color='#A6AAB0' >Total amounts:</Typography>
                 <Typography fontSize={14} sx={{ color: "#0CD7FF", fontWeight: 600 }}>
-                  LKR {booking.price}
+                  LKR {booking.amount || booking.price}
                 </Typography>
               </Box>
               <Box display="flex" justifyContent="space-between">
                 <Typography fontSize={14} color='#A6AAB0'>Balance amounts:</Typography>
                 <Typography fontSize={14} sx={{ color: "#0CD7FF", fontWeight: 600 }}>
-                  LKR {booking.balanceAmount}
+                  LKR {booking.balanceAmount || booking.balance_amount || '0'}
                 </Typography>
               </Box>
             </Box>
@@ -601,7 +662,12 @@ const BookingDetails = ({ open, handleClose, booking }) => {
           />
 
           {/* Edit booking from */}
-          <EditBookingFrom open={editOpen} handleClose={() => setEditOpen(false)} />
+          <EditBookingFrom 
+            open={editOpen} 
+            handleClose={() => setEditOpen(false)} 
+            booking={booking}
+            onBookingUpdated={onBookingUpdated}
+          />
 
         </DialogContent>
       </Dialog>

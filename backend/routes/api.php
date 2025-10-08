@@ -3,9 +3,9 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AdminUserController;
+use App\Http\Controllers\BookingController;
 use App\Http\Controllers\StationController;
 use App\Http\Controllers\GameController;
-
 // Public route
 Route::post('/admin/login', [AuthController::class, 'login']);
 Route::post('/operator/login', [AuthController::class, 'operatoLogin']);
@@ -25,6 +25,14 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
 // fetch all users
 Route::get('/users', [AdminUserController::class, 'fetchUsers']);
 
+// Booking routes (you can add auth middleware if needed)
+Route::get('/bookings', [BookingController::class, 'index']);      // get all bookings
+Route::post('/bookings', [BookingController::class, 'store']);     // create a booking
+Route::get('/bookings/{id}', [BookingController::class, 'show']);  // get single booking
+Route::put('/bookings/{id}', [BookingController::class, 'update']); // update booking
+Route::delete('/bookings/{id}', [BookingController::class, 'destroy']); // delete booking
+
+
 // Protected routes
 Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
@@ -43,6 +51,16 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
     Route::delete('/stations/{id}', [StationController::class, 'destroy']);
 });
 
+
+
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/games', [GameController::class, 'index']);
+    Route::get('/games/{id}', [GameController::class, 'show']);
+    Route::post('/games', [GameController::class, 'store']);
+    Route::put('/games/{id}', [GameController::class, 'update']);
+    Route::delete('/games/{id}', [GameController::class, 'destroy']);
+});
 // Games management routes (protected by authentication middleware)
 Route::middleware('auth:sanctum')->group(function () {
     // RESTful routes for games
@@ -51,3 +69,5 @@ Route::middleware('auth:sanctum')->group(function () {
     // Additional routes for specific functionality
     Route::get('games/category/{category}', [GameController::class, 'getByCategory']);
 });
+
+
