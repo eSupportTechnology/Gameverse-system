@@ -19,6 +19,8 @@ return new class extends Migration
             $table->date('booking_date');
             $table->string('start_time');
             $table->string('duration');
+            $table->string('extended_time')->nullable();
+            $table->string('payment_method')->nullable();
             $table->decimal('amount', 10, 2);
             $table->enum('status', ['pending', 'confirmed', 'cancelled', 'completed'])->default('pending');
             $table->timestamps();
