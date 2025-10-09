@@ -9,7 +9,7 @@ return new class extends Migration
     
     public function up()
 {
-    Schema::create('bookings', function (Blueprint $table) {
+    Schema::create('operator_bookings', function (Blueprint $table) {
         $table->id();
         $table->string('customer_name');
         $table->string('phone_number');
@@ -19,11 +19,12 @@ return new class extends Migration
         $table->string('duration');
         $table->string('payment_method');
         $table->decimal('amount', 8, 2);
+        $table->string('status')->default('pending'); // optional: track booking status
         $table->timestamps();
     });
 }
     public function down(): void
     {
-        Schema::dropIfExists('bookings');
+        Schema::dropIfExists('operator_bookings');
     }
 };

@@ -67,7 +67,7 @@ const OperatorBookingManagement = () => {
           }}
         >
           <Typography variant="h5" fontWeight="bold" fontSize={24}>
-            Booking Management
+            Operator Booking Management
           </Typography>
           <Typography variant="body2" color="gray" fontSize={16}>
             Manage reservations and station schedules
