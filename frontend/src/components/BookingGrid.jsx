@@ -102,7 +102,7 @@ const BookingGrid = ({ apiBookings = [], loading = false, onBookingUpdated }) =>
                     Time:
                   </Typography>
                   <Typography fontSize={12} fontWeight={500} color="#fff">
-                    {booking.start_time}
+                    {booking.original_start_time || booking.start_time}
                   </Typography>
                 </Box>
 

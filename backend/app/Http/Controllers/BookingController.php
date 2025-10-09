@@ -70,6 +70,29 @@ class BookingController extends Controller
         try {
             $booking = Booking::findOrFail($id);
             
+            // Normalize booking data for frontend compatibility
+            $normalizedBooking = [
+                'id' => $booking->id,
+                'customer_name' => $booking->customer_name,
+                'phone_number' => $booking->phone_number,
+                'station' => $booking->station,
+                'booking_date' => $booking->booking_date ? $booking->booking_date->format('Y-m-d') : null,
+                'start_time' => $booking->start_time,
+                'duration' => $booking->duration,
+                'amount' => $booking->amount,
+                'status' => $booking->status,
+                'extended_time' => $booking->extended_time ?? '',
+                'payment_method' => $booking->payment_method ?? '',
+                'created_at' => $booking->created_at,
+                'updated_at' => $booking->updated_at,
+                // Add backward compatibility aliases
+                'date' => $booking->booking_date ? $booking->booking_date->format('Y-m-d') : null,
+                'time' => $booking->start_time,
+                'phone' => $booking->phone_number,
+                'user' => $booking->customer_name,
+                'price' => $booking->amount,
+            ];
+            
             return response()->json([
                 'success' => true,
                 'data' => $booking
@@ -97,6 +120,8 @@ class BookingController extends Controller
                 'booking_date' => 'date',
                 'start_time' => 'string|max:10',
                 'duration' => 'string|max:20',
+                'extended_time' => 'nullable|string|max:20',
+                'payment_method' => 'nullable|string|max:50',
                 'amount' => 'numeric|min:0',
                 'status' => 'in:pending,confirmed,cancelled,completed'
             ]);
