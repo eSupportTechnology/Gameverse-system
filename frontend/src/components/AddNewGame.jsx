@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import {
   Dialog,
@@ -18,7 +19,6 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 
 const paymentMethods = ["Coin", "Arrow", "Per Hour"];
-const methodValue = { Coin: 100, Arrow: 150, "Per Hour": 75 };
 
 const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmit }) => {
   const [createSuccess, setCreateSuccess] = useState(false);
@@ -27,7 +27,7 @@ const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmi
   const [title, setTitle] = useState("");
   const [location, setLocation] = useState("");
   const [method, setMethod] = useState("Coin");
-  const [price, setPrice] = useState(""); // total price
+  const [price, setPrice] = useState("");
 
   useEffect(() => {
     if (open) {
@@ -53,16 +53,20 @@ const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmi
   };
 
   const handleSubmit = async () => {
-    if (!title || !location || !price) {
+    const trimmedTitle = title.trim();
+    const trimmedLocation = location.trim();
+    const trimmedMethod = method.trim();
+
+    if (!trimmedTitle || !trimmedLocation || !price) {
       toast.error("All fields are required!");
       return;
     }
 
     const gameData = {
-      title,
-      location,
-      method,
-      price: Number(price)
+      title: trimmedTitle,
+      location: trimmedLocation,
+      method: trimmedMethod,
+      price: Number(price),
     };
 
     try {
@@ -70,24 +74,25 @@ const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmi
       const url = mode === "edit"
         ? `http://127.0.0.1:8000/api/games/${initialData.id}`
         : "http://127.0.0.1:8000/api/games";
-      const methodType = mode === "edit" ? "put" : "post";
 
-      const response = await axios({
-        method: methodType,
+      await axios({
+        method: mode === "edit" ? "put" : "post",
         url,
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json"
-        },
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
         data: gameData
       });
 
       toast.success(`Game ${mode === "edit" ? "updated" : "created"} successfully!`);
-      if (onSubmit) onSubmit(response.data);
       setCreateSuccess(true);
+
+      // Call parent to refresh list
+      if (onSubmit) onSubmit();
+
     } catch (err) {
-      console.error(err);
-      toast.error(err.response?.data?.message || "Failed to save game.");
+      console.error('Validation errors:', err.response?.data);
+      toast.error(
+        err.response?.data?.message || JSON.stringify(err.response?.data) || "Failed to save game."
+      );
     }
   };
 
@@ -151,9 +156,7 @@ const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmi
 
           {/* Pricing Method */}
           <Typography variant="body2" sx={{ fontSize: 12, color: "#9CA3AF", mb: 0.5 }}>Pricing Method</Typography>
-
           <Box display="grid" gridTemplateColumns={{ xs: "1fr", md: "1fr 1fr" }} gap={2} mt={1}>
-            {/* Method */}
             <Box display="flex" flexDirection="column" gap={1}>
               <TextField
                 select
@@ -168,8 +171,6 @@ const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmi
                 ))}
               </TextField>
             </Box>
-
-            {/* Price */}
             <Box display="flex" flexDirection="column" gap={1}>
               <TextField
                 variant="outlined"
@@ -194,10 +195,24 @@ const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmi
           </Button>
         </DialogActions>
 
-        <Dialog open={createSuccess} PaperProps={{ sx: { bgcolor: "#0A192F", borderRadius: "16px", py: 2, px: 8, textAlign: "center", color: "white", border: '1px solid #3B4859' } }}>
+        <Dialog
+          open={createSuccess}
+          PaperProps={{
+            sx: {
+              bgcolor: "#0A192F",
+              borderRadius: "16px",
+              py: 2,
+              px: 8,
+              textAlign: "center",
+              color: "white",
+              border: '1px solid #3B4859'
+            }
+          }}
+        >
           <DialogContent>
             <Box sx={{ mb: 1 }}><img src={gameicon} alt="" width={80} /></Box>
-            <Typography variant="h6" sx={{ background: "linear-gradient(90deg, #00C6FF, #FF00CC)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", fontSize: 24, fontWeight: 600, mb: 1 }}>
+            <Typography variant="h6"
+              sx={{ background: "linear-gradient(90deg, #00C6FF, #FF00CC)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", fontSize: 24, fontWeight: 600, mb: 1 }}>
               {mode === "edit" ? "Update Successful!" : "Create Successful!"}
             </Typography>
             <Button onClick={() => { setCreateSuccess(false); handleClose(); }}
@@ -218,3 +233,4 @@ const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmi
 };
 
 export default AddNewGame;
+

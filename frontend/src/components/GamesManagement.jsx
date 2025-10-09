@@ -1,12 +1,8 @@
+
 import React, { useState, useEffect } from 'react';
-import {
-  Box,
-  Typography,
-  Button,
-  ToggleButton,
-  ToggleButtonGroup,
-} from '@mui/material';
+import { Box, Typography, Button, ToggleButton, ToggleButtonGroup } from '@mui/material';
 import axios from 'axios';
+import { toast } from 'react-toastify';
 import AddNewGame from './AddNewGame';
 import GameCard from './GameCard.jsx';
 import CheckoutGame from './CheckoutGame.jsx';
@@ -29,6 +25,7 @@ const GamesManagement = () => {
       setGames(response.data);
     } catch (error) {
       console.error('Error fetching games:', error);
+      toast.error('Failed to fetch games.');
     }
   };
 
@@ -36,7 +33,7 @@ const GamesManagement = () => {
     fetchGames();
   }, []);
 
-  // Filter buttons and keywords (filter by title only)
+  // Filter buttons
   const categories = [
     { label: 'All Games', keyword: '' },
     { label: 'Arcade Machine', keyword: 'Arcade' },
@@ -44,62 +41,44 @@ const GamesManagement = () => {
     { label: 'Carrom', keyword: 'Carrom' },
   ];
 
-  // Filter games by title containing keyword
   const filteredGames = games.filter(game => {
     const keyword = categories.find(cat => cat.label === activeCategory)?.keyword;
     return !keyword || game.title.toLowerCase().includes(keyword.toLowerCase());
   });
 
-  // Handle adding/updating game
-  const handleSaveGame = async (gameData) => {
-    try {
-      if (editGame) {
-        // Update existing game
-        const response = await axios.put(
-          `http://127.0.0.1:8000/api/games/${editGame.id}`,
-          gameData,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        setGames(prevGames => prevGames.map(g => g.id === editGame.id ? response.data : g));
-        setEditGame(null);
-      } else {
-        // Add new game
-        const response = await axios.post(
-          'http://127.0.0.1:8000/api/games',
-          gameData,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        setGames(prevGames => [response.data, ...prevGames]); // ✅ Prevent duplicate cards
-      }
-      setOpenAddGame(false);
-    } catch (error) {
-      console.error('Error saving game:', error);
-    }
+  // This function just **refreshes list after Add/Edit**
+  const handleSaveGame = () => {
+    setEditGame(null);
+    setOpenAddGame(false);
+    fetchGames(); // reload games from backend
   };
 
-  // Open edit modal
   const handleEditGame = (game) => {
     setEditGame(game);
     setOpenAddGame(true);
   };
 
+  const handleDeleteGame = async (gameId) => {
+    if (!window.confirm('Are you sure you want to delete this game?')) return;
+
+    try {
+      await axios.delete(`http://127.0.0.1:8000/api/games/${gameId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      fetchGames();
+      toast.success('Game deleted successfully!');
+    } catch (error) {
+      console.error('Error deleting game:', error);
+      toast.error(error.response?.data?.message || 'Failed to delete game.');
+    }
+  };
+
   return (
     <Box sx={{ p: 2, bgcolor: '1E1E1E', color: '#fff', minHeight: '100vh', overflowX: 'hidden', ml: 0 }}>
-      {/* Header */}
-      <Box
-        display="flex"
-        flexDirection={{ xs: 'column', md: 'row' }}
-        justifyContent={{ xs: 'flex-start', md: 'space-between' }}
-        alignItems={{ xs: 'flex-start', md: 'center' }}
-        mb={2}
-      >
+      <Box display="flex" flexDirection={{ xs: 'column', md: 'row' }} justifyContent={{ xs: 'flex-start', md: 'space-between' }} alignItems={{ xs: 'flex-start', md: 'center' }} mb={2}>
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-          <Typography variant="h5" fontWeight="bold" fontSize={24}>
-            Other Games Management
-          </Typography>
-          <Typography variant="body2" color="gray" fontSize={16}>
-            Monitor and control gaming stations
-          </Typography>
+          <Typography variant="h5" fontWeight="bold" fontSize={24}>Other Games Management</Typography>
+          <Typography variant="body2" color="gray" fontSize={16}>Monitor and control gaming stations</Typography>
         </Box>
 
         <Box display="flex" mt={{ xs: 2, md: 0 }} width={{ xs: '100%', md: 'auto' }}>
@@ -122,18 +101,16 @@ const GamesManagement = () => {
           <AddNewGame
             open={openAddGame}
             handleClose={() => setOpenAddGame(false)}
-            onSubmit={handleSaveGame}
+            onSubmit={handleSaveGame} // only refresh after add/edit
             initialData={editGame}
             mode={editGame ? 'edit' : 'add'}
           />
         </Box>
       </Box>
 
-      {/* Toolbar */}
       <Box display="flex" flexDirection={{ xs: 'column', md: 'row' }}
         justifyContent={{ xs: 'flex-start', md: 'space-between' }}
-        px={1.5} py={1.5} borderRadius='10px' bgcolor='#0E111B' alignItems={{ xs: 'flex-start', md: 'center' }} mb={2}
-      >
+        px={1.5} py={1.5} borderRadius='10px' bgcolor='#0E111B' alignItems={{ xs: 'flex-start', md: 'center' }} mb={2}>
         <ToggleButtonGroup
           value={activeCategory}
           exclusive
@@ -169,7 +146,6 @@ const GamesManagement = () => {
         </ToggleButtonGroup>
       </Box>
 
-      {/* Games Grid */}
       <Box sx={{ minHeight: '100vh', backgroundColor: '#0E111B', borderRadius: '10px' }}>
         <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: { xs: 'center', md: 'flex-start' }, gap: 2, p: 2 }}>
           {filteredGames.map((game) => (
@@ -178,6 +154,7 @@ const GamesManagement = () => {
                 game={game}
                 onPlay={() => setSelectedGame(game)}
                 onEdit={() => handleEditGame(game)}
+                onDelete={() => handleDeleteGame(game.id)}
               />
             </Box>
           ))}

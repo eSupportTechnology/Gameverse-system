@@ -34,17 +34,47 @@ const BookingForm = ({ open, handleClose, onBookingCreated }) => {
 
   // Handle form input changes
   const handleInputChange = (field, value) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    // Phone number validation - allow only numbers
+    if (field === 'phoneNumber') {
+      // Remove any non-digit characters
+      const numericValue = value.replace(/\D/g, '');
+      setFormData(prev => ({
+        ...prev,
+        [field]: numericValue
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [field]: value
+      }));
+    }
   };
 
 // ---------- CONNECT TO BACKEND USING AXIOS ----------
   const handleCreateBooking = async () => {
     // Validate required fields
-    if (!formData.customerName || !formData.phoneNumber || !formData.station || 
-        !formData.bookingDate || !formData.startTime || !formData.duration) {
+    if (!formData.customerName.trim()) {
+      alert("Customer name is required");
+      return;
+    }
+    
+    if (!formData.phoneNumber.trim()) {
+      alert("Phone number is required");
+      return;
+    }
+    
+    // Validate phone number (only digits and minimum length)
+    if (!/^\d+$/.test(formData.phoneNumber)) {
+      alert("Phone number must contain only numbers");
+      return;
+    }
+    
+    if (formData.phoneNumber.length < 9) {
+      alert("Phone number must be at least 9 digits long");
+      return;
+    }
+    
+    if (!formData.station || !formData.bookingDate || !formData.startTime || !formData.duration) {
       alert("Please fill in all required fields");
       return;
     }
@@ -177,9 +207,14 @@ const BookingForm = ({ open, handleClose, onBookingCreated }) => {
                 variant="outlined"
                 fullWidth
                 size="small"
-                placeholder="Enter Phone number"
+                placeholder="Enter Phone number (numbers only)"
                 value={formData.phoneNumber}
                 onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
+                inputProps={{
+                  inputMode: 'numeric',
+                  pattern: '[0-9]*',
+                  maxLength: 15, // Limit phone number length
+                }}
                 InputProps={{
                   sx: {
                     backgroundColor: "#1F2937",
