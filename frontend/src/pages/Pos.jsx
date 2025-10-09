@@ -14,7 +14,13 @@ const Pos = () => {
       <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
 
       {/* Main Content */}
-      <Box sx={{ flexGrow: 1 }}>
+      <Box sx={{
+        flexGrow: 1,
+        display: "flex",
+        flexDirection: "column",
+        minHeight: "100vh",
+        bgcolor: "#000",
+      }}>
         <TopBar sidebarWidth={sidebarWidth} />
         <Box sx={{ mt: 8, p: 2 }}>
           <PosSystem />
