@@ -50,6 +50,11 @@ const menuItems = [
     component: <UsersRoles />,
   },
   {
+    text: "NFC User",
+    path: "/nfc-users",
+    icon: <img src="../images/nfcuser.png" alt="NFC User" style={{ width: 20, height: 20 }} />,
+  },
+  {
     text: "Reports",
     path: "/reports",
     icon: <img src="../images/report.png" alt="Reports" style={{ width: 20, height: 20 }} />,

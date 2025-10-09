@@ -164,3 +164,42 @@ export const games = [
   },
 ];
 
+export const nfcUsers = [
+  {
+    id: 1,
+    fullName: "Alex Chen",
+    cardNo: "GV0111",
+    phoneNo: "071 3226298",
+    points: 126,
+    status: "active",
+    avatar: "/images/user1.png",
+  },
+  {
+    id: 2,
+    fullName: "Sarah Kim",
+    cardNo: "GV0112",
+    phoneNo: "071 3826868",
+    points: 6,
+    status: "active",
+    avatar: "/images/user2.png",
+  },
+  {
+    id: 3,
+    fullName: "Anne Nikolos",
+    cardNo: "GV0113",
+    phoneNo: "071 3216868",
+    points: 54,
+    status: "active",
+    avatar: "/images/user3.png",
+  },
+  {
+    id: 4,
+    fullName: "Nithin Akesh",
+    cardNo: "GV0114",
+    phoneNo: "071 3226568",
+    points: 26,
+    status: "active",
+    avatar: "/images/user.png",
+  },
+];
+

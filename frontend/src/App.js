@@ -6,6 +6,7 @@ import Booking from "./pages/Booking";
 import Pos from "./pages/Pos";
 import OtherGames from "./pages/OtherGames";
 import User from "./pages/Users";
+import NFCUsers from "./pages/NFCUsers";
 
 import GamesManagement from "./components/GamesManagement";
 import PosSystem from "./components/pos-system";
@@ -32,6 +33,7 @@ function App() {
             <Route path="/bookings" element={<Booking />} />
             <Route path="/games" element={<OtherGames />} />
             <Route path="/users" element={<User />} />
+            <Route path="/nfc-users" element={<NFCUsers />} />
             <Route
               path="/reports"
               element={<div style={{ color: "#fff", marginTop: "80px", padding: "16px" }}>Reports (Coming soon)</div>}
