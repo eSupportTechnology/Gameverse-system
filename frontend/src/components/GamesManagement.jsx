@@ -1,12 +1,8 @@
+
 import React, { useState, useEffect } from 'react';
-import {
-  Box,
-  Typography,
-  Button,
-  ToggleButton,
-  ToggleButtonGroup,
-} from '@mui/material';
+import { Box, Typography, Button, ToggleButton, ToggleButtonGroup } from '@mui/material';
 import axios from 'axios';
+import { toast } from 'react-toastify';
 import AddNewGame from './AddNewGame';
 import GameCard from './GameCard.jsx';
 import CheckoutGame from './CheckoutGame.jsx';
@@ -154,29 +150,32 @@ const GamesManagement = () => {
     }
   };
 
-  // Open edit modal
   const handleEditGame = (game) => {
     setEditGame(game);
     setOpenAddGame(true);
   };
 
+  const handleDeleteGame = async (gameId) => {
+    if (!window.confirm('Are you sure you want to delete this game?')) return;
+
+    try {
+      await axios.delete(`http://127.0.0.1:8000/api/games/${gameId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      fetchGames();
+      toast.success('Game deleted successfully!');
+    } catch (error) {
+      console.error('Error deleting game:', error);
+      toast.error(error.response?.data?.message || 'Failed to delete game.');
+    }
+  };
+
   return (
     <Box sx={{ p: 2, bgcolor: '1E1E1E', color: '#fff', minHeight: '100vh', overflowX: 'hidden', ml: 0 }}>
-      {/* Header */}
-      <Box
-        display="flex"
-        flexDirection={{ xs: 'column', md: 'row' }}
-        justifyContent={{ xs: 'flex-start', md: 'space-between' }}
-        alignItems={{ xs: 'flex-start', md: 'center' }}
-        mb={2}
-      >
+      <Box display="flex" flexDirection={{ xs: 'column', md: 'row' }} justifyContent={{ xs: 'flex-start', md: 'space-between' }} alignItems={{ xs: 'flex-start', md: 'center' }} mb={2}>
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-          <Typography variant="h5" fontWeight="bold" fontSize={24}>
-            Other Games Management
-          </Typography>
-          <Typography variant="body2" color="gray" fontSize={16}>
-            Monitor and control gaming stations
-          </Typography>
+          <Typography variant="h5" fontWeight="bold" fontSize={24}>Other Games Management</Typography>
+          <Typography variant="body2" color="gray" fontSize={16}>Monitor and control gaming stations</Typography>
         </Box>
 
         {/* Right Section */}
@@ -212,11 +211,9 @@ const GamesManagement = () => {
         </Box>
       </Box>
 
-      {/* Toolbar */}
       <Box display="flex" flexDirection={{ xs: 'column', md: 'row' }}
         justifyContent={{ xs: 'flex-start', md: 'space-between' }}
-        px={1.5} py={1.5} borderRadius='10px' bgcolor='#0E111B' alignItems={{ xs: 'flex-start', md: 'center' }} mb={2}
-      >
+        px={1.5} py={1.5} borderRadius='10px' bgcolor='#0E111B' alignItems={{ xs: 'flex-start', md: 'center' }} mb={2}>
         <ToggleButtonGroup
           value={activeCategory}
           exclusive

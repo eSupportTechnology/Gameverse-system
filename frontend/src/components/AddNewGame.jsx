@@ -1,4 +1,5 @@
-import React, { useState } from 'react'
+
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -18,6 +19,7 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 
 const AddNewGame = ({ open, handleClose, onCreate }) => {
+const paymentMethods = ["Coin", "Arrow", "Per Hour"];
 
   const [createSuccess, setcreateSuccess] = useState(false);
   const [cancelOpen, setcancelOpen] = useState(false);
@@ -33,6 +35,10 @@ const AddNewGame = ({ open, handleClose, onCreate }) => {
 
   const handleCancelOpen = () => setcancelOpen(true);
   const handleCancelClose = () => setcancelOpen(false);
+  const [title, setTitle] = useState("");
+  const [location, setLocation] = useState("");
+  const [method, setMethod] = useState("Coin");
+  const [price, setPrice] = useState("");
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -252,8 +258,9 @@ const AddNewGame = ({ open, handleClose, onCreate }) => {
             </Typography>
           </Box>
 
+          {/* Pricing Method */}
+          <Typography variant="body2" sx={{ fontSize: 12, color: "#9CA3AF", mb: 0.5 }}>Pricing Method</Typography>
           <Box display="grid" gridTemplateColumns={{ xs: "1fr", md: "1fr 1fr" }} gap={2} mt={1}>
-            {/* pricing method */}
             <Box display="flex" flexDirection="column" gap={1}>
               {/* Label */}
               <Typography
@@ -264,6 +271,31 @@ const AddNewGame = ({ open, handleClose, onCreate }) => {
               </Typography>
 
               {/* Input */}
+              <TextField
+                name="playing_method"
+                value={formData.playing_method}
+                onChange={handleChange}
+                select
+                variant="outlined"
+                fullWidth
+                size="small"
+                placeholder="Select playing method"
+                InputProps={{
+                  sx: {
+                    backgroundColor: "#1F2937",
+                    borderRadius: "6px",
+                    border: '1px solid #374151',
+                    color: "white",
+                    fontWeight: 500,
+                  },
+                }}
+              >
+                {paymentMethods.map((m) => (
+                  <MenuItem key={m} value={m}>{m}</MenuItem>
+                ))}
+              </TextField>
+            </Box>
+            <Box display="flex" flexDirection="column" gap={1}>
               <TextField
                 name="playing_method"
                 value={formData.playing_method}
@@ -466,7 +498,33 @@ const AddNewGame = ({ open, handleClose, onCreate }) => {
           </Dialog>
         </DialogActions>
 
-        {/* cances box */}
+        <Dialog
+          open={createSuccess}
+          PaperProps={{
+            sx: {
+              bgcolor: "#0A192F",
+              borderRadius: "16px",
+              py: 2,
+              px: 8,
+              textAlign: "center",
+              color: "white",
+              border: '1px solid #3B4859'
+            }
+          }}
+        >
+          <DialogContent>
+            <Box sx={{ mb: 1 }}><img src={gameicon} alt="" width={80} /></Box>
+            <Typography variant="h6"
+              sx={{ background: "linear-gradient(90deg, #00C6FF, #FF00CC)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", fontSize: 24, fontWeight: 600, mb: 1 }}>
+              {mode === "edit" ? "Update Successful!" : "Create Successful!"}
+            </Typography>
+            <Button onClick={() => { setCreateSuccess(false); handleClose(); }}
+              sx={{ px: 8, fontSize: 14, borderRadius: "8px", background: "linear-gradient(90deg, rgba(12, 215, 255, 0.4) 0%, rgba(138, 56, 245, 0.4) 73%)", color: "white" }}>
+              Ok
+            </Button>
+          </DialogContent>
+        </Dialog>
+
         <CancelPopup
           open={cancelOpen}
           handleCancelClose={handleCancelClose}

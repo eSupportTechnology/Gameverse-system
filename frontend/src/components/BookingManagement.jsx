@@ -24,6 +24,58 @@ const BookingManagement = () => {
   const [loading, setLoading] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
+  // Helper function to normalize time formats for matching
+  const normalizeTimeFormat = (timeString) => {
+    if (!timeString) return '';
+    
+    // If it's already in HH:MM format, convert to 12-hour format for matching
+    const timeMatch = timeString.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?/);
+    if (timeMatch) {
+      let hours = parseInt(timeMatch[1]);
+      const minutes = timeMatch[2];
+      
+      // Convert 24-hour to 12-hour format to match timeSlots
+      if (hours === 0) {
+        return `12:${minutes}`;
+      } else if (hours > 12) {
+        return `${String(hours - 12).padStart(2, '0')}:${minutes}`;
+      } else if (hours < 10) {
+        // Pad single digit hours with zero to match timeSlots format
+        return `${String(hours).padStart(2, '0')}:${minutes}`;
+      } else {
+        return `${hours}:${minutes}`;
+      }
+    }
+    
+    return timeString;
+  };
+
+  // Helper function to match station names
+  const matchStation = (apiStation, uiStationName) => {
+    if (!apiStation || !uiStationName) return false;
+    
+    const normalizedApi = apiStation.toLowerCase().trim();
+    const normalizedUI = uiStationName.toLowerCase().trim();
+    
+    // Direct match
+    if (normalizedApi === normalizedUI) return true;
+    
+    // Handle station1, station2 format from API
+    if (normalizedApi === 'station1' && normalizedUI.includes('station 1')) return true;
+    if (normalizedApi === 'station2' && normalizedUI.includes('station 2')) return true;
+    if (normalizedApi === 'station3' && normalizedUI.includes('station 3')) return true;
+    
+    // Handle PSS Station format
+    if (normalizedApi.includes('station 1') && normalizedUI.includes('station 1')) return true;
+    if (normalizedApi.includes('station 2') && normalizedUI.includes('station 2')) return true;
+    if (normalizedApi.includes('station 3') && normalizedUI.includes('station 3')) return true;
+    
+    // Handle pool stations
+    if (normalizedApi.includes('pool') && normalizedUI.includes('pool')) return true;
+    
+    return false;
+  };
+
   // Function to fetch bookings from the API
   const fetchBookings = async () => {
     setLoading(true);
@@ -32,6 +84,7 @@ const BookingManagement = () => {
       
       if (response.data.success) {
         console.log('API bookings fetched:', response.data.data);
+        console.log('Sample booking for debugging:', response.data.data[0]);
         // Map API bookings to the frontend's expected shape
         const mapBooking = (b) => {
           // Normalize status mapping between backend and frontend
@@ -42,15 +95,22 @@ const BookingManagement = () => {
             completed: 'completed',
           };
 
+          const normalizedTime = normalizeTimeFormat(b.start_time || b.startTime || b.time || '');
+          console.log(`Mapping booking: original time=${b.start_time}, normalized=${normalizedTime}, station=${b.station}`);
+
           return {
             id: b.id,
             // frontend uses `customer_name` in many places
             customer_name: b.customer_name || b.customerName || b.user || '',
             // booking grid expects `station` string like 'station1' or human readable names
             station: b.station || '',
-            // timeline and grid use `start_time` / `time`
-            start_time: b.start_time || b.startTime || b.time || '',
-            time: b.start_time || b.time || '',
+            // timeline and grid use `start_time` / `time` - use normalized time for timeline matching
+            start_time: normalizedTime,
+            time: normalizedTime,
+            // keep original time for display purposes
+            original_start_time: b.start_time || b.startTime || b.time || '',
+            // include booking date
+            booking_date: b.booking_date || b.date || '',
             duration: b.duration || '',
             amount: b.amount ?? b.full_amount ?? b.price ?? 0,
             // normalize status
@@ -58,6 +118,8 @@ const BookingManagement = () => {
             // include other optional fields used by sampleBookings
             user: b.customer_name || b.user || '',
             phone: b.phone_number || b.phone || '',
+            // include extended_time for editing
+            extended_time: b.extended_time || '',
           };
         };
 
@@ -386,20 +448,24 @@ const BookingManagement = () => {
                 </Box>
 
                 {/* Booking Rows */}
-                {stations.map((station, i) => (
+                {stations.map((station, i) => {
+                  console.log(`Rendering station ${i}: ${station.name}`);
+                  return (
                   <Box key={i} sx={{ display: "flex", mb: 2 }}>
                     {timeSlots.map((slot) => {
-                      // First look for a booking in the API data
-                      // Match stations more flexibly since API uses "station1", "station2" while UI shows "PSS Station 1", etc.
+                      // First look for a booking in the API data using improved matching
                       const apiBooking = apiBookings.find(
                         (b) => {
-                          const stationMatch = 
-                            (b.station === 'station1' && station.name.includes('Station 1')) ||
-                            (b.station === 'station2' && station.name.includes('Station 2')) ||
-                            (b.station === 'Station 1' && station.name.includes('Station 1')) ||
-                            (b.station === 'Station 2' && station.name.includes('Station 2')) ||
-                            b.station === station.name;
-                          return stationMatch && b.start_time === slot;
+                          const stationMatch = matchStation(b.station, station.name);
+                          const timeMatch = b.start_time === slot;
+                          
+                          console.log(`Checking booking ${b.id}: station="${b.station}" vs "${station.name}" (match: ${stationMatch}), time="${b.start_time}" vs "${slot}" (match: ${timeMatch})`);
+                          
+                          if (stationMatch && timeMatch) {
+                            console.log(`✅ Found match: API booking ${b.id} matches slot ${slot} and station ${station.name}`);
+                          }
+                          
+                          return stationMatch && timeMatch;
                         }
                       );
                       
@@ -469,7 +535,8 @@ const BookingManagement = () => {
                       );
                     })}
                   </Box>
-                ))}
+                  );
+                })}
               </Box>
             </Box>
           </Box>

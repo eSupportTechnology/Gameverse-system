@@ -74,17 +74,22 @@ const GameCard = ({ game, onPlay, onUpdate, onDelete, isApiGame = false }) => {
             booking={selectedBooking}
           /> */}
 
-          {/* Edit game from */}
-          <EditGame 
-            open={editOpen} 
-            handleClose={() => setEditOpen(false)} 
-            game={game}
-            onUpdate={handleGameUpdate}
+          {/* EDIT MODAL */}
+          <AddNewGame
+            open={editOpen}
+            handleClose={() => setEditOpen(false)}
+            mode="edit"
+            initialData={game}
+            onSubmit={(updatedGameData) => {
+              // only update local UI, backend call already happens inside AddNewGame
+              if (onUpdate) onUpdate(updatedGameData);
+              setEditOpen(false);
+            }}
           />
         </CardContent>
       </Card>
     </div>
-  )
-}
+  );
+};
 
 export default GameCard;

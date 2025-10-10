@@ -17,8 +17,9 @@ const ResetPassword = () => {
 
   try {
     // Pick the correct token based on loginRole
-    const token = loginRole === "Admin" ? localStorage.getItem("aToken") : localStorage.getItem("oToken");
+    const token = loginRole === "admin" ? localStorage.getItem("aToken") : localStorage.getItem("oToken");
     console.log(loginRole);
+    console.log(token);
     
 
     if (!token) {

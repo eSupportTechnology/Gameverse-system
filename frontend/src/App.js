@@ -49,7 +49,7 @@ function App() {
           <>
             {/* Operator-only routes */}
             <Route path="/operator/*" element={<OperatorLayout />}>
-              <Route path="booking" element={<BookingManagement />} />
+              <Route path="booking" element={<BookingManagement/>} />
               <Route path="pos" element={<PosSystem />} />
               <Route path="games" element={<GamesManagement />} />
               <Route index element={<Navigate to="booking" replace />} />
