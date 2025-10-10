@@ -3,13 +3,15 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AdminUserController;
-use App\Http\Controllers\BookingController;
-use App\Http\Controllers\OperatorBookingController;
+// use App\Http\Controllers\BookingController;
 use App\Http\Controllers\StationController;
 use App\Http\Controllers\GameController;
+use App\Http\Controllers\BookingController;
+use App\Http\Controllers\PosItemController;
+use App\Http\Controllers\PosSaleController;
 
 
-// Admin and Operator Login
+// Public route
 Route::post('/admin/login', [AuthController::class, 'login']);
 Route::post('/operator/login', [AuthController::class, 'operatoLogin']);
 
@@ -28,33 +30,12 @@ Route::put('/bookings/{id}/update-time', [OperatorBookingController::class, 'upd
 Route::get('/games', [GameController::class, 'index']);
 Route::get('/games/{id}', [GameController::class, 'show']);
 
-
+// Pos System 
 Route::middleware('auth:sanctum')->group(function () {
-
-    // Reset password
-    Route::post('/reset-password', [AuthController::class, 'resetPassword']);
-
-    // Admin logout and dashboard
-    Route::prefix('admin')->middleware('admin')->group(function () {
-        Route::post('/logout', [AuthController::class, 'logout']);
-        Route::get('/dashboard', fn() => response()->json(['message' => 'Welcome Admin']));
-
-        // User management
-        Route::post('/add-user', [AdminUserController::class, 'store']);
-        Route::put('/update-user/{id}', [AdminUserController::class, 'update']);
-        Route::delete('/delete-user/{id}', [AdminUserController::class, 'delete']);
-
-        // Station management
-        Route::post('/stations', [StationController::class, 'store']);
-        Route::put('/stations/{id}', [StationController::class, 'update']);
-        Route::delete('/stations/{id}', [StationController::class, 'destroy']);
-
-        // Game management
-        Route::post('/games', [GameController::class, 'store']);
-        Route::put('/games/{id}', [GameController::class, 'update']);
-        Route::delete('/games/{id}', [GameController::class, 'destroy']);
-    });
+    Route::post('/pos/add-items', [PosItemController::class, 'store']);
+    Route::get('/pos/get-items', [PosItemController::class, 'index']);
+    Route::put('/pos/update-item/{id}', [PosItemController::class, 'updateItem']);
+    Route::post('/pos/checkout', [PosSaleController::class, 'checkout']);
 });
 
-// Fetch all users (optional if you want public access)
-Route::get('/users', [AdminUserController::class, 'fetchUsers']);
+
