@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Box, Typography, Button, ToggleButton, ToggleButtonGroup } from '@mui/material';
 import axios from 'axios';
@@ -6,7 +5,6 @@ import { toast } from 'react-toastify';
 import AddNewGame from './AddNewGame';
 import GameCard from './GameCard.jsx';
 import CheckoutGame from './CheckoutGame.jsx';
-import { toast } from 'react-toastify';
 import { games as dummyGames } from '../assets/assets.js';
 
 const categories = ["All Games", "Arcade Machine", "Archery", "Carrom"];
@@ -42,7 +40,7 @@ const GamesManagement = () => {
       }
     } catch (err) {
       console.error("Error fetching games:", err);
-      // Don't show error toast, just log it and continue with dummy data
+      toast.error("Failed to fetch games");
     } finally {
       setLoading(false);
     }
@@ -57,6 +55,7 @@ const GamesManagement = () => {
   const handleGameCreated = (newGame) => {
     setApiGames(prev => [newGame, ...prev]);
     setOpenAddGame(false);
+    setEditGame(null);
   };
 
   // Handle game update
@@ -64,6 +63,8 @@ const GamesManagement = () => {
     setApiGames(prev => 
       prev.map(game => game.id === updatedGame.id ? updatedGame : game)
     );
+    setOpenAddGame(false);
+    setEditGame(null);
   };
 
   // Handle game deletion
@@ -84,7 +85,6 @@ const GamesManagement = () => {
       });
 
       if (res.data.success) {
-        // Remove the game from the API games list
         setApiGames(prev => prev.filter(game => game.id !== gameToDelete.id));
         toast.success("Game deleted successfully!");
       } else {
@@ -104,51 +104,6 @@ const GamesManagement = () => {
       ? allGames
       : allGames.filter((g) => g.category === activeCategory);
 
-  useEffect(() => {
-    fetchGames();
-  }, []);
-
-  // Filter buttons and keywords (filter by title only)
-  // const categories = [
-  //   { label: 'All Games', keyword: '' },
-  //   { label: 'Arcade Machine', keyword: 'Arcade' },
-  //   { label: 'Archery', keyword: 'Archery' },
-  //   { label: 'Carrom', keyword: 'Carrom' },
-  // ];
-
-  // Filter games by title containing keyword
-  // const filteredGames = games.filter(game => {
-  //   const keyword = categories.find(cat => cat.label === activeCategory)?.keyword;
-  //   return !keyword || game.title.toLowerCase().includes(keyword.toLowerCase());
-  // });
-
-  // Handle adding/updating game
-  const handleSaveGame = async (gameData) => {
-    try {
-      const token = localStorage.getItem("aToken");
-      if (editGame) {
-        // Update existing game
-        const response = await axios.put(
-          `http://127.0.0.1:8000/api/games/${editGame.id}`,
-          gameData,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        setApiGames(prevGames => prevGames.map(g => g.id === editGame.id ? response.data : g));
-        setEditGame(null);
-      } else {
-        // Add new game
-        const response = await axios.post(
-          'http://127.0.0.1:8000/api/games',
-          gameData,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        setApiGames(prevGames => [response.data, ...prevGames]); // ✅ Prevent duplicate cards
-      }
-      setOpenAddGame(false);
-    } catch (error) {
-      console.error('Error saving game:', error);
-    }
-  };
 
   const handleEditGame = (game) => {
     setEditGame(game);
@@ -159,6 +114,7 @@ const GamesManagement = () => {
     if (!window.confirm('Are you sure you want to delete this game?')) return;
 
     try {
+      const token = localStorage.getItem("aToken");
       await axios.delete(`http://127.0.0.1:8000/api/games/${gameId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -178,36 +134,31 @@ const GamesManagement = () => {
           <Typography variant="body2" color="gray" fontSize={16}>Monitor and control gaming stations</Typography>
         </Box>
 
-        {/* Right Section */}
-        <Box
-          display="flex"
-          mt={{ xs: 2, sm: 2, md: 0 }} // spacing when stacked
-          width={{ xs: "100%", sm: "100%", md: "auto" }} // take full width in small screens
-        >
-          <Box>
-            <Button
-              variant="contained"
-              sx={{
-                background: "linear-gradient(to right, #0CD7FF, #8A38F5)",
-                borderRadius: "6px",
-                px: 6,
-                py: 1,
-                textTransform: "none",
-                fontWeight: "600",
-                "&:hover": {
-                  background: "linear-gradient(to right, #0bbfe0, #732ed1)",
-                },
-              }}
-              onClick={() => setOpenAddGame(true)}
-            >
-              + New Game
-            </Button>
-            <AddNewGame 
-              open={openAddGame} 
-              handleClose={() => setOpenAddGame(false)} 
-              onCreate={handleGameCreated}
-            />
-          </Box>
+        <Box display="flex" mt={{ xs: 2, md: 0 }} width={{ xs: '100%', md: 'auto' }}>
+          <Button
+            variant="contained"
+            sx={{
+              background: 'linear-gradient(to right, #0CD7FF, #8A38F5)',
+              borderRadius: '6px',
+              px: 6,
+              py: 1,
+              textTransform: 'none',
+              fontWeight: '600',
+              '&:hover': { background: 'linear-gradient(to right, #0bbfe0, #732ed1)' },
+            }}
+            onClick={() => { setOpenAddGame(true); setEditGame(null); }}
+          >
+            + New Game
+          </Button>
+
+          <AddNewGame
+            open={openAddGame}
+            handleClose={() => setOpenAddGame(false)}
+            onCreate={handleGameCreated}
+            onSubmit={editGame ? handleGameUpdated : undefined}
+            initialData={editGame}
+            mode={editGame ? 'edit' : 'add'}
+          />
         </Box>
       </Box>
 
@@ -242,14 +193,14 @@ const GamesManagement = () => {
           }}
         >
           {categories.map(cat => (
-            <ToggleButton key={cat.label} value={cat.label} sx={{ px: 2, py: 1 }}>
-              {cat.label}
+            <ToggleButton key={cat} value={cat} sx={{ px: 2, py: 1 }}>
+              {cat}
             </ToggleButton>
           ))}
         </ToggleButtonGroup>
       </Box>
 
-      <Box sx={{ minHeight: "100vh", backgroundColor: '#0E111B', borderRadius: "10px", }}>
+      <Box sx={{ minHeight: "100vh", backgroundColor: '#0E111B', borderRadius: "10px" }}>
         <Box
           sx={{
             display: "flex",
@@ -260,8 +211,6 @@ const GamesManagement = () => {
           }}
         >
           {filteredGames.map((game) => {
-            // Check if this game is from API (not from dummy games array)
-            // API games will have different structure or be found in apiGames array
             const isApiGame = apiGames.some(apiGame => apiGame.id === game.id && apiGame.title === game.title);
             
             return (
@@ -269,8 +218,8 @@ const GamesManagement = () => {
                 <GameCard 
                   game={game} 
                   onPlay={() => setSelectedGame(game)} 
-                  onUpdate={handleGameUpdated}
-                  onDelete={isApiGame ? handleGameDeleted : null}
+                  onEdit={() => handleEditGame(game)}
+                  onDelete={isApiGame ? () => handleGameDeleted(game) : () => handleDeleteGame(game.id)}
                   isApiGame={isApiGame}
                 />
               </Box>

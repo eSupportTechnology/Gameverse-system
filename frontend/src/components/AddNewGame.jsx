@@ -18,7 +18,7 @@ import CancelPopup from './CancelPopup';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 
-const AddNewGame = ({ open, handleClose, onCreate }) => {
+const AddNewGame = ({ open, handleClose, onCreate, onSubmit, initialData, mode }) => {
 const paymentMethods = ["Coin", "Arrow", "Per Hour"];
 
   const [createSuccess, setcreateSuccess] = useState(false);
@@ -35,17 +35,39 @@ const paymentMethods = ["Coin", "Arrow", "Per Hour"];
 
   const handleCancelOpen = () => setcancelOpen(true);
   const handleCancelClose = () => setcancelOpen(false);
-  const [title, setTitle] = useState("");
-  const [location, setLocation] = useState("");
-  const [method, setMethod] = useState("Coin");
-  const [price, setPrice] = useState("");
+
+  // Populate form data when in edit mode
+  useEffect(() => {
+    if (mode === 'edit' && initialData) {
+      setFormData({
+        title: initialData.title || '',
+        location: initialData.location || '',
+        playing_method: initialData.playing_method || '',
+        price: initialData.price?.toString() || '',
+        quantity: initialData.quantity?.toString() || '',
+        players: initialData.players?.toString() || '',
+        category: initialData.category || 'Arcade Machine'
+      });
+    } else {
+      // Reset form for add mode
+      setFormData({
+        title: '',
+        location: '',
+        playing_method: '',
+        price: '',
+        quantity: '',
+        players: '',
+        category: 'Arcade Machine'
+      });
+    }
+  }, [mode, initialData, open]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  // handle New game - Connect to backend API
+  // handle New game or Edit game - Connect to backend API
   const handlNewGame = async () => {
     try {
       // Validate required fields
@@ -71,39 +93,48 @@ const paymentMethods = ["Coin", "Arrow", "Per Hour"];
         status: 'Active'
       };
 
-      const res = await axios({
-        method: 'post',
-        url: 'http://127.0.0.1:8000/api/games',
-        data: payload,
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-
-      toast.success("Game created successfully!");
-      setcreateSuccess(true);
-      
-      // Call onCreate callback if provided
-      if (onCreate) {
-        onCreate(res.data.data);
+      let res;
+      if (mode === 'edit' && initialData) {
+        // Edit existing game
+        res = await axios({
+          method: 'put',
+          url: `http://127.0.0.1:8000/api/games/${initialData.id}`,
+          data: payload,
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+        toast.success("Game updated successfully!");
+      } else {
+        // Create new game
+        res = await axios({
+          method: 'post',
+          url: 'http://127.0.0.1:8000/api/games',
+          data: payload,
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+        toast.success("Game created successfully!");
       }
 
-      // Reset form
-      setFormData({
-        title: '',
-        location: '',
-        playing_method: '',
-        price: '',
-        quantity: '',
-        players: '',
-        category: 'Arcade Machine'
-      });
+      setcreateSuccess(true);
+      
+      // Call appropriate callback
+      if (mode === 'edit' && onSubmit) {
+        onSubmit(res.data.data || res.data);
+      } else if (onCreate) {
+        onCreate(res.data.data || res.data);
+      }
+
+      handleClose();
 
     } catch (err) {
       console.error(err);
       toast.error(
-        err.response?.data?.message || "Failed to create game. Make sure you are logged in."
+        err.response?.data?.message || `Failed to ${mode === 'edit' ? 'update' : 'create'} game. Make sure you are logged in.`
       );
     }
   };
@@ -137,7 +168,7 @@ const paymentMethods = ["Coin", "Arrow", "Per Hour"];
       >
         <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", px: 1 }}>
           <DialogTitle sx={{ color: "#FFFFFF", fontSize: 18, fontWeight: "bold", }}>
-            Add New Game
+            {mode === 'edit' ? 'Edit Game' : 'Add New Game'}
           </DialogTitle>
 
           <IconButton onClick={handleClose} sx={{ color: "#FFFFFF" }}>
@@ -295,30 +326,6 @@ const paymentMethods = ["Coin", "Arrow", "Per Hour"];
                 ))}
               </TextField>
             </Box>
-            <Box display="flex" flexDirection="column" gap={1}>
-              <TextField
-                name="playing_method"
-                value={formData.playing_method}
-                onChange={handleChange}
-                variant="outlined"
-                fullWidth
-                size="small"
-                placeholder={formData.category === 'Arcade Machine' ? 'Coin' : formData.category === 'Archery' ? 'Arrows' : 'Per hour'}
-                InputProps={{
-                  sx: {
-                    backgroundColor: "#1F2937",
-                    borderRadius: "6px",
-                    border: '1px solid #374151',
-                    "& input::placeholder": {
-                      color: "#9CA3AF",
-                      fontSize: "14px",
-                    },
-                    color: "white",
-                    fontWeight: 500,
-                  },
-                }}
-              />
-            </Box>
 
             {/* price */}
             <Box display="flex" flexDirection="column" gap={1}>
@@ -444,58 +451,9 @@ const paymentMethods = ["Coin", "Arrow", "Per Hour"];
               "&:hover": { background: "linear-gradient(to right, #0bbfe0, #732ed1)" },
             }}
           >
-            Create
+            {mode === 'edit' ? 'Update' : 'Create'}
           </Button>
-          {/* create Success Popup */}
-          <Dialog
-            open={createSuccess}
-            PaperProps={{
-              sx: {
-                bgcolor: "#0A192F",
-                borderRadius: "16px",
-                py: 2,
-                px: 8,
-                textAlign: "center",
-                color: "white",
-                border: '1px solid #3B4859'
-              },
-            }}
-          >
-            <DialogContent>
-              <Box sx={{ mb: 1, }}>
-                <img src={gameicon} alt="" width={80} />
-              </Box>
-              <Typography
-                variant="h6"
-                sx={{
-                  background: "linear-gradient(90deg, #00C6FF, #FF00CC)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  fontSize: 24,
-                  fontWeight: 600,
-                  mb: 1
-                }}
-              >
-                Create Successful !
-              </Typography>
-              <Button
-                onClick={() => setcreateSuccess(false)}
-                sx={{
-                  px: 8,
-                  fontSize: 14,
-                  textTransform: 'capitalize',
-                  borderRadius: "8px",
-                  background: "linear-gradient(90deg, rgba(12, 215, 255, 0.4) 0%, rgba(138, 56, 245, 0.4) 73%)",
-                  color: "white",
-                  "&:hover": {
-                    background: "linear-gradient(90deg, #0CD7FF 0%, #8A38F5 73%)",
-                  },
-                }}
-              >
-                Ok
-              </Button>
-            </DialogContent>
-          </Dialog>
+
         </DialogActions>
 
         <Dialog
@@ -518,7 +476,7 @@ const paymentMethods = ["Coin", "Arrow", "Per Hour"];
               sx={{ background: "linear-gradient(90deg, #00C6FF, #FF00CC)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", fontSize: 24, fontWeight: 600, mb: 1 }}>
               {mode === "edit" ? "Update Successful!" : "Create Successful!"}
             </Typography>
-            <Button onClick={() => { setCreateSuccess(false); handleClose(); }}
+            <Button onClick={() => { setcreateSuccess(false); handleClose(); }}
               sx={{ px: 8, fontSize: 14, borderRadius: "8px", background: "linear-gradient(90deg, rgba(12, 215, 255, 0.4) 0%, rgba(138, 56, 245, 0.4) 73%)", color: "white" }}>
               Ok
             </Button>

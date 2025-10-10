@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, Typography, Button, Box } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
-import EditGame from './EditGame';
+import AddNewGame from './AddNewGame';
 
 const methodValue = { Coin: 100, Arrow: 150, "Per Hour": 75 };
 
