@@ -13,6 +13,7 @@ import OperatorLayout from "./components/OperatorLayout";
 import BookingManagement from "./components/BookingManagement";
 import { AdminContext } from "./context/AdminContext";
 import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import Login from "./pages/Login";
 import ResetPassword from "./pages/ResetPassword";
 
