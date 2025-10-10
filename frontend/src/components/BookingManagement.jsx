@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   Box,
   Typography,
@@ -7,10 +7,12 @@ import {
   ToggleButtonGroup,
   Paper,
   TextField,
+  CircularProgress,
 } from "@mui/material";
 import BookingForm from './BookingForm';
 import BookingGrid from './BookingGrid';
-import { bookings } from '../assets/assets.js';
+import { bookings as dummyBookings } from '../assets/assets.js';
+import axios from 'axios';
 // import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 
 const BookingManagement = () => {
@@ -18,6 +20,128 @@ const BookingManagement = () => {
   const [view, setView] = React.useState("timeline");
   const [date, setDate] = React.useState(new Date());
   const [openDialog, setOpenDialog] = useState(false);
+  const [apiBookings, setApiBookings] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  // Helper function to normalize time formats for matching
+  const normalizeTimeFormat = (timeString) => {
+    if (!timeString) return '';
+    
+    // If it's already in HH:MM format, convert to 12-hour format for matching
+    const timeMatch = timeString.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?/);
+    if (timeMatch) {
+      let hours = parseInt(timeMatch[1]);
+      const minutes = timeMatch[2];
+      
+      // Convert 24-hour to 12-hour format to match timeSlots
+      if (hours === 0) {
+        return `12:${minutes}`;
+      } else if (hours > 12) {
+        return `${String(hours - 12).padStart(2, '0')}:${minutes}`;
+      } else if (hours < 10) {
+        // Pad single digit hours with zero to match timeSlots format
+        return `${String(hours).padStart(2, '0')}:${minutes}`;
+      } else {
+        return `${hours}:${minutes}`;
+      }
+    }
+    
+    return timeString;
+  };
+
+  // Helper function to match station names
+  const matchStation = (apiStation, uiStationName) => {
+    if (!apiStation || !uiStationName) return false;
+    
+    const normalizedApi = apiStation.toLowerCase().trim();
+    const normalizedUI = uiStationName.toLowerCase().trim();
+    
+    // Direct match
+    if (normalizedApi === normalizedUI) return true;
+    
+    // Handle station1, station2 format from API
+    if (normalizedApi === 'station1' && normalizedUI.includes('station 1')) return true;
+    if (normalizedApi === 'station2' && normalizedUI.includes('station 2')) return true;
+    if (normalizedApi === 'station3' && normalizedUI.includes('station 3')) return true;
+    
+    // Handle PSS Station format
+    if (normalizedApi.includes('station 1') && normalizedUI.includes('station 1')) return true;
+    if (normalizedApi.includes('station 2') && normalizedUI.includes('station 2')) return true;
+    if (normalizedApi.includes('station 3') && normalizedUI.includes('station 3')) return true;
+    
+    // Handle pool stations
+    if (normalizedApi.includes('pool') && normalizedUI.includes('pool')) return true;
+    
+    return false;
+  };
+
+  // Function to fetch bookings from the API
+  const fetchBookings = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.get('http://127.0.0.1:8000/api/bookings');
+      
+      if (response.data.success) {
+        console.log('API bookings fetched:', response.data.data);
+        console.log('Sample booking for debugging:', response.data.data[0]);
+        // Map API bookings to the frontend's expected shape
+        const mapBooking = (b) => {
+          // Normalize status mapping between backend and frontend
+          const statusMap = {
+            pending: 'upcoming',
+            confirmed: 'inprogress',
+            cancelled: 'completed', // choose an appropriate fallback
+            completed: 'completed',
+          };
+
+          const normalizedTime = normalizeTimeFormat(b.start_time || b.startTime || b.time || '');
+          console.log(`Mapping booking: original time=${b.start_time}, normalized=${normalizedTime}, station=${b.station}`);
+
+          return {
+            id: b.id,
+            // frontend uses `customer_name` in many places
+            customer_name: b.customer_name || b.customerName || b.user || '',
+            // booking grid expects `station` string like 'station1' or human readable names
+            station: b.station || '',
+            // timeline and grid use `start_time` / `time` - use normalized time for timeline matching
+            start_time: normalizedTime,
+            time: normalizedTime,
+            // keep original time for display purposes
+            original_start_time: b.start_time || b.startTime || b.time || '',
+            // include booking date
+            booking_date: b.booking_date || b.date || '',
+            duration: b.duration || '',
+            amount: b.amount ?? b.full_amount ?? b.price ?? 0,
+            // normalize status
+            status: (statusMap[b.status] || b.status || 'upcoming').toLowerCase(),
+            // include other optional fields used by sampleBookings
+            user: b.customer_name || b.user || '',
+            phone: b.phone_number || b.phone || '',
+            // include extended_time for editing
+            extended_time: b.extended_time || '',
+          };
+        };
+
+        const normalized = response.data.data.map(mapBooking);
+        setApiBookings(normalized);
+      }
+    } catch (error) {
+      console.error('Error fetching bookings:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch bookings on component mount and when refreshTrigger changes
+  useEffect(() => {
+    fetchBookings();
+  }, [refreshTrigger]);
+
+  // Function to trigger refresh (to be passed to BookingForm)
+  const refreshBookings = () => {
+    setRefreshTrigger(prev => prev + 1);
+  };
 
   const handleViewChange = (event, newView) => {
     if (newView !== null) setView(newView);
@@ -154,7 +278,11 @@ const BookingManagement = () => {
             >
               + New Booking
             </Button>
-            <BookingForm open={openDialog} handleClose={() => setOpenDialog(false)} />
+            <BookingForm 
+              open={openDialog} 
+              handleClose={() => setOpenDialog(false)}
+              onBookingCreated={refreshBookings} 
+            />
           </Box>
         </Box>
       </Box>
@@ -320,12 +448,34 @@ const BookingManagement = () => {
                 </Box>
 
                 {/* Booking Rows */}
-                {stations.map((station, i) => (
+                {stations.map((station, i) => {
+                  console.log(`Rendering station ${i}: ${station.name}`);
+                  return (
                   <Box key={i} sx={{ display: "flex", mb: 2 }}>
                     {timeSlots.map((slot) => {
-                      const booking = bookings.find(
+                      // First look for a booking in the API data using improved matching
+                      const apiBooking = apiBookings.find(
+                        (b) => {
+                          const stationMatch = matchStation(b.station, station.name);
+                          const timeMatch = b.start_time === slot;
+                          
+                          console.log(`Checking booking ${b.id}: station="${b.station}" vs "${station.name}" (match: ${stationMatch}), time="${b.start_time}" vs "${slot}" (match: ${timeMatch})`);
+                          
+                          if (stationMatch && timeMatch) {
+                            console.log(`✅ Found match: API booking ${b.id} matches slot ${slot} and station ${station.name}`);
+                          }
+                          
+                          return stationMatch && timeMatch;
+                        }
+                      );
+                      
+                      // If no API booking is found, look in the dummy data
+                      const dummyBooking = dummyBookings.find(
                         (b) => b.station === station.name && b.time === slot
                       );
+                      
+                      // Prioritize API booking, fall back to dummy booking
+                      const booking = apiBooking || dummyBooking;
                       return (
                         // <Box
                         //   key={slot}
@@ -377,7 +527,7 @@ const BookingManagement = () => {
                         >
                           {booking && (
                             <Typography fontSize={10} fontWeight={400} zIndex={1} color='#FFFFFF'>
-                              {booking.user}
+                              {booking.customer_name || booking.user}
                             </Typography>
                           )}
                         </Box>
@@ -385,7 +535,8 @@ const BookingManagement = () => {
                       );
                     })}
                   </Box>
-                ))}
+                  );
+                })}
               </Box>
             </Box>
           </Box>
@@ -393,8 +544,15 @@ const BookingManagement = () => {
       )}
 
       {view === "grid" &&
-        <BookingGrid />
+        <BookingGrid apiBookings={apiBookings} loading={loading} onBookingUpdated={refreshBookings} />
       }
+      
+      {/* Loading indicator for API data */}
+      {loading && (
+        <Box position="fixed" bottom={20} right={20} zIndex={9999}>
+          <CircularProgress size={30} sx={{ color: "#0CD7FF" }} />
+        </Box>
+      )}
 
 
 

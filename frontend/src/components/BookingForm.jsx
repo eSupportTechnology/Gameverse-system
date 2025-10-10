@@ -317,7 +317,8 @@ const BookingForm = ({ open, handleClose }) => {
             Cancel
           </Button>
           <Button
-            onClick={handleUpdateBooking}
+            onClick={handleCreateBooking}
+            disabled={loading}
             variant="contained"
             sx={{
               width: "50%",
@@ -326,7 +327,7 @@ const BookingForm = ({ open, handleClose }) => {
               background: "linear-gradient(to right, #0CD7FF, #8A38F5)",
             }}
           >
-            Create Booking
+            {loading ? 'Creating...' : 'Create Booking'}
           </Button>
 
           {/* Success Popup */}

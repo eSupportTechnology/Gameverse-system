@@ -15,15 +15,189 @@ import {
 import CloseIcon from "@mui/icons-material/Close";
 import sucessicon from '../assets/sucessicon.png'
 
-const EditBookingFrom = ({ open, handleClose }) => {
+const EditBookingFrom = ({ open, handleClose, booking, onBookingUpdated }) => {
 
   const [updateSuccess, setupdateSuccess] = useState(false);
+  
+  // Helper function to normalize time format for dropdown
+  const normalizeTimeForDropdown = (timeString) => {
+    if (!timeString) return '';
+    
+    // Handle various time formats
+    if (timeString.includes('.')) {
+      // Convert "1.00" to "01:00"
+      const [hours, minutes] = timeString.split('.');
+      const paddedHours = hours.padStart(2, '0');
+      return `${paddedHours}:${minutes}`;
+    }
+    
+    if (timeString.includes(':')) {
+      // Already in correct format, just ensure padding
+      const [hours, minutes] = timeString.split(':');
+      const paddedHours = hours.padStart(2, '0');
+      return `${paddedHours}:${minutes}`;
+    }
+    
+    return timeString;
+  };
+  
+  // Form state initialized with booking data
+  const [formData, setFormData] = useState({
+    customerName: '',
+    phoneNumber: '',
+    station: '',
+    bookingDate: '',
+    startTime: '',
+    duration: '',
+    extendedTime: '',
+    amount: 400
+  });
+
+  // Update form data when booking changes
+  React.useEffect(() => {
+    if (booking && open) {
+      console.log('EditBookingFrom: Setting form data with booking:', booking);
+      console.log('Available booking properties:', Object.keys(booking));
+      console.log('booking.booking_date:', booking.booking_date);
+      console.log('booking.date:', booking.date);
+      // Format the date properly for input[type="date"]
+      let formattedDate = '';
+      console.log('Raw booking date:', booking.booking_date);
+      console.log('Raw booking date type:', typeof booking.booking_date);
+      
+      if (booking.booking_date) {
+        // Handle ISO date format from API
+        const dateObj = new Date(booking.booking_date);
+        console.log('Parsed date object:', dateObj);
+        console.log('Is valid date:', !isNaN(dateObj.getTime()));
+        
+        if (!isNaN(dateObj.getTime())) {
+          formattedDate = dateObj.toISOString().split('T')[0];
+          console.log('Formatted date for input:', formattedDate);
+        }
+      } else if (booking.date) {
+        // If date is in different format, try to parse it
+        const dateObj = new Date(booking.date);
+        if (!isNaN(dateObj.getTime())) {
+          formattedDate = dateObj.toISOString().split('T')[0];
+        }
+      }
+      
+      console.log('Final formatted date:', formattedDate);
+      
+      const newFormData = {
+        customerName: booking.customer_name || booking.user || '',
+        phoneNumber: booking.phone_number || booking.phone || '',
+        station: booking.station || '',
+        bookingDate: formattedDate,
+        startTime: normalizeTimeForDropdown(booking.start_time || booking.time || ''),
+        duration: booking.duration || '',
+        extendedTime: booking.extended_time || '',
+        amount: booking.amount || booking.price || 400
+      };
+      
+      console.log('EditBookingForm: Setting form data:', newFormData);
+      setFormData(newFormData);
+    }
+  }, [booking, open]);
+
+  // Handle form input changes
+  const handleInputChange = (field, value) => {
+    // Phone number validation - allow only numbers
+    if (field === 'phoneNumber') {
+      // Remove any non-digit characters
+      const numericValue = value.replace(/\D/g, '');
+      setFormData(prev => ({
+        ...prev,
+        [field]: numericValue
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [field]: value
+      }));
+    }
+  };
 
   // handle edit
-  const handleUpdateBooking = () => {
-    console.log("Booking updated successfully!");
-    setupdateSuccess(true)
-
+  const handleUpdateBooking = async () => {
+    if (!booking || !booking.id) {
+      console.log("No booking ID available for update");
+      return;
+    }
+    
+    // Basic validation
+    if (!formData.customerName.trim()) {
+      alert('Customer name is required');
+      return;
+    }
+    
+    if (!formData.phoneNumber.trim()) {
+      alert('Phone number is required');
+      return;
+    }
+    
+    // Validate phone number (only digits and minimum length)
+    if (!/^\d+$/.test(formData.phoneNumber)) {
+      alert("Phone number must contain only numbers");
+      return;
+    }
+    
+    if (formData.phoneNumber.length < 9) {
+      alert("Phone number must be at least 9 digits long");
+      return;
+    }
+    
+    if (!formData.station) {
+      alert('Station is required');
+      return;
+    }
+    
+    try {
+      const payload = {
+        customer_name: formData.customerName,
+        phone_number: formData.phoneNumber,
+        station: formData.station,
+        booking_date: formData.bookingDate,
+        start_time: formData.startTime,
+        duration: formData.duration,
+        extended_time: formData.extendedTime,
+        amount: formData.amount
+      };
+      
+      console.log('Sending update payload:', payload);
+      
+      const response = await fetch(`http://127.0.0.1:8000/api/bookings/${booking.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: localStorage.getItem("aToken") ? `Bearer ${localStorage.getItem("aToken")}` : ""
+        },
+        body: JSON.stringify(payload)
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        console.log("Booking updated successfully!", data);
+        setupdateSuccess(true);
+        if (onBookingUpdated) {
+          onBookingUpdated();
+        }
+      } else {
+        console.error('Update failed:', data);
+        if (data.errors) {
+          // Show specific validation errors
+          const errorMessages = Object.values(data.errors).flat().join('\n');
+          alert(`Validation failed:\n${errorMessages}`);
+        } else {
+          alert(data.message || "Failed to update booking");
+        }
+      }
+    } catch (error) {
+      console.error("Error updating booking:", error);
+      alert("Failed to update booking. Check console.");
+    }
   };
 
   return (
@@ -65,6 +239,8 @@ const EditBookingFrom = ({ open, handleClose }) => {
                 fullWidth
                 size="small"
                 placeholder="Enter customer name"
+                value={formData.customerName}
+                onChange={(e) => handleInputChange('customerName', e.target.value)}
                 InputProps={{
                   sx: {
                     backgroundColor: "#1F2937",
@@ -95,7 +271,14 @@ const EditBookingFrom = ({ open, handleClose }) => {
                 variant="outlined"
                 fullWidth
                 size="small"
-                placeholder="Enter Phone number"
+                placeholder="Enter Phone number (numbers only)"
+                value={formData.phoneNumber}
+                onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
+                inputProps={{
+                  inputMode: 'numeric',
+                  pattern: '[0-9]*',
+                  maxLength: 15, // Limit phone number length
+                }}
                 InputProps={{
                   sx: {
                     backgroundColor: "#1F2937",
@@ -124,7 +307,8 @@ const EditBookingFrom = ({ open, handleClose }) => {
               {/* Input */}
               <Select
                 displayEmpty
-                defaultValue=""
+                value={formData.station}
+                onChange={(e) => handleInputChange('station', e.target.value)}
                 fullWidth
                 sx={{
                   backgroundColor: "#1F2937",
@@ -182,6 +366,8 @@ const EditBookingFrom = ({ open, handleClose }) => {
                 variant="outlined"
                 fullWidth
                 size="small"
+                value={formData.bookingDate}
+                onChange={(e) => handleInputChange('bookingDate', e.target.value)}
                 InputLabelProps={{ shrink: true }}
                 InputProps={{
                   sx: {
@@ -232,7 +418,8 @@ const EditBookingFrom = ({ open, handleClose }) => {
               {/* Input */}
               <Select
                 displayEmpty
-                defaultValue=""
+                value={formData.startTime}
+                onChange={(e) => handleInputChange('startTime', e.target.value)}
                 fullWidth
                 sx={{
                   backgroundColor: "#1F2937",
@@ -266,12 +453,20 @@ const EditBookingFrom = ({ open, handleClose }) => {
                 }}
               >
                 <MenuItem value="">
-                  <em style={{ fontSize: 14, color: "#9CA3AF", fontStyle: "normal" }}>12.00</em>
+                  <em style={{ fontSize: 14, color: "#9CA3AF", fontStyle: "normal" }}>Select time</em>
                 </MenuItem>
-                <MenuItem value="12.00">12.00</MenuItem>
-                <MenuItem value="1.00">01.00</MenuItem>
-                <MenuItem value="12.00">01.30</MenuItem>
-                <MenuItem value="1.00">02.00</MenuItem>
+                <MenuItem value="12:00">12:00</MenuItem>
+                <MenuItem value="12:30">12:30</MenuItem>
+                <MenuItem value="01:00">01:00</MenuItem>
+                <MenuItem value="01:30">01:30</MenuItem>
+                <MenuItem value="02:00">02:00</MenuItem>
+                <MenuItem value="02:30">02:30</MenuItem>
+                <MenuItem value="03:00">03:00</MenuItem>
+                <MenuItem value="03:30">03:30</MenuItem>
+                <MenuItem value="04:00">04:00</MenuItem>
+                <MenuItem value="04:30">04:30</MenuItem>
+                <MenuItem value="05:00">05:00</MenuItem>
+                <MenuItem value="05:30">05:30</MenuItem>
               </Select>
             </Box>
 
@@ -288,7 +483,8 @@ const EditBookingFrom = ({ open, handleClose }) => {
               {/* Input */}
               <Select
                 displayEmpty
-                defaultValue=""
+                value={formData.duration}  
+                onChange={(e) => handleInputChange('duration', e.target.value)}
                 fullWidth
                 sx={{
                   backgroundColor: "#1F2937",
@@ -347,6 +543,8 @@ const EditBookingFrom = ({ open, handleClose }) => {
               fullWidth
               size="small"
               placeholder="Enter extend time"
+              value={formData.extendedTime}
+              onChange={(e) => handleInputChange('extendedTime', e.target.value)}
               InputProps={{
                 sx: {
                   backgroundColor: "#1F2937",
@@ -481,7 +679,10 @@ const EditBookingFrom = ({ open, handleClose }) => {
                 Update Successful !
               </Typography>
               <Button
-                onClick={() => setupdateSuccess(false)}
+                onClick={() => {
+                  setupdateSuccess(false);
+                  handleClose();
+                }}
                 sx={{
                   px: 8,
                   fontSize: 14,
