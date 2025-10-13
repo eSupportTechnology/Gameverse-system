@@ -601,3 +601,4 @@ const BookingForm = ({ open, handleClose, onBookingCreated }) => {
 }
 
 export default BookingForm
+

@@ -15,6 +15,7 @@ import { AdminContext } from "./context/AdminContext";
 import { ToastContainer } from "react-toastify";
 import Login from "./pages/Login";
 import ResetPassword from "./pages/ResetPassword";
+import OperatorBookingManagement from "./components/OperatorBookingManagement";
 
 function App() {
   const { aToken, oToken } = useContext(AdminContext);
@@ -47,7 +48,7 @@ function App() {
           <>
             {/* Operator-only routes */}
             <Route path="/operator/*" element={<OperatorLayout />}>
-              <Route path="booking" element={<BookingManagement/>} />
+              <Route path="booking" element={<OperatorBookingManagement />} />
               <Route path="pos" element={<PosSystem />} />
               <Route path="games" element={<GamesManagement />} />
               <Route index element={<Navigate to="booking" replace />} />
