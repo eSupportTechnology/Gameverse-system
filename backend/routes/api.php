@@ -19,7 +19,7 @@ Route::post('/operator/login', [AuthController::class, 'operatoLogin']);
 Route::middleware('auth:sanctum')->post('/reset-password', [AuthController::class, 'resetPassword']);
 
 
-Route::middleware(['auth:sanctum', 'admin'])->group(function () {
+Route::middleware('auth:sanctum')->group(function () {
     // add user
     Route::post('/add-user', [AdminUserController::class, 'store']);
     // update user
