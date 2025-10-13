@@ -9,6 +9,7 @@ use App\Http\Controllers\GameController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\PosItemController;
 use App\Http\Controllers\PosSaleController;
+use App\Http\Controllers\OperatorBookingController;
 
 
 // Public route
@@ -18,7 +19,7 @@ Route::post('/operator/login', [AuthController::class, 'operatoLogin']);
 Route::middleware('auth:sanctum')->post('/reset-password', [AuthController::class, 'resetPassword']);
 
 
-Route::middleware(['auth:sanctum', 'admin'])->group(function () {
+Route::middleware('auth:sanctum')->group(function () {
     // add user
     Route::post('/add-user', [AdminUserController::class, 'store']);
     // update user
@@ -73,12 +74,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/pos/update-item/{id}', [PosItemController::class, 'updateItem']);
     Route::post('/pos/checkout', [PosSaleController::class, 'checkout']);
 });
-// Games management routes (protected by authentication middleware)
-Route::middleware('auth:sanctum')->group(function () {
-    // RESTful routes for games
-    Route::apiResource('games', GameController::class);
-    
-    // Additional routes for specific functionality
-    Route::get('games/category/{category}', [GameController::class, 'getByCategory']);
-});
+
+// Operator Booking routes
+Route::get('/bookings', [OperatorBookingController::class, 'index']);
+Route::get('/bookings/{id}', [OperatorBookingController::class, 'show']);
+Route::post('/bookings', [OperatorBookingController::class, 'store']);
+Route::put('/bookings/{id}', [OperatorBookingController::class, 'update']);
+Route::put('/bookings/{id}/cancel', [OperatorBookingController::class, 'cancel']);
+Route::put('/bookings/{id}/update-time', [OperatorBookingController::class, 'updateTime']);
+
 
