@@ -14,22 +14,6 @@ class Game extends Model
         'location',
         'method',
         'price',
-        'playing_method',
-        'price',
-        'quantity',
-        'players',
-        'category',
-        'full_amount',
-        'discount_price',
-        'balance_payment',
-        'status'
-    ];
-
-    protected $casts = [
-        'price' => 'decimal:2',
-        'full_amount' => 'decimal:2',
-        'discount_price' => 'decimal:2',
-        'balance_payment' => 'decimal:2',
     ];
 
     // Optional: you can add a computed attribute for quantity
@@ -37,5 +21,4 @@ class Game extends Model
         // $values = ['Coin' => 100, 'Arrow' => 150, 'Per Hour' => 75];
         // return isset($values[$this->method]) ? intval($this->price / $values[$this->method]) : 0;
     // }
-    
 }
