@@ -4,13 +4,16 @@ import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 import AdminContextProvider from './context/AdminContext';
+import AppContextProvider from './context/AppContext';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <AdminContextProvider>
+    <AppContextProvider>
+      <AdminContextProvider>
         <App />
-    </AdminContextProvider>  
+      </AdminContextProvider>
+    </AppContextProvider>
   </React.StrictMode>
 );
 

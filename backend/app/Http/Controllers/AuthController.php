@@ -53,6 +53,9 @@ class AuthController extends Controller
                 'email'    => $user->email,
                 'role'     => $user->role,
                 'last_login_at'  => $user->last_login_at,
+                'avatar'        => $user->avatar
+                        ? url($user->avatar)
+                        : url('images/default.png'),
             ],
             'must_reset_password' => $user->must_reset_password,
             'token' => $token
@@ -95,6 +98,9 @@ class AuthController extends Controller
                 'email'    => $user->email,
                 'role'     => $user->role,
                 'last_login_at' => $user->last_login_at,
+                'avatar'        => $user->avatar
+                        ? url($user->avatar)
+                        : url('images/default.png'),
             ],
             'must_reset_password' => $user->must_reset_password,
             'token' => $token
