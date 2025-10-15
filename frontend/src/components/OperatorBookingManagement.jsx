@@ -9,7 +9,7 @@ import {
   TextField,
 } from "@mui/material";
 import OperatorBookingForm from './OperatorBookingForm';
-import BookingGrid from './BookingGrid';
+import BookingGrid from './OperatorBookingGrid';
 import { bookings } from '../assets/assets.js';
 // import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 

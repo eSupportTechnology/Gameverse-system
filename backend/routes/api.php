@@ -76,11 +76,11 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 // Operator Booking routes
-Route::get('/bookings', [OperatorBookingController::class, 'index']);
-Route::get('/bookings/{id}', [OperatorBookingController::class, 'show']);
-Route::post('/bookings', [OperatorBookingController::class, 'store']);
-Route::put('/bookings/{id}', [OperatorBookingController::class, 'update']);
-Route::put('/bookings/{id}/cancel', [OperatorBookingController::class, 'cancel']);
-Route::put('/bookings/{id}/update-time', [OperatorBookingController::class, 'updateTime']);
+Route::get('/operator-bookings', [OperatorBookingController::class, 'index']);
+Route::get('/operator-bookings/{id}', [OperatorBookingController::class, 'show']);
+Route::post('/operator-bookings', [OperatorBookingController::class, 'store']);
+Route::put('/operator-bookings/{id}', [OperatorBookingController::class, 'update']);
+Route::put('/operator-bookings/{id}/cancel', [OperatorBookingController::class, 'cancel']);
+Route::put('/operator-bookings/{id}/update-time', [OperatorBookingController::class, 'updateTime']);
 
 
