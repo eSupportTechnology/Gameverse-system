@@ -1,32 +1,14 @@
 import React, { useState } from 'react';
 import { Card, CardContent, Typography, Button, Box } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
 import AddNewGame from './AddNewGame';
 
 const methodValue = { Coin: 100, Arrow: 150, "Per Hour": 75 };
 
-const methodLabels = {
-  "Arcade Machine": "Coin",
-  Archery: "Arrows:",
-  Carrom: "Per hour:",
-};
-
-const GameCard = ({ game, onPlay, onUpdate, onDelete, isApiGame = false }) => {
+const GameCard = ({ game, onPlay, onUpdate }) => {
   const [editOpen, setEditOpen] = useState(false);
 
-  const handleGameUpdate = (updatedGame) => {
-    setEditOpen(false);
-    if (onUpdate) {
-      onUpdate(updatedGame);
-    }
-  };
-
-  const handleDelete = () => {
-    if (onDelete && window.confirm(`Are you sure you want to delete "${game.title}"?`)) {
-      onDelete(game);
-    }
-  };
+  const quantity = Math.floor(game.price / (methodValue[game.method] || 1));
 
   return (
     <div>
@@ -34,17 +16,7 @@ const GameCard = ({ game, onPlay, onUpdate, onDelete, isApiGame = false }) => {
         <CardContent>
           <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
             <Typography variant="h6" fontWeight={500} fontSize={16} color="#fff">{game.title}</Typography>
-            <Box display="flex" gap={1}>
-              <EditIcon
-                onClick={() => setEditOpen(true)}
-                sx={{ fontSize: 16, color: "gray", cursor: "pointer" }} />
-              {/* Only show delete icon for API games, not dummy games */}
-              {isApiGame && (
-                <DeleteIcon
-                  onClick={handleDelete}
-                  sx={{ fontSize: 16, color: "gray", cursor: "pointer", "&:hover": { color: "#999" } }} />
-              )}
-            </Box>
+            <EditIcon onClick={() => setEditOpen(true)} sx={{ fontSize: 16, color: "gray", cursor: "pointer" }} />
           </Box>
 
           <Box display="flex" justifyContent="flex-start" mb={1}>
@@ -55,7 +27,7 @@ const GameCard = ({ game, onPlay, onUpdate, onDelete, isApiGame = false }) => {
 
           <Box display="flex" justifyContent="space-between" mb={2}>
             <Typography fontSize={12} color="#FFFFFF">
-              {game.quantity} {methodLabels[game.category] || "Price:"}
+              {quantity} {game.method}{quantity > 1 ? "s" : ""}
             </Typography>
             <Typography fontSize={12} color="#0CD7FF">
               LKR {game.price}
@@ -67,12 +39,6 @@ const GameCard = ({ game, onPlay, onUpdate, onDelete, isApiGame = false }) => {
             onClick={() => onPlay(game)}>
             Play
           </Button>
-          {/* bokking details */}
-          {/* <BookingDetails
-            open={open}
-            handleClose={handleClose}
-            booking={selectedBooking}
-          /> */}
 
           {/* EDIT MODAL */}
           <AddNewGame

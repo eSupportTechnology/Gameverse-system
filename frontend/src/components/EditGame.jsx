@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import {
   Dialog,
   DialogTitle,
@@ -8,114 +8,33 @@ import {
   Button,
   Box,
   Typography,
-  IconButton,
-  MenuItem
+  IconButton
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import sucessicon from '../assets/sucessicon.png'
 import CancelPopup from './CancelPopup';
-import axios from 'axios';
-import { toast } from 'react-toastify';
 
-const EditGame = ({ open, handleClose, game, onUpdate }) => {
+
+const EditGame = ({ open, handleClose }) => {
+
   const [updateSuccess, setUpdateSuccess] = useState(false);
   const [cancelOpen, setcancelOpen] = useState(false);
-  const [formData, setFormData] = useState({
-    title: '',
-    location: '',
-    playing_method: '',
-    price: '',
-    quantity: '',
-    players: '',
-    category: 'Arcade Machine',
-    status: 'Active'
-  });
 
-  // Load game data when component opens
-  useEffect(() => {
-    if (game && open) {
-      setFormData({
-        title: game.title || '',
-        location: game.location || '',
-        playing_method: game.playing_method || '',
-        price: game.price ? game.price.toString() : '',
-        quantity: game.quantity ? game.quantity.toString() : '',
-        players: game.players ? game.players.toString() : '',
-        category: game.category || 'Arcade Machine',
-        status: game.status || 'Active'
-      });
-    }
-  }, [game, open]);
 
   const handleCancelOpen = () => setcancelOpen(true);
   const handleCancelClose = () => setcancelOpen(false);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
+  // handle edit game
+  const handlEditGame = () => {
+    console.log("Game updated successfully!");
+    setUpdateSuccess(true)
 
-  // handle edit game - Connect to backend API
-  const handlEditGame = async () => {
-    try {
-      // Validate required fields
-      if (!formData.title || !formData.location || !formData.playing_method || !formData.price || !formData.category) {
-        toast.error("Please fill all required fields");
-        return;
-      }
-
-      const token = localStorage.getItem("aToken");
-      if (!token) {
-        toast.error("Please login first");
-        return;
-      }
-
-      if (!game.id) {
-        toast.error("Game ID not found");
-        return;
-      }
-
-      const payload = {
-        title: formData.title,
-        location: formData.location,
-        playing_method: formData.playing_method,
-        price: parseFloat(formData.price),
-        quantity: formData.category !== 'Carrom' ? (formData.quantity ? parseInt(formData.quantity) : 1) : null,
-        players: formData.category === 'Carrom' ? (formData.players ? parseInt(formData.players) : 4) : null,
-        category: formData.category,
-        status: formData.status || 'Active'
-      };
-
-      const res = await axios({
-        method: 'put',
-        url: `http://127.0.0.1:8000/api/games/${game.id}`,
-        data: payload,
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-
-      toast.success("Game updated successfully!");
-      setUpdateSuccess(true);
-      
-      // Call onUpdate callback if provided
-      if (onUpdate) {
-        onUpdate(res.data.data);
-      }
-
-    } catch (err) {
-      console.error(err);
-      toast.error(
-        err.response?.data?.message || "Failed to update game. Make sure you are logged in."
-      );
-    }
   };
 
   const handleConfirm = () => {
-    console.log("Game edit cancelled!");
+    console.log("Booking cancelled!");
     setcancelOpen(false);
-    handleClose(false);
+    handleClose(false)
   };
 
 
@@ -138,7 +57,7 @@ const EditGame = ({ open, handleClose, game, onUpdate }) => {
             whiteSpace: "normal",
             wordBreak: "break-word",
           }}>
-            Edit {game?.title || 'Game'} Details
+            Edit  Coin Operated Machines Details
           </DialogTitle>
 
           <IconButton onClick={handleClose} sx={{ color: "#FFFFFF" }}>
@@ -160,9 +79,6 @@ const EditGame = ({ open, handleClose, game, onUpdate }) => {
 
             {/* Input */}
             <TextField
-              name="title"
-              value={formData.title}
-              onChange={handleChange}
               variant="outlined"
               fullWidth
               size="small"
@@ -195,9 +111,6 @@ const EditGame = ({ open, handleClose, game, onUpdate }) => {
 
             {/* Input */}
             <TextField
-              name="location"
-              value={formData.location}
-              onChange={handleChange}
               variant="outlined"
               fullWidth
               size="small"
@@ -216,38 +129,6 @@ const EditGame = ({ open, handleClose, game, onUpdate }) => {
                 },
               }}
             />
-          </Box>
-
-          {/* Game Category */}
-          <Box display="flex" flexDirection="column" gap={1} mb={2}>
-            <Typography
-              variant="body2"
-              sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF" }}
-            >
-              Game Category
-            </Typography>
-            <TextField
-              name="category"
-              value={formData.category}
-              onChange={handleChange}
-              select
-              variant="outlined"
-              fullWidth
-              size="small"
-              InputProps={{
-                sx: {
-                  backgroundColor: "#1F2937",
-                  borderRadius: "6px",
-                  border: '1px solid #374151',
-                  color: "white",
-                  fontWeight: 500,
-                },
-              }}
-            >
-              <MenuItem value="Arcade Machine">Arcade Machine</MenuItem>
-              <MenuItem value="Archery">Archery</MenuItem>
-              <MenuItem value="Carrom">Carrom</MenuItem>
-            </TextField>
           </Box>
 
           <Box display="flex" justifyContent="flex-start" width="50%">
@@ -272,13 +153,10 @@ const EditGame = ({ open, handleClose, game, onUpdate }) => {
 
               {/* Input */}
               <TextField
-                name="playing_method"
-                value={formData.playing_method}
-                onChange={handleChange}
                 variant="outlined"
                 fullWidth
                 size="small"
-                placeholder={formData.category === 'Arcade Machine' ? 'Coin' : formData.category === 'Archery' ? 'Arrows' : 'Per hour'}
+                placeholder="Coin"
                 InputProps={{
                   sx: {
                     backgroundColor: "#1F2937",
@@ -307,14 +185,10 @@ const EditGame = ({ open, handleClose, game, onUpdate }) => {
 
               {/* Input */}
               <TextField
-                name="price"
-                value={formData.price}
-                onChange={handleChange}
-                type="number"
                 variant="outlined"
                 fullWidth
                 size="small"
-                placeholder="100"
+                placeholder="LKR  100"
                 InputProps={{
                   sx: {
                     backgroundColor: "#1F2937",
@@ -331,73 +205,6 @@ const EditGame = ({ open, handleClose, game, onUpdate }) => {
               />
             </Box>
           </Box>
-
-          {/* Quantity/Players field based on category */}
-          {formData.category !== 'Carrom' ? (
-            <Box display="flex" flexDirection="column" gap={1} mt={2}>
-              <Typography
-                variant="body2"
-                sx={{ fontSize: 12, color: "#9CA3AF" }}
-              >
-                Quantity
-              </Typography>
-              <TextField
-                name="quantity"
-                value={formData.quantity}
-                onChange={handleChange}
-                type="number"
-                variant="outlined"
-                fullWidth
-                size="small"
-                placeholder="1"
-                InputProps={{
-                  sx: {
-                    backgroundColor: "#1F2937",
-                    borderRadius: "6px",
-                    border: '1px solid #374151',
-                    "& input::placeholder": {
-                      color: "#9CA3AF",
-                      fontSize: "14px",
-                    },
-                    color: "white",
-                    fontWeight: 500,
-                  },
-                }}
-              />
-            </Box>
-          ) : (
-            <Box display="flex" flexDirection="column" gap={1} mt={2}>
-              <Typography
-                variant="body2"
-                sx={{ fontSize: 12, color: "#9CA3AF" }}
-              >
-                Number of Players
-              </Typography>
-              <TextField
-                name="players"
-                value={formData.players}
-                onChange={handleChange}
-                type="number"
-                variant="outlined"
-                fullWidth
-                size="small"
-                placeholder="4"
-                InputProps={{
-                  sx: {
-                    backgroundColor: "#1F2937",
-                    borderRadius: "6px",
-                    border: '1px solid #374151',
-                    "& input::placeholder": {
-                      color: "#9CA3AF",
-                      fontSize: "14px",
-                    },
-                    color: "white",
-                    fontWeight: 500,
-                  },
-                }}
-              />
-            </Box>
-          )}
         </DialogContent>
 
         {/* cancel & create button */}
