@@ -9,6 +9,7 @@ use App\Http\Controllers\GameController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\PosItemController;
 use App\Http\Controllers\PosSaleController;
+use App\Http\Controllers\NfcUserController;
 
 
 // Public route
@@ -80,5 +81,16 @@ Route::middleware('auth:sanctum')->group(function () {
     
     // Additional routes for specific functionality
     Route::get('games/category/{category}', [GameController::class, 'getByCategory']);
+});
+
+// NFC User Management routes
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/nfc-users', [NfcUserController::class, 'index']);
+    Route::post('/nfc-users', [NfcUserController::class, 'store']);
+    Route::get('/nfc-users/{id}', [NfcUserController::class, 'show']);
+    Route::put('/nfc-users/{id}', [NfcUserController::class, 'update']);
+    Route::delete('/nfc-users/{id}', [NfcUserController::class, 'destroy']);
+    Route::patch('/nfc-users/{id}/toggle-status', [NfcUserController::class, 'toggleStatus']);
+    Route::get('/nfc-users/search', [NfcUserController::class, 'search']);
 });
 

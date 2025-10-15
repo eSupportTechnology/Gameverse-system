@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -22,9 +22,8 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import AddNFCUserDialog from "./AddNFCUserDialog";
 import EditNFCUserDialog from "./EditNFCUserDialog";
 import DeleteConfirmDialog from "./DeleteConfirmDialog";
-import DeleteSuccessDialog from "./DeleteSuccessDialog";
-import CreateSuccessDialog from "./CreateSuccessDialog";
-import UpdateSuccessDialog from "./UpdateSuccess";
+import axios from "axios";
+import { toast } from "react-toastify";
 import { nfcUsers } from "../assets/assets";
 
 export default function NFCUserContent() {
@@ -33,17 +32,73 @@ export default function NFCUserContent() {
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [deleteSuccessOpen, setDeleteSuccessOpen] = useState(false);
-  const [createSuccessOpen, setCreateSuccessOpen] = useState(false);
-  const [updateSuccessOpen, setUpdateSuccessOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
-  const [deleteIndex, setDeleteIndex] = useState(null);
+  const [deleteUserId, setDeleteUserId] = useState(null);
 
   const [formData, setFormData] = useState({
     fullName: "",
     phoneNo: "",
     nicNumber: "",
   });
+
+  // Fetch users from backend on component mount
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const fetchUsers = async () => {
+    try {
+      const token = localStorage.getItem("aToken");
+      const res = await axios.get("http://127.0.0.1:8000/api/nfc-users", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (res.data.success) {
+        // Merge backend data with dummy data
+        const backendUsers = res.data.data.map(user => {
+          // Format phone number: XXX XXXXXXX
+          let formattedPhone = user.phone_no;
+          if (user.phone_no) {
+            const numericPhone = user.phone_no.replace(/\D/g, "");
+            if (numericPhone.length === 10) {
+              formattedPhone = numericPhone.slice(0, 3) + " " + numericPhone.slice(3);
+            }
+          }
+          
+          return {
+            id: user.id,
+            fullName: user.full_name,
+            cardNo: user.card_no,
+            phoneNo: formattedPhone,
+            points: user.points,
+            status: user.status,
+            avatar: user.avatar || "/images/user.png",
+            nicNumber: user.nic_number,
+            isDummy: false, // Mark as API user (can be deleted)
+          };
+        });
+        
+        // Mark dummy users
+        const dummyUsersWithFlag = nfcUsers.map(user => ({
+          ...user,
+          isDummy: true, // Mark as dummy (cannot be deleted)
+        }));
+        
+        // Combine dummy users with backend users
+        setUsers([...dummyUsersWithFlag, ...backendUsers]);
+      }
+    } catch (err) {
+      console.error("Error fetching NFC users:", err);
+      // Keep dummy data if fetch fails with flag
+      const dummyUsersWithFlag = nfcUsers.map(user => ({
+        ...user,
+        isDummy: true,
+      }));
+      setUsers(dummyUsersWithFlag);
+    }
+  };
 
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value);
@@ -75,57 +130,128 @@ export default function NFCUserContent() {
     setEditDialogOpen(true);
   };
 
-  const handleDeleteUser = (index) => {
-    setDeleteIndex(index);
-    setDeleteDialogOpen(true);
+  const handleDeleteUser = (user) => {
+    // Only allow deletion of API users (not dummy data)
+    if (!user.isDummy) {
+      setDeleteUserId(user.id);
+      setDeleteDialogOpen(true);
+    } else {
+      toast.error("Cannot delete dummy data users");
+    }
   };
 
-  const confirmDelete = () => {
-    const newUsers = users.filter((_, index) => index !== deleteIndex);
-    setUsers(newUsers);
-    setDeleteDialogOpen(false);
-    setDeleteSuccessOpen(true);
+  const confirmDelete = async () => {
+    try {
+      const token = localStorage.getItem("aToken");
+      const res = await axios.delete(`http://127.0.0.1:8000/api/nfc-users/${deleteUserId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (res.data.success) {
+        toast.success("User deleted successfully");
+        setDeleteDialogOpen(false);
+        fetchUsers(); // Refresh the list
+      }
+    } catch (err) {
+      console.error("Error deleting user:", err);
+      toast.error(err.response?.data?.message || "Failed to delete user");
+      setDeleteDialogOpen(false);
+    }
   };
 
-  const handleCreateUser = (newUserData) => {
-    const newUser = {
-      id: users.length + 1,
-      fullName: newUserData.fullName,
-      cardNo: `GV${String(115 + users.length).padStart(4, '0')}`,
-      phoneNo: newUserData.phoneNo,
-      points: 0,
-      status: "active",
-      avatar: "/images/user.png",
-      nicNumber: newUserData.nicNumber,
-    };
-    setUsers([...users, newUser]);
-    setAddDialogOpen(false);
-    setCreateSuccessOpen(true);
+  const handleCreateUser = async (newUserData) => {
+    try {
+      const token = localStorage.getItem("aToken");
+      const payload = {
+        full_name: newUserData.fullName,
+        phone_no: newUserData.phoneNo,
+        nic_number: newUserData.nicNumber,
+      };
+
+      const res = await axios.post("http://127.0.0.1:8000/api/nfc-users", payload, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (res.data.success) {
+        toast.success("User created successfully");
+        setAddDialogOpen(false);
+        fetchUsers(); // Refresh the list
+        
+        // Reset form
+        setFormData({
+          fullName: "",
+          phoneNo: "",
+          nicNumber: "",
+        });
+      }
+    } catch (err) {
+      console.error("Error creating user:", err);
+      toast.error(err.response?.data?.message || "Failed to create user. Make sure you are logged in.");
+    }
   };
 
-  const handleUpdateUser = (updatedUserData) => {
-    const updatedUsers = users.map((user) =>
-      user.id === selectedUser.id
-        ? {
-            ...user,
-            fullName: updatedUserData.fullName,
-            phoneNo: updatedUserData.phoneNo,
-            nicNumber: updatedUserData.nicNumber,
+  const handleUpdateUser = async (updatedUserData) => {
+    try {
+      const token = localStorage.getItem("aToken");
+      const payload = {
+        full_name: updatedUserData.fullName,
+        phone_no: updatedUserData.phoneNo,
+        nic_number: updatedUserData.nicNumber,
+      };
+
+      const res = await axios.put(
+        `http://127.0.0.1:8000/api/nfc-users/${selectedUser.id}`,
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (res.data.success) {
+        toast.success("User updated successfully");
+        setEditDialogOpen(false);
+        fetchUsers(); // Refresh the list
+      }
+    } catch (err) {
+      console.error("Error updating user:", err);
+      toast.error(err.response?.data?.message || "Failed to update user. Make sure you are logged in.");
+    }
+  };
+
+  const toggleUserStatus = async (userId, isDummy) => {
+    // Only allow status toggle for API users (not dummy data)
+    if (!isDummy) {
+      try {
+        const token = localStorage.getItem("aToken");
+        const res = await axios.patch(
+          `http://127.0.0.1:8000/api/nfc-users/${userId}/toggle-status`,
+          {},
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
           }
-        : user
-    );
-    setUsers(updatedUsers);
-    setEditDialogOpen(false);
-    setUpdateSuccessOpen(true);
-  };
+        );
 
-  const toggleUserStatus = (userId) => {
-    const updatedUsers = users.map((user) =>
-      user.id === userId
-        ? { ...user, status: user.status === "active" ? "inactive" : "active" }
-        : user
-    );
-    setUsers(updatedUsers);
+        if (res.data.success) {
+          toast.success("User status updated successfully");
+          fetchUsers(); // Refresh the list
+        }
+      } catch (err) {
+        console.error("Error toggling user status:", err);
+        toast.error(err.response?.data?.message || "Failed to update user status");
+      }
+    } else {
+      toast.error("Cannot modify dummy data users");
+    }
   };
 
   return (
@@ -283,7 +409,7 @@ export default function NFCUserContent() {
                   {user.points}
                 </TableCell>
                 <TableCell sx={{ border: "none", px: 3 }}>
-                  <Box sx={{ display: "flex", gap: 1, justifyContent: "center" }}>
+                  <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
                     <IconButton
                       onClick={() => handleEditUser(user)}
                       sx={{
@@ -298,38 +424,59 @@ export default function NFCUserContent() {
                     </IconButton>
 
                     <Button
-                      onClick={() => toggleUserStatus(user.id)}
+                      onClick={() => user.status === "inactive" && toggleUserStatus(user.id, user.isDummy)}
                       variant="contained"
                       size="small"
                       sx={{
-                        backgroundColor: "#4caf50",
+                        backgroundColor: user.status === "active" ? "#4caf50" : "#1b4d2b",
                         color: "#fff",
                         textTransform: "none",
-                        minWidth: "70px",
+                        minWidth: "80px",
+                        border: user.status === "active" ? "none" : "1px solid #4caf50",
                         "&:hover": {
-                          backgroundColor: "#45a049",
+                          backgroundColor: user.status === "active" ? "#4caf50" : "#2d5f3f",
                         },
+                        cursor: user.status === "active" ? "default" : "pointer",
                       }}
                     >
                       Enable
                     </Button>
 
                     <Button
-                      onClick={() => toggleUserStatus(user.id)}
+                      onClick={() => user.status === "active" && toggleUserStatus(user.id, user.isDummy)}
                       variant="contained"
                       size="small"
                       sx={{
-                        backgroundColor: "#f44336",
+                        backgroundColor: user.status === "inactive" ? "#f44336" : "#4d1a1a",
                         color: "#fff",
                         textTransform: "none",
-                        minWidth: "70px",
+                        minWidth: "80px",
+                        border: user.status === "inactive" ? "none" : "1px solid #f44336",
                         "&:hover": {
-                          backgroundColor: "#d32f2f",
+                          backgroundColor: user.status === "inactive" ? "#f44336" : "#5f2d2d",
                         },
+                        cursor: user.status === "inactive" ? "default" : "pointer",
                       }}
                     >
                       Disable
                     </Button>
+
+                    {/* Delete button only for API-created users (not dummy data) */}
+                    {!user.isDummy && (
+                      <IconButton
+                        onClick={() => handleDeleteUser(user)}
+                        sx={{
+                          backgroundColor: "#2a2a2a",
+                          color: "#f44336",
+                          "&:hover": {
+                            backgroundColor: "#3a3a3a",
+                            color: "#ff5252",
+                          },
+                        }}
+                      >
+                        <DeleteIcon fontSize="small" />
+                      </IconButton>
+                    )}
                   </Box>
                 </TableCell>
               </TableRow>
@@ -361,21 +508,6 @@ export default function NFCUserContent() {
         onConfirm={confirmDelete}
         title="Delete NFC User"
         message="Are you sure you want to delete this NFC user? This action cannot be undone."
-      />
-
-      <DeleteSuccessDialog
-        open={deleteSuccessOpen}
-        onClose={() => setDeleteSuccessOpen(false)}
-      />
-
-      <CreateSuccessDialog
-        open={createSuccessOpen}
-        onClose={() => setCreateSuccessOpen(false)}
-      />
-
-      <UpdateSuccessDialog
-        open={updateSuccessOpen}
-        onClose={() => setUpdateSuccessOpen(false)}
       />
     </Box>
   );

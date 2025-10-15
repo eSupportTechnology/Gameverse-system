@@ -33,10 +33,21 @@ export default function EditNFCUserDialog({
   const handleChange = (e) => {
     const { name, value } = e.target;
     
-    // For phone number, only allow numbers and spaces
+    // For phone number, format automatically
     if (name === "phoneNo") {
-      const numericValue = value.replace(/[^0-9\s]/g, "");
-      setFormData((prev) => ({ ...prev, [name]: numericValue }));
+      // Remove all non-numeric characters
+      const numericValue = value.replace(/\D/g, "");
+      
+      // Format: add space after 3rd digit
+      let formattedValue = numericValue;
+      if (numericValue.length > 3) {
+        formattedValue = numericValue.slice(0, 3) + " " + numericValue.slice(3, 10);
+      }
+      
+      // Limit to 10 digits (excluding space)
+      if (numericValue.length <= 10) {
+        setFormData((prev) => ({ ...prev, [name]: formattedValue }));
+      }
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
     }
@@ -210,7 +221,7 @@ export default function EditNFCUserDialog({
                   name="phoneNo"
                   value={formData.phoneNo}
                   onChange={handleChange}
-                  placeholder="Enter Phone number"
+                  placeholder="0712345645"
                   fullWidth
                   error={!!errors.phoneNo}
                   helperText={errors.phoneNo}
