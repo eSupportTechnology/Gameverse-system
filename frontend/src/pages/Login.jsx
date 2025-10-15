@@ -4,6 +4,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { AdminContext } from "../context/AdminContext";
 import { useNavigate } from "react-router-dom";
+import { AppContext } from "../context/AppContext";
 
 
 
@@ -11,6 +12,8 @@ const Login = () => {
   
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  const {loginUser} = useContext(AppContext)
 
   const { setAToken, setOToken,loginRole, setLoginRole } = useContext(AdminContext)
 
@@ -40,6 +43,9 @@ const Login = () => {
       }
 
       const { must_reset_password } = res.data;
+
+      // Store user info in context + localStorage
+      loginUser(res.data.user);
 
       if (must_reset_password) {
         toast.info("You must reset your password before continuing");

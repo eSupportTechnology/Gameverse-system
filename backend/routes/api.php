@@ -76,13 +76,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/pos/checkout', [PosSaleController::class, 'checkout']);
 });
 
-// Operator Booking routes - COMMENTED OUT (Controller doesn't exist)
-// Route::get('/bookings', [OperatorBookingController::class, 'index']);
-// Route::get('/bookings/{id}', [OperatorBookingController::class, 'show']);
-// Route::post('/bookings', [OperatorBookingController::class, 'store']);
-// Route::put('/bookings/{id}', [OperatorBookingController::class, 'update']);
-// Route::put('/bookings/{id}/cancel', [OperatorBookingController::class, 'cancel']);
-// Route::put('/bookings/{id}/update-time', [OperatorBookingController::class, 'updateTime']);
+// Operator Booking routes
+Route::get('/operator-bookings', [OperatorBookingController::class, 'index']);
+Route::get('/operator-bookings/{id}', [OperatorBookingController::class, 'show']);
+Route::post('/operator-bookings', [OperatorBookingController::class, 'store']);
+Route::put('/operator-bookings/{id}', [OperatorBookingController::class, 'update']);
+Route::put('/operator-bookings/{id}/cancel', [OperatorBookingController::class, 'cancel']);
+Route::put('/operator-bookings/{id}/update-time', [OperatorBookingController::class, 'updateTime']);
 
 
 // NFC User Management routes
