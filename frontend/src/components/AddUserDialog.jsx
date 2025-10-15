@@ -303,7 +303,6 @@ export default function AddUserDialog({
           }}
         />
 
-
         <Typography variant="subtitle2" sx={{ color: "#94a3b8", mb: 0.5 }}>
           email
         </Typography>
@@ -324,30 +323,6 @@ export default function AddUserDialog({
             },
           }}
         />
-
-
-        <Typography variant="subtitle2" sx={{ color: "#94a3b8", mb: 0.5 }}>
-          Password
-        </Typography>
-        <TextField
-          margin="dense"
-          name="password"
-          type="password"
-          value={formData.password || ""}
-          onChange={handleChange}
-          fullWidth
-          placeholder="********"
-          sx={{
-            mb: 2,
-            backgroundColor: "#1e293b4b",
-            "& .MuiOutlinedInput-root": {
-              borderRadius: "10px",
-              color: "white",
-              "& fieldset": { borderColor: "#334155" },
-            },
-          }}
-        />
-
 
         <Box display="flex" alignItems="center" gap={1} mt={2}>
           <Typography variant="subtitle2" sx={{ color: "#94a3b8" }}>
