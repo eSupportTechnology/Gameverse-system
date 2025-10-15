@@ -9,7 +9,8 @@ use App\Http\Controllers\GameController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\PosItemController;
 use App\Http\Controllers\PosSaleController;
-use App\Http\Controllers\OperatorBookingController;
+// use App\Http\Controllers\OperatorBookingController; // Controller doesn't exist
+use App\Http\Controllers\NfcUserController;
 
 
 // Public route
@@ -75,13 +76,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/pos/checkout', [PosSaleController::class, 'checkout']);
 });
 
-// Operator Booking routes
-Route::get('/bookings', [OperatorBookingController::class, 'index']);
-Route::get('/bookings/{id}', [OperatorBookingController::class, 'show']);
-Route::post('/bookings', [OperatorBookingController::class, 'store']);
-Route::put('/bookings/{id}', [OperatorBookingController::class, 'update']);
-Route::put('/bookings/{id}/cancel', [OperatorBookingController::class, 'cancel']);
-Route::put('/bookings/{id}/update-time', [OperatorBookingController::class, 'updateTime']);
+// Operator Booking routes - COMMENTED OUT (Controller doesn't exist)
+// Route::get('/bookings', [OperatorBookingController::class, 'index']);
+// Route::get('/bookings/{id}', [OperatorBookingController::class, 'show']);
+// Route::post('/bookings', [OperatorBookingController::class, 'store']);
+// Route::put('/bookings/{id}', [OperatorBookingController::class, 'update']);
+// Route::put('/bookings/{id}/cancel', [OperatorBookingController::class, 'cancel']);
+// Route::put('/bookings/{id}/update-time', [OperatorBookingController::class, 'updateTime']);
 
 
 // NFC User Management routes
