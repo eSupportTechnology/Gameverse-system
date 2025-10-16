@@ -14,6 +14,7 @@ import OperatorLayout from "./components/OperatorLayout";
 import BookingManagement from "./components/BookingManagement";
 import { AdminContext } from "./context/AdminContext";
 import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import Login from "./pages/Login";
 import ResetPassword from "./pages/ResetPassword";
 import OperatorBookingManagement from "./components/OperatorBookingManagement";
@@ -70,7 +71,18 @@ function App() {
           </>
         )}
       </Routes>
-      <ToastContainer />
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="dark"
+      />
     </Router>
   );
 }

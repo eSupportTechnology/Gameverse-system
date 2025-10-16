@@ -9,7 +9,8 @@ use App\Http\Controllers\GameController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\PosItemController;
 use App\Http\Controllers\PosSaleController;
-use App\Http\Controllers\OperatorBookingController;
+// use App\Http\Controllers\OperatorBookingController; // Controller doesn't exist
+use App\Http\Controllers\NfcUserController;
 
 
 // Public route
@@ -83,4 +84,15 @@ Route::put('/operator-bookings/{id}', [OperatorBookingController::class, 'update
 Route::put('/operator-bookings/{id}/cancel', [OperatorBookingController::class, 'cancel']);
 Route::put('/operator-bookings/{id}/update-time', [OperatorBookingController::class, 'updateTime']);
 
+
+// NFC User Management routes
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/nfc-users', [NfcUserController::class, 'index']);
+    Route::post('/nfc-users', [NfcUserController::class, 'store']);
+    Route::get('/nfc-users/{id}', [NfcUserController::class, 'show']);
+    Route::put('/nfc-users/{id}', [NfcUserController::class, 'update']);
+    Route::delete('/nfc-users/{id}', [NfcUserController::class, 'destroy']);
+    Route::patch('/nfc-users/{id}/toggle-status', [NfcUserController::class, 'toggleStatus']);
+    Route::get('/nfc-users/search', [NfcUserController::class, 'search']);
+});
 
