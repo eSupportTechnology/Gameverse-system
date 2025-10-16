@@ -9,7 +9,7 @@ use App\Http\Controllers\GameController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\PosItemController;
 use App\Http\Controllers\PosSaleController;
-// use App\Http\Controllers\OperatorBookingController; // Controller doesn't exist
+use App\Http\Controllers\OperatorBookingController; // Controller doesn't exist
 use App\Http\Controllers\NfcUserController;
 
 
