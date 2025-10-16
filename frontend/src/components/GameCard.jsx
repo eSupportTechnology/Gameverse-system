@@ -40,17 +40,22 @@ const GameCard = ({ game, onPlay, onUpdate }) => {
             Play
           </Button>
 
+          {/* EDIT MODAL */}
           <AddNewGame
             open={editOpen}
             handleClose={() => setEditOpen(false)}
             mode="edit"
             initialData={game}
-            onSubmit={(updatedGame) => { setEditOpen(false); if (onUpdate) onUpdate(updatedGame); }}
+            onSubmit={(updatedGameData) => {
+              // only update local UI, backend call already happens inside AddNewGame
+              if (onUpdate) onUpdate(updatedGameData);
+              setEditOpen(false);
+            }}
           />
         </CardContent>
       </Card>
     </div>
-  )
-}
+  );
+};
 
 export default GameCard;

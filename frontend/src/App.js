@@ -6,6 +6,7 @@ import Booking from "./pages/Booking";
 import Pos from "./pages/Pos";
 import OtherGames from "./pages/OtherGames";
 import User from "./pages/Users";
+import NFCUsers from "./pages/NFCUsers";
 
 import GamesManagement from "./components/GamesManagement";
 import PosSystem from "./components/pos-system";
@@ -16,6 +17,7 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Login from "./pages/Login";
 import ResetPassword from "./pages/ResetPassword";
+import OperatorBookingManagement from "./components/OperatorBookingManagement";
 
 function App() {
   const { aToken, oToken } = useContext(AdminContext);
@@ -33,6 +35,7 @@ function App() {
             <Route path="/bookings" element={<Booking />} />
             <Route path="/games" element={<OtherGames />} />
             <Route path="/users" element={<User />} />
+            <Route path="/nfc-users" element={<NFCUsers />} />
             <Route
               path="/reports"
               element={<div style={{ color: "#fff", marginTop: "80px", padding: "16px" }}>Reports (Coming soon)</div>}
@@ -48,7 +51,7 @@ function App() {
           <>
             {/* Operator-only routes */}
             <Route path="/operator/*" element={<OperatorLayout />}>
-              <Route path="booking" element={<BookingManagement/>} />
+              <Route path="booking" element={<OperatorBookingManagement />} />
               <Route path="pos" element={<PosSystem />} />
               <Route path="games" element={<GamesManagement />} />
               <Route index element={<Navigate to="booking" replace />} />
@@ -68,7 +71,18 @@ function App() {
           </>
         )}
       </Routes>
-      <ToastContainer />
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="dark"
+      />
     </Router>
   );
 }
