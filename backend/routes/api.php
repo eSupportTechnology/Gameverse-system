@@ -11,6 +11,7 @@ use App\Http\Controllers\PosItemController;
 use App\Http\Controllers\PosSaleController;
 use App\Http\Controllers\OperatorBookingController; // Controller doesn't exist
 use App\Http\Controllers\NfcUserController;
+use App\Http\Controllers\OperatorPosItemController;
 
 
 // Public route
@@ -68,12 +69,19 @@ Route::delete('/games/{id}', [GameController::class, 'destroy']);
 Route::get('/games', [GameController::class, 'index']);
 Route::get('/games/{id}', [GameController::class, 'show']);
 
-// Pos System 
+// Pos System  Admin
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/pos/add-items', [PosItemController::class, 'store']);
     Route::get('/pos/get-items', [PosItemController::class, 'index']);
     Route::put('/pos/update-item/{id}', [PosItemController::class, 'updateItem']);
     Route::post('/pos/checkout', [PosSaleController::class, 'checkout']);
+});
+
+// Pos System operator
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/operator/items', [OperatorPosItemController::class, 'store']);
+    Route::get('/operator/items', [OperatorPosItemController::class, 'index']);
+    Route::put('/operator/items/{id}', [OperatorPosItemController::class, 'updateItem']);
 });
 
 // Operator Booking routes
