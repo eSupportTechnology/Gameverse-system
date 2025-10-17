@@ -12,6 +12,7 @@ use App\Http\Controllers\PosSaleController;
 use App\Http\Controllers\OperatorBookingController; // Controller doesn't exist
 use App\Http\Controllers\NfcUserController;
 use App\Http\Controllers\OperatorPosItemController;
+use App\Http\Controllers\OperatorPosSaleController;
 
 
 // Public route
@@ -82,6 +83,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/operator/items', [OperatorPosItemController::class, 'store']);
     Route::get('/operator/items', [OperatorPosItemController::class, 'index']);
     Route::put('/operator/items/{id}', [OperatorPosItemController::class, 'updateItem']);
+    Route::post('/operator/checkout', [OperatorPosSaleController::class, 'checkout']);
 });
 
 // Operator Booking routes

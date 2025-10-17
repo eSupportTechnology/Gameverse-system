@@ -267,7 +267,7 @@ const OperatorPosSystem = () => {
       };
 
       const response = await axios.post(
-        "http://localhost:8000/api/pos/checkout",
+        "http://localhost:8000/api/operator/checkout",
         payload,
         {
           headers: {
