@@ -7,7 +7,7 @@ import Pos from "./pages/Pos";
 import OtherGames from "./pages/OtherGames";
 import User from "./pages/Users";
 import NFCUsers from "./pages/NFCUsers";
-import Reports from "./pages/Reports";
+import TVScreenControl from "./pages/TVScreenControl";
 import PS5StationTVScreen from "./pages/PS5StationTVScreen";
 import RacingSimulatorTV from "./pages/RacingSimulatorTV";
 import SupremeBilliardTV from "./pages/SupremeBilliardTV";
@@ -48,11 +48,13 @@ function App() {
               path="/reports"
               element={<div style={{ color: "#fff", marginTop: "80px", padding: "16px" }}>Reports (Coming soon)</div>}
             />
-            <Route path="/tv-screens" element={<PS5StationTVScreen />} />
-            <Route path="/tv-racing-simulator" element={<RacingSimulatorTV />} />
-            <Route path="/tv-supreme-billiard" element={<SupremeBilliardTV />} />
-            <Route path="/tv-premium-billiard" element={<PremiumBilliardTV />} />
-            <Route path="/tv-offers" element={<TVOffers />} />
+            {/* TV Screens Routes */}
+            <Route path="/tv-screens" element={<TVScreenControl />} />
+            <Route path="/tv-screens/ps5-station" element={<PS5StationTVScreen />} />
+            <Route path="/tv-screens/racing-simulator" element={<RacingSimulatorTV />} />
+            <Route path="/tv-screens/supreme-billiard" element={<SupremeBilliardTV />} />
+            <Route path="/tv-screens/premium-billiard" element={<PremiumBilliardTV />} />
+            <Route path="/tv-screens/offers" element={<TVOffers />} />
             <Route
               path="/settings"
               element={<div style={{ color: "#fff", marginTop: "80px", padding: "16px" }}>Settings (Coming soon)</div>}
