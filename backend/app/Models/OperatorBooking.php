@@ -18,5 +18,6 @@ class OperatorBooking extends Model
         'duration',
         'payment_method',
         'amount',
+        'status',
     ];
 }

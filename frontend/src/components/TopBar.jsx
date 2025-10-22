@@ -31,7 +31,7 @@ const TopBar = ({ sidebarOpen }) => {
   const handleLogout = () => {
     logoutUser();
     handleClose();
-    window.location.href = "/admin/login"; 
+    window.location.href = "/admin/login";
   };
 
   const drawerWidth = sidebarOpen ? 290 : 70;
@@ -107,7 +107,7 @@ const TopBar = ({ sidebarOpen }) => {
               sx={{
                 display: "flex",
                 alignItems: "center",
-                justifyContent:'space-between',
+                justifyContent: 'space-between',
                 backgroundColor: "#202939",
                 width: "217px",
                 height: "40px",
@@ -118,48 +118,50 @@ const TopBar = ({ sidebarOpen }) => {
             >
 
               <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-              <Avatar
-                src={loggedUser?.avatar || "https://via.placeholder.com/40"}
-                alt="Admin User"
-                sx={{ width: 30, height: 30 }}
-              />
+                <Avatar
+                  src={loggedUser?.avatar || "https://via.placeholder.com/40"}
+                  alt="Admin User"
+                  sx={{ width: 30, height: 30 }}
+                />
 
-              <Box
-                sx={{
-                  display: "flex",
-                  flexDirection: "column",
-                  justifyContent: "center",
-                  gap: 0.1,
-                }}
-              >
-                <Typography
-                  variant="body2"
+                <Box
                   sx={{
-                    fontWeight: 600,
-                    fontSize: "14px",
-                    color: "#D1D5DB",
-                    lineHeight: 1.2,
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "center",
+                    gap: 0.1,
                   }}
                 >
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      fontWeight: 600,
+                      fontSize: "14px",
+                      color: "#D1D5DB",
+                      lineHeight: 1.2,
+                    }}
+                  >
                     {loggedUser?.role
                       ? loggedUser.role === "admin"
                         ? "Admin"
-                        : "Operator"
+                        : loggedUser.role === "super_admin"
+                          ? "Super Admin"
+                          : "Operator"
                       : "User"}
                   </Typography>
 
-                <Typography
-                  variant="caption"
-                  sx={{
-                    fontWeight: 400,
-                    fontSize: "10px",
-                    color: "#8B8B8D",
-                    lineHeight: 1.2,
-                  }}
-                >
-                  {loggedUser?.fullname || "Guest"}
-                </Typography>
-              </Box>
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      fontWeight: 400,
+                      fontSize: "10px",
+                      color: "#8B8B8D",
+                      lineHeight: 1.2,
+                    }}
+                  >
+                    {loggedUser?.fullname || "Guest"}
+                  </Typography>
+                </Box>
 
               </Box>
 
@@ -171,7 +173,7 @@ const TopBar = ({ sidebarOpen }) => {
                   p: 0.5,
                   transform: open ? "rotate(180deg)" : "rotate(0deg)",
                   transition: "transform 0.2s ease",
-                  cursor:'pointer',
+                  cursor: 'pointer',
                 }}
               >
                 <ExpandMoreIcon />
@@ -229,7 +231,9 @@ const TopBar = ({ sidebarOpen }) => {
                     {loggedUser?.role
                       ? loggedUser.role === "admin"
                         ? "Admin"
-                        : "Operator"
+                        : loggedUser.role === "super_admin"
+                          ? "Super Admin"
+                          : "Operator"
                       : "User"}
                   </Typography>
                 </Box>
@@ -244,7 +248,7 @@ const TopBar = ({ sidebarOpen }) => {
                 sx={{
                   background: "linear-gradient(to right, #0CD7FF, #8A38F5)",
                   color: "white",
-                  fontWeight:'bold',
+                  fontWeight: 'bold',
                   textTransform: "none",
                   "&:hover": { backgroundColor: "#DC2626" },
                 }}

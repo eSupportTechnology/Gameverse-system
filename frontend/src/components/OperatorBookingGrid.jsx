@@ -9,7 +9,7 @@ import {
   Chip,
 } from "@mui/material";
 import { sampleBookings } from "../assets/assets.js";
-import BookingDetails from "./OperatorBookingDetails.jsx";
+import OperatorBookingDetails from "./OperatorBookingDetails.jsx";
 
 // status colors mapping
 const statusColors = {
@@ -299,7 +299,7 @@ const OperatorBookingGrid = ({ onBookingUpdated }) => {
       </Box>
 
       {/* BookingDetails dialog - moved outside loops to handle both API and sample bookings */}
-      <BookingDetails
+      <OperatorBookingDetails
         open={open}
         handleClose={handleClose}
         booking={selectedBooking}
