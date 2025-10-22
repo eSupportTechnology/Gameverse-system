@@ -7,6 +7,11 @@ import Pos from "./pages/Pos";
 import OtherGames from "./pages/OtherGames";
 import User from "./pages/Users";
 import NFCUsers from "./pages/NFCUsers";
+import PS5StationTVScreen from "./pages/PS5StationTVScreen";
+import RacingSimulatorTV from "./pages/RacingSimulatorTV";
+import SupremeBilliardTV from "./pages/SupremeBilliardTV";
+import PremiumBilliardTV from "./pages/PremiumBilliardTV";
+import TVOffers from "./pages/TVOffers";
 
 import GamesManagement from "./components/GamesManagement";
 import PosSystem from "./components/pos-system";
@@ -41,6 +46,11 @@ function App() {
               path="/reports"
               element={<div style={{ color: "#fff", marginTop: "80px", padding: "16px" }}>Reports (Coming soon)</div>}
             />
+            <Route path="/tv-screens" element={<PS5StationTVScreen />} />
+            <Route path="/tv-racing-simulator" element={<RacingSimulatorTV />} />
+            <Route path="/tv-supreme-billiard" element={<SupremeBilliardTV />} />
+            <Route path="/tv-premium-billiard" element={<PremiumBilliardTV />} />
+            <Route path="/tv-offers" element={<TVOffers />} />
             <Route
               path="/settings"
               element={<div style={{ color: "#fff", marginTop: "80px", padding: "16px" }}>Settings (Coming soon)</div>}
