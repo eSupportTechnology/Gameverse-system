@@ -61,6 +61,11 @@ const menuItems = [
     component: <Reports />,
   },
   {
+    text: "TV Screens",
+    path: "/tv-screens",
+    icon: <img src="../images/tv_screens.png" alt="TV Screens" style={{ width: 20, height: 20 }} />,
+  },
+  {
     text: "Settings",
     path: "/settings",
     icon: <img src="../images/set.png" alt="Settings" style={{ width: 20, height: 20 }} />,

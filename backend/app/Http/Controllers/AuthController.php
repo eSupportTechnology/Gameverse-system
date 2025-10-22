@@ -17,8 +17,9 @@ class AuthController extends Controller
             'password' => 'required'
         ]);
 
+        // Allow both admin and super admin
         $user = UserRole::where('email', $request->email)
-            ->where('role', 'admin')
+            ->whereIn('role', ['admin', 'super_admin'])
             ->first();
 
 
@@ -54,8 +55,8 @@ class AuthController extends Controller
                 'role'     => $user->role,
                 'last_login_at'  => $user->last_login_at,
                 'avatar'        => $user->avatar
-                        ? url($user->avatar)
-                        : url('images/default.png'),
+                    ? url($user->avatar)
+                    : url('images/default.png'),
             ],
             'must_reset_password' => $user->must_reset_password,
             'token' => $token
@@ -70,8 +71,9 @@ class AuthController extends Controller
             'password' => 'required'
         ]);
 
+        // Allow both operator and super admin
         $user = UserRole::where('email', $request->email)
-            ->where('role', 'operator') // check operator role
+            ->whereIn('role', ['operator', 'super_admin'])
             ->first();
 
         if (!$user || !Hash::check($request->password, $user->password)) {
@@ -99,8 +101,8 @@ class AuthController extends Controller
                 'role'     => $user->role,
                 'last_login_at' => $user->last_login_at,
                 'avatar'        => $user->avatar
-                        ? url($user->avatar)
-                        : url('images/default.png'),
+                    ? url($user->avatar)
+                    : url('images/default.png'),
             ],
             'must_reset_password' => $user->must_reset_password,
             'token' => $token
