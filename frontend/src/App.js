@@ -43,7 +43,6 @@ function App() {
             <Route path="/games" element={<OtherGames />} />
             <Route path="/users" element={<User />} />
             <Route path="/nfc-users" element={<NFCUsers />} />
-            <Route path="/reports" element={<Reports />} />
             <Route
               path="/reports"
               element={<div style={{ color: "#fff", marginTop: "80px", padding: "16px" }}>Reports (Coming soon)</div>}
