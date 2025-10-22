@@ -1,30 +1,27 @@
-import React, { useContext } from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import Home from "./pages/Home";
-import Station from "./pages/Station";
+import { useContext } from "react";
+import { Navigate, Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import Booking from "./pages/Booking";
-import Pos from "./pages/Pos";
-import OtherGames from "./pages/OtherGames";
-import User from "./pages/Users";
 import NFCUsers from "./pages/NFCUsers";
-import TVScreenControl from "./pages/TVScreenControl";
+import OtherGames from "./pages/OtherGames";
+import Pos from "./pages/Pos";
+import PremiumBilliardTV from "./pages/PremiumBilliardTV";
 import PS5StationTVScreen from "./pages/PS5StationTVScreen";
 import RacingSimulatorTV from "./pages/RacingSimulatorTV";
+import Station from "./pages/Station";
 import SupremeBilliardTV from "./pages/SupremeBilliardTV";
-import PremiumBilliardTV from "./pages/PremiumBilliardTV";
 import TVOffers from "./pages/TVOffers";
-
-import GamesManagement from "./components/GamesManagement";
-import PosSystem from "./components/pos-system";
-import OperatorLayout from "./components/OperatorLayout";
-import BookingManagement from "./components/BookingManagement";
-import { AdminContext } from "./context/AdminContext";
+import TVScreenControl from "./pages/TVScreenControl";
+import User from "./pages/Users";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import Login from "./pages/Login";
-import ResetPassword from "./pages/ResetPassword";
+import GamesManagement from "./components/GamesManagement";
 import OperatorBookingManagement from "./components/OperatorBookingManagement";
+import OperatorLayout from "./components/OperatorLayout";
 import OperatorPosSystem from "./components/OperatorPosSystem";
+import { AdminContext } from "./context/AdminContext";
+import Login from "./pages/Login";
+import Reports from "./pages/Reports";
+import ResetPassword from "./pages/ResetPassword";
 
 function App() {
   const { aToken, oToken } = useContext(AdminContext);
