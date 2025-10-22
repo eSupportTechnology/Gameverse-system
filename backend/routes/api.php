@@ -3,13 +3,12 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AdminUserController;
-// use App\Http\Controllers\BookingController;
 use App\Http\Controllers\StationController;
 use App\Http\Controllers\GameController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\PosItemController;
 use App\Http\Controllers\PosSaleController;
-use App\Http\Controllers\OperatorBookingController; // Controller doesn't exist
+use App\Http\Controllers\OperatorBookingController;
 use App\Http\Controllers\NfcUserController;
 use App\Http\Controllers\OperatorPosItemController;
 use App\Http\Controllers\OperatorPosSaleController;

@@ -14,6 +14,7 @@ import {
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import CancelPopup from "./CancelPopup";
+import axios from "axios";
 import { toast } from "react-toastify";
 
 export default function AddStationDialog({
@@ -45,45 +46,58 @@ export default function AddStationDialog({
     setFormData((prev) => ({ ...prev, time: val })); // keep raw "HH:MM"
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const timePattern = /^([0-1]?[0-9]|2[0-3]):([0-5][0-9])$/;
 
-    // Validate required fields
-    if (!formData.name || !formData.type || !formData.location || !formData.price || !formData.time) {
-      toast.error("Please fill in all required fields");
-      return;
-    }
-
     if (!timePattern.test(formData.time)) {
-      toast.error("Please enter valid time in HH:MM format (e.g., 00:30)");
+      alert("Please enter valid time in HH:MM format (e.g., 00:30)");
       return;
     }
 
-    // convert to integer minutes for consistent data format
+    // convert to integer minutes for backend
     const [hours, minutes] = formData.time.split(":").map(Number);
     const totalMinutes = hours * 60 + minutes;
 
-    const payload = { 
-      ...formData, 
-      time: totalMinutes,
-      price: Number(formData.price) // Ensure price is a number
-    };
+    const payload = { ...formData, time: totalMinutes };
 
-    // Simulate successful operation
-    setTimeout(() => {
+    try {
+      const token = localStorage.getItem("aToken"); // get token dynamically
+      const url = isEditing
+        ? `http://127.0.0.1:8000/api/stations/${formData.id}` // update endpoint
+        : "http://127.0.0.1:8000/api/stations";
+
+      const method = isEditing ? "put" : "post";
+
+      const res = await axios({
+        method,
+        url,
+        data: payload, // send integer here ✅
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
       toast.success(`Station ${isEditing ? "updated" : "created"} successfully!`);
 
-      onCreate(payload, isEditing);
+      onCreate(res.data, isEditing);
 
       setFormData({
         name: "",
         type: "",
         location: "",
         price: "",
+        status: "Available",
+        bookings: 0,
         time: "",
       });
       onClose();
-    }, 500); // Small delay to simulate API call
+    } catch (err) {
+      console.log(err);
+      toast.error(
+        err.response?.data?.message || "Failed to save station. Make sure you are logged in."
+      );
+    }
   };
 
   return (
