@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Booking;
 use App\Models\OperatorBooking;
 use Illuminate\Http\Request;
 
@@ -51,23 +50,27 @@ class OperatorBookingController extends Controller
     // Update booking details
     public function update(Request $request, $id)
     {
+        // Find the booking
         $booking = OperatorBooking::find($id);
 
         if (!$booking) {
-            return response()->json(['error' => 'Booking not found'], 404);
+            return response()->json(['message' => 'Booking not found'], 404);
         }
 
+        // Validate request data (optional but recommended)
         $validated = $request->validate([
-            'customer_name' => 'string|max:255',
-            'phone_number' => 'string|max:20',
-            'station' => 'string',
-            'date' => 'date',
-            'start_time' => 'string',
-            'duration' => 'string',
-            'payment_method' => 'string',
-            'amount' => 'numeric',
+            'customer_name' => 'sometimes|string|max:255',
+            'phone_number'  => 'sometimes|string|max:20',
+            'station'       => 'sometimes|string|max:255',
+            'date'          => 'sometimes|date',
+            'start_time'    => 'sometimes|date_format:H:i:s',
+            'duration'      => 'sometimes|string|max:50',
+            'payment_method'=> 'sometimes|string|max:50',
+            'amount'        => 'sometimes|numeric',
+            'status'        => 'sometimes|string|max:50',
         ]);
 
+        // Update the booking
         $booking->update($validated);
 
         return response()->json([

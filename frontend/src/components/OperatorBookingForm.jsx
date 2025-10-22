@@ -30,18 +30,37 @@ const OperatorBookingForm = ({ open, handleClose }) => {
   const [amount, setAmount] = useState(400);
 
   // handle create booking
-  const handleUpdateBooking = async () => {
+  const handleUpdateBooking = async (bookingId) => {
+    if (
+      !customerName ||
+      !phoneNumber ||
+      !station ||
+      !date ||
+      !startTime ||
+      !duration ||
+      !paymentMethod ||
+      !amount
+    ) {
+      alert("Please fill all fields before updating the booking");
+      return;
+    }
     try {
-      const response = await axios.post("http://127.0.0.1:8000/api/bookings", {
-        customer_name: customerName,
-        phone_number: phoneNumber,
-        station,
-        date,
-        start_time: startTime,
-        duration,
-        payment_method: paymentMethod,
-        amount,
-      });
+      // format date correctly before sending
+      const formattedDate = new Date(date).toISOString().split("T")[0];
+
+      const response = await axios.post(
+        "http://127.0.0.1:8000/api/operator-bookings",
+        {
+          customer_name: customerName,
+          phone_number: phoneNumber,
+          station,
+          date: formattedDate,
+          start_time: startTime,
+          duration,
+          payment_method: paymentMethod,
+          amount,
+        }
+      );
 
       console.log("Booking created:", response.data);
       setcreateSuccess(true);
@@ -105,7 +124,10 @@ const OperatorBookingForm = ({ open, handleClose }) => {
           >
             {/* Customer Name */}
             <Box display="flex" flexDirection="column" gap={1}>
-              <Typography variant="body2" sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF" }}>
+              <Typography
+                variant="body2"
+                sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF" }}
+              >
                 Customer Name
               </Typography>
               <TextField
@@ -132,7 +154,10 @@ const OperatorBookingForm = ({ open, handleClose }) => {
 
             {/* Phone Number */}
             <Box display="flex" flexDirection="column" gap={1}>
-              <Typography variant="body2" sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF" }}>
+              <Typography
+                variant="body2"
+                sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF" }}
+              >
                 Phone Number
               </Typography>
               <TextField
@@ -159,7 +184,10 @@ const OperatorBookingForm = ({ open, handleClose }) => {
 
             {/* Station */}
             <Box display="flex" flexDirection="column" gap={1}>
-              <Typography variant="body2" sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF" }}>
+              <Typography
+                variant="body2"
+                sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF" }}
+              >
                 Station
               </Typography>
               <Select
@@ -182,7 +210,9 @@ const OperatorBookingForm = ({ open, handleClose }) => {
                 }}
               >
                 <MenuItem value="">
-                  <em style={{ fontSize: 14, color: "#9CA3AF" }}>Select station</em>
+                  <em style={{ fontSize: 14, color: "#9CA3AF" }}>
+                    Select station
+                  </em>
                 </MenuItem>
                 <MenuItem value="station1">Station 1</MenuItem>
                 <MenuItem value="station2">Station 2</MenuItem>
@@ -191,7 +221,10 @@ const OperatorBookingForm = ({ open, handleClose }) => {
 
             {/* Date */}
             <Box display="flex" flexDirection="column" gap={1}>
-              <Typography variant="body2" sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF" }}>
+              <Typography
+                variant="body2"
+                sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF" }}
+              >
                 Date
               </Typography>
               <TextField
@@ -208,7 +241,9 @@ const OperatorBookingForm = ({ open, handleClose }) => {
                     borderRadius: "6px",
                     color: "white",
                     fontWeight: 500,
-                    "&::-webkit-calendar-picker-indicator": { filter: "invert(1)" },
+                    "&::-webkit-calendar-picker-indicator": {
+                      filter: "invert(1)",
+                    },
                     "& input": { color: "white", fontSize: 14 },
                   },
                 }}
@@ -217,7 +252,10 @@ const OperatorBookingForm = ({ open, handleClose }) => {
 
             {/* Start Time */}
             <Box display="flex" flexDirection="column" gap={1}>
-              <Typography variant="body2" sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF" }}>
+              <Typography
+                variant="body2"
+                sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF" }}
+              >
                 Start Time
               </Typography>
               <Select
@@ -239,7 +277,11 @@ const OperatorBookingForm = ({ open, handleClose }) => {
                   },
                 }}
               >
-                <MenuItem value=""><em style={{ fontSize: 14, color: "#9CA3AF" }}>Select Time</em></MenuItem>
+                <MenuItem value="">
+                  <em style={{ fontSize: 14, color: "#9CA3AF" }}>
+                    Select Time
+                  </em>
+                </MenuItem>
                 <MenuItem value="12.00">12.00</MenuItem>
                 <MenuItem value="1.00">01.00</MenuItem>
                 <MenuItem value="1.30">01.30</MenuItem>
@@ -249,7 +291,10 @@ const OperatorBookingForm = ({ open, handleClose }) => {
 
             {/* Duration */}
             <Box display="flex" flexDirection="column" gap={1}>
-              <Typography variant="body2" sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF" }}>
+              <Typography
+                variant="body2"
+                sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF" }}
+              >
                 Duration
               </Typography>
               <Select
@@ -271,7 +316,11 @@ const OperatorBookingForm = ({ open, handleClose }) => {
                   },
                 }}
               >
-                <MenuItem value=""><em style={{ fontSize: 14, color: "#9CA3AF" }}>Select duration</em></MenuItem>
+                <MenuItem value="">
+                  <em style={{ fontSize: 14, color: "#9CA3AF" }}>
+                    Select duration
+                  </em>
+                </MenuItem>
                 <MenuItem value="30m">30 min</MenuItem>
                 <MenuItem value="1h 30m">1 hour 30min</MenuItem>
                 <MenuItem value="2h">2 hour</MenuItem>
@@ -282,7 +331,10 @@ const OperatorBookingForm = ({ open, handleClose }) => {
 
           {/* Payment Method */}
           <Box display="flex" mt={1} flexDirection="column" gap={1}>
-            <Typography variant="body2" sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF" }}>
+            <Typography
+              variant="body2"
+              sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF" }}
+            >
               Payment Method
             </Typography>
             <Select
@@ -297,7 +349,11 @@ const OperatorBookingForm = ({ open, handleClose }) => {
                 fontWeight: 500,
               }}
             >
-              <MenuItem value=""><em style={{ fontSize: 14, color: "#9CA3AF" }}>Select payment method</em></MenuItem>
+              <MenuItem value="">
+                <em style={{ fontSize: 14, color: "#9CA3AF" }}>
+                  Select payment method
+                </em>
+              </MenuItem>
               <MenuItem value="cash">Cash</MenuItem>
               <MenuItem value="card">Card</MenuItem>
               <MenuItem value="online">Online transfer</MenuItem>
@@ -305,20 +361,44 @@ const OperatorBookingForm = ({ open, handleClose }) => {
           </Box>
 
           {/* Amount Section */}
-          <Box mt={3} sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <Typography variant="h6" color="cyan">Amount</Typography>
-            <Typography variant="h6" color="cyan">LKR {amount}</Typography>
+          <Box
+            mt={3}
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <Typography variant="h6" color="cyan">
+              Amount
+            </Typography>
+            <Typography variant="h6" color="cyan">
+              LKR {amount}
+            </Typography>
           </Box>
         </DialogContent>
 
         {/* cancel & create button */}
         <DialogActions sx={{ px: 2 }}>
-          <Button onClick={handleClose} variant="contained" sx={{ backgroundColor: "#1F2937", width: "50%", py: 1 }}>
+          <Button
+            onClick={handleClose}
+            variant="contained"
+            sx={{ backgroundColor: "#1F2937", width: "50%", py: 1 }}
+          >
             Cancel
           </Button>
           <Button
             onClick={handleUpdateBooking}
             variant="contained"
+            disabled={
+              !customerName ||
+              !phoneNumber ||
+              !station ||
+              !date ||
+              !startTime ||
+              !duration ||
+              !paymentMethod
+            }
             sx={{
               width: "50%",
               py: 1,
@@ -368,7 +448,8 @@ const OperatorBookingForm = ({ open, handleClose }) => {
                   fontSize: 14,
                   textTransform: "capitalize",
                   borderRadius: "8px",
-                  background: "linear-gradient(90deg, rgba(12, 215, 255, 0.4), rgba(138, 56, 245, 0.4))",
+                  background:
+                    "linear-gradient(90deg, rgba(12, 215, 255, 0.4), rgba(138, 56, 245, 0.4))",
                   color: "white",
                 }}
               >

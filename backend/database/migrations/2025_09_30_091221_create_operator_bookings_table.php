@@ -15,10 +15,10 @@ return new class extends Migration
         $table->string('phone_number');
         $table->string('station');
         $table->date('date');
-        $table->string('start_time');
+        $table->time('start_time');
         $table->string('duration');
         $table->string('payment_method');
-        $table->decimal('amount', 8, 2);
+        $table->decimal('amount', 10, 2);
         $table->string('status')->default('pending'); // optional: track booking status
         $table->timestamps();
     });
