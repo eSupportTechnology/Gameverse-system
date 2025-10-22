@@ -7,6 +7,7 @@ import Pos from "./pages/Pos";
 import OtherGames from "./pages/OtherGames";
 import User from "./pages/Users";
 import NFCUsers from "./pages/NFCUsers";
+import Reports from "./pages/Reports";
 import PS5StationTVScreen from "./pages/PS5StationTVScreen";
 import RacingSimulatorTV from "./pages/RacingSimulatorTV";
 import SupremeBilliardTV from "./pages/SupremeBilliardTV";
@@ -42,6 +43,7 @@ function App() {
             <Route path="/games" element={<OtherGames />} />
             <Route path="/users" element={<User />} />
             <Route path="/nfc-users" element={<NFCUsers />} />
+            <Route path="/reports" element={<Reports />} />
             <Route
               path="/reports"
               element={<div style={{ color: "#fff", marginTop: "80px", padding: "16px" }}>Reports (Coming soon)</div>}
