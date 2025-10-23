@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Box, Typography, Button, ToggleButton, ToggleButtonGroup } from '@mui/material';
 import axios from 'axios';
 import { toast } from 'react-toastify';
@@ -16,8 +15,8 @@ const GamesManagement = () => {
 
   const token = localStorage.getItem('aToken');
 
-  // Fetch all games from backend
-  const fetchGames = async () => {
+  // ✅ Fetch all games from backend (memoized to prevent re-creation)
+  const fetchGames = useCallback(async () => {
     try {
       const response = await axios.get('http://127.0.0.1:8000/api/games', {
         headers: { Authorization: `Bearer ${token}` },
@@ -27,11 +26,12 @@ const GamesManagement = () => {
       console.error('Error fetching games:', error);
       toast.error('Failed to fetch games.');
     }
-  };
+  }, [token]); // ✅ stable dependency
 
+  // ✅ Fetch once on mount (no ESLint warning)
   useEffect(() => {
     fetchGames();
-  }, []);
+  }, [fetchGames]);
 
   // Filter buttons
   const categories = [
@@ -41,12 +41,15 @@ const GamesManagement = () => {
     { label: 'Carrom', keyword: 'Carrom' },
   ];
 
-  const filteredGames = games.filter(game => {
-    const keyword = categories.find(cat => cat.label === activeCategory)?.keyword;
-    return !keyword || game.title.toLowerCase().includes(keyword.toLowerCase());
+  const filteredGames = games.filter((game) => {
+    if (activeCategory === 'All Games') return true;
+    if (activeCategory === 'Arcade Machine') return game.method === 'Coin';
+    if (activeCategory === 'Archery') return game.method === 'Arrow';
+    if (activeCategory === 'Carrom') return game.method === 'Per Hour';
+    return true;
   });
 
-  // This function just **refreshes list after Add/Edit**
+  // ✅ Refresh list after Add/Edit
   const handleSaveGame = () => {
     setEditGame(null);
     setOpenAddGame(false);
@@ -75,10 +78,21 @@ const GamesManagement = () => {
 
   return (
     <Box sx={{ p: 2, bgcolor: '1E1E1E', color: '#fff', minHeight: '100vh', overflowX: 'hidden', ml: 0 }}>
-      <Box display="flex" flexDirection={{ xs: 'column', md: 'row' }} justifyContent={{ xs: 'flex-start', md: 'space-between' }} alignItems={{ xs: 'flex-start', md: 'center' }} mb={2}>
+      {/* Header Section */}
+      <Box
+        display="flex"
+        flexDirection={{ xs: 'column', md: 'row' }}
+        justifyContent={{ xs: 'flex-start', md: 'space-between' }}
+        alignItems={{ xs: 'flex-start', md: 'center' }}
+        mb={2}
+      >
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-          <Typography variant="h5" fontWeight="bold" fontSize={24}>Other Games Management</Typography>
-          <Typography variant="body2" color="gray" fontSize={16}>Monitor and control gaming stations</Typography>
+          <Typography variant="h5" fontWeight="bold" fontSize={24}>
+            Other Games Management
+          </Typography>
+          <Typography variant="body2" color="gray" fontSize={16}>
+            Monitor and control gaming stations
+          </Typography>
         </Box>
 
         <Box display="flex" mt={{ xs: 2, md: 0 }} width={{ xs: '100%', md: 'auto' }}>
@@ -93,7 +107,10 @@ const GamesManagement = () => {
               fontWeight: '600',
               '&:hover': { background: 'linear-gradient(to right, #0bbfe0, #732ed1)' },
             }}
-            onClick={() => { setOpenAddGame(true); setEditGame(null); }}
+            onClick={() => {
+              setOpenAddGame(true);
+              setEditGame(null);
+            }}
           >
             + New Game
           </Button>
@@ -101,16 +118,25 @@ const GamesManagement = () => {
           <AddNewGame
             open={openAddGame}
             handleClose={() => setOpenAddGame(false)}
-            onSubmit={handleSaveGame} // only refresh after add/edit
+            onSubmit={handleSaveGame}
             initialData={editGame}
             mode={editGame ? 'edit' : 'add'}
           />
         </Box>
       </Box>
 
-      <Box display="flex" flexDirection={{ xs: 'column', md: 'row' }}
+      {/* Category Filter Buttons */}
+      <Box
+        display="flex"
+        flexDirection={{ xs: 'column', md: 'row' }}
         justifyContent={{ xs: 'flex-start', md: 'space-between' }}
-        px={1.5} py={1.5} borderRadius='10px' bgcolor='#0E111B' alignItems={{ xs: 'flex-start', md: 'center' }} mb={2}>
+        px={1.5}
+        py={1.5}
+        borderRadius="10px"
+        bgcolor="#0E111B"
+        alignItems={{ xs: 'flex-start', md: 'center' }}
+        mb={2}
+      >
         <ToggleButtonGroup
           value={activeCategory}
           exclusive
@@ -138,7 +164,7 @@ const GamesManagement = () => {
             },
           }}
         >
-          {categories.map(cat => (
+          {categories.map((cat) => (
             <ToggleButton key={cat.label} value={cat.label} sx={{ px: 2, py: 1 }}>
               {cat.label}
             </ToggleButton>
@@ -146,8 +172,17 @@ const GamesManagement = () => {
         </ToggleButtonGroup>
       </Box>
 
+      {/* Games Display Section */}
       <Box sx={{ minHeight: '100vh', backgroundColor: '#0E111B', borderRadius: '10px' }}>
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: { xs: 'center', md: 'flex-start' }, gap: 2, p: 2 }}>
+        <Box
+          sx={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            justifyContent: { xs: 'center', md: 'flex-start' },
+            gap: 2,
+            p: 2,
+          }}
+        >
           {filteredGames.map((game) => (
             <Box key={game.id} sx={{ flex: '1 1 250px', maxWidth: 280 }}>
               <GameCard

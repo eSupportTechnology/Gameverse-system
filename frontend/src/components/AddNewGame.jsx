@@ -28,19 +28,20 @@ const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmi
   const [method, setMethod] = useState("Coin");
   const [price, setPrice] = useState("");
 
+  // ✅ Strict validation for pricing method
   const validateMethodForGame = (gameTitle, chosenMethod) => {
     const lowerTitle = gameTitle.toLowerCase();
 
     if (lowerTitle.includes("archery machine") && chosenMethod !== "Coin") {
-      toast.warning("⚠️ Archery Machine should use 'Coin' method only.");
+      toast.warning("⚠️ Please select the correct pricing method: 'Coin' for Archery Machine.");
       return false;
     }
     if (lowerTitle.includes("archery") && !lowerTitle.includes("machine") && chosenMethod !== "Arrow") {
-      toast.warning("⚠️ Archery should use 'Arrow' method only.");
+      toast.warning("⚠️ Please select the correct pricing method: 'Arrow' for Archery.");
       return false;
     }
     if (lowerTitle.includes("carrom") && chosenMethod !== "Per Hour") {
-      toast.warning("⚠️ Carrom should use 'Per Hour' method only.");
+      toast.warning("⚠️ Please select the correct pricing method: 'Per Hour' for Carrom.");
       return false;
     }
     return true;
@@ -74,13 +75,15 @@ const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmi
     const trimmedLocation = location.trim();
     const trimmedMethod = method.trim();
 
+    // ✅ Empty field validation
     if (!trimmedTitle || !trimmedLocation || !price) {
       toast.error("All fields are required!");
       return;
     }
 
+    // ✅ Strict pricing method validation before creation
     if (!validateMethodForGame(trimmedTitle, trimmedMethod)) {
-      return;
+      return; // Stop creation
     }
 
     const gameData = {
@@ -104,20 +107,15 @@ const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmi
         data: gameData,
       });
 
-      // ✅ Show toast
       toast.success(`Game ${mode === "edit" ? "updated" : "created"} successfully!`);
-
-      // ✅ Show popup immediately
       setCreateSuccess(true);
 
-      // ✅ Auto close popup after 1.5 seconds
       setTimeout(() => {
         setCreateSuccess(false);
         handleClose();
       }, 1500);
 
       if (onSubmit) onSubmit();
-
     } catch (err) {
       console.error('Validation errors:', err.response?.data);
       toast.error(
@@ -135,7 +133,15 @@ const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmi
         open={open}
         fullWidth
         maxWidth="xs"
-        PaperProps={{ sx: { borderRadius: "12px", backgroundColor: "#111827", color: "white", py: 2, border: '1px solid #374151' } }}
+        PaperProps={{
+          sx: {
+            borderRadius: "12px",
+            backgroundColor: "#111827",
+            color: "white",
+            py: 2,
+            border: '1px solid #374151'
+          }
+        }}
       >
         {/* Header */}
         <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", px: 1 }}>
@@ -159,7 +165,14 @@ const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmi
               placeholder="Enter game name"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              InputProps={{ sx: { backgroundColor: "#1F2937", borderRadius: "6px", border: '1px solid #374151', color: "white" } }}
+              InputProps={{
+                sx: {
+                  backgroundColor: "#1F2937",
+                  borderRadius: "6px",
+                  border: '1px solid #374151',
+                  color: "white"
+                }
+              }}
             />
           </Box>
 
@@ -173,7 +186,14 @@ const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmi
               placeholder="Zone A, Zone B, etc."
               value={location}
               onChange={(e) => setLocation(e.target.value)}
-              InputProps={{ sx: { backgroundColor: "#1F2937", borderRadius: "6px", border: '1px solid #374151', color: "white" } }}
+              InputProps={{
+                sx: {
+                  backgroundColor: "#1F2937",
+                  borderRadius: "6px",
+                  border: '1px solid #374151',
+                  color: "white"
+                }
+              }}
             />
           </Box>
 
@@ -187,11 +207,19 @@ const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmi
               value={method}
               onChange={(e) => {
                 setMethod(e.target.value);
-                validateMethodForGame(title, e.target.value);
               }}
-              InputProps={{ sx: { backgroundColor: "#1F2937", borderRadius: "6px", border: '1px solid #374151', color: "white" } }}
+              InputProps={{
+                sx: {
+                  backgroundColor: "#1F2937",
+                  borderRadius: "6px",
+                  border: '1px solid #374151',
+                  color: "white"
+                }
+              }}
             >
-              {paymentMethods.map((m) => <MenuItem key={m} value={m}>{m}</MenuItem>)}
+              {paymentMethods.map((m) => (
+                <MenuItem key={m} value={m}>{m}</MenuItem>
+              ))}
             </TextField>
 
             <TextField
@@ -202,15 +230,44 @@ const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmi
               placeholder="Enter total price"
               value={price}
               onChange={(e) => setPrice(e.target.value)}
-              InputProps={{ sx: { backgroundColor: "#1F2937", borderRadius: "6px", border: '1px solid #374151', color: "white" } }}
+              InputProps={{
+                sx: {
+                  backgroundColor: "#1F2937",
+                  borderRadius: "6px",
+                  border: '1px solid #374151',
+                  color: "white"
+                }
+              }}
             />
           </Box>
         </DialogContent>
 
         {/* Actions */}
         <DialogActions sx={{ px: 3 }}>
-          <Button onClick={handleCancelOpen} variant="contained" sx={{ fontSize: 16, fontWeight: 'bold', backgroundColor: "#1F2937", width: '50%', py: 0.5 }}>Cancel</Button>
-          <Button onClick={handleSubmit} variant="contained" sx={{ fontSize: 16, fontWeight: 'bold', width: '50%', py: 0.5, background: "linear-gradient(to right, #0CD7FF, #8A38F5)" }}>
+          <Button
+            onClick={handleCancelOpen}
+            variant="contained"
+            sx={{
+              fontSize: 16,
+              fontWeight: 'bold',
+              backgroundColor: "#1F2937",
+              width: '50%',
+              py: 0.5
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSubmit}
+            variant="contained"
+            sx={{
+              fontSize: 16,
+              fontWeight: 'bold',
+              width: '50%',
+              py: 0.5,
+              background: "linear-gradient(to right, #0CD7FF, #8A38F5)"
+            }}
+          >
             {mode === "edit" ? "Update" : "Create"}
           </Button>
         </DialogActions>
@@ -219,13 +276,45 @@ const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmi
       </Dialog>
 
       {/* Success Popup */}
-      <Dialog open={createSuccess} PaperProps={{ sx: { bgcolor: "#0A192F", borderRadius: "16px", py: 2, px: 8, textAlign: "center", color: "white", border: '1px solid #3B4859' } }}>
+      <Dialog
+        open={createSuccess}
+        PaperProps={{
+          sx: {
+            bgcolor: "#0A192F",
+            borderRadius: "16px",
+            py: 2,
+            px: 8,
+            textAlign: "center",
+            color: "white",
+            border: '1px solid #3B4859'
+          }
+        }}
+      >
         <DialogContent>
           <Box sx={{ mb: 1 }}><img src={gameicon} alt="" width={80} /></Box>
-          <Typography variant="h6" sx={{ background: "linear-gradient(90deg, #00C6FF, #FF00CC)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", fontSize: 24, fontWeight: 600, mb: 1 }}>
+          <Typography
+            variant="h6"
+            sx={{
+              background: "linear-gradient(90deg, #00C6FF, #FF00CC)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              fontSize: 24,
+              fontWeight: 600,
+              mb: 1
+            }}
+          >
             {mode === "edit" ? "Update Successful!" : "Create Successful!"}
           </Typography>
-          <Button onClick={() => { setCreateSuccess(false); handleClose(); }} sx={{ px: 8, fontSize: 14, borderRadius: "8px", background: "linear-gradient(90deg, rgba(12, 215, 255, 0.4) 0%, rgba(138, 56, 245, 0.4) 73%)", color: "white" }}>
+          <Button
+            onClick={() => { setCreateSuccess(false); handleClose(); }}
+            sx={{
+              px: 8,
+              fontSize: 14,
+              borderRadius: "8px",
+              background: "linear-gradient(90deg, rgba(12, 215, 255, 0.4) 0%, rgba(138, 56, 245, 0.4) 73%)",
+              color: "white"
+            }}
+          >
             Ok
           </Button>
         </DialogContent>
