@@ -43,10 +43,8 @@ function App() {
             <Route path="/games" element={<OtherGames />} />
             <Route path="/users" element={<User />} />
             <Route path="/nfc-users" element={<NFCUsers />} />
-            <Route
-              path="/reports"
-              element={<div style={{ color: "#fff", marginTop: "80px", padding: "16px" }}>Reports (Coming soon)</div>}
-            />
+            <Route path="/reports" element={<Reports />} />
+            
             {/* TV Screens Routes */}
             <Route path="/tv-screens" element={<TVScreenControl />} />
             <Route path="/tv-screens/ps5-station" element={<PS5StationTVScreen />} />
