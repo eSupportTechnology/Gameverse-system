@@ -14,8 +14,11 @@ import TVScreenControl from "./pages/TVScreenControl";
 import User from "./pages/Users";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import GamesManagement from "./components/GamesManagement";
+//import GamesManagement from "./components/GamesManagement";
+//import operaterBookingManagement from "./components/OperaterBookingManagement";
 import OperatorBookingManagement from "./components/OperatorBookingManagement";
+
+import OperatergameManagemnt from "./components/OperatergameManagement";
 import OperatorLayout from "./components/OperatorLayout";
 import OperatorPosSystem from "./components/OperatorPosSystem";
 import { AdminContext } from "./context/AdminContext";
@@ -65,7 +68,7 @@ function App() {
             <Route path="/operator/*" element={<OperatorLayout />}>
               <Route path="booking" element={<OperatorBookingManagement />} />
               <Route path="pos" element={<OperatorPosSystem />} />
-              <Route path="games" element={<GamesManagement />} />
+              <Route path="games" element={<OperatergameManagemnt />} />
               <Route index element={<Navigate to="booking" replace />} />
             </Route>
 
