@@ -26,6 +26,8 @@ export default function AddStationDialog({
   isEditing,
 }) {
   const [openCancelPopup, setOpenCancelPopup] = useState(false);
+  const [createSuccess, setCreateSuccess] = useState(false);
+  const [pendingPayload, setPendingPayload] = useState(null);
 
   const handleOpenCancelPopup = () => setOpenCancelPopup(true);
   const handleCloseCancelPopup = () => setOpenCancelPopup(false);
@@ -60,13 +62,24 @@ export default function AddStationDialog({
 
     const payload = { ...formData, time: totalMinutes };
 
+    // Store the payload and show success dialog
+    setPendingPayload({ payload, isEditing });
+    setCreateSuccess(true);
+  };
+
+  // Handle success dialog OK button - actually create the station
+  const handleSuccessOk = async () => {
+    if (!pendingPayload) return;
+
+    const { payload, isEditing: editing } = pendingPayload;
+
     try {
       const token = localStorage.getItem("aToken"); // get token dynamically
-      const url = isEditing
+      const url = editing
         ? `http://127.0.0.1:8000/api/stations/${formData.id}` // update endpoint
         : "http://127.0.0.1:8000/api/stations";
 
-      const method = isEditing ? "put" : "post";
+      const method = editing ? "put" : "post";
 
       const res = await axios({
         method,
@@ -78,9 +91,14 @@ export default function AddStationDialog({
         },
       });
 
-      toast.success(`Station ${isEditing ? "updated" : "created"} successfully!`);
+      toast.success(`Station ${editing ? "updated" : "created"} successfully!`);
 
-      onCreate(res.data, isEditing);
+      // Pass the station data properly to parent
+      if (editing) {
+        onCreate(res.data.data || res.data, true); // true = updated
+      } else {
+        onCreate(res.data.data || res.data, false); // false = created
+      }
 
       setFormData({
         name: "",
@@ -91,12 +109,17 @@ export default function AddStationDialog({
         bookings: 0,
         time: "",
       });
+      
+      setCreateSuccess(false);
+      setPendingPayload(null);
       onClose();
     } catch (err) {
       console.log(err);
       toast.error(
         err.response?.data?.message || "Failed to save station. Make sure you are logged in."
       );
+      setCreateSuccess(false);
+      setPendingPayload(null);
     }
   };
 
@@ -320,6 +343,77 @@ export default function AddStationDialog({
           handleCancelClose={handleCloseCancelPopup}
           handleConfirm={handleConfirmCancel}
         />
+      </Dialog>
+
+      {/* Success Popup */}
+      <Dialog
+        open={createSuccess}
+        PaperProps={{
+          sx: {
+            bgcolor: "#0A192F",
+            borderRadius: "16px",
+            py: 2,
+            px: 8,
+            textAlign: "center",
+            color: "white",
+            border: '1px solid #3B4859'
+          },
+        }}
+      >
+        <DialogContent>
+          <Box sx={{ mb: 1, display: 'flex', justifyContent: 'center' }}>
+            <Box sx={{
+              width: 80,
+              height: 80,
+              borderRadius: '50%',
+              border: '3px solid',
+              borderColor: 'transparent',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: 'linear-gradient(#0A192F, #0A192F) padding-box, linear-gradient(90deg, #00C6FF, #FF00CC) border-box',
+            }}>
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M5 13l4 4L19 7" stroke="url(#gradient)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+                <defs>
+                  <linearGradient id="gradient" x1="5" y1="12" x2="19" y2="12">
+                    <stop offset="0%" stopColor="#00C6FF"/>
+                    <stop offset="100%" stopColor="#FF00CC"/>
+                  </linearGradient>
+                </defs>
+              </svg>
+            </Box>
+          </Box>
+          <Typography
+            variant="h6"
+            sx={{
+              background: "linear-gradient(90deg, #00C6FF, #FF00CC)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              fontSize: 24,
+              fontWeight: 600,
+              mb: 1
+            }}
+          >
+            {pendingPayload?.isEditing ? "Update Successful !" : "Create Successful !"}
+          </Typography>
+          <Button
+            onClick={handleSuccessOk}
+            sx={{
+              px: 8,
+              fontSize: 14,
+              textTransform: 'capitalize',
+              borderRadius: "8px",
+              background: "linear-gradient(90deg, rgba(12, 215, 255, 0.4) 0%, rgba(138, 56, 245, 0.4) 73%)",
+              color: "white",
+              "&:hover": {
+                background: "linear-gradient(90deg, #0CD7FF 0%, #8A38F5 73%)",
+              },
+            }}
+          >
+            Ok
+          </Button>
+        </DialogContent>
       </Dialog>
     </>
   );
