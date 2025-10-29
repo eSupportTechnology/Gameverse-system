@@ -12,6 +12,10 @@ import {
   TextField,
   Radio,
   RadioGroup,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
@@ -66,6 +70,8 @@ const PosSystem = () => {
   const [openCancelConfirm, setOpenCancelConfirm] = useState(false);
   const [openPaymentSuccess, setOpenPaymentSuccess] = useState(false);
   const [openNFCPoints, setOpenNFCPoints] = useState(false);
+  const [createSuccess, setcreateSuccess] = useState(false);
+  const [editSuccess, seteditSuccess] = useState(false);
 
   const [newCategory, setNewCategory] = useState("");
   const [showNewCategory, setShowNewCategory] = useState(false);
@@ -194,7 +200,7 @@ const PosSystem = () => {
           loyalty: "Yes",
         });
         handleAddItemClose();
-        toast.success("Item added successfully!");
+        setcreateSuccess(true);
       }
     } catch (error) {
       console.error("Error adding item:", error);
@@ -251,7 +257,7 @@ const PosSystem = () => {
       );
 
       if (response.status === 200) {
-        toast.success("Item updated successfully!");
+        seteditSuccess(true);
         await fetchItems();
         handleEditItemClose();
       }
@@ -452,100 +458,108 @@ const PosSystem = () => {
           ))}
         </Box>
 
-        <Grid container spacing={2} sx={{ mt: 1 }}>
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+            gap: 2,
+            pr: 1,
+            alignItems: "stretch",
+          }}
+        >
           {filteredProducts.map((item) => (
-            <Grid item xs={12} sm={6} md={4} key={item.id}>
-              <Card
-                sx={{
-                  bgcolor: "#171E2A",
-                  borderRadius: 2,
-                  position: "relative",
-                  minHeight: 150,
-                  minWidth: 200,
-                  width: "100%",
-                  border: 2,
-                  borderColor: "#374151",
-                }}
-              >
-                <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <Typography
-                      sx={{ color: "#0CD7FF", fontWeight: "bold", fontSize: 14 }}
-                    >
-                      LKR{item.price}
-                    </Typography>
+            <Card
+              key={item.id}
+              sx={{
+                bgcolor: "#171E2A",
+                borderRadius: 2,
+                position: "relative",
+                minHeight: 150,
+                minWidth: 200,
+                width: "100%",
+                border: 2,
+                borderColor: "#374151",
+              }}
+            >
+              <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <Typography
+                    sx={{ color: "#0CD7FF", fontWeight: "bold", fontSize: 14 }}
+                  >
+                    LKR{item.price}
+                  </Typography>
 
-                    {/* Edit Icon */}
+                  {/* Edit Icon */}
+                  <IconButton
+                    size="small"
+                    sx={{ color: "white" }}
+                    onClick={() => {
+                      setSelectedItem(item); // store full item object
+                      setNewItem({
+                        category: item.category,
+                        name: item.item_name,
+                        price: item.price,
+                        stock: item.stock,
+                        loyalty: item.loyality_price ? "Yes" : "No",
+                      });
+                      setOpenEditItem(true);
+                    }}
+                  >
+                    <EditIcon sx={{ fontSize: 14 }} />
+                  </IconButton>
+                </Box>
+
+                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <Typography variant="subtitle1" color="white" fontSize={12}>
+                    {item.item_name}
+                  </Typography>
+
+                  {item.fav && (
                     <IconButton
                       size="small"
                       sx={{ color: "white" }}
-                      onClick={() => {
-                        setSelectedItem(item); // store full item object
-                        setNewItem({
-                          category: item.category,
-                          name: item.item_name,
-                          price: item.price,
-                          stock: item.stock,
-                          loyalty: item.loyality_price ? "Yes" : "No",
-                        });
-                        setOpenEditItem(true);
-                      }}
                     >
-                      <EditIcon sx={{ fontSize: 14 }} />
-                    </IconButton>
-                  </Box>
-
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <Typography variant="subtitle1" color="white" fontSize={12}>
-                      {item.item_name}
-                    </Typography>
-
-                    {item.fav && (
-                      <IconButton
-                        size="small"
-                        sx={{ color: "white" }}
-                      >
-                        <StarIcon
-                          sx={{
-                            color: "#C6379F",
-                            width: 15,
-                            height: 14,
-                          }}
-                        />
-                      </IconButton>
-
-                    )}
-                  </Box>
-
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <Typography variant="body2" color="#9CA3AF" fontSize={10}>
-                      {item.category}
-                    </Typography>
-
-                    <Box></Box>
-                  </Box>
-
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <Typography variant="body2" color="white" sx={{ mt: 1 }} fontSize={12}>
-                      Stock: {item.stock}
-                    </Typography>
-
-                    <IconButton
-                      size="small"
-                      onClick={() => addToCart(item)}
-                    >
-                      <img
-                        src="/images/add.png"
-                        alt="add"
-                        style={{ width: 25, height: 25 }}
+                      <StarIcon
+                        sx={{
+                          color: "#C6379F",
+                          width: 15,
+                          height: 14,
+                        }}
                       />
                     </IconButton>
-                  </Box>
-                </CardContent>
-              </Card>
-            </Grid>
+
+                  )}
+                </Box>
+
+                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <Typography variant="body2" color="#9CA3AF" fontSize={10}>
+                    {item.category}
+                  </Typography>
+
+                  <Box></Box>
+                </Box>
+
+                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <Typography variant="body2" color="white" sx={{ mt: 1 }} fontSize={12}>
+                    Stock: {item.stock}
+                  </Typography>
+
+                  <IconButton
+                    size="small"
+                    onClick={() => addToCart(item)}
+                  >
+                    <img
+                      src="/images/add.png"
+                      alt="add"
+                      style={{ width: 25, height: 25 }}
+                    />
+                  </IconButton>
+                </Box>
+              </CardContent>
+            </Card>
           ))}
-        </Grid>
+
+        </Box>
       </Box>
 
       {/* ---------------- Right Section ---------------- */}
@@ -902,18 +916,32 @@ const PosSystem = () => {
                 ))}
               </RadioGroup>
             </Box>
-            <Button
-              variant="contained"
-              fullWidth
-              onClick={handleAddNewItem}
-              sx={{
-                background: "linear-gradient(to right, #06b6d4, #9333ea)",
-                textTransform: "none",
-                mt: 2,
-              }}
-            >
-              Add Item
-            </Button>
+            <Box display="flex" justifyContent="space-between" mt={2} gap={2}>
+              <Button
+                variant="contained"
+                fullWidth
+                sx={{
+                  bgcolor: "#1e293b",
+                  "&:hover": { bgcolor: "#334155" },
+                  color: "white",
+
+                }}
+                onClick={handleCancelClick}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="contained"
+                fullWidth
+                onClick={handleAddNewItem}
+                sx={{
+                  background: "linear-gradient(to right, #06b6d4, #9333ea)",
+                  textTransform: "none",
+                }}
+              >
+                Add Item
+              </Button>
+            </Box>
           </Box>
         </Box>
       </Modal>
@@ -1117,18 +1145,32 @@ const PosSystem = () => {
                 ))}
               </RadioGroup>
             </Box>
-            <Button
-              variant="contained"
-              fullWidth
-              onClick={handleUpdateItem}
-              sx={{
-                background: "linear-gradient(to right, #06b6d4, #9333ea)",
-                textTransform: "none",
-                mt: 2,
-              }}
-            >
-              Edit
-            </Button>
+            <Box display="flex" justifyContent="space-between" mt={2} gap={2}>
+              <Button
+                variant="contained"
+                fullWidth
+                sx={{
+                  bgcolor: "#1e293b",
+                  "&:hover": { bgcolor: "#334155" },
+                  color: "white",
+
+                }}
+                onClick={handleCancelClick}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="contained"
+                fullWidth
+                onClick={handleUpdateItem}
+                sx={{
+                  background: "linear-gradient(to right, #06b6d4, #9333ea)",
+                  textTransform: "none",
+                }}
+              >
+                Edit
+              </Button>
+            </Box>
           </Box>
         </Box>
       </Modal>
@@ -1311,6 +1353,8 @@ const PosSystem = () => {
               onClick={() => {
                 setOpenCancelConfirm(false);
                 setOpenWalkIn(false); //  close Walk-in modal as well
+                setOpenAddItem(false);
+                setOpenEditItem(false);
                 setWalkInCustomer({
                   // Clear walk-in customer info
                   name: "",
@@ -1554,6 +1598,112 @@ const PosSystem = () => {
           </Button>
         </Box>
       </Modal>
+
+      {/* create success model */}
+      <Dialog
+        open={createSuccess}
+        PaperProps={{
+          sx: {
+            backgroundColor: "#070F1E",
+            color: "white",
+            width: "400px",
+            padding: "20px",
+            borderRadius: "12px",
+            border: "2px solid #0aaffb59",
+            //boxShadow: "0px 0px 30px rgba(8, 0, 255, 0.39)", // green glow
+            textAlign: "center",
+          },
+        }}
+      >
+        <DialogTitle
+          sx={{
+            fontWeight: "600",
+            background: "linear-gradient(to right, #1963f6d0, #e428edff)",
+            WebkitBackgroundClip: "text",
+            fontSize: "24px",
+            WebkitTextFillColor: "transparent",
+          }}
+        >
+          <img
+            src="/images/successu.png"
+            alt="success"
+            width="80"
+
+            height={80}
+            style={{ marginBottom: 8 }}
+          />
+          <br />
+          Item Added Successful !
+        </DialogTitle>
+        <DialogContent></DialogContent>
+        <DialogActions sx={{ justifyContent: "center" }}>
+          <Button
+            onClick={() => setcreateSuccess(false)}
+            sx={{
+              background: "linear-gradient(to right, #2287a3d0, #8a38f557)",
+              color: "#fff",
+              width: "150px",
+              textTransform: "none",
+              "&:hover": { opacity: 0.9 },
+            }}
+          >
+            OK
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* edit success model */}
+      <Dialog
+        open={editSuccess}
+        PaperProps={{
+          sx: {
+            backgroundColor: "#070F1E",
+            color: "white",
+            width: "400px",
+            padding: "20px",
+            borderRadius: "12px",
+            border: "2px solid #0aaffb59",
+            //boxShadow: "0px 0px 30px rgba(8, 0, 255, 0.39)", // green glow
+            textAlign: "center",
+          },
+        }}
+      >
+        <DialogTitle
+          sx={{
+            fontWeight: "600",
+            background: "linear-gradient(to right, #1963f6d0, #e428edff)",
+            WebkitBackgroundClip: "text",
+            fontSize: "24px",
+            WebkitTextFillColor: "transparent",
+          }}
+        >
+          <img
+            src="/images/successu.png"
+            alt="success"
+            width="80"
+
+            height={80}
+            style={{ marginBottom: 8 }}
+          />
+          <br />
+          Update Successful !
+        </DialogTitle>
+        <DialogContent></DialogContent>
+        <DialogActions sx={{ justifyContent: "center" }}>
+          <Button
+            onClick={() => seteditSuccess(false)}
+            sx={{
+              background: "linear-gradient(to right, #2287a3d0, #8a38f557)",
+              color: "#fff",
+              width: "150px",
+              textTransform: "none",
+              "&:hover": { opacity: 0.9 },
+            }}
+          >
+            OK
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
