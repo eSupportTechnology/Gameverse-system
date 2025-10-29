@@ -2,11 +2,11 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Box, Typography, Button, ToggleButton, ToggleButtonGroup } from '@mui/material';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import AddNewGame from './AddNewGame';
-import GameCard from './GameCard.jsx';
-import CheckoutGame from './CheckoutGame.jsx';
+import AddNewGame from './OperaterNewAddgame.jsx';
+import GameCard from './Operatergamecard.jsx';
+import CheckoutGame from './OperaterCheckout.jsx';
 
-const GamesManagement = () => {
+const OperatorGamesManagement = () => {
   const [openAddGame, setOpenAddGame] = useState(false);
   const [activeCategory, setActiveCategory] = useState('All Games');
   const [selectedGame, setSelectedGame] = useState(null);
@@ -15,25 +15,25 @@ const GamesManagement = () => {
 
   const token = localStorage.getItem('aToken');
 
-  // ✅ Fetch all games from backend (memoized to prevent re-creation)
+  // ✅ Fetch only operator's games (from a separate backend route)
   const fetchGames = useCallback(async () => {
     try {
-      const response = await axios.get('http://127.0.0.1:8000/api/games', {
+      const response = await axios.get('http://127.0.0.1:8000/api/operator/games', {
         headers: { Authorization: `Bearer ${token}` },
       });
       setGames(response.data);
     } catch (error) {
-      console.error('Error fetching games:', error);
-      toast.error('Failed to fetch games.');
+      console.error('Error fetching operator games:', error);
+      toast.error('Failed to fetch your games.');
     }
-  }, [token]); // ✅ stable dependency
+  }, [token]);
 
-  // ✅ Fetch once on mount (no ESLint warning)
+  // ✅ Load operator's games on mount
   useEffect(() => {
     fetchGames();
   }, [fetchGames]);
 
-  // Filter buttons
+  // ✅ Filter categories
   const categories = [
     { label: 'All Games', keyword: '' },
     { label: 'Arcade Machine', keyword: 'Arcade' },
@@ -49,11 +49,11 @@ const GamesManagement = () => {
     return true;
   });
 
-  // ✅ Refresh list after Add/Edit
+  // ✅ Refresh after Add/Edit
   const handleSaveGame = () => {
     setEditGame(null);
     setOpenAddGame(false);
-    fetchGames(); // reload games from backend
+    fetchGames();
   };
 
   const handleEditGame = (game) => {
@@ -65,7 +65,7 @@ const GamesManagement = () => {
     if (!window.confirm('Are you sure you want to delete this game?')) return;
 
     try {
-      await axios.delete(`http://127.0.0.1:8000/api/games/${gameId}`, {
+      await axios.delete(`http://127.0.0.1:8000/api/operator/games/${gameId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       fetchGames();
@@ -77,7 +77,7 @@ const GamesManagement = () => {
   };
 
   return (
-    <Box sx={{ p: 2, bgcolor: '1E1E1E', color: '#fff', minHeight: '100vh', overflowX: 'hidden', ml: 0 }}>
+    <Box sx={{ p: 2, bgcolor: '#1E1E1E', color: '#fff', minHeight: '100vh', overflowX: 'hidden', ml: 0 }}>
       {/* Header Section */}
       <Box
         display="flex"
@@ -88,10 +88,10 @@ const GamesManagement = () => {
       >
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
           <Typography variant="h5" fontWeight="bold" fontSize={24}>
-            Other Games Management
+            Operator Games Management
           </Typography>
           <Typography variant="body2" color="gray" fontSize={16}>
-            Monitor and control gaming stations
+            Manage your own game stations
           </Typography>
         </Box>
 
@@ -203,4 +203,4 @@ const GamesManagement = () => {
   );
 };
 
-export default GamesManagement;
+export default OperatorGamesManagement;

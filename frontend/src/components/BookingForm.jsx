@@ -19,6 +19,7 @@ import axios from 'axios';
 const BookingForm = ({ open, handleClose, onBookingCreated }) => {
 
   const [createSuccess, setcreateSuccess] = useState(false);
+  const [cancelConfirm, setCancelConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
   
   // Form state
@@ -48,6 +49,33 @@ const BookingForm = ({ open, handleClose, onBookingCreated }) => {
         [field]: value
       }));
     }
+  };
+
+  // Handle cancel button click
+  const handleCancelClick = () => {
+    setCancelConfirm(true);
+  };
+
+  // Handle cancel confirmation
+  const handleConfirmCancel = () => {
+    setCancelConfirm(false);
+    handleClose();
+    // Reset form
+    setFormData({
+      customerName: '',
+      phoneNumber: '',
+      station: '',
+      bookingDate: '',
+      startTime: '',
+      duration: '',
+      amount: 400
+    });
+  };
+
+  // Handle success dialog OK button
+  const handleSuccessOk = () => {
+    setcreateSuccess(false);
+    handleClose(); // Close the main form
   };
 
 // ---------- CONNECT TO BACKEND USING AXIOS ----------
@@ -527,7 +555,7 @@ const BookingForm = ({ open, handleClose, onBookingCreated }) => {
 
         {/* cancel & create button */}
         <DialogActions sx={{ px: 2 }}>
-          <Button onClick={handleClose} variant="contained" sx={{ backgroundColor: "#1F2937", width: '50%', py: 1, textTransform: 'capitalize',"&:hover": { bgcolor: "#374151" }, }}>
+          <Button onClick={handleCancelClick} variant="contained" sx={{ backgroundColor: "#1F2937", width: '50%', py: 1, textTransform: 'capitalize',"&:hover": { bgcolor: "#374151" }, }}>
             Cancel
           </Button>
           <Button
@@ -544,6 +572,76 @@ const BookingForm = ({ open, handleClose, onBookingCreated }) => {
           >
             {loading ? 'Creating...' : 'Create Booking'}
           </Button>
+          
+          {/* Cancel Confirmation Dialog */}
+          <Dialog
+            open={cancelConfirm}
+            PaperProps={{
+              sx: {
+                bgcolor: "#0A192F",
+                borderRadius: "16px",
+                py: 2,
+                px: 4,
+                textAlign: "center",
+                color: "white",
+                border: '1px solid #3B4859'
+              },
+            }}
+          >
+            <DialogContent>
+              <Box sx={{ mb: 1, display: 'flex', justifyContent: 'center' }}>
+                <img src="/images/cancel.png" alt="Cancel" width={80} />
+              </Box>
+              <Typography
+                variant="h6"
+                sx={{
+                  background: "linear-gradient(90deg, #00C6FF, #FF00CC)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  fontSize: 20,
+                  fontWeight: 600,
+                  mb: 3
+                }}
+              >
+                Are you want to cancel this?
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center' }}>
+                <Button
+                  onClick={handleConfirmCancel}
+                  sx={{
+                    px: 6,
+                    fontSize: 14,
+                    textTransform: 'capitalize',
+                    borderRadius: "8px",
+                    background: "linear-gradient(90deg, rgba(12, 215, 255, 0.4) 0%, rgba(138, 56, 245, 0.4) 73%)",
+                    color: "white",
+                    "&:hover": {
+                      background: "linear-gradient(90deg, #0CD7FF 0%, #8A38F5 73%)",
+                    },
+                  }}
+                >
+                  Yes
+                </Button>
+                <Button
+                  onClick={() => setCancelConfirm(false)}
+                  sx={{
+                    px: 6,
+                    fontSize: 14,
+                    textTransform: 'capitalize',
+                    borderRadius: "8px",
+                    background: "#1F2937",
+                    color: "white",
+                    "&:hover": {
+                      background: "#374151",
+                    },
+                  }}
+                >
+                  No
+                </Button>
+              </Box>
+            </DialogContent>
+          </Dialog>
+          
           {/* create Success Popup */}
           <Dialog
             open={createSuccess}
@@ -560,8 +658,28 @@ const BookingForm = ({ open, handleClose, onBookingCreated }) => {
             }}
           >
             <DialogContent>
-              <Box sx={{ mb: 1, }}>
-                <img src={gameicon} alt="" width={80} />
+              <Box sx={{ mb: 1, display: 'flex', justifyContent: 'center' }}>
+                <Box sx={{
+                  width: 80,
+                  height: 80,
+                  borderRadius: '50%',
+                  border: '3px solid',
+                  borderColor: 'transparent',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: 'linear-gradient(#0A192F, #0A192F) padding-box, linear-gradient(90deg, #00C6FF, #FF00CC) border-box',
+                }}>
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M5 13l4 4L19 7" stroke="url(#gradient)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+                    <defs>
+                      <linearGradient id="gradient" x1="5" y1="12" x2="19" y2="12">
+                        <stop offset="0%" stopColor="#00C6FF"/>
+                        <stop offset="100%" stopColor="#FF00CC"/>
+                      </linearGradient>
+                    </defs>
+                  </svg>
+                </Box>
               </Box>
               <Typography
                 variant="h6"
@@ -577,7 +695,7 @@ const BookingForm = ({ open, handleClose, onBookingCreated }) => {
                 Create Successful !
               </Typography>
               <Button
-                onClick={() => setcreateSuccess(false)}
+                onClick={handleSuccessOk}
                 sx={{
                   px: 8,
                   fontSize: 14,

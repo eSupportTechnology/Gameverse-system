@@ -13,8 +13,6 @@ import {
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import AddStationDialog from "./AddStationDialog";
-import CreateSuccessDialog from "./CreateSuccessDialog";
-import UpdateSuccessDialog from "./UpdateSuccess";
 
 export default function StationManagement() {
   const [tab, setTab] = useState(0);
@@ -30,9 +28,6 @@ export default function StationManagement() {
     price: "",
     time: "",
   });
-
-  const [createSuccessOpen, setCreateSuccessOpen] = useState(false);
-  const [updateSuccessOpen, setUpdateSuccessOpen] = useState(false);
 
   // Fetch stations on mount
   useEffect(() => {
@@ -75,15 +70,13 @@ export default function StationManagement() {
   // Receives station data after successful create/update from AddStationDialog
   const handleStationCreatedOrUpdated = (station, updated) => {
     if (updated) {
-      if (isEditing && editStation) {
-        setStations((prev) =>
-          prev.map((s) => (s.id === editStation.id ? station : s))
-        );
-        setUpdateSuccessOpen(true);
-      } else {
-        setStations((prev) => [...prev, station]);
-        setCreateSuccessOpen(true);
-      }
+      // Update existing station
+      setStations((prev) =>
+        prev.map((s) => (s.id === station.id ? station : s))
+      );
+    } else {
+      // Add new station
+      setStations((prev) => [...prev, station]);
     }
     setOpen(false);
     setEditStation(null);
@@ -278,16 +271,6 @@ export default function StationManagement() {
         formData={formData}
         setFormData={setFormData}
         isEditing={isEditing}
-      />
-
-      {/* Success Dialogs */}
-      <CreateSuccessDialog
-        open={createSuccessOpen}
-        onClose={() => setCreateSuccessOpen(false)}
-      />
-      <UpdateSuccessDialog
-        open={updateSuccessOpen}
-        onClose={() => setUpdateSuccessOpen(false)}
       />
     </Box>
   );

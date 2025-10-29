@@ -1,29 +1,30 @@
-import React, { useContext } from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import Home from "./pages/Home";
-import Station from "./pages/Station";
+import { useContext } from "react";
+import { Navigate, Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import Booking from "./pages/Booking";
-import Pos from "./pages/Pos";
-import OtherGames from "./pages/OtherGames";
-import User from "./pages/Users";
 import NFCUsers from "./pages/NFCUsers";
+import OtherGames from "./pages/OtherGames";
+import Pos from "./pages/Pos";
+import PremiumBilliardTV from "./pages/PremiumBilliardTV";
 import PS5StationTVScreen from "./pages/PS5StationTVScreen";
 import RacingSimulatorTV from "./pages/RacingSimulatorTV";
+import Station from "./pages/Station";
 import SupremeBilliardTV from "./pages/SupremeBilliardTV";
-import PremiumBilliardTV from "./pages/PremiumBilliardTV";
 import TVOffers from "./pages/TVOffers";
-
-import GamesManagement from "./components/GamesManagement";
-import PosSystem from "./components/pos-system";
-import OperatorLayout from "./components/OperatorLayout";
-import BookingManagement from "./components/BookingManagement";
-import { AdminContext } from "./context/AdminContext";
+import TVScreenControl from "./pages/TVScreenControl";
+import User from "./pages/Users";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import Login from "./pages/Login";
-import ResetPassword from "./pages/ResetPassword";
+//import GamesManagement from "./components/GamesManagement";
+//import operaterBookingManagement from "./components/OperaterBookingManagement";
 import OperatorBookingManagement from "./components/OperatorBookingManagement";
+
+import OperatergameManagemnt from "./components/OperatergameManagement";
+import OperatorLayout from "./components/OperatorLayout";
 import OperatorPosSystem from "./components/OperatorPosSystem";
+import { AdminContext } from "./context/AdminContext";
+import Login from "./pages/Login";
+import Reports from "./pages/Reports";
+import ResetPassword from "./pages/ResetPassword";
 
 function App() {
   const { aToken, oToken } = useContext(AdminContext);
@@ -42,15 +43,15 @@ function App() {
             <Route path="/games" element={<OtherGames />} />
             <Route path="/users" element={<User />} />
             <Route path="/nfc-users" element={<NFCUsers />} />
-            <Route
-              path="/reports"
-              element={<div style={{ color: "#fff", marginTop: "80px", padding: "16px" }}>Reports (Coming soon)</div>}
-            />
-            <Route path="/tv-screens" element={<PS5StationTVScreen />} />
-            <Route path="/tv-racing-simulator" element={<RacingSimulatorTV />} />
-            <Route path="/tv-supreme-billiard" element={<SupremeBilliardTV />} />
-            <Route path="/tv-premium-billiard" element={<PremiumBilliardTV />} />
-            <Route path="/tv-offers" element={<TVOffers />} />
+            <Route path="/reports" element={<Reports />} />
+            
+            {/* TV Screens Routes */}
+            <Route path="/tv-screens" element={<TVScreenControl />} />
+            <Route path="/tv-screens/ps5-station" element={<PS5StationTVScreen />} />
+            <Route path="/tv-screens/racing-simulator" element={<RacingSimulatorTV />} />
+            <Route path="/tv-screens/supreme-billiard" element={<SupremeBilliardTV />} />
+            <Route path="/tv-screens/premium-billiard" element={<PremiumBilliardTV />} />
+            <Route path="/tv-screens/offers" element={<TVOffers />} />
             <Route
               path="/settings"
               element={<div style={{ color: "#fff", marginTop: "80px", padding: "16px" }}>Settings (Coming soon)</div>}
@@ -64,7 +65,7 @@ function App() {
             <Route path="/operator/*" element={<OperatorLayout />}>
               <Route path="booking" element={<OperatorBookingManagement />} />
               <Route path="pos" element={<OperatorPosSystem />} />
-              <Route path="games" element={<GamesManagement />} />
+              <Route path="games" element={<OperatergameManagemnt />} />
               <Route index element={<Navigate to="booking" replace />} />
             </Route>
 

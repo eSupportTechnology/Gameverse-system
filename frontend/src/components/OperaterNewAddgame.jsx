@@ -19,7 +19,7 @@ import { toast } from 'react-toastify';
 
 const paymentMethods = ["Coin", "Arrow", "Per Hour"];
 
-const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmit }) => {
+const AddNewGameOperator = ({ open, handleClose, mode = "add", initialData = {}, onSubmit }) => {
   const [createSuccess, setCreateSuccess] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
 
@@ -28,20 +28,19 @@ const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmi
   const [method, setMethod] = useState("Coin");
   const [price, setPrice] = useState("");
 
-  // ✅ Strict validation for pricing method
   const validateMethodForGame = (gameTitle, chosenMethod) => {
     const lowerTitle = gameTitle.toLowerCase();
 
     if (lowerTitle.includes("archery machine") && chosenMethod !== "Coin") {
-      toast.warning("⚠️ Please select the correct pricing method: 'Coin' for Archery Machine.");
+      toast.warning("⚠️ Archery Machine should use 'Coin' method only.");
       return false;
     }
     if (lowerTitle.includes("archery") && !lowerTitle.includes("machine") && chosenMethod !== "Arrow") {
-      toast.warning("⚠️ Please select the correct pricing method: 'Arrow' for Archery.");
+      toast.warning("⚠️ Archery should use 'Arrow' method only.");
       return false;
     }
     if (lowerTitle.includes("carrom") && chosenMethod !== "Per Hour") {
-      toast.warning("⚠️ Please select the correct pricing method: 'Per Hour' for Carrom.");
+      toast.warning("⚠️ Carrom should use 'Per Hour' method only.");
       return false;
     }
     return true;
@@ -75,15 +74,13 @@ const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmi
     const trimmedLocation = location.trim();
     const trimmedMethod = method.trim();
 
-    // ✅ Empty field validation
     if (!trimmedTitle || !trimmedLocation || !price) {
       toast.error("All fields are required!");
       return;
     }
 
-    // ✅ Strict pricing method validation before creation
     if (!validateMethodForGame(trimmedTitle, trimmedMethod)) {
-      return; // Stop creation
+      return;
     }
 
     const gameData = {
@@ -94,11 +91,11 @@ const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmi
     };
 
     try {
-      const token = localStorage.getItem("aToken");
+      const token = localStorage.getItem("oToken");
       const url =
         mode === "edit"
-          ? `http://127.0.0.1:8000/api/games/${initialData.id}`
-          : "http://127.0.0.1:8000/api/games";
+          ? `http://127.0.0.1:8000/api/operator/games/${initialData.id}`
+          : "http://127.0.0.1:8000/api/operator/games";
 
       await axios({
         method: mode === "edit" ? "put" : "post",
@@ -108,6 +105,7 @@ const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmi
       });
 
       toast.success(`Game ${mode === "edit" ? "updated" : "created"} successfully!`);
+
       setCreateSuccess(true);
 
       setTimeout(() => {
@@ -116,6 +114,7 @@ const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmi
       }, 1500);
 
       if (onSubmit) onSubmit();
+
     } catch (err) {
       console.error('Validation errors:', err.response?.data);
       toast.error(
@@ -207,6 +206,7 @@ const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmi
               value={method}
               onChange={(e) => {
                 setMethod(e.target.value);
+                validateMethodForGame(title, e.target.value);
               }}
               InputProps={{
                 sx: {
@@ -244,30 +244,8 @@ const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmi
 
         {/* Actions */}
         <DialogActions sx={{ px: 3 }}>
-          <Button
-            onClick={handleCancelOpen}
-            variant="contained"
-            sx={{
-              fontSize: 16,
-              fontWeight: 'bold',
-              backgroundColor: "#1F2937",
-              width: '50%',
-              py: 0.5
-            }}
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={handleSubmit}
-            variant="contained"
-            sx={{
-              fontSize: 16,
-              fontWeight: 'bold',
-              width: '50%',
-              py: 0.5,
-              background: "linear-gradient(to right, #0CD7FF, #8A38F5)"
-            }}
-          >
+          <Button onClick={handleCancelOpen} variant="contained" sx={{ fontSize: 16, fontWeight: 'bold', backgroundColor: "#1F2937", width: '50%', py: 0.5 }}>Cancel</Button>
+          <Button onClick={handleSubmit} variant="contained" sx={{ fontSize: 16, fontWeight: 'bold', width: '50%', py: 0.5, background: "linear-gradient(to right, #0CD7FF, #8A38F5)" }}>
             {mode === "edit" ? "Update" : "Create"}
           </Button>
         </DialogActions>
@@ -276,45 +254,34 @@ const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmi
       </Dialog>
 
       {/* Success Popup */}
-      <Dialog
-        open={createSuccess}
-        PaperProps={{
-          sx: {
-            bgcolor: "#0A192F",
-            borderRadius: "16px",
-            py: 2,
-            px: 8,
-            textAlign: "center",
-            color: "white",
-            border: '1px solid #3B4859'
-          }
-        }}
-      >
+      <Dialog open={createSuccess} PaperProps={{
+        sx: {
+          bgcolor: "#0A192F",
+          borderRadius: "16px",
+          py: 2,
+          px: 8,
+          textAlign: "center",
+          color: "white",
+          border: '1px solid #3B4859'
+        }
+      }}>
         <DialogContent>
           <Box sx={{ mb: 1 }}><img src={gameicon} alt="" width={80} /></Box>
-          <Typography
-            variant="h6"
-            sx={{
-              background: "linear-gradient(90deg, #00C6FF, #FF00CC)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              fontSize: 24,
-              fontWeight: 600,
-              mb: 1
-            }}
-          >
+          <Typography variant="h6" sx={{
+            background: "linear-gradient(90deg, #00C6FF, #FF00CC)",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            fontSize: 24,
+            fontWeight: 600,
+            mb: 1
+          }}>
             {mode === "edit" ? "Update Successful!" : "Create Successful!"}
           </Typography>
-          <Button
-            onClick={() => { setCreateSuccess(false); handleClose(); }}
-            sx={{
-              px: 8,
-              fontSize: 14,
-              borderRadius: "8px",
-              background: "linear-gradient(90deg, rgba(12, 215, 255, 0.4) 0%, rgba(138, 56, 245, 0.4) 73%)",
-              color: "white"
-            }}
-          >
+          <Button onClick={() => { setCreateSuccess(false); handleClose(); }} sx={{
+            px: 8, fontSize: 14, borderRadius: "8px",
+            background: "linear-gradient(90deg, rgba(12, 215, 255, 0.4) 0%, rgba(138, 56, 245, 0.4) 73%)",
+            color: "white"
+          }}>
             Ok
           </Button>
         </DialogContent>
@@ -323,4 +290,4 @@ const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmi
   );
 };
 
-export default AddNewGame;
+export default AddNewGameOperator;
