@@ -61,7 +61,19 @@ export default function StationManagement() {
   const handleEditStation = (station) => {
     setIsEditing(true);
     setEditStation(station);
-    setFormData(station);
+    
+    // Convert time from minutes to HH:MM format for the form
+    const convertMinutesToTime = (minutes) => {
+      if (!minutes) return "";
+      const hours = Math.floor(minutes / 60);
+      const mins = minutes % 60;
+      return `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
+    };
+    
+    setFormData({
+      ...station,
+      time: convertMinutesToTime(station.time)
+    });
     setOpen(true);
   };
 

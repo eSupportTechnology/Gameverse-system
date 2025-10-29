@@ -278,23 +278,59 @@ export default function AddStationDialog({
                 Time (HH:MM)
               </Typography>
               <TextField
+                select
                 margin="dense"
                 name="time"
                 value={formData.time || ""}
                 onChange={handleTimeChange}
                 fullWidth
-                placeholder="00:30"
+                displayEmpty
                 sx={{
                   backgroundColor: "#1e293b4b",
                   "& .MuiOutlinedInput-root": {
                     borderRadius: "10px",
-                    color: "#fff",
-                    "& fieldset": { borderColor: "#fff" },
-                    "&:hover fieldset": { borderColor: "#fff" },
+                    backgroundColor: "#1e293b4b",
+                    color: "white",
+                    "& fieldset": { borderColor: "#809fcd4e" },
+                    "&:hover fieldset": { borderColor: "#ffffff71" },
+                    "& .MuiSelect-icon": { color: "#fff" },
                   },
-                  "& input": { color: "#fff" },
+                  "& .MuiSelect-select:empty": { color: "#94a3b8" },
                 }}
-              />
+                SelectProps={{
+                  displayEmpty: true,
+                  MenuProps: {
+                    PaperProps: {
+                      sx: {
+                        backgroundColor: "#1e293b",
+                        color: "white",
+                        maxHeight: 300,
+                        "& .MuiMenuItem-root": {
+                          backgroundColor: "#1e293b",
+                          borderBottom: "1px solid #334155",
+                          "&:hover": {
+                            backgroundColor: "#334155",
+                          },
+                          "&.Mui-selected": {
+                            backgroundColor: "#334155",
+                            "&:hover": {
+                              backgroundColor: "#475569",
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                }}
+              >
+                <MenuItem value="" disabled>
+                  <em style={{ color: "#94a3b8", fontStyle: "normal" }}>Select time</em>
+                </MenuItem>
+                <MenuItem value="12:00">12:00</MenuItem>
+                <MenuItem value="01:00">01:00</MenuItem>
+                <MenuItem value="01:30">01:30</MenuItem>
+                <MenuItem value="02:00">02:00</MenuItem>
+              </TextField>
             </Box>
           </Box>
         </DialogContent>
