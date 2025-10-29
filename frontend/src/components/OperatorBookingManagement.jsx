@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -7,10 +7,12 @@ import {
   ToggleButtonGroup,
   Paper,
   TextField,
+  CircularProgress,
 } from "@mui/material";
-import OperatorBookingForm from './OperatorBookingForm';
-import BookingGrid from './OperatorBookingGrid';
-import { bookings } from '../assets/assets.js';
+import OperatorBookingForm from "./OperatorBookingForm";
+import OperatorBookingGrid from "./OperatorBookingGrid";
+import { bookings as dummyBookings } from "../assets/assets.js";
+import axios from "axios";
 // import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 
 const OperatorBookingManagement = () => {
@@ -18,6 +20,131 @@ const OperatorBookingManagement = () => {
   const [view, setView] = React.useState("timeline");
   const [date, setDate] = React.useState(new Date());
   const [openDialog, setOpenDialog] = useState(false);
+  const [apiBookings, setApiBookings] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  // Helper function to normalize time formats for matching
+  const normalizeTimeFormat = (timeString) => {
+    if (!timeString) return '';
+
+    // If it's already in HH:MM format, convert to 12-hour format for matching
+    const timeMatch = timeString.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?/);
+    if (timeMatch) {
+      let hours = parseInt(timeMatch[1]);
+      const minutes = timeMatch[2];
+
+      // Convert 24-hour to 12-hour format to match timeSlots
+      if (hours === 0) {
+        return `12:${minutes}`;
+      } else if (hours > 12) {
+        return `${String(hours - 12).padStart(2, "0")}:${minutes}`;
+      } else if (hours < 10) {
+        // Pad single digit hours with zero to match timeSlots format
+        return `${String(hours).padStart(2, "0")}:${minutes}`;
+      } else {
+        return `${hours}:${minutes}`;
+      }
+    }
+
+    return timeString;
+  };
+
+  // Helper function to match station names
+  const matchStation = (apiStation, uiStationName) => {
+    if (!apiStation || !uiStationName) return false;
+
+    const normalizedApi = apiStation.toLowerCase().trim();
+    const normalizedUI = uiStationName.toLowerCase().trim();
+
+    // Direct match
+    if (normalizedApi === normalizedUI) return true;
+
+    // Handle station1, station2 format from API
+    if (normalizedApi === "station1" && normalizedUI.includes("station 1"))
+      return true;
+    if (normalizedApi === "station2" && normalizedUI.includes("station 2"))
+      return true;
+    if (normalizedApi === "station3" && normalizedUI.includes("station 3"))
+      return true;
+
+    // Handle PSS Station format
+    if (normalizedApi.includes('station 1') && normalizedUI.includes('station 1')) return true;
+    if (normalizedApi.includes('station 2') && normalizedUI.includes('station 2')) return true;
+    if (normalizedApi.includes('station 3') && normalizedUI.includes('station 3')) return true;
+
+    // Handle pool stations
+    if (normalizedApi.includes("pool") && normalizedUI.includes("pool")) return true;
+
+    return false;
+  };
+
+  // Function to fetch bookings from the API
+  const fetchBookings = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.get("http://127.0.0.1:8000/api/operator-bookings");
+
+      if (response.data.success) {
+        console.log("API bookings fetched:", response.data.data);
+        console.log("Sample booking for debugging:", response.data.data[0]);
+        // Map API bookings to the frontend's expected shape
+        const mapBooking = (b) => {
+          // Normalize status mapping between backend and frontend
+          const statusMap = {
+            pending: "upcoming",
+            confirmed: "inprogress",
+            cancelled: "completed", // choose an appropriate fallback
+            completed: "completed",
+          };
+
+          const normalizedTime = normalizeTimeFormat(b.start_time || b.startTime || b.time || '');
+          console.log(`Mapping booking: original time=${b.start_time}, normalized=${normalizedTime}, station=${b.station}`);
+
+          return {
+            id: b.id,
+            // frontend uses `customer_name` in many places
+            customer_name: b.customer_name || b.customerName || b.user || '',
+            // booking grid expects `station` string like 'station1' or human readable names
+            station: b.station || '',
+            // timeline and grid use `start_time` / `time` - use normalized time for timeline matching
+            start_time: normalizedTime,
+            time: normalizedTime,
+            // keep original time for display purposes
+            original_start_time: b.start_time || b.startTime || b.time || '',
+            // include booking date
+            booking_date: b.booking_date || b.date || '',
+            duration: b.duration || '',
+            amount: b.amount ?? b.full_amount ?? b.price ?? 0,
+            // normalize status
+            status: (statusMap[b.status] ||b.status || 'upcoming').toLowerCase(),
+            // include other optional fields used by sampleBookings
+            user: b.customer_name || b.user || '',
+            phone: b.phone_number || b.phone || '',
+            // include extended_time for editing
+            extended_time: b.extended_time || '',
+          };
+        };
+
+        const normalized = response.data.data.map(mapBooking);
+        setApiBookings(normalized);
+      }
+    } catch (error) {
+      console.error("Error fetching bookings:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch bookings on component mount and when refreshTrigger changes
+  useEffect(() => {
+    fetchBookings();
+  }, [refreshTrigger]);
+
+  // Function to trigger refresh (to be passed to BookingForm)
+  const refreshBookings = () => {
+    setRefreshTrigger((prev) => prev + 1);
+  };
 
   const handleViewChange = (event, newView) => {
     if (newView !== null) setView(newView);
@@ -25,21 +152,40 @@ const OperatorBookingManagement = () => {
 
   // Sample stations and bookings
   const stations = [
-    { name: "PSS Station 1", subname: 'PSS Station 1', rate: "$12.5/hr" },
-    { name: "PSS Station 2", subname: 'PSS Station 1', rate: "$12.5/hr" },
-    { name: "PSS Station 1", subname: 'PSS Station 1', rate: "$12.5/hr" },
-    { name: "PSS Station 3", subname: 'PSS Station 1', rate: "$12.5/hr" },
-    { name: "8 Ball Pool(Suprime)", subname: 'Pool', rate: "$12.5/hr" },
-    { name: "8 Ball Pool(Premium)", subname: 'Pool', rate: "$12.5/hr" },
+    { name: "PSS Station 1", subname: "PSS Station 1", rate: "$12.5/hr" },
+    { name: "PSS Station 2", subname: "PSS Station 1", rate: "$12.5/hr" },
+    { name: "PSS Station 1", subname: "PSS Station 1", rate: "$12.5/hr" },
+    { name: "PSS Station 3", subname: "PSS Station 1", rate: "$12.5/hr" },
+    { name: "8 Ball Pool(Suprime)", subname: "Pool", rate: "$12.5/hr" },
+    { name: "8 Ball Pool(Premium)", subname: "Pool", rate: "$12.5/hr" },
   ];
 
   const timeSlots = [
-    "12:00", "12:30", "01:00", "01:30", "02:00", "02:30",
-    "03:00", "03:30", "04:00", "04:30", "05:00", "05:30",
-    "06:00", "06:30", "07:00", "07:30", "08:00", "08:30",
-    "09:00", "09:30", "10:00", "10:30", "11:00", "11:30",
+    "12:00",
+    "12:30",
+    "01:00",
+    "01:30",
+    "02:00",
+    "02:30",
+    "03:00",
+    "03:30",
+    "04:00",
+    "04:30",
+    "05:00",
+    "05:30",
+    "06:00",
+    "06:30",
+    "07:00",
+    "07:30",
+    "08:00",
+    "08:30",
+    "09:00",
+    "09:30",
+    "10:00",
+    "10:30",
+    "11:00",
+    "11:30",
   ];
-
 
   const statusColors = {
     upcoming: "#0CD7FF",
@@ -48,12 +194,25 @@ const OperatorBookingManagement = () => {
   };
 
   return (
-    <Box sx={{ p: 2, bgcolor: "1E1E1E", color: "#fff", minHeight: "100vh", overflowX: "hidden", ml: 0, }}>
+    <Box
+      sx={{
+        p: 2,
+        bgcolor: "1E1E1E",
+        color: "#fff",
+        minHeight: "100vh",
+        overflowX: "hidden",
+        ml: 0,
+      }}
+    >
       {/* Header */}
       <Box
         display="flex"
         flexDirection={{ xs: "column", sm: "column", md: "row" }}
-        justifyContent={{ xs: "flex-start", sm: "flex-start", md: "space-between" }}
+        justifyContent={{
+          xs: "flex-start",
+          sm: "flex-start",
+          md: "space-between",
+        }}
         alignItems={{ xs: "flex-start", sm: "flex-start", md: "center" }}
         mb={2}
       >
@@ -134,15 +293,31 @@ const OperatorBookingManagement = () => {
             >
               + New Booking
             </Button>
-            <OperatorBookingForm open={openDialog} handleClose={() => setOpenDialog(false)} />
+            <OperatorBookingForm
+              open={openDialog}
+              handleClose={() => setOpenDialog(false)}
+              onBookingCreated={refreshBookings}
+            />
           </Box>
         </Box>
       </Box>
 
-
       {/* Toolbar */}
-      <Box display="flex" flexDirection={{ xs: "column", sm: "column", md: "row" }}
-        justifyContent={{ xs: "flex-start", sm: "flex-start", md: "space-between" }} px={1.5} py={1.5} borderRadius='10px' bgcolor='#0E111B' alignItems={{ xs: "flex-start", sm: "flex-start", md: "center" }} mb={2}>
+      <Box
+        display="flex"
+        flexDirection={{ xs: "column", sm: "column", md: "row" }}
+        justifyContent={{
+          xs: "flex-start",
+          sm: "flex-start",
+          md: "space-between",
+        }}
+        px={1.5}
+        py={1.5}
+        borderRadius="10px"
+        bgcolor="#0E111B"
+        alignItems={{ xs: "flex-start", sm: "flex-start", md: "center" }}
+        mb={2}
+      >
         {/* <DatePicker
           label="Select Date"
           value={date}
@@ -168,12 +343,11 @@ const OperatorBookingManagement = () => {
               "&:hover fieldset": { borderColor: "#888" },
               "&.Mui-focused fieldset": { borderColor: "#00E5FF" },
             },
-            mb: { xs: 2, sm: 2, md: 0 }
+            mb: { xs: 2, sm: 2, md: 0 },
           }}
         />
 
         <Box display="flex" gap={3}>
-
           {/* Upcoming */}
           <Box display="flex" alignItems="center" gap={1}>
             <Box
@@ -184,7 +358,9 @@ const OperatorBookingManagement = () => {
                 bgcolor: statusColors.upcoming,
               }}
             />
-            <Typography color="#fff" fontSize={12}>Upcoming</Typography>
+            <Typography color="#fff" fontSize={12}>
+              Upcoming
+            </Typography>
           </Box>
 
           {/* Inprogress */}
@@ -197,7 +373,9 @@ const OperatorBookingManagement = () => {
                 bgcolor: statusColors.inprogress,
               }}
             />
-            <Typography color="#fff" fontSize={12}>Inprogress</Typography>
+            <Typography color="#fff" fontSize={12}>
+              Inprogress
+            </Typography>
           </Box>
 
           {/* Completed */}
@@ -210,16 +388,24 @@ const OperatorBookingManagement = () => {
                 bgcolor: statusColors.completed,
               }}
             />
-            <Typography color="#fff" fontSize={12}>Completed</Typography>
+            <Typography color="#fff" fontSize={12}>
+              Completed
+            </Typography>
           </Box>
-
         </Box>
       </Box>
 
       {/* Booking Timeline */}
       {view === "timeline" && (
-        <Paper sx={{ p: 2, borderRadius: "12px", bgcolor: '#0E111B', height: '100vh' }}>
-          <Box sx={{ display: "flex", width: "100%", }}>
+        <Paper
+          sx={{
+            p: 2,
+            borderRadius: "12px",
+            bgcolor: "#0E111B",
+            height: "100vh",
+          }}
+        >
+          <Box sx={{ display: "flex", width: "100%" }}>
             {/* Left Column (Station names) */}
             <Box
               sx={{
@@ -228,27 +414,39 @@ const OperatorBookingManagement = () => {
               }}
             >
               {/* Header */}
-              <Typography fontWeight='bold' mb={1} fontSize={14} sx={{ color: 'white' }}>
+              <Typography
+                fontWeight="bold"
+                mb={1}
+                fontSize={14}
+                sx={{ color: "white" }}
+              >
                 Stations
               </Typography>
 
               {/* Station rows */}
               {stations.map((station, i) => (
-                <Box key={i} sx={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 0.2,
-                  width: '100%',
-                  maxWidth: 185,
-                  height: 50,
-                  py: 1,
-                  px: 2,
-                  bgcolor: '#171E2A',
-                  mb: 1,
-                  borderRadius: '10px'
-                }}>
-                  <Typography fontWeight="bold" color='#FFFFFF' fontSize={12}>{station.name}</Typography>
-                  <Typography fontWeight={500} color='#9CA3AF' fontSize={12}>{station.subname}</Typography>
+                <Box
+                  key={i}
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 0.2,
+                    width: "100%",
+                    maxWidth: 185,
+                    height: 50,
+                    py: 1,
+                    px: 2,
+                    bgcolor: "#171E2A",
+                    mb: 1,
+                    borderRadius: "10px",
+                  }}
+                >
+                  <Typography fontWeight="bold" color="#FFFFFF" fontSize={12}>
+                    {station.name}
+                  </Typography>
+                  <Typography fontWeight={500} color="#9CA3AF" fontSize={12}>
+                    {station.subname}
+                  </Typography>
                   <Typography variant="caption" color="#0CD7FF" fontSize={12}>
                     {station.rate}
                   </Typography>
@@ -300,86 +498,131 @@ const OperatorBookingManagement = () => {
                 </Box>
 
                 {/* Booking Rows */}
-                {stations.map((station, i) => (
-                  <Box key={i} sx={{ display: "flex", mb: 2 }}>
-                    {timeSlots.map((slot) => {
-                      const booking = bookings.find(
-                        (b) => b.station === station.name && b.time === slot
-                      );
-                      return (
-                        // <Box
-                        //   key={slot}
-                        //   sx={{
-                        //     minWidth: 56,
-                        //     height: 56,
-                        //     border: "1px solid #222",
-                        //     bgcolor: booking ? statusColors[booking.status] : "transparent",
-                        //     display: "flex",
-                        //     alignItems: "center",
-                        //     justifyContent: "center",
-                        //     borderRadius: "8px",
-                        //     mr: 1,
-                        //   }}
-                        // >
-                        //   {booking && (
-                        //     <Typography fontSize="0.75rem" fontWeight="bold">
-                        //       {booking.user}
-                        //     </Typography>
-                        //   )}
-                        // </Box>
-                        <Box
-                          key={slot}
-                          sx={{
-                            minWidth: 56,
-                            height: 56,
-                            border: booking ? `1px solid ${statusColors[booking.status]}` : "1px solid #222", // border color from status
-                            bgcolor: booking ? statusColors[booking.status] : "transparent",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            borderRadius: "8px",
-                            mr: 1,
-                            position: "relative",
-                            overflow: "hidden",
-                            "&::after": booking
-                              ? {
-                                content: '""',
-                                position: "absolute",
-                                top: 0,
-                                left: 0,
-                                width: "100%",
-                                height: "100%",
-                                bgcolor: "rgba(0,0,0,0.8)",
-                                borderRadius: "8px",
-                              }
-                              : {},
-                          }}
-                        >
-                          {booking && (
-                            <Typography fontSize={10} fontWeight={400} zIndex={1} color='#FFFFFF'>
-                              {booking.user}
-                            </Typography>
-                          )}
-                        </Box>
+                {stations.map((station, i) => {
+                  console.log(`Rendering station ${i}: ${station.name}`);
+                  return (
+                    <Box key={i} sx={{ display: "flex", mb: 2 }}>
+                      {timeSlots.map((slot) => {
+                        // First look for a booking in the API data using improved matching
+                        const apiBooking = apiBookings.find((b) => {
+                          const stationMatch = matchStation(
+                            b.station,
+                            station.name
+                          );
+                          const timeMatch = b.start_time === slot;
 
-                      );
-                    })}
-                  </Box>
-                ))}
+                          console.log(
+                            `Checking booking ${b.id}: station="${b.station}" vs "${station.name}" (match: ${stationMatch}), time="${b.start_time}" vs "${slot}" (match: ${timeMatch})`
+                          );
+
+                          if (stationMatch && timeMatch) {
+                            console.log(
+                              `Found match: API booking ${b.id} matches slot ${slot} and station ${station.name}`
+                            );
+                          }
+
+                          return stationMatch && timeMatch;
+                        });
+
+                        // If no API booking is found, look in the dummy data
+                        const dummyBooking = dummyBookings.find(
+                          (b) => b.station === station.name && b.time === slot
+                        );
+
+                        // Prioritize API booking, fall back to dummy booking
+                        const booking = apiBooking || dummyBooking;
+
+                        return (
+                          // <Box
+                          //   key={slot}
+                          //   sx={{
+                          //     minWidth: 56,
+                          //     height: 56,
+                          //     border: "1px solid #222",
+                          //     bgcolor: booking ? statusColors[booking.status] : "transparent",
+                          //     display: "flex",
+                          //     alignItems: "center",
+                          //     justifyContent: "center",
+                          //     borderRadius: "8px",
+                          //     mr: 1,
+                          //   }}
+                          // >
+                          //   {booking && (
+                          //     <Typography fontSize="0.75rem" fontWeight="bold">
+                          //       {booking.user}
+                          //     </Typography>
+                          //   )}
+                          // </Box>
+                          <Box
+                            key={slot}
+                            sx={{
+                              minWidth: 56,
+                              height: 56,
+                              border: booking
+                                ? `1px solid ${statusColors[booking.status]}`
+                                : "1px solid #222", // border color from status
+                              bgcolor: booking
+                                ? statusColors[booking.status]
+                                : "transparent",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              borderRadius: "8px",
+                              mr: 1,
+                              position: "relative",
+                              overflow: "hidden",
+                              "&::after": booking
+                                ? {
+                                    content: '""',
+                                    position: "absolute",
+                                    top: 0,
+                                    left: 0,
+                                    width: "100%",
+                                    height: "100%",
+                                    bgcolor: "rgba(0,0,0,0.8)",
+                                    borderRadius: "8px",
+                                  }
+                                : {},
+                            }}
+                          >
+                            {booking && (
+                              <Typography
+                                fontSize={10}
+                                fontWeight={400}
+                                zIndex={1}
+                                color="#FFFFFF"
+                              >
+                                {booking.customer_name || booking.user}
+                              </Typography>
+                            )}
+                          </Box>
+                        );
+                      })}
+                    </Box>
+                  );
+                })}
               </Box>
             </Box>
           </Box>
         </Paper>
       )}
 
-      {view === "grid" &&
-        <BookingGrid />
-      }
+      {view === "grid" && (
+        <OperatorBookingGrid
+          apiBookings={apiBookings}
+          loading={loading}
+          onBookingUpdated={refreshBookings}
+        />
+      )}
 
-
-
+      {/* Loading indicator for API data */}
+      {loading && (
+        <Box position="fixed" bottom={20} right={20} zIndex={9999}>
+          <CircularProgress size={30} sx={{ color: "#0CD7FF" }} />
+        </Box>
+      )}
     </Box>
-  )
-}
+  );
+};
 
 export default OperatorBookingManagement;

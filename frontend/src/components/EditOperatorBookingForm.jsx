@@ -15,7 +15,7 @@ import {
 import CloseIcon from "@mui/icons-material/Close";
 import sucessicon from "../assets/sucessicon.png";
 
-const EditBookingFrom = ({ open, handleClose, booking, onBookingUpdated }) => {
+const EditBookingForm = ({ open, handleClose, booking, onBookingUpdated }) => {
   const [updateSuccess, setupdateSuccess] = useState(false);
 
   // Helper function to normalize time format for dropdown
@@ -159,14 +159,16 @@ const EditBookingFrom = ({ open, handleClose, booking, onBookingUpdated }) => {
         customer_name: formData.customerName,
         phone_number: formData.phoneNumber,
         station: formData.station,
-        date: formData.bookingDate,
+        date: formData.bookingDate
+          ? new Date(formData.bookingDate).toISOString().split("T")[0]
+          : null,
         start_time: formData.startTime
           ? formData.startTime.length === 5
             ? formData.startTime + ":00"
             : formData.startTime
-          : null, // ✅ backend expects "HH:mm:ss"
+          : null,
         duration: formData.duration,
-        payment_method: formData.paymentMethod || "Cash", // ✅ required field
+        payment_method: formData.paymentMethod || "Cash",
         amount: formData.amount,
         status: formData.status || "Active", // optional but safe
       };
@@ -631,7 +633,10 @@ const EditBookingFrom = ({ open, handleClose, booking, onBookingUpdated }) => {
             {/* Input */}
             <Select
               displayEmpty
-              defaultValue=""
+              value={formData.paymentMethod || ""}
+              onChange={
+                (e) => handleInputChange("paymentMethod", e.target.value) // <-- update formData
+              }
               fullWidth
               sx={{
                 backgroundColor: "#1F2937",
@@ -677,7 +682,7 @@ const EditBookingFrom = ({ open, handleClose, booking, onBookingUpdated }) => {
               </MenuItem>
               <MenuItem value="cash">Cash</MenuItem>
               <MenuItem value="card">Card</MenuItem>
-              <MenuItem value="card">Online transfer</MenuItem>
+              <MenuItem value="online">Online transfer</MenuItem>
             </Select>
           </Box>
           {/* amount section */}
@@ -693,7 +698,7 @@ const EditBookingFrom = ({ open, handleClose, booking, onBookingUpdated }) => {
               Amount
             </Typography>
             <Typography variant="h6" color="cyan">
-              LKR 400
+              LKR {formData.amount || 400}
             </Typography>
           </Box>
         </DialogContent>
@@ -786,4 +791,4 @@ const EditBookingFrom = ({ open, handleClose, booking, onBookingUpdated }) => {
   );
 };
 
-export default EditBookingFrom;
+export default EditBookingForm;

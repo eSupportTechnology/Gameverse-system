@@ -19,7 +19,7 @@ return new class extends Migration
         $table->string('duration');
         $table->string('payment_method');
         $table->decimal('amount', 10, 2);
-        $table->string('status')->default('pending'); // optional: track booking status
+        $table->enum('status', ['upcoming', 'inprogress', 'completed', 'cancelled'])->default('upcoming');
         $table->timestamps();
     });
 }
