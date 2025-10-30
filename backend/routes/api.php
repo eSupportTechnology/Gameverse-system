@@ -12,6 +12,7 @@ use App\Http\Controllers\OperatorBookingController;
 use App\Http\Controllers\NfcUserController;
 use App\Http\Controllers\OperatorPosItemController;
 use App\Http\Controllers\OperatorPosSaleController;
+use App\Http\Controllers\OperaterGameController;
 
 
 // Public route
@@ -105,3 +106,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/nfc-users/search', [NfcUserController::class, 'search']);
 });
 
+
+
+// Operator game management routes
+Route::middleware('auth:sanctum')->prefix('operator/games')->group(function () {
+    Route::get('/', [OperaterGameController::class, 'index']);
+    Route::post('/', [OperaterGameController::class, 'store']);
+    Route::get('/{id}/edit', [OperaterGameController::class, 'edit']);
+    Route::put('/{id}', [OperaterGameController::class, 'update']);
+    Route::delete('/{id}', [OperaterGameController::class, 'destroy']);
+});
