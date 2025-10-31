@@ -27,19 +27,11 @@ const statusColors = {
   completed: "#FD00B5",
 };
 
-const OperatorBookingDetails = ({
-  open,
-  handleClose,
-  booking,
-  onBookingUpdated,
-}) => {
+const OperatorBookingDetails = ({ open, handleClose, booking, onBookingUpdated }) => {
   const [cancelOpen, setCancelOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [time, setTime] = useState(15);
   const [timeUpdate, setTimeUpdate] = useState(false);
-
-  if (!booking) return null; // no data yet
-  const statusColor = statusColors[booking.status?.toLowerCase()] || "#9CA3AF";
 
   // increase time
   const handleIncrease = () => setTime((prev) => prev + 15);
@@ -105,6 +97,9 @@ const OperatorBookingDetails = ({
       alert(error.response?.data?.message || "Failed to update booking time");
     }
   };
+
+  if (!booking) return null; // no data yet
+  const statusColor = statusColors[booking.status.toLowerCase()] || "#9CA3AF";
 
   return (
     <div>
@@ -596,8 +591,7 @@ const OperatorBookingDetails = ({
               </>
             )}
 
-            {(booking.status === "upcoming" ||
-              booking.status === "pending") && (
+            {booking.status === "upcoming" && (
               <>
                 <Button
                   fullWidth

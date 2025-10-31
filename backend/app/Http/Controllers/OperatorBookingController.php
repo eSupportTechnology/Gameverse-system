@@ -21,6 +21,8 @@ class OperatorBookingController extends Controller
             'amount' => 'required|numeric',
         ]);
 
+        $validated['status'] = 'upcoming';
+
         $booking = OperatorBooking::create($validated);
 
         return response()->json([
@@ -67,7 +69,7 @@ class OperatorBookingController extends Controller
             'duration'      => 'sometimes|string|max:50',
             'payment_method'=> 'sometimes|string|max:50',
             'amount'        => 'sometimes|numeric',
-            'status'        => 'sometimes|string|max:50',
+            'status'        => 'sometimes|in:upcoming,inprogress,completed,cancelled',
         ]);
 
         // Update the booking
@@ -88,7 +90,7 @@ class OperatorBookingController extends Controller
             return response()->json(['error' => 'Booking not found'], 404);
         }
 
-        $booking->status = 'Cancelled';
+        $booking->status = 'cancelled';
         $booking->save();
 
         return response()->json(['message' => 'Booking cancelled successfully']);
