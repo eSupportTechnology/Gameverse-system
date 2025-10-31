@@ -333,7 +333,7 @@ export default function EditNFCUserDialog({
                 padding: "10px 14px",
                 borderRadius: "8px",
                 textTransform: "none",
-                fontSize: "18px",
+                fontSize: "14px",
                 width: "48%",
                 "&:hover": {
                   backgroundColor: "#444",
@@ -351,7 +351,7 @@ export default function EditNFCUserDialog({
                 padding: "10px 14px",
                 borderRadius: "8px",
                 textTransform: "none",
-                fontSize: "18px",
+                fontSize: "14px",
                 width: "48%",
                 "&:hover": {
                   background: "linear-gradient(135deg, #00b8e6 0%, #6b5bd4 100%)",
