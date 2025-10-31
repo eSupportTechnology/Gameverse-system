@@ -372,19 +372,19 @@ export default function NFCUserContent() {
             <TableRow sx={{
              borderBottom: "2px solid #464961ff", // horizontal line under header
             }}>
-              <TableCell sx={{ color: "#969aa3ff", fontWeight: "bold", border: "none", width: "25%", px: 3, fontSize: "1.18rem" }}>
+              <TableCell sx={{ color: "#969aa3ff", fontWeight: "bold", border: "none", width: "25%", px: 3}}>
                 User
               </TableCell>
-              <TableCell sx={{ color: "#969aa3ff", fontWeight: "bold", border: "none", width: "15%", px: 3, fontSize: "1.18rem" }}>
+              <TableCell sx={{ color: "#969aa3ff", fontWeight: "bold", border: "none", width: "15%", px: 3}}>
                 Card No
               </TableCell>
-              <TableCell sx={{ color: "#969aa3ff", fontWeight: "bold", border: "none", width: "20%", px: 3, fontSize: "1.18rem" }}>
+              <TableCell sx={{ color: "#969aa3ff", fontWeight: "bold", border: "none", width: "20%", px: 3}}>
                 Phone No
               </TableCell>
-              <TableCell sx={{ color: "#969aa3ff", fontWeight: "bold", border: "none", width: "10%", px: 3, fontSize: "1.18rem" }}>
+              <TableCell sx={{ color: "#969aa3ff", fontWeight: "bold", border: "none", width: "10%", px: 3}}>
                 Points
               </TableCell>
-              <TableCell sx={{ color: "#969aa3ff", fontWeight: "bold", border: "none", width: "30%", px: 3, textAlign: "center", fontSize: "1.2rem" }}>
+              <TableCell sx={{ color: "#969aa3ff", fontWeight: "bold", border: "none", width: "30%", px: 3, textAlign: "center"}}>
                 Action
               </TableCell>
             </TableRow>
@@ -394,31 +394,27 @@ export default function NFCUserContent() {
               <TableRow
                 key={user.id}
               >
-                <TableCell sx={{ border: "none", py: 2, px: 3, fontSize: "1.25rem" }}>
+                <TableCell sx={{ border: "none", py: 2, px: 3}}>
                   <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                     <Avatar
                       src={user.avatar}
                       sx={{ width: 45, height: 45 }}
                     />
-                    <Typography sx={{ color: "#e1e3e7", fontWeight: "400", fontSize: "1.25rem" }}>
+                    <Typography sx={{ color: "#e1e3e7", fontWeight: "500"}}>
                       {user.fullName}
                     </Typography>
                   </Box>
                 </TableCell>
-                <TableCell sx={{ color: "#e1e3e7", border: "none", px: 3, fontSize: "1.25rem" }}>
+                <TableCell sx={{ color: "#e1e3e7", border: "none", px: 3}}>
                   {user.cardNo}
                 </TableCell>
-                <TableCell sx={{ color: "#e1e3e7", border: "none", px: 3, fontSize: "1.25rem" }}>
+                <TableCell sx={{ color: "#e1e3e7", border: "none", px: 3}}>
                   {user.phoneNo}
                 </TableCell>
-                <TableCell sx={{ color: "#e1e3e7", border: "none", px: 3, fontSize: "1.25rem" }}>
+                <TableCell sx={{ color: "#e1e3e7", border: "none", px: 3}}>
                   {user.points}
                 </TableCell>
-                <TableCell   sx={{
-                               border: "none",
-                               px: 3,
-                               pl: 12, // 👈 adds left spacing
-                              }}>
+                <TableCell sx={{ border: "none", px: 3 }}>
                   <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
                     <IconButton
                       onClick={() => handleEditUser(user)}>
@@ -427,8 +423,8 @@ export default function NFCUserContent() {
                         src="/images/editIcon_NFCUsers.png"
                         alt="Edit"
                         style={{
-                           width: "50px",
-                           height: "50px",
+                           width: "40px",
+                           height: "40px",
                         }}
                       />
                     </IconButton>
@@ -436,12 +432,12 @@ export default function NFCUserContent() {
                     <Button
                       onClick={() => user.status === "inactive" && toggleUserStatus(user.id, user.isDummy)}
                       variant="contained"
-                      size="medium"
+                      size="small"
                       sx={{
                         backgroundColor:"#153329ff",
                         color: "#00bf63",
                         textTransform: "none",
-                        minWidth: "100px",
+                        minWidth: "80px",
                         //backgroundColor: user.status === "active" ? "#4caf50" : "#153329ff",
                         //color: user.status === "active" ? "#fff" : "#00bf63",
                         //border: user.status === "active" ? "none" : "1px solid #4caf50",
@@ -457,12 +453,12 @@ export default function NFCUserContent() {
                     <Button
                       onClick={() => user.status === "active" && toggleUserStatus(user.id, user.isDummy)}
                       variant="contained"
-                      size="medium"
+                      size="small"
                       sx={{
                         backgroundColor:"#4d1a1a",
                         color: "#e72443",
                         textTransform: "none",
-                        minWidth: "100px",
+                        minWidth: "80px",
                         //backgroundColor: user.status === "inactive" ? "#f44336" : "#4d1a1a",
                         //color: user.status === "active" ? "#e72443" : "#fff",
                         //border: user.status === "inactive" ? "none" : "1px solid #f44336",
