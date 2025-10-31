@@ -258,18 +258,47 @@ export default function NFCUserContent() {
     <Box sx={{ p: 3, pt: 6, bgcolor: "#000", minHeight: "100vh" }}>
       {/* Header */}
       <Box sx={{ mb: 4, mt: 2 }}>
-        <Typography
-          variant="h5"
+        <Box
           sx={{
-            color: "#fff",
-            fontWeight: "bold",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
             mb: 1,
-            fontSize: { xs: "1.5rem", sm: "1.75rem", md: "2rem" },
-            lineHeight: 1.2,
           }}
         >
-          NFC Card User Management
-        </Typography>
+          <Typography
+            variant="h5"
+            sx={{
+              color: "#fff",
+              fontWeight: "bold",
+              fontSize: { xs: "1.5rem", sm: "1.75rem", md: "2rem" },
+              lineHeight: 1.2,
+            }}
+          >
+            NFC Card User Management
+          </Typography>
+
+          <Button
+            variant="contained"
+            onClick={handleAddUser}
+            sx={{
+              backgroundColor: "linear-gradient(135deg, #00d4ff 0%, #7b68ee 100%)",
+              background: "linear-gradient(135deg, #00d4ff 0%, #7b68ee 100%)",
+              color: "#fff",
+              fontWeight: "bold",
+              padding: "12px 24px",
+              borderRadius: "8px",
+              textTransform: "none",
+              fontSize: "16px",
+              "&:hover": {
+                background: "linear-gradient(135deg, #00b8e6 0%, #6b5bd4 100%)",
+              },
+            }}
+          >
+            + Add User
+          </Button>
+        </Box>
+
         <Typography
           variant="subtitle1"
           sx={{
@@ -280,12 +309,12 @@ export default function NFCUserContent() {
           NFC User Control Made Easy
         </Typography>
 
-        {/* Search and Add Button */}
+        {/* Search */}
         <Box
           sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
+            backgroundColor: "#0e111b",
+            borderRadius: "12px",
+            padding: "10px",
             mb: 3,
           }}
         >
@@ -294,9 +323,9 @@ export default function NFCUserContent() {
             value={searchQuery}
             onChange={handleSearchChange}
             sx={{
-              width: "400px",
+              width: "550px",
               "& .MuiOutlinedInput-root": {
-                backgroundColor: "#1a1a1a",
+                backgroundColor: "#202939",
                 border: "1px solid #333",
                 borderRadius: "8px",
                 "& fieldset": {
@@ -326,26 +355,6 @@ export default function NFCUserContent() {
               ),
             }}
           />
-
-          <Button
-            variant="contained"
-            onClick={handleAddUser}
-            sx={{
-              backgroundColor: "linear-gradient(135deg, #00d4ff 0%, #7b68ee 100%)",
-              background: "linear-gradient(135deg, #00d4ff 0%, #7b68ee 100%)",
-              color: "#fff",
-              fontWeight: "bold",
-              padding: "12px 24px",
-              borderRadius: "8px",
-              textTransform: "none",
-              fontSize: "16px",
-              "&:hover": {
-                background: "linear-gradient(135deg, #00b8e6 0%, #6b5bd4 100%)",
-              },
-            }}
-          >
-            + Add User
-          </Button>
         </Box>
       </Box>
 
@@ -353,27 +362,29 @@ export default function NFCUserContent() {
       <TableContainer
         component={Paper}
         sx={{
-          backgroundColor: "#1a1a1a",
+          backgroundColor: "#171c2d",
           borderRadius: "12px",
           border: "1px solid #333",
         }}
       >
         <Table sx={{ tableLayout: "fixed", width: "100%" }}>
           <TableHead>
-            <TableRow sx={{ backgroundColor: "#2a2a2a" }}>
-              <TableCell sx={{ color: "#fff", fontWeight: "bold", border: "none", width: "25%", px: 3 }}>
+            <TableRow sx={{
+             borderBottom: "2px solid #464961ff", // horizontal line under header
+            }}>
+              <TableCell sx={{ color: "#969aa3ff", fontWeight: "bold", border: "none", width: "25%", px: 3, fontSize: "1.18rem" }}>
                 User
               </TableCell>
-              <TableCell sx={{ color: "#fff", fontWeight: "bold", border: "none", width: "15%", px: 3 }}>
+              <TableCell sx={{ color: "#969aa3ff", fontWeight: "bold", border: "none", width: "15%", px: 3, fontSize: "1.18rem" }}>
                 Card No
               </TableCell>
-              <TableCell sx={{ color: "#fff", fontWeight: "bold", border: "none", width: "20%", px: 3 }}>
+              <TableCell sx={{ color: "#969aa3ff", fontWeight: "bold", border: "none", width: "20%", px: 3, fontSize: "1.18rem" }}>
                 Phone No
               </TableCell>
-              <TableCell sx={{ color: "#fff", fontWeight: "bold", border: "none", width: "10%", px: 3 }}>
+              <TableCell sx={{ color: "#969aa3ff", fontWeight: "bold", border: "none", width: "10%", px: 3, fontSize: "1.18rem" }}>
                 Points
               </TableCell>
-              <TableCell sx={{ color: "#fff", fontWeight: "bold", border: "none", width: "30%", px: 3, textAlign: "center" }}>
+              <TableCell sx={{ color: "#969aa3ff", fontWeight: "bold", border: "none", width: "30%", px: 3, textAlign: "center", fontSize: "1.2rem" }}>
                 Action
               </TableCell>
             </TableRow>
@@ -382,57 +393,58 @@ export default function NFCUserContent() {
             {filteredUsers.map((user, index) => (
               <TableRow
                 key={user.id}
-                sx={{
-                  "&:hover": {
-                    backgroundColor: "#2a2a2a",
-                  },
-                }}
               >
-                <TableCell sx={{ border: "none", py: 2, px: 3 }}>
+                <TableCell sx={{ border: "none", py: 2, px: 3, fontSize: "1.25rem" }}>
                   <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                     <Avatar
                       src={user.avatar}
-                      sx={{ width: 40, height: 40 }}
+                      sx={{ width: 45, height: 45 }}
                     />
-                    <Typography sx={{ color: "#fff", fontWeight: "500" }}>
+                    <Typography sx={{ color: "#e1e3e7", fontWeight: "400", fontSize: "1.25rem" }}>
                       {user.fullName}
                     </Typography>
                   </Box>
                 </TableCell>
-                <TableCell sx={{ color: "#fff", border: "none", px: 3 }}>
+                <TableCell sx={{ color: "#e1e3e7", border: "none", px: 3, fontSize: "1.25rem" }}>
                   {user.cardNo}
                 </TableCell>
-                <TableCell sx={{ color: "#fff", border: "none", px: 3 }}>
+                <TableCell sx={{ color: "#e1e3e7", border: "none", px: 3, fontSize: "1.25rem" }}>
                   {user.phoneNo}
                 </TableCell>
-                <TableCell sx={{ color: "#fff", border: "none", px: 3 }}>
+                <TableCell sx={{ color: "#e1e3e7", border: "none", px: 3, fontSize: "1.25rem" }}>
                   {user.points}
                 </TableCell>
-                <TableCell sx={{ border: "none", px: 3 }}>
+                <TableCell   sx={{
+                               border: "none",
+                               px: 3,
+                               pl: 12, // 👈 adds left spacing
+                              }}>
                   <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
                     <IconButton
-                      onClick={() => handleEditUser(user)}
-                      sx={{
-                        backgroundColor: "#2a2a2a",
-                        color: "#fff",
-                        "&:hover": {
-                          backgroundColor: "#3a3a3a",
-                        },
-                      }}
-                    >
-                      <EditIcon fontSize="small" />
+                      onClick={() => handleEditUser(user)}>
+          
+                      <img
+                        src="/images/editIcon_NFCUsers.png"
+                        alt="Edit"
+                        style={{
+                           width: "50px",
+                           height: "50px",
+                        }}
+                      />
                     </IconButton>
 
                     <Button
                       onClick={() => user.status === "inactive" && toggleUserStatus(user.id, user.isDummy)}
                       variant="contained"
-                      size="small"
+                      size="medium"
                       sx={{
-                        backgroundColor: user.status === "active" ? "#4caf50" : "#1b4d2b",
-                        color: "#fff",
+                        backgroundColor:"#153329ff",
+                        color: "#00bf63",
                         textTransform: "none",
-                        minWidth: "80px",
-                        border: user.status === "active" ? "none" : "1px solid #4caf50",
+                        minWidth: "100px",
+                        //backgroundColor: user.status === "active" ? "#4caf50" : "#153329ff",
+                        //color: user.status === "active" ? "#fff" : "#00bf63",
+                        //border: user.status === "active" ? "none" : "1px solid #4caf50",
                         "&:hover": {
                           backgroundColor: user.status === "active" ? "#4caf50" : "#2d5f3f",
                         },
@@ -445,13 +457,15 @@ export default function NFCUserContent() {
                     <Button
                       onClick={() => user.status === "active" && toggleUserStatus(user.id, user.isDummy)}
                       variant="contained"
-                      size="small"
+                      size="medium"
                       sx={{
-                        backgroundColor: user.status === "inactive" ? "#f44336" : "#4d1a1a",
-                        color: "#fff",
+                        backgroundColor:"#4d1a1a",
+                        color: "#e72443",
                         textTransform: "none",
-                        minWidth: "80px",
-                        border: user.status === "inactive" ? "none" : "1px solid #f44336",
+                        minWidth: "100px",
+                        //backgroundColor: user.status === "inactive" ? "#f44336" : "#4d1a1a",
+                        //color: user.status === "active" ? "#e72443" : "#fff",
+                        //border: user.status === "inactive" ? "none" : "1px solid #f44336",
                         "&:hover": {
                           backgroundColor: user.status === "inactive" ? "#f44336" : "#5f2d2d",
                         },
@@ -462,12 +476,15 @@ export default function NFCUserContent() {
                     </Button>
 
                     {/* Delete button only for API-created users (not dummy data) */}
-                    {!user.isDummy && (
+                    {/* {!user.isDummy && (
                       <IconButton
                         onClick={() => handleDeleteUser(user)}
                         sx={{
                           backgroundColor: "#2a2a2a",
                           color: "#f44336",
+                          borderRadius: "6px", // Box shape instead of circle
+                          width: "30px",
+                          height: "30px", 
                           "&:hover": {
                             backgroundColor: "#3a3a3a",
                             color: "#ff5252",
@@ -476,7 +493,7 @@ export default function NFCUserContent() {
                       >
                         <DeleteIcon fontSize="small" />
                       </IconButton>
-                    )}
+                    )} */}
                   </Box>
                 </TableCell>
               </TableRow>

@@ -117,7 +117,7 @@ export default function AddNFCUserDialog({
         fullWidth
         PaperProps={{
           sx: {
-            backgroundColor: "#1a1a1a",
+            backgroundColor: "#171c2d",
             border: "1px solid #333",
             borderRadius: "12px",
           },
@@ -170,9 +170,11 @@ export default function AddNFCUserDialog({
                   helperText={errors.fullName}
                   sx={{
                     "& .MuiOutlinedInput-root": {
-                      backgroundColor: "#2a2a2a",
+                      backgroundColor: "#171c2d",
                       border: "1px solid #333",
                       borderRadius: "8px",
+                        // ✅ Add shadow here
+                      boxShadow: "0 8px 12px rgba(24, 23, 23, 0.4)",
                       "& fieldset": {
                         border: "none",
                       },
@@ -221,9 +223,11 @@ export default function AddNFCUserDialog({
                   helperText={errors.phoneNo}
                   sx={{
                     "& .MuiOutlinedInput-root": {
-                      backgroundColor: "#2a2a2a",
+                      backgroundColor: "#171c2d",
                       border: "1px solid #333",
                       borderRadius: "8px",
+                        // ✅ Add shadow here
+                      boxShadow: "0 8px 12px rgba(24, 23, 23, 0.4)",
                       "& fieldset": {
                         border: "none",
                       },
@@ -272,9 +276,11 @@ export default function AddNFCUserDialog({
                   helperText={errors.nicNumber}
                   sx={{
                     "& .MuiOutlinedInput-root": {
-                      backgroundColor: "#2a2a2a",
+                      backgroundColor: "#171c2d",
                       border: "1px solid #333",
                       borderRadius: "8px",
+                        // ✅ Add shadow here
+                      boxShadow: "0 8px 12px rgba(24, 23, 23, 0.4)", 
                       "& fieldset": {
                         border: "none",
                       },
@@ -309,7 +315,7 @@ export default function AddNFCUserDialog({
 
           <DialogActions
             sx={{
-              justifyContent: "center",
+              justifyContent: "space-between",
               gap: 2,
               pb: 3,
               px: 3,
@@ -321,11 +327,11 @@ export default function AddNFCUserDialog({
                 backgroundColor: "#333",
                 color: "#fff",
                 fontWeight: "bold",
-                padding: "12px 32px",
-                borderRadius: "25px",
+                padding: "10px 14px",
+                borderRadius: "8px",
                 textTransform: "none",
-                fontSize: "14px",
-                minWidth: "120px",
+                fontSize: "18px",
+                width: "48%",
                 "&:hover": {
                   backgroundColor: "#444",
                 },
@@ -336,14 +342,14 @@ export default function AddNFCUserDialog({
             <Button
               type="submit"
               sx={{
-                background: "linear-gradient(135deg, #00d4ff 0%, #7b68ee 100%)",
+                background: "linear-gradient(90deg, #33B2F7, #CF36E1)",
                 color: "#fff",
                 fontWeight: "bold",
-                padding: "12px 32px",
-                borderRadius: "25px",
+                padding: "10px 14px",
+                borderRadius: "8px",
                 textTransform: "none",
-                fontSize: "14px",
-                minWidth: "120px",
+                fontSize: "18px",
+                width: "48%",
                 "&:hover": {
                   background: "linear-gradient(135deg, #00b8e6 0%, #6b5bd4 100%)",
                 },
