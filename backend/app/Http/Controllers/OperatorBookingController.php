@@ -4,117 +4,154 @@ namespace App\Http\Controllers;
 
 use App\Models\OperatorBooking;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Validator;
 
 class OperatorBookingController extends Controller
 {
+
+    //Display a listing of the resource
+    public function index(): JsonResponse
+    {
+        $bookings = OperatorBooking::orderBy('created_at', 'desc')->get();
+        
+        return response()->json([
+            'success' => true,
+            'data' => $bookings
+        ]);
+    }
+
     // Create booking
     public function store(Request $request)
     {
-        $validated = $request->validate([
+        $validator =Validator::make($request->all(), [
             'customer_name' => 'required|string|max:255',
             'phone_number' => 'required|string|max:20',
-            'station' => 'required|string',
+            'station' => 'required|string|max:255',
             'date' => 'required|date',
-            'start_time' => 'required|string',
-            'duration' => 'required|string',
-            'payment_method' => 'required|string',
-            'amount' => 'required|numeric',
+            'start_time' => 'required|string|max:10',
+            'duration' => 'required|string|max:20',
+            'amount' => 'required|numeric|min:0'
         ]);
 
-        $validated['status'] = 'upcoming';
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
 
-        $booking = OperatorBooking::create($validated);
+        try {
+            $booking = OperatorBooking::create($validator->validated());
 
-        return response()->json([
-            'message' => 'Booking created successfully',
-            'data' => $booking
-        ], 201);
-    }
-
-    // Show all bookings
-    public function index()
-    {
-        return OperatorBooking::all();
+            return response()->json([
+                'success' => true,
+                'message' => 'Booking created successfully',
+                'data' => $booking
+            ], 201);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to create booking',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     // Show single booking details
-    public function show($id)
+    public function show(string $id): JsonResponse
     {
-        $booking = OperatorBooking::find($id);
-
-        if (!$booking) {
-            return response()->json(['error' => 'Booking not found'], 404);
+        try {
+            $booking = OperatorBooking::findOrFail($id);
+            
+            // Normalize booking data for frontend compatibility
+            $normalizedBooking = [
+                'id' => $booking->id,
+                'customer_name' => $booking->customer_name,
+                'phone_number' => $booking->phone_number,
+                'station' => $booking->station,
+                'date' => $booking->date ? $booking->date->format('Y-m-d') : null,
+                'start_time' => $booking->start_time,
+                'duration' => $booking->duration,
+                'extended_time' => $booking->extended_time ?? '',
+                'payment_method' => $booking->payment_method ?? '',
+                'amount' => $booking->amount,
+                'status' => $booking->status,
+                'created_at' => $booking->created_at,
+                'updated_at' => $booking->updated_at,
+            ];
+            
+            return response()->json([
+                'success' => true,
+                'data' => $normalizedBooking
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Booking not found'
+            ], 404);
         }
-
-        return response()->json($booking);
     }
 
     // Update booking details
-    public function update(Request $request, $id)
+    public function update(Request $request, string $id): JsonResponse
     {
-        // Find the booking
-        $booking = OperatorBooking::find($id);
+        try {
+            $booking = OperatorBooking::findOrFail($id);
+            
+            $validator = Validator::make($request->all(), [
+                'customer_name' => 'string|max:255',
+                'phone_number' => 'string|max:20',
+                'station' => 'string|max:255',
+                'date' => 'sometimes|date',
+                'start_time' => 'string|max:10',
+                'duration' => 'string|max:20',
+                'extended_time' => 'nullable|string|max:20',
+                'payment_method' => 'nullable|string|max:50',
+                'amount' => 'numeric|min:0',
+                'status' => 'sometimes|in:upcoming,inprogress,completed,cancelled'
+            ]);
 
-        if (!$booking) {
-            return response()->json(['message' => 'Booking not found'], 404);
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation failed',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            $booking->update($validator->validated());
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Booking updated successfully',
+                'data' => $booking
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update booking'
+            ], 500);
         }
-
-        // Validate request data (optional but recommended)
-        $validated = $request->validate([
-            'customer_name' => 'sometimes|string|max:255',
-            'phone_number'  => 'sometimes|string|max:20',
-            'station'       => 'sometimes|string|max:255',
-            'date'          => 'sometimes|date',
-            'start_time'    => 'sometimes|date_format:H:i:s',
-            'duration'      => 'sometimes|string|max:50',
-            'payment_method'=> 'sometimes|string|max:50',
-            'amount'        => 'sometimes|numeric',
-            'status'        => 'sometimes|in:upcoming,inprogress,completed,cancelled',
-        ]);
-
-        // Update the booking
-        $booking->update($validated);
-
-        return response()->json([
-            'message' => 'Booking updated successfully',
-            'data' => $booking
-        ]);
     }
 
     // Cancel booking
-    public function cancel($id)
+    public function destroy(string $id): JsonResponse
     {
-        $booking = OperatorBooking::find($id);
+        try {
+            $booking = OperatorBooking::findOrFail($id);
+            $booking->delete();
 
-        if (!$booking) {
-            return response()->json(['error' => 'Booking not found'], 404);
+            return response()->json([
+                'success' => true,
+                'message' => 'Booking deleted successfully'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to delete booking'
+            ], 500);
         }
-
-        $booking->status = 'cancelled';
-        $booking->save();
-
-        return response()->json(['message' => 'Booking cancelled successfully']);
-    }
-
-    // Update booking time
-    public function updateTime(Request $request, $id)
-    {
-        $booking = OperatorBooking::find($id);
-
-        if (!$booking) {
-            return response()->json(['error' => 'Booking not found'], 404);
-        }
-
-        $validated = $request->validate([
-            'start_time' => 'string|nullable',
-            'duration' => 'string|nullable',
-        ]);
-
-        $booking->update($validated);
-
-        return response()->json([
-            'message' => 'Booking time updated successfully',
-            'data' => $booking
-        ]);
     }
 }
