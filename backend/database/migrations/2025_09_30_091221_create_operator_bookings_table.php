@@ -17,7 +17,8 @@ return new class extends Migration
         $table->date('date');
         $table->time('start_time');
         $table->string('duration');
-        $table->string('payment_method');
+        $table->string('extended_time')->nullable();
+        $table->string('payment_method')->nullable();
         $table->decimal('amount', 10, 2);
         $table->enum('status', ['upcoming', 'inprogress', 'completed', 'cancelled'])->default('upcoming');
         $table->timestamps();

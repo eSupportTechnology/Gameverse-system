@@ -88,12 +88,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
 // Operator Booking routes
 Route::get('/operator-bookings', [OperatorBookingController::class, 'index']);
-Route::get('/operator-bookings/{id}', [OperatorBookingController::class, 'show']);
 Route::post('/operator-bookings', [OperatorBookingController::class, 'store']);
+Route::get('/operator-bookings/{id}', [OperatorBookingController::class, 'show']);
 Route::put('/operator-bookings/{id}', [OperatorBookingController::class, 'update']);
-Route::put('/operator-bookings/{id}/cancel', [OperatorBookingController::class, 'cancel']);
-Route::put('/operator-bookings/{id}/update-time', [OperatorBookingController::class, 'updateTime']);
-
+Route::delete('/operator-bookings/{id}', [OperatorBookingController::class, 'destroy']);
 
 // NFC User Management routes
 Route::middleware('auth:sanctum')->group(function () {

@@ -20,20 +20,20 @@ const EditBookingForm = ({ open, handleClose, booking, onBookingUpdated }) => {
 
   // Helper function to normalize time format for dropdown
   const normalizeTimeForDropdown = (timeString) => {
-    if (!timeString) return "";
+    if (!timeString) return '';
 
     // Handle various time formats
-    if (timeString.includes(".")) {
+    if (timeString.includes('.')) {
       // Convert "1.00" to "01:00"
-      const [hours, minutes] = timeString.split(".");
-      const paddedHours = hours.padStart(2, "0");
+      const [hours, minutes] = timeString.split('.');
+      const paddedHours = hours.padStart(2, '0');
       return `${paddedHours}:${minutes}`;
     }
 
     if (timeString.includes(":")) {
       // Already in correct format, just ensure padding
-      const [hours, minutes] = timeString.split(":");
-      const paddedHours = hours.padStart(2, "0");
+      const [hours, minutes] = timeString.split(':');
+      const paddedHours = hours.padStart(2, '0');
       return `${paddedHours}:${minutes}`;
     }
 
@@ -42,14 +42,14 @@ const EditBookingForm = ({ open, handleClose, booking, onBookingUpdated }) => {
 
   // Form state initialized with booking data
   const [formData, setFormData] = useState({
-    customerName: "",
-    phoneNumber: "",
-    station: "",
-    bookingDate: "",
-    startTime: "",
-    duration: "",
-    extendedTime: "",
-    amount: 400,
+    customerName: '',
+    phoneNumber: '',
+    station: '',
+    bookingDate: '',
+    startTime: '',
+    duration: '',
+    extendedTime: '',
+    amount: 400
   });
 
   // Update form data when booking changes
@@ -85,16 +85,14 @@ const EditBookingForm = ({ open, handleClose, booking, onBookingUpdated }) => {
       console.log("Final formatted date:", formattedDate);
 
       const newFormData = {
-        customerName: booking.customer_name || booking.user || "",
-        phoneNumber: booking.phone_number || booking.phone || "",
-        station: booking.station || "",
+        customerName: booking.customer_name || booking.user || '',
+        phoneNumber: booking.phone_number || booking.phone || '',
+        station: booking.station || '',
         bookingDate: formattedDate,
-        startTime: normalizeTimeForDropdown(
-          booking.start_time || booking.time || ""
-        ),
-        duration: booking.duration || "",
-        extendedTime: booking.extended_time || "",
-        amount: booking.amount || booking.price || 400,
+        startTime: normalizeTimeForDropdown(booking.start_time || booking.time || ''),
+        duration: booking.duration || '',
+        extendedTime: booking.extended_time || '',
+        amount: booking.amount || booking.price || 400
       };
 
       console.log("EditBookingForm: Setting form data:", newFormData);
@@ -155,22 +153,15 @@ const EditBookingForm = ({ open, handleClose, booking, onBookingUpdated }) => {
     }
 
     try {
-      const payload = {
+       const payload = {
         customer_name: formData.customerName,
         phone_number: formData.phoneNumber,
         station: formData.station,
-        date: formData.bookingDate
-          ? new Date(formData.bookingDate).toISOString().split("T")[0]
-          : null,
-        start_time: formData.startTime
-          ? formData.startTime.length === 5
-            ? formData.startTime + ":00"
-            : formData.startTime
-          : null,
+        date: formData.bookingDate,
+        start_time: formData.startTime,
         duration: formData.duration,
-        payment_method: formData.paymentMethod || "Cash",
-        amount: formData.amount,
-        status: formData.status || "Active", // optional but safe
+        extended_time: formData.extendedTime,
+        amount: formData.amount
       };
 
       console.log("Sending update payload:", payload);

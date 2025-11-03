@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import {
   Box,
   Card,
@@ -18,37 +17,16 @@ const statusColors = {
   completed: "#FD00B5",
 };
 
-const OperatorBookingGrid = ({ onBookingUpdated }) => {
-  const [apiBookings, setApiBookings] = useState([]);
-  const [loading, setLoading] = useState(false);
+const OperatorBookingGrid = ({ apiBookings = [], loading = false, onBookingUpdated }) => {
   const [open, setOpen] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
 
-  // Fetch bookings from Laravel backend
-  const fetchBookings = async () => {
-    setLoading(true);
-    try {
-      const response = await axios.get(
-        "http://127.0.0.1:8000/api/operator-bookings"
-      );
-      console.log("Fetched bookings:", response.data);
-      setApiBookings(response.data);
-    } catch (error) {
-      console.error("Error fetching bookings:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // Log API bookings for development purposes
   useEffect(() => {
-    fetchBookings();
-  }, []);
-
-  // Refresh after update
-  const handleBookingUpdated = () => {
-    fetchBookings();
-    if (onBookingUpdated) onBookingUpdated();
-  };
+    if (apiBookings.length > 0) {
+      console.log('API bookings in grid component:', apiBookings);
+    }
+  }, [apiBookings]);
 
   const handleOpen = (booking) => {
     setSelectedBooking(booking);
@@ -78,12 +56,8 @@ const OperatorBookingGrid = ({ onBookingUpdated }) => {
         }}
       >
         {/* First display API bookings */}
-        {loading ? (
-          <Typography color="#fff">Loading bookings...</Typography>
-        ) : (
-          apiBookings.map((booking, i) => {
-            const statusColor =
-              statusColors[booking.status?.toLowerCase()] || "#9CA3AF";
+        {apiBookings.map((booking, i) => {
+            const statusColor = statusColors[booking.status.toLowerCase()] || "#9CA3AF";
             return (
               <Card
                 key={`api-${booking.id}`}
@@ -152,7 +126,7 @@ const OperatorBookingGrid = ({ onBookingUpdated }) => {
                       Duration:
                     </Typography>
                     <Typography fontSize={12} color="#0CD7FF">
-                      {booking.duration} mins
+                      {booking.duration}
                     </Typography>
                   </Box>
 
@@ -185,15 +159,11 @@ const OperatorBookingGrid = ({ onBookingUpdated }) => {
                 </CardContent>
               </Card>
             );
-          })
-        )}
+          })}
 
         {/* Then display sample bookings */}
-        {apiBookings.length === 0 &&
-          !loading &&
-          sampleBookings.map((booking, i) => {
-            const statusColor =
-              statusColors[booking.status.toLowerCase()] || "#9CA3AF";
+        {sampleBookings.map((booking, i) => {
+          const statusColor = statusColors[booking.status.toLowerCase()] || "#9CA3AF";
             return (
               <Card
                 key={`sample-${i}`}
@@ -303,10 +273,10 @@ const OperatorBookingGrid = ({ onBookingUpdated }) => {
         open={open}
         handleClose={handleClose}
         booking={selectedBooking}
-        onBookingUpdated={handleBookingUpdated}
+        onBookingUpdated={onBookingUpdated}
       />
     </div>
-  );
-};
+  )
+}
 
 export default OperatorBookingGrid;

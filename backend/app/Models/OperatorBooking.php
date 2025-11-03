@@ -2,13 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class OperatorBooking extends Model
 {
-    use HasFactory;
-
     protected $fillable = [
         'customer_name',
         'phone_number',
@@ -16,8 +13,13 @@ class OperatorBooking extends Model
         'date',
         'start_time',
         'duration',
+        'extended_time',
         'payment_method',
         'amount',
-        'status',
+        'status'
+    ];
+    protected $casts = [
+        'date' => 'date',
+        'amount' => 'decimal:2'
     ];
 }

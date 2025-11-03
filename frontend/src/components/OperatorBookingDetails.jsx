@@ -28,7 +28,7 @@ const statusColors = {
 };
 
 const OperatorBookingDetails = ({ open, handleClose, booking, onBookingUpdated }) => {
-  const [cancelOpen, setCancelOpen] = useState(false);
+  const [cancelOpen, setcancelOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [time, setTime] = useState(15);
   const [timeUpdate, setTimeUpdate] = useState(false);
@@ -39,61 +39,84 @@ const OperatorBookingDetails = ({ open, handleClose, booking, onBookingUpdated }
   // decrease time (prevent negative values)
   const handleDecrease = () => setTime((prev) => Math.max(0, prev - 15));
 
+  const handleCancelOpen = () => setcancelOpen(true);
+  const handleCancelClose = () => setcancelOpen(false);
+
   // Cancel Booking
-  const handleConfirmCancel = async () => {
+   const handleConfirm = async () => {
+    if (!booking || !booking.id) {
+      console.log("No booking ID available for cancellation");
+      setcancelOpen(false);
+      return;
+    }
+
     try {
-      const res = await axios.put(
-        `http://127.0.0.1:8000/api/operator-bookings/${booking.id}/cancel`,
-        {},
-        {
+      // Update booking status to cancelled
+      const response = await axios.put(
+        `http://127.0.0.1:8000/api/operator-bookings/${booking.id}`,{
+          status: 'cancelled'
+        }, {
           headers: {
             "Content-Type": "application/json",
             Authorization: localStorage.getItem("aToken")
               ? `Bearer ${localStorage.getItem("aToken")}`
               : "",
-          },
-        }
-      );
+          }
+        });
 
-      if (res.data.success) {
-        console.log("Booking cancelled successfully:", res.data);
-        setCancelOpen(false);
-        handleClose();
-        onBookingUpdated?.();
+      if (response.data.success) {
+        console.log("Booking cancelled successfully:", response.data);
+        setcancelOpen(false);
+        handleClose(false);
+        // Call parent refresh callback instead of page reload
+         if (onBookingUpdated) {
+          onBookingUpdated();
+        } 
       }
     } catch (error) {
-      console.error("Cancel error:", error);
+      console.error("Cancel error:", error.response?.data || error);
       alert(error.response?.data?.message || "Failed to cancel booking");
+      setcancelOpen(false);
     }
   };
 
   // handle update time button
   const handleUpdateTime = async () => {
+    if (!booking || !booking.id) {
+      console.log("No booking ID available for time update");
+      return;
+    }
+
     try {
-      const res = await axios.put(
-        `http://127.0.0.1:8000/api/operator-bookings/${booking.id}/update-time`,
-        { added_time: time },
+      // Calculate the new duration based on added time
+      const updatedDuration = `${time} min`;
+
+      // Update booking duration
+      const response = await axios.put(
+        `http://127.0.0.1:8000/api/operator-bookings/${booking.id}`,
+        { duration: updatedDuration },
         {
           headers: {
             "Content-Type": "application/json",
             Authorization: localStorage.getItem("aToken")
               ? `Bearer ${localStorage.getItem("aToken")}`
               : "",
-          },
-        }
-      );
+          }
+        });
 
-      if (res.data.success) {
-        console.log("Time updated successfully:", res.data);
+      if (response.data.success) {
+        console.log("Time updated successfully:", response.data);
         setTimeUpdate(true);
-        onBookingUpdated?.();
-        setTimeout(() => setTimeUpdate(false), 2000);
+        // Call parent refresh callback instead of page reload
+        if (onBookingUpdated) {
+          onBookingUpdated();
+        }
+        setTimeout(() => {
+          setTimeUpdate(false);
+        }, 2000);
       }
     } catch (error) {
-      console.error(
-        "Error updating booking time:",
-        error.response?.data || error
-      );
+      console.error("Error updating booking time:",error.response?.data || error);
       alert(error.response?.data?.message || "Failed to update booking time");
     }
   };
@@ -556,7 +579,7 @@ const OperatorBookingDetails = ({ open, handleClose, booking, onBookingUpdated }
                 </Button>
 
                 <Button
-                  onClick={() => setCancelOpen(true)}
+                  onClick={() => setcancelOpen(true)}
                   fullWidth
                   sx={{
                     fontSize: 14,
@@ -618,7 +641,7 @@ const OperatorBookingDetails = ({ open, handleClose, booking, onBookingUpdated }
                 </Button>
 
                 <Button
-                  onClick={() => setCancelOpen(true)}
+                  onClick={() => setcancelOpen(true)}
                   fullWidth
                   sx={{
                     fontSize: 14,
@@ -662,7 +685,7 @@ const OperatorBookingDetails = ({ open, handleClose, booking, onBookingUpdated }
                 }}
               >
                 <Button
-                  onClick={() => setCancelOpen(true)}
+                  onClick={() => setcancelOpen(true)}
                   sx={{
                     width: "50%",
                     fontSize: 14,
@@ -701,8 +724,8 @@ const OperatorBookingDetails = ({ open, handleClose, booking, onBookingUpdated }
           {/* cancel box */}
           <CancelPopup
             open={cancelOpen}
-            handleCancelClose={() => setCancelOpen(false)}
-            handleConfirm={handleConfirmCancel}
+            handleCancelClose={handleCancelClose}
+            handleConfirm={handleConfirm}
           />
 
           {/* Edit booking from */}

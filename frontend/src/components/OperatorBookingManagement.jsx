@@ -16,7 +16,6 @@ import axios from "axios";
 // import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 
 const OperatorBookingManagement = () => {
-
   const [view, setView] = React.useState("timeline");
   const [date, setDate] = React.useState(new Date());
   const [openDialog, setOpenDialog] = useState(false);
@@ -26,7 +25,7 @@ const OperatorBookingManagement = () => {
 
   // Helper function to normalize time formats for matching
   const normalizeTimeFormat = (timeString) => {
-    if (!timeString) return '';
+    if (!timeString) return "";
 
     // If it's already in HH:MM format, convert to 12-hour format for matching
     const timeMatch = timeString.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?/);
@@ -69,12 +68,25 @@ const OperatorBookingManagement = () => {
       return true;
 
     // Handle PSS Station format
-    if (normalizedApi.includes('station 1') && normalizedUI.includes('station 1')) return true;
-    if (normalizedApi.includes('station 2') && normalizedUI.includes('station 2')) return true;
-    if (normalizedApi.includes('station 3') && normalizedUI.includes('station 3')) return true;
+    if (
+      normalizedApi.includes("station 1") &&
+      normalizedUI.includes("station 1")
+    )
+      return true;
+    if (
+      normalizedApi.includes("station 2") &&
+      normalizedUI.includes("station 2")
+    )
+      return true;
+    if (
+      normalizedApi.includes("station 3") &&
+      normalizedUI.includes("station 3")
+    )
+      return true;
 
     // Handle pool stations
-    if (normalizedApi.includes("pool") && normalizedUI.includes("pool")) return true;
+    if (normalizedApi.includes("pool") && normalizedUI.includes("pool"))
+      return true;
 
     return false;
   };
@@ -83,7 +95,9 @@ const OperatorBookingManagement = () => {
   const fetchBookings = async () => {
     setLoading(true);
     try {
-      const response = await axios.get("http://127.0.0.1:8000/api/operator-bookings");
+      const response = await axios.get(
+        "http://127.0.0.1:8000/api/operator-bookings"
+      );
 
       if (response.data.success) {
         console.log("API bookings fetched:", response.data.data);
@@ -98,31 +112,39 @@ const OperatorBookingManagement = () => {
             completed: "completed",
           };
 
-          const normalizedTime = normalizeTimeFormat(b.start_time || b.startTime || b.time || '');
-          console.log(`Mapping booking: original time=${b.start_time}, normalized=${normalizedTime}, station=${b.station}`);
+          const normalizedTime = normalizeTimeFormat(
+            b.start_time || b.startTime || b.time || ""
+          );
+          console.log(
+            `Mapping booking: original time=${b.start_time}, normalized=${normalizedTime}, station=${b.station}`
+          );
 
           return {
             id: b.id,
             // frontend uses `customer_name` in many places
-            customer_name: b.customer_name || b.customerName || b.user || '',
+            customer_name: b.customer_name || b.customerName || b.user || "",
             // booking grid expects `station` string like 'station1' or human readable names
-            station: b.station || '',
+            station: b.station || "",
             // timeline and grid use `start_time` / `time` - use normalized time for timeline matching
             start_time: normalizedTime,
             time: normalizedTime,
             // keep original time for display purposes
-            original_start_time: b.start_time || b.startTime || b.time || '',
+            original_start_time: b.start_time || b.startTime || b.time || "",
             // include booking date
-            booking_date: b.booking_date || b.date || '',
-            duration: b.duration || '',
+            booking_date: b.booking_date || b.date || "",
+            duration: b.duration || "",
             amount: b.amount ?? b.full_amount ?? b.price ?? 0,
             // normalize status
-            status: (statusMap[b.status] ||b.status || 'upcoming').toLowerCase(),
+            status: (
+              statusMap[b.status] ||
+              b.status ||
+              "upcoming"
+            ).toLowerCase(),
             // include other optional fields used by sampleBookings
-            user: b.customer_name || b.user || '',
-            phone: b.phone_number || b.phone || '',
+            user: b.customer_name || b.user || "",
+            phone: b.phone_number || b.phone || "",
             // include extended_time for editing
-            extended_time: b.extended_time || '',
+            extended_time: b.extended_time || "",
           };
         };
 
