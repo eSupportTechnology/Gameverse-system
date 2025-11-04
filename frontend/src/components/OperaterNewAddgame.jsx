@@ -9,7 +9,8 @@ import {
   Box,
   Typography,
   IconButton,
-  MenuItem
+  MenuItem,
+  Switch
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import CancelPopup from './CancelPopup';
@@ -27,6 +28,7 @@ const AddNewGameOperator = ({ open, handleClose, mode = "add", initialData = {},
   const [cancelOpen, setCancelOpen] = useState(false);
 
   const [title, setTitle] = useState("");
+  const [isTeamGame, setIsTeamGame] = useState(null);
   const [location, setLocation] = useState("");
   const [method, setMethod] = useState("Coin");
   const [price, setPrice] = useState("");
@@ -35,11 +37,13 @@ const AddNewGameOperator = ({ open, handleClose, mode = "add", initialData = {},
     if (open) {
       if (mode === "edit" && initialData) {
         setTitle(initialData.title ?? "");
+        setIsTeamGame(initialData.is_team_game ?? null);
         setLocation(initialData.location ?? "");
         setMethod(initialData.method ?? "Coin");
         setPrice(initialData.price ?? "");
       } else {
         setTitle("");
+        setIsTeamGame(null);
         setLocation("");
         setMethod("Coin");
         setPrice("");
@@ -76,7 +80,7 @@ const AddNewGameOperator = ({ open, handleClose, mode = "add", initialData = {},
     const trimmedLocation = location.trim();
     const trimmedMethod = method.trim();
 
-    if (!trimmedTitle || !trimmedLocation || !price) {
+    if (!trimmedTitle || !trimmedLocation || !price || isTeamGame === null) {
       toast.error("All fields are required!");
       return;
     }
@@ -85,6 +89,7 @@ const AddNewGameOperator = ({ open, handleClose, mode = "add", initialData = {},
 
     const gameData = {
       title: trimmedTitle,
+      is_team_game: isTeamGame,
       location: trimmedLocation,
       method: trimmedMethod,
       price: Number(price),
@@ -156,6 +161,7 @@ const AddNewGameOperator = ({ open, handleClose, mode = "add", initialData = {},
         </Box>
 
         <DialogContent dividers sx={{ py: 0, pb: 2 }}>
+          {/* Game Name */}
           <Box mb={1}>
             <Typography variant="body2" sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF" }}>Game Name</Typography>
             <TextField
@@ -176,6 +182,191 @@ const AddNewGameOperator = ({ open, handleClose, mode = "add", initialData = {},
             />
           </Box>
 
+         { /*  
+          <Box mb={2}>
+            <Typography
+              variant="body2"
+              sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF", mb: 0.5 }}
+            >
+              Team Game
+            </Typography>
+            <Box display="flex" gap={2}>
+             
+              <Box
+                sx={{
+                  flex: 1,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  px: 2,
+                  py: 1,
+                  borderRadius: "8px",
+                  backgroundColor: isTeamGame === true ? "#2563EB" : "#1F2937",
+                  border: "1px solid #374151",
+                  cursor: "pointer",
+                  transition: "0.2s",
+                }}
+                onClick={() => setIsTeamGame(true)}
+              >
+                <Typography sx={{ color: "white", fontSize: 14 }}>Yes</Typography>
+                <Switch
+                  checked={isTeamGame === true}
+                  onChange={() => setIsTeamGame(true)}
+                  color="info"
+                  sx={{
+                    '& .MuiSwitch-thumb': { backgroundColor: '#fff' },
+                    '& .MuiSwitch-track': { backgroundColor: isTeamGame ? '#3B82F6' : '#555' }
+                  }}
+                />
+              </Box>
+
+              
+              <Box
+                sx={{
+                  flex: 1,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  px: 2,
+                  py: 1,
+                  borderRadius: "8px",
+                  backgroundColor: isTeamGame === false ? "#2563EB" : "#1F2937",
+                  border: "1px solid #374151",
+                  cursor: "pointer",
+                  transition: "0.2s",
+                }}
+                onClick={() => setIsTeamGame(false)}
+              >
+                <Typography sx={{ color: "white", fontSize: 14 }}>No</Typography>
+                <Switch
+                  checked={isTeamGame === false}
+                  onChange={() => setIsTeamGame(false)}
+                  color="info"
+                  sx={{
+                    '& .MuiSwitch-thumb': { backgroundColor: '#fff' },
+                    '& .MuiSwitch-track': { backgroundColor: isTeamGame === false ? '#3B82F6' : '#555' }
+                  }}
+                />
+              </Box>
+            </Box>
+          </Box>
+          */}
+          {/* Team Game Section */}
+<Box mb={2}>
+  <Typography
+    variant="body2"
+    sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF", mb: 0.5 }}
+  >
+    Team Game
+  </Typography>
+
+  <Box display="flex" gap={2}>
+    {/* YES box */}
+    <Box
+      onClick={() => setIsTeamGame(true)}
+      sx={{
+        flex: 1,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        px: 2,
+        py: 1,
+        borderRadius: "8px",
+        border: "1px solid rgba(255, 255, 255, 0.2)",
+        backgroundColor: isTeamGame === true ? "rgba(255, 255, 255, 0.05)" : "transparent",
+        cursor: "pointer",
+        transition: "all 0.3s ease",
+      }}
+    >
+      <Typography
+        sx={{
+          color: isTeamGame === true ? "#ffffff" : "rgba(255, 255, 255, 0.6)",
+          fontSize: 14,
+        }}
+      >
+        Yes
+      </Typography>
+
+      {/* Circle on right */}
+      <Box
+        sx={{
+          width: 22,
+          height: 22,
+          borderRadius: "50%",
+          border: "2px solid rgba(255,255,255,0.4)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        {isTeamGame === true && (
+          <Box
+            sx={{
+              width: 10,
+              height: 10,
+              borderRadius: "50%",
+              backgroundColor: "rgba(255,255,255,0.8)",
+            }}
+          />
+        )}
+      </Box>
+    </Box>
+
+    {/* NO box */}
+    <Box
+      onClick={() => setIsTeamGame(false)}
+      sx={{
+        flex: 1,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        px: 2,
+        py: 1,
+        borderRadius: "8px",
+        border: "1px solid rgba(255, 255, 255, 0.2)",
+        backgroundColor: isTeamGame === false ? "rgba(255, 255, 255, 0.05)" : "transparent",
+        cursor: "pointer",
+        transition: "all 0.3s ease",
+      }}
+    >
+      <Typography
+        sx={{
+          color: isTeamGame === false ? "#ffffff" : "rgba(255, 255, 255, 0.6)",
+          fontSize: 14,
+        }}
+      >
+        No
+      </Typography>
+
+      {/* Circle on right */}
+      <Box
+        sx={{
+          width: 22,
+          height: 22,
+          borderRadius: "50%",
+          border: "2px solid rgba(255,255,255,0.4)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        {isTeamGame === false && (
+          <Box
+            sx={{
+              width: 10,
+              height: 10,
+              borderRadius: "50%",
+              backgroundColor: "rgba(255,255,255,0.8)",
+            }}
+          />
+        )}
+      </Box>
+    </Box>
+  </Box>
+</Box>
+
+
+          {/* Location */}
           <Box mb={1}>
             <Typography variant="body2" sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF" }}>Location</Typography>
             <TextField
@@ -196,6 +387,7 @@ const AddNewGameOperator = ({ open, handleClose, mode = "add", initialData = {},
             />
           </Box>
 
+          {/* Pricing Method */}
           <Typography variant="body2" sx={{ fontSize: 12, color: "#9CA3AF", mb: 0.5 }}>Pricing Method</Typography>
           <Box display="grid" gridTemplateColumns={{ xs: "1fr", md: "1fr 1fr" }} gap={2} mt={1}>
             <TextField
@@ -251,6 +443,7 @@ const AddNewGameOperator = ({ open, handleClose, mode = "add", initialData = {},
         <CancelPopup open={cancelOpen} handleCancelClose={handleCancelClose} handleConfirm={handleConfirmCancel} />
       </Dialog>
 
+      {/* Create Success Popup */}
       <Dialog open={createSuccess} PaperProps={{
         sx: {
           bgcolor: "#0A192F",
