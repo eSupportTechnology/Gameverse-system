@@ -7,7 +7,6 @@ import {
   Button,
   Chip,
 } from "@mui/material";
-import { sampleBookings } from "../assets/assets.js";
 import OperatorBookingDetails from "./OperatorBookingDetails.jsx";
 
 // status colors mapping
@@ -155,112 +154,6 @@ const OperatorBookingGrid = ({ apiBookings = [], loading = false, onBookingUpdat
                     onClick={() => handleOpen(booking)}
                   >
                     View Details
-                  </Button>
-                </CardContent>
-              </Card>
-            );
-          })}
-
-        {/* Then display sample bookings */}
-        {sampleBookings.map((booking, i) => {
-          const statusColor = statusColors[booking.status.toLowerCase()] || "#9CA3AF";
-            return (
-              <Card
-                key={`sample-${i}`}
-                sx={{
-                  bgcolor: "#171C2D",
-                  borderRadius: "12px",
-                  pb: 2,
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.4)",
-                  height: 238,
-                  opacity: 0.7, // Make sample bookings slightly transparent
-                }}
-              >
-                <CardContent>
-                  {/* Status Badge */}
-                  <Box display="flex" justifyContent="space-between" mb={1}>
-                    <Box
-                      sx={{
-                        width: 12,
-                        height: 12,
-                        borderRadius: "50%",
-                        bgcolor: statusColor,
-                      }}
-                    />
-                    <Chip
-                      label={booking.status}
-                      size="small"
-                      sx={{
-                        bgcolor: statusColor,
-                        color: "#FFFFFF",
-                        fontWeight: "bold",
-                        px: 2,
-                      }}
-                    />
-                  </Box>
-
-                  {/* User + Details */}
-                  <Typography
-                    variant="h6"
-                    fontSize={16}
-                    fontWeight={500}
-                    color="#fff"
-                    mb={0.5}
-                  >
-                    {booking.user}
-                  </Typography>
-                  <Typography color="#9CA3AF" fontSize={12} mb={0.5}>
-                    {booking.station}
-                  </Typography>
-                  <Typography color="#FFFFFF" fontSize={12} mb={1}>
-                    {booking.game}
-                  </Typography>
-
-                  {/* Time */}
-                  <Box display="flex" justifyContent="space-between" mb={1}>
-                    <Typography fontSize={12} color="#fff">
-                      Time:
-                    </Typography>
-                    <Typography fontSize={12} fontWeight={500} color="#fff">
-                      {booking.time}
-                    </Typography>
-                  </Box>
-
-                  {/* Price */}
-                  <Box display="flex" justifyContent="space-between" mb={1}>
-                    <Typography fontSize={12} color="#FFFFFF">
-                      Price:
-                    </Typography>
-                    <Typography fontSize={12} color="#0CD7FF">
-                      LKR {booking.price}
-                    </Typography>
-                  </Box>
-
-                  {/* Loyalty Price */}
-                  <Box display="flex" justifyContent="space-between" mb={2}>
-                    <Typography fontSize={12} color="#FFFFFF">
-                      Loyalty Price:
-                    </Typography>
-                    <Typography fontSize={12} color="#8A38F5">
-                      {booking.loyaltyPrice}
-                    </Typography>
-                  </Box>
-
-                  {/* Action Button */}
-                  <Button
-                    fullWidth
-                    variant="contained"
-                    sx={{
-                      bgcolor: "#374151",
-                      color: "#fff",
-                      borderRadius: "8px",
-                      py: 0.2,
-                      textTransform: "none",
-                      "&:hover": { bgcolor: "#1F2937" },
-                    }}
-                    onClick={() => handleOpen(booking)}
-                  >
-                    View
                   </Button>
                 </CardContent>
               </Card>

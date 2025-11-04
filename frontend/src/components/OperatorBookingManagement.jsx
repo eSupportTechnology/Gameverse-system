@@ -11,8 +11,8 @@ import {
 } from "@mui/material";
 import OperatorBookingForm from "./OperatorBookingForm";
 import OperatorBookingGrid from "./OperatorBookingGrid";
-import { bookings as dummyBookings } from "../assets/assets.js";
 import axios from "axios";
+//import { bookings as dummyBookings } from "../assets/assets.js";
 // import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 
 const OperatorBookingManagement = () => {
@@ -91,7 +91,7 @@ const OperatorBookingManagement = () => {
     return false;
   };
 
-  // Function to fetch bookings from the API
+  // Function to Fetch bookings from backend
   const fetchBookings = async () => {
     setLoading(true);
     try {
@@ -531,10 +531,12 @@ const OperatorBookingManagement = () => {
                             b.station,
                             station.name
                           );
-                          const timeMatch = b.start_time === slot;
+                          const timeMatch =
+                            normalizeTimeFormat(b.start_time) ===
+                            normalizeTimeFormat(slot);
 
                           console.log(
-                            `Checking booking ${b.id}: station="${b.station}" vs "${station.name}" (match: ${stationMatch}), time="${b.start_time}" vs "${slot}" (match: ${timeMatch})`
+                            `Checking booking ${b.id}: station="${b.station}" vs "${station.name}" (match: ${stationMatch}), time="${b.start_time}" vs "${slot}"  (normalized match: ${timeMatch})`
                           );
 
                           if (stationMatch && timeMatch) {
@@ -542,17 +544,8 @@ const OperatorBookingManagement = () => {
                               `Found match: API booking ${b.id} matches slot ${slot} and station ${station.name}`
                             );
                           }
-
                           return stationMatch && timeMatch;
                         });
-
-                        // If no API booking is found, look in the dummy data
-                        const dummyBooking = dummyBookings.find(
-                          (b) => b.station === station.name && b.time === slot
-                        );
-
-                        // Prioritize API booking, fall back to dummy booking
-                        const booking = apiBooking || dummyBooking;
 
                         return (
                           // <Box
@@ -580,11 +573,11 @@ const OperatorBookingManagement = () => {
                             sx={{
                               minWidth: 56,
                               height: 56,
-                              border: booking
-                                ? `1px solid ${statusColors[booking.status]}`
+                              border: apiBooking
+                                ? `1px solid ${statusColors[apiBooking.status]}`
                                 : "1px solid #222", // border color from status
-                              bgcolor: booking
-                                ? statusColors[booking.status]
+                              bgcolor: apiBooking
+                                ? statusColors[apiBooking.status]
                                 : "transparent",
                               display: "flex",
                               alignItems: "center",
@@ -593,7 +586,7 @@ const OperatorBookingManagement = () => {
                               mr: 1,
                               position: "relative",
                               overflow: "hidden",
-                              "&::after": booking
+                              "&::after": apiBooking
                                 ? {
                                     content: '""',
                                     position: "absolute",
@@ -607,14 +600,14 @@ const OperatorBookingManagement = () => {
                                 : {},
                             }}
                           >
-                            {booking && (
+                            {apiBooking && (
                               <Typography
                                 fontSize={10}
                                 fontWeight={400}
                                 zIndex={1}
                                 color="#FFFFFF"
                               >
-                                {booking.customer_name || booking.user}
+                                {apiBooking.customer_name || apiBooking.user}
                               </Typography>
                             )}
                           </Box>
