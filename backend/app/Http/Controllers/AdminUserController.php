@@ -84,7 +84,8 @@ class AdminUserController extends Controller
             $tempForCreator = null;
             if ($mustReset) {
                 try {
-                    Mail::to($user->email)->send(new SendTempPassword($user, $tempPasswordForEmail));
+                    Mail::to($user->email)->queue(new SendTempPassword($user, $tempPasswordForEmail));
+                    // Mail::to($user->email)->send(new SendTempPassword($user, $tempPasswordForEmail));
                 } catch (\Exception $e) {
                     Log::error('Failed to send temp password email: '.$e->getMessage());
                     

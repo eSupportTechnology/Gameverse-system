@@ -88,8 +88,8 @@ export default function AddUserDialog({
 
       // only append password if not empty
       if (formData.password && formData.password.trim() !== "") {
-      data.append("password", formData.password);
-    }
+        data.append("password", formData.password);
+      }
 
       // only append avatar if user uploaded new File
       if (formData.avatar instanceof File) {
