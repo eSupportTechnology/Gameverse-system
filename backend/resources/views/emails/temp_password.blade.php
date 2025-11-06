@@ -15,9 +15,10 @@ Here is your **temporary password**:
 
 ⚠️ For security reasons, you will be asked to reset this password at your first login.
 
-<x-mail::button :url="''">
+<x-mail::button :url="config('app.frontend_url') . '/admin/login'">
 Login to Dashboard
 </x-mail::button>
+
 
 Thanks,<br>
 {{ config('app.name') }}
