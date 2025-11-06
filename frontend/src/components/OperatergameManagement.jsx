@@ -1,5 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Box, Typography, Button, ToggleButton, ToggleButtonGroup } from '@mui/material';
+import {
+  Box,
+  Typography,
+  Button,
+  ToggleButton,
+  ToggleButtonGroup,
+  TextField,
+  InputAdornment,
+} from '@mui/material';
+import SearchIcon from '@mui/icons-material/Search';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import AddNewGameOperator from './OperaterNewAddgame.jsx';
@@ -12,62 +21,58 @@ const OperatorGamesManagement = () => {
   const [selectedGame, setSelectedGame] = useState(null);
   const [games, setGames] = useState([]);
   const [editGame, setEditGame] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const token = localStorage.getItem('oToken');
 
-  // Fetch operator games
-  /*
+  // ✅ Fetch operator games
   const fetchGames = useCallback(async () => {
     try {
-      const response = await axios.get('http://127.0.0.1:8000/api/operator/games', {
+      const res = await axios.get('http://127.0.0.1:8000/api/operator/games', {
         headers: { Authorization: `Bearer ${token}` },
       });
-      // Ensure it's always an array
-      setGames(Array.isArray(response.data) ? response.data : []);
-    } catch (error) {
-      console.error('Error fetching operator games:', error);
+
+      // ✅ Fix: Handle both array & object responses safely
+      const data = Array.isArray(res.data.data)
+        ? res.data.data
+        : Array.isArray(res.data)
+        ? res.data
+        : [];
+
+      setGames(data);
+    } catch (err) {
+      console.error('Error fetching operator games:', err);
       toast.error('Failed to fetch your games.');
+      setGames([]);
     }
   }, [token]);
-  */
-
-  const fetchGames = useCallback(async () => {
-  try {
-    const response = await axios.get('http://127.0.0.1:8000/api/operator/games', {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-
-    // response.data.data contains the array of games
-    setGames(Array.isArray(response.data.data) ? response.data.data : []);
-  } catch (error) {
-    console.error('Error fetching operator games:', error);
-    toast.error('Failed to fetch your games.');
-  }
-}, [token]);
 
   useEffect(() => {
     fetchGames();
   }, [fetchGames]);
 
   const categories = [
-    { label: 'All Games', keyword: '' },
-    { label: 'Arcade Machine', keyword: 'Arcade' },
-    { label: 'Archery', keyword: 'Archery' },
-    { label: 'Carrom', keyword: 'Carrom' },
+    { label: 'All Games' },
+    // { label: 'Arcade Machine' },
+    // { label: 'Archery' },
+    // { label: 'Carrom' },
   ];
 
+  // ✅ Filter based on category + search
   const filteredGames = games.filter((game) => {
-    if (activeCategory === 'All Games') return true;
-    if (activeCategory === 'Arcade Machine') return game.method === 'Coin';
-    if (activeCategory === 'Archery') return game.method === 'Arrow';
-    if (activeCategory === 'Carrom') return game.method === 'Per Hour';
-    return true;
+    const matchCategory =
+      activeCategory === 'All Games' ||
+      (activeCategory === 'Arcade Machine' && game.method === 'Coin') ||
+      (activeCategory === 'Archery' && game.method === 'Arrow') ||
+      (activeCategory === 'Carrom' && game.method === 'Per Hour');
+    const matchSearch = game.title?.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchCategory && matchSearch;
   });
 
   const handleSaveGame = () => {
     setEditGame(null);
     setOpenAddGame(false);
-    fetchGames(); // Refresh list after add/edit
+    fetchGames();
   };
 
   const handleEditGame = (game) => {
@@ -77,21 +82,20 @@ const OperatorGamesManagement = () => {
 
   const handleDeleteGame = async (gameId) => {
     if (!window.confirm('Are you sure you want to delete this game?')) return;
-
     try {
       await axios.delete(`http://127.0.0.1:8000/api/operator/games/${gameId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      fetchGames(); // Refresh after delete
       toast.success('Game deleted successfully!');
-    } catch (error) {
-      console.error('Error deleting game:', error);
-      toast.error(error.response?.data?.message || 'Failed to delete game.');
+      fetchGames();
+    } catch (err) {
+      console.error('Error deleting game:', err);
+      toast.error(err.response?.data?.message || 'Failed to delete game.');
     }
   };
 
   return (
-    <Box sx={{ p: 2, bgcolor: '#1E1E1E', color: '#fff', minHeight: '100vh', overflowX: 'hidden' }}>
+    <Box sx={{ p: 2, bgcolor: '#1E1E1E', color: '#fff', minHeight: '100vh' }}>
       {/* Header */}
       <Box
         display="flex"
@@ -139,17 +143,19 @@ const OperatorGamesManagement = () => {
         </Box>
       </Box>
 
-      {/* Categories */}
+      {/* ✅ Categories + Search Bar */}
       <Box
         display="flex"
         flexDirection={{ xs: 'column', md: 'row' }}
-        justifyContent="flex-start"
+        justifyContent="space-between"
+        alignItems="center"
         px={1.5}
         py={1.5}
         borderRadius="10px"
         bgcolor="#0E111B"
         mb={2}
       >
+        {/* Left: Categories */}
         <ToggleButtonGroup
           value={activeCategory}
           exclusive
@@ -158,10 +164,11 @@ const OperatorGamesManagement = () => {
             gap: 1,
             flexWrap: 'wrap',
             '& .MuiToggleButton-root': {
-              bgcolor: '#374151',
+              bgcolor: '#0CD7FF',
               color: '#9CA3AF',
               border: 'none',
-              borderRadius: '6px',
+              // borderRadius: '6px',
+              padding: '6px 27px',
               textTransform: 'none',
               fontWeight: '600',
               fontSize: 12,
@@ -179,22 +186,59 @@ const OperatorGamesManagement = () => {
             </ToggleButton>
           ))}
         </ToggleButtonGroup>
+
+        {/* Right: Search Bar */}
+        <TextField
+          variant="outlined"
+          placeholder="Search games..."
+          size="small"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          sx={{
+            width: { xs: '100%', md: 400 },
+            mt: { xs: 2, md: 0 },
+            bgcolor: '#544f5b1f',
+            input: { color: '#fff' },
+            '& .MuiOutlinedInput-notchedOutline': { borderColor: '#33B2F780' },
+            '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#0CD7FF' },
+          }}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon sx={{ color: '#9CA3AF', fontSize: 18 }} />
+              </InputAdornment>
+            ),
+          }}
+        />
       </Box>
 
       {/* Games List */}
       <Box sx={{ minHeight: '100vh', backgroundColor: '#0E111B', borderRadius: '10px', p: 2 }}>
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, justifyContent: { xs: 'center', md: 'flex-start' } }}>
-          {filteredGames.map((game) => (
-            <OperatorGameCard
-              key={game.id}
-              game={game}
-              onUpdate={fetchGames} // Refresh when child updates
-              onEdit={() => handleEditGame(game)}
-              onDelete={() => handleDeleteGame(game.id)}
-              onPlay={() => setSelectedGame(game)}
-            />
-          ))}
-        </Box>
+        {filteredGames.length > 0 ? (
+          <Box
+            sx={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: 2,
+              justifyContent: { xs: 'center', md: 'flex-start' },
+            }}
+          >
+            {filteredGames.map((game) => (
+              <OperatorGameCard
+                key={game.id}
+                game={game}
+                onUpdate={fetchGames}
+                onEdit={() => handleEditGame(game)}
+                onDelete={() => handleDeleteGame(game.id)}
+                onPlay={() => setSelectedGame(game)}
+              />
+            ))}
+          </Box>
+        ) : (
+          <Typography color="gray" textAlign="center" mt={4}>
+            No games found.
+          </Typography>
+        )}
 
         {selectedGame && <CheckoutGame game={selectedGame} handleClose={() => setSelectedGame(null)} />}
       </Box>
