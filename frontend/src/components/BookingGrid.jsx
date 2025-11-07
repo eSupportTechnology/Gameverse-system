@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Box, Card, CardContent, Typography, Button, Chip } from "@mui/material";
-import { sampleBookings } from '../assets/assets.js';
+//import { sampleBookings } from '../assets/assets.js';
 import BookingDetails from './BookingDetails.jsx';
 
 // status colors mapping
@@ -147,9 +147,9 @@ const BookingGrid = ({ apiBookings = [], loading = false, onBookingUpdated }) =>
           );
         })}
         
-        {/* Then display sample bookings */}
-        {sampleBookings.map((booking, i) => {
-          const statusColor = statusColors[booking.status.toLowerCase()] || "#9CA3AF";
+        
+        {/* {sampleBookings.map((booking, i) => {  // Then display sample bookings
+          const statusColor = statusColors[booking.status.toLowerCase()] || "#9CA3AF"; 
           return (
             <Card
               key={`sample-${i}`}
@@ -163,7 +163,7 @@ const BookingGrid = ({ apiBookings = [], loading = false, onBookingUpdated }) =>
               }}
             >
               <CardContent>
-                {/* Status Badge */}
+                
                 <Box display="flex" justifyContent="space-between" mb={1}>
                   <Box
                     sx={{
@@ -185,7 +185,6 @@ const BookingGrid = ({ apiBookings = [], loading = false, onBookingUpdated }) =>
                   />
                 </Box>
 
-                {/* User + Details */}
                 <Typography
                   variant="h6"
                   fontSize={16}
@@ -202,7 +201,7 @@ const BookingGrid = ({ apiBookings = [], loading = false, onBookingUpdated }) =>
                   {booking.game}
                 </Typography>
 
-                {/* Time */}
+               
                 <Box display="flex" justifyContent="space-between" mb={1}>
                   <Typography fontSize={12} color="#fff">
                     Time:
@@ -212,7 +211,7 @@ const BookingGrid = ({ apiBookings = [], loading = false, onBookingUpdated }) =>
                   </Typography>
                 </Box>
 
-                {/* Price */}
+                
                 <Box display="flex" justifyContent="space-between" mb={1}>
                   <Typography fontSize={12} color="#FFFFFF">
                     Price:
@@ -222,7 +221,7 @@ const BookingGrid = ({ apiBookings = [], loading = false, onBookingUpdated }) =>
                   </Typography>
                 </Box>
 
-                {/* Loyalty Price */}
+              
                 <Box display="flex" justifyContent="space-between" mb={2}>
                   <Typography fontSize={12} color="#FFFFFF">
                     Loyalty Price:
@@ -232,8 +231,6 @@ const BookingGrid = ({ apiBookings = [], loading = false, onBookingUpdated }) =>
                   </Typography>
                 </Box>
 
-
-                {/* Action Button */}
                 <Button
                   fullWidth
                   variant="contained"
@@ -255,7 +252,7 @@ const BookingGrid = ({ apiBookings = [], loading = false, onBookingUpdated }) =>
             </Card>
 
           );
-        })}
+        })} */}
 
       </Box>
 
