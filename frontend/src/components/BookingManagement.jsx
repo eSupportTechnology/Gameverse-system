@@ -11,7 +11,7 @@ import {
 } from "@mui/material";
 import BookingForm from './BookingForm';
 import BookingGrid from './BookingGrid';
-import { bookings as dummyBookings } from '../assets/assets.js';
+//import { bookings as dummyBookings } from '../assets/assets.js';
 import axios from 'axios';
 // import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 
@@ -469,13 +469,13 @@ const BookingManagement = () => {
                         }
                       );
                       
-                      // If no API booking is found, look in the dummy data
-                      const dummyBooking = dummyBookings.find(
-                        (b) => b.station === station.name && b.time === slot
-                      );
+                      // // If no API booking is found, look in the dummy data
+                      // const dummyBooking = dummyBookings.find(
+                      //   (b) => b.station === station.name && b.time === slot
+                      // );
                       
-                      // Prioritize API booking, fall back to dummy booking
-                      const booking = apiBooking || dummyBooking;
+                      // // Prioritize API booking, fall back to dummy booking
+                      // const booking = apiBooking || dummyBooking;
                       return (
                         // <Box
                         //   key={slot}
@@ -502,8 +502,8 @@ const BookingManagement = () => {
                           sx={{
                             minWidth: 56,
                             height: 56,
-                            border: booking ? `1px solid ${statusColors[booking.status]}` : "1px solid #222", // border color from status
-                            bgcolor: booking ? statusColors[booking.status] : "transparent",
+                            border: apiBooking ? `1px solid ${statusColors[apiBooking.status]}` : "1px solid #222", // border color from status
+                            bgcolor: apiBooking ? statusColors[apiBooking.status] : "transparent",
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
@@ -511,7 +511,7 @@ const BookingManagement = () => {
                             mr: 1,
                             position: "relative",
                             overflow: "hidden",
-                            "&::after": booking
+                            "&::after": apiBooking
                               ? {
                                 content: '""',
                                 position: "absolute",
@@ -525,9 +525,9 @@ const BookingManagement = () => {
                               : {},
                           }}
                         >
-                          {booking && (
+                          {apiBooking && (
                             <Typography fontSize={10} fontWeight={400} zIndex={1} color='#FFFFFF'>
-                              {booking.customer_name || booking.user}
+                              {apiBooking.customer_name || apiBooking.user}
                             </Typography>
                           )}
                         </Box>
