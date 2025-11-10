@@ -263,98 +263,141 @@ export default function NFCUserContent() {
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            mb: 1,
+            mb: 3,
           }}
         >
-          <Typography
-            variant="h5"
-            sx={{
-              color: "#fff",
-              fontWeight: "bold",
-              fontSize: { xs: "1.5rem", sm: "1.75rem", md: "2rem" },
-              lineHeight: 1.2,
-            }}
-          >
-            NFC Card User Management
-          </Typography>
+          <Box>
+            <Typography
+              variant="h4"
+              sx={{
+                color: "#fff",
+                fontWeight: "bold",
+                fontSize: "28px",
+                lineHeight: 1.2,
+                mb: 0.5,
+              }}
+            >
+              NFC Customers Management
+            </Typography>
+            <Typography
+              variant="h6"
+              sx={{
+                color: "#888",
+                fontWeight: "500",
+                fontSize: "16px",
+              }}
+            >
+              Manage NFC Customers
+            </Typography>
+          </Box>
 
           <Button
             variant="contained"
             onClick={handleAddUser}
             sx={{
-              backgroundColor: "linear-gradient(135deg, #00d4ff 0%, #7b68ee 100%)",
-              background: "linear-gradient(135deg, #00d4ff 0%, #7b68ee 100%)",
+              background: "linear-gradient(90deg, #00d4ff 0%, #ff00ffff 100%)",
               color: "#fff",
               fontWeight: "bold",
               padding: "12px 24px",
               borderRadius: "8px",
               textTransform: "none",
-              fontSize: "16px",
+              fontSize: "14px",
               "&:hover": {
-                background: "linear-gradient(135deg, #00b8e6 0%, #6b5bd4 100%)",
+                background: "linear-gradient(90deg, #00c4eb 0%, #0066e0 100%)",
+                boxShadow: "0 4px 15px rgba(0, 212, 255, 0.4)",
               },
             }}
           >
-            + Add User
+            + Add Customer
           </Button>
         </Box>
 
-        <Typography
-          variant="subtitle1"
-          sx={{
-            color: "#888",
-            mb: 3,
-          }}
-        >
-          NFC User Control Made Easy
-        </Typography>
-
-        {/* Search */}
+        {/* Filter and Search in same line with box */}
         <Box
           sx={{
-            backgroundColor: "#0e111b",
-            borderRadius: "12px",
-            padding: "10px",
+            backgroundColor: "#171c2d",
+            borderRadius: "8px",
+            border: "1px solid #333",
+            padding: "16px 20px",
             mb: 3,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
           }}
         >
-          <TextField
-            placeholder="Search"
-            value={searchQuery}
-            onChange={handleSearchChange}
-            sx={{
-              width: "550px",
-              "& .MuiOutlinedInput-root": {
-                backgroundColor: "#202939",
-                border: "1px solid #333",
-                borderRadius: "8px",
-                "& fieldset": {
-                  border: "none",
-                },
-                "&:hover fieldset": {
-                  border: "none",
-                },
-                "&.Mui-focused fieldset": {
-                  border: "1px solid #00d4ff",
-                },
-              },
-              "& .MuiInputBase-input": {
-                color: "#fff",
-                padding: "12px 14px",
-              },
-              "& .MuiInputBase-input::placeholder": {
-                color: "#888",
-                opacity: 1,
-              },
-            }}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon sx={{ color: "#888" }} />
-                </InputAdornment>
-              ),
-            }}
+          {/* All Customer Filter */}
+          <Chip 
+            label="All Customer" 
+                      sx={{
+  backgroundColor: "#0d2a38",
+  color: "#fff",
+  border: "1px solid #00b8ff",
+  textTransform: "none",
+  fontWeight: "bold",
+  px: 3,
+  py: 2,
+  borderRadius: "5px",
+  "&:hover": {
+    backgroundColor: "#10374b",
+    borderColor: "#00c8ff",
+  },
+}}
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
+           
           />
+
+          {/* Search */}
+          <Box sx={{ width: "400px" }}>
+            <TextField
+              placeholder="Search"
+              value={searchQuery}
+              onChange={handleSearchChange}
+              sx={{
+                width: "100%",
+                "& .MuiOutlinedInput-root": {
+                  backgroundColor: "#0f1322",
+                  border: "1px solid #333",
+                  borderRadius: "6px",
+                  "& fieldset": {
+                    border: "none",
+                  },
+                  "&:hover fieldset": {
+                    border: "none",
+                  },
+                  "&.Mui-focused fieldset": {
+                    border: "1px solid #00d4ff",
+                  },
+                },
+                "& .MuiInputBase-input": {
+                  color: "#fff",
+                  padding: "10px 14px",
+                  fontSize: "14px",
+                },
+                "& .MuiInputBase-input::placeholder": {
+                  color: "#666",
+                  opacity: 1,
+                },
+              }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon sx={{ color: "#666", mr: 1 }} />
+                  </InputAdornment>
+                ),
+              }}
+            />
+          </Box>
         </Box>
       </Box>
 
@@ -365,131 +408,185 @@ export default function NFCUserContent() {
           backgroundColor: "#171c2d",
           borderRadius: "12px",
           border: "1px solid #333",
+          overflow: "hidden",
         }}
       >
-        <Table sx={{ tableLayout: "fixed", width: "100%" }}>
+        <Table sx={{ minWidth: 650 }}>
           <TableHead>
-            <TableRow sx={{
-             borderBottom: "2px solid #464961ff", // horizontal line under header
-            }}>
-              <TableCell sx={{ color: "#969aa3ff", fontWeight: "bold", border: "none", width: "25%", px: 3}}>
-                User
+            <TableRow sx={{ backgroundColor: "#0f1322" }}>
+              <TableCell sx={{ 
+                color: "#969aa3", 
+                fontWeight: "bold", 
+                borderBottom: "2px solid #333",
+                py: 2,
+                fontSize: "14px",
+                width: "25%"
+              }}>
+                Customer
               </TableCell>
-              <TableCell sx={{ color: "#969aa3ff", fontWeight: "bold", border: "none", width: "15%", px: 3}}>
+              <TableCell sx={{ 
+                color: "#969aa3", 
+                fontWeight: "bold", 
+                borderBottom: "2px solid #333",
+                py: 2,
+                fontSize: "14px",
+                width: "20%"
+              }}>
+                Contact Number
+              </TableCell>
+              <TableCell sx={{ 
+                color: "#969aa3", 
+                fontWeight: "bold", 
+                borderBottom: "2px solid #333",
+                py: 2,
+                fontSize: "14px",
+                width: "15%"
+              }}>
                 Card No
               </TableCell>
-              <TableCell sx={{ color: "#969aa3ff", fontWeight: "bold", border: "none", width: "20%", px: 3}}>
-                Phone No
-              </TableCell>
-              <TableCell sx={{ color: "#969aa3ff", fontWeight: "bold", border: "none", width: "10%", px: 3}}>
+              <TableCell sx={{ 
+                color: "#969aa3", 
+                fontWeight: "bold", 
+                borderBottom: "2px solid #333",
+                py: 2,
+                fontSize: "14px",
+                width: "15%"
+              }}>
                 Points
               </TableCell>
-              <TableCell sx={{ color: "#969aa3ff", fontWeight: "bold", border: "none", width: "30%", px: 3, textAlign: "center"}}>
+              <TableCell sx={{ 
+                color: "#969aa3", 
+                fontWeight: "bold", 
+                borderBottom: "2px solid #333",
+                py: 2,
+                fontSize: "14px",
+                width: "15%"
+              }}>
+                Status
+              </TableCell>
+              <TableCell sx={{ 
+                color: "#969aa3", 
+                fontWeight: "bold", 
+                borderBottom: "2px solid #333",
+                py: 2,
+                fontSize: "14px",
+                width: "10%"
+              }}>
                 Action
               </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {filteredUsers.map((user, index) => (
+            {filteredUsers.map((user) => (
               <TableRow
                 key={user.id}
+                sx={{ 
+                  '&:last-child td, &:last-child th': { borderBottom: 0 },
+                  '&:hover': {
+                    backgroundColor: 'rgba(255, 255, 255, 0.02)',
+                  }
+                }}
               >
-                <TableCell sx={{ border: "none", py: 2, px: 3}}>
+                <TableCell sx={{ 
+                  borderBottom: "none",
+                  py: 2
+                }}>
                   <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                     <Avatar
                       src={user.avatar}
-                      sx={{ width: 45, height: 45 }}
+                      sx={{ 
+                        width: 40, 
+                        height: 40,
+                        backgroundColor: "#333"
+                      }}
                     />
-                    <Typography sx={{ color: "#e1e3e7", fontWeight: "500"}}>
+                    <Typography sx={{ 
+                      color: "#fff", 
+                      fontWeight: "500",
+                      fontSize: "14px"
+                    }}>
                       {user.fullName}
                     </Typography>
                   </Box>
                 </TableCell>
-                <TableCell sx={{ color: "#e1e3e7", border: "none", px: 3}}>
-                  {user.cardNo}
-                </TableCell>
-                <TableCell sx={{ color: "#e1e3e7", border: "none", px: 3}}>
+                <TableCell sx={{ 
+                  color: "#e1e3e7", 
+                  borderBottom: "none",
+                  py: 2,
+                  fontSize: "14px"
+                }}>
                   {user.phoneNo}
                 </TableCell>
-                <TableCell sx={{ color: "#e1e3e7", border: "none", px: 3}}>
+                <TableCell sx={{ 
+                  color: "#e1e3e7", 
+                  borderBottom: "none",
+                  py: 2,
+                  fontSize: "14px"
+                }}>
+                  {user.cardNo}
+                </TableCell>
+                <TableCell sx={{ 
+                  color: "#e1e3e7", 
+                  borderBottom: "none",
+                  py: 2,
+                  fontSize: "14px"
+                }}>
                   {user.points}
                 </TableCell>
-                <TableCell sx={{ border: "none", px: 3 }}>
+                <TableCell sx={{ 
+                  borderBottom: "none",
+                  py: 2
+                }}>
+                  <Chip
+                    label="Active"
+                    sx={{
+                      backgroundColor: "#153329",
+                      color: "#00bf63",
+                      fontWeight: "bold",
+                      fontSize: "12px",
+                      height: "24px",
+                      '& .MuiChip-label': {
+                        px: 1.5,
+                      }
+                    }}
+                  />
+                </TableCell>
+                <TableCell sx={{ 
+                  borderBottom: "none",
+                  py: 2
+                }}>
                   <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
                     <IconButton
-                      onClick={() => handleEditUser(user)}>
-          
-                      <img
-                        src="/images/editIcon_NFCUsers.png"
-                        alt="Edit"
-                        style={{
-                           width: "40px",
-                           height: "40px",
-                        }}
-                      />
+                      onClick={() => handleEditUser(user)}
+                      sx={{
+                        color: "#fffffffc",
+                        backgroundColor: "rgba(142, 142, 142, 0.74)",
+                        borderRadius: "6px",
+                        width: "32px",
+                        height: "32px",
+                        '&:hover': {
+                          backgroundColor: "rgba(0, 212, 255, 0.2)",
+                        }
+                      }}
+                    >
+                      <EditIcon fontSize="small" />
                     </IconButton>
-
-                    <Button
-                      onClick={() => user.status === "inactive" && toggleUserStatus(user.id, user.isDummy)}
-                      variant="contained"
-                      size="small"
+                    
+                    <IconButton
+                      onClick={() => handleDeleteUser(user)}
                       sx={{
-                        backgroundColor:"#153329ff",
-                        color: "#00bf63",
-                        textTransform: "none",
-                        minWidth: "80px",
-                        //backgroundColor: user.status === "active" ? "#4caf50" : "#153329ff",
-                        //color: user.status === "active" ? "#fff" : "#00bf63",
-                        //border: user.status === "active" ? "none" : "1px solid #4caf50",
-                        "&:hover": {
-                          backgroundColor: user.status === "active" ? "#4caf50" : "#2d5f3f",
-                        },
-                        cursor: user.status === "active" ? "default" : "pointer",
+                        color: "#fffffffc",
+                        backgroundColor: "rgba(142, 142, 142, 0.74)",
+                        borderRadius: "1px",
+                        width: "32px",
+                        height: "32px",
+                        '&:hover': {
+                          backgroundColor: "rgba(255, 68, 68, 0.2)",
+                        }
                       }}
                     >
-                      Enable
-                    </Button>
-
-                    <Button
-                      onClick={() => user.status === "active" && toggleUserStatus(user.id, user.isDummy)}
-                      variant="contained"
-                      size="small"
-                      sx={{
-                        backgroundColor:"#4d1a1a",
-                        color: "#e72443",
-                        textTransform: "none",
-                        minWidth: "80px",
-                        //backgroundColor: user.status === "inactive" ? "#f44336" : "#4d1a1a",
-                        //color: user.status === "active" ? "#e72443" : "#fff",
-                        //border: user.status === "inactive" ? "none" : "1px solid #f44336",
-                        "&:hover": {
-                          backgroundColor: user.status === "inactive" ? "#f44336" : "#5f2d2d",
-                        },
-                        cursor: user.status === "inactive" ? "default" : "pointer",
-                      }}
-                    >
-                      Disable
-                    </Button>
-
-                    {/* Delete button only for API-created users (not dummy data) */}
-                    {/* {!user.isDummy && (
-                      <IconButton
-                        onClick={() => handleDeleteUser(user)}
-                        sx={{
-                          backgroundColor: "#2a2a2a",
-                          color: "#f44336",
-                          borderRadius: "6px", // Box shape instead of circle
-                          width: "30px",
-                          height: "30px", 
-                          "&:hover": {
-                            backgroundColor: "#3a3a3a",
-                            color: "#ff5252",
-                          },
-                        }}
-                      >
-                        <DeleteIcon fontSize="small" />
-                      </IconButton>
-                    )} */}
+                      <DeleteIcon fontSize="small" />
+                    </IconButton>
                   </Box>
                 </TableCell>
               </TableRow>

@@ -9,6 +9,7 @@ import {
   Box,
   IconButton,
   Typography,
+  Switch,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import CancelPopup from "./CancelPopup";
@@ -58,6 +59,10 @@ export default function EditNFCUserDialog({
     }
   };
 
+  const handleSwitchChange = (e) => {
+    setFormData((prev) => ({ ...prev, activeUser: e.target.checked }));
+  };
+
   const handleOpenCancelPopup = () => setOpenCancelPopup(true);
   const handleCloseCancelPopup = () => setOpenCancelPopup(false);
 
@@ -65,7 +70,9 @@ export default function EditNFCUserDialog({
     return (
       formData.fullName !== originalData.fullName ||
       formData.phoneNo !== originalData.phoneNo ||
-      formData.nicNumber !== originalData.nicNumber
+      formData.nicNumber !== originalData.nicNumber ||
+      formData.nfcCardNumber !== originalData.nfcCardNumber ||
+      formData.activeUser !== originalData.activeUser
     );
   };
 
@@ -78,6 +85,10 @@ export default function EditNFCUserDialog({
 
   const validateForm = () => {
     const newErrors = {};
+
+    if (!formData.nfcCardNumber.trim()) {
+      newErrors.nfcCardNumber = "NFC Card Number is required";
+    }
 
     if (!formData.fullName.trim()) {
       newErrors.fullName = "Full name is required";
@@ -126,6 +137,7 @@ export default function EditNFCUserDialog({
             backgroundColor: "#171c2d",
             border: "1px solid #333",
             borderRadius: "12px",
+            backgroundImage: "none",
           },
         }}
       >
@@ -133,21 +145,24 @@ export default function EditNFCUserDialog({
           sx={{
             color: "#fff",
             fontWeight: "bold",
+            fontSize: "18px",
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
             borderBottom: "1px solid #333",
             pb: 2,
+            pt: 2.5,
+            px: 3,
           }}
         >
-          Edit New NFC User
+          Edit NFC Customer
           <IconButton
             onClick={handleClose}
             sx={{
               color: "#888",
               "&:hover": {
                 color: "#fff",
-                backgroundColor: "#333",
+                backgroundColor: "rgba(255,255,255,0.1)",
               },
             }}
           >
@@ -156,30 +171,34 @@ export default function EditNFCUserDialog({
         </DialogTitle>
 
         <form onSubmit={handleSubmit}>
-          <DialogContent sx={{ py: 3 }}>
+          <DialogContent sx={{ py: 3, px: 3 }}>
             <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-              {/* Full Name */}
+              {/* NFC Card Number */}
               <Box>
                 <Typography
                   variant="body2"
-                  sx={{ color: "#fff", mb: 1, fontWeight: "500" }}
+                  sx={{ 
+                    color: "#fff", 
+                    mb: 1, 
+                    fontWeight: "500",
+                    fontSize: "14px"
+                  }}
                 >
-                  Full Name
+                  NFC Card Number
                 </Typography>
                 <TextField
-                  name="fullName"
-                  value={formData.fullName}
+                  name="nfcCardNumber"
+                  value={formData.nfcCardNumber || ""}
                   onChange={handleChange}
-                  placeholder="Enter Full Name"
+                  placeholder="Enter NFC Card Number"
                   fullWidth
-                  error={!!errors.fullName}
-                  helperText={errors.fullName}
+                  error={!!errors.nfcCardNumber}
+                  helperText={errors.nfcCardNumber}
                   sx={{
                     "& .MuiOutlinedInput-root": {
-                      backgroundColor: "#171c2d",
+                      backgroundColor: "#0f1322",
                       border: "1px solid #333",
                       borderRadius: "8px",
-                      boxShadow: "0 8px 12px rgba(24, 23, 23, 0.4)",
                       "& fieldset": {
                         border: "none",
                       },
@@ -188,6 +207,7 @@ export default function EditNFCUserDialog({
                       },
                       "&.Mui-focused fieldset": {
                         border: "1px solid #00d4ff",
+                        boxShadow: "0 0 0 2px rgba(0, 212, 255, 0.1)",
                       },
                       "&.Mui-error fieldset": {
                         border: "1px solid #f44336",
@@ -196,15 +216,78 @@ export default function EditNFCUserDialog({
                     "& .MuiInputBase-input": {
                       color: "#fff",
                       padding: "12px 14px",
+                      fontSize: "14px",
                     },
                     "& .MuiInputBase-input::placeholder": {
-                      color: "#888",
+                      color: "#666",
                       opacity: 1,
+                      fontSize: "14px",
                     },
                     "& .MuiFormHelperText-root": {
                       color: "#f44336",
                       marginLeft: 0,
                       marginTop: "4px",
+                      fontSize: "12px",
+                    },
+                  }}
+                />
+              </Box>
+
+              {/* Full Name */}
+              <Box>
+                <Typography
+                  variant="body2"
+                  sx={{ 
+                    color: "#fff", 
+                    mb: 1, 
+                    fontWeight: "500",
+                    fontSize: "14px"
+                  }}
+                >
+                  Full Name
+                </Typography>
+                <TextField
+                  name="fullName"
+                  value={formData.fullName || ""}
+                  onChange={handleChange}
+                  placeholder="Enter Full Name"
+                  fullWidth
+                  error={!!errors.fullName}
+                  helperText={errors.fullName}
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      backgroundColor: "#0f1322",
+                      border: "1px solid #333",
+                      borderRadius: "8px",
+                      "& fieldset": {
+                        border: "none",
+                      },
+                      "&:hover fieldset": {
+                        border: "none",
+                      },
+                      "&.Mui-focused fieldset": {
+                        border: "1px solid #00d4ff",
+                        boxShadow: "0 0 0 2px rgba(0, 212, 255, 0.1)",
+                      },
+                      "&.Mui-error fieldset": {
+                        border: "1px solid #f44336",
+                      },
+                    },
+                    "& .MuiInputBase-input": {
+                      color: "#fff",
+                      padding: "12px 14px",
+                      fontSize: "14px",
+                    },
+                    "& .MuiInputBase-input::placeholder": {
+                      color: "#666",
+                      opacity: 1,
+                      fontSize: "14px",
+                    },
+                    "& .MuiFormHelperText-root": {
+                      color: "#f44336",
+                      marginLeft: 0,
+                      marginTop: "4px",
+                      fontSize: "12px",
                     },
                   }}
                 />
@@ -214,24 +297,28 @@ export default function EditNFCUserDialog({
               <Box>
                 <Typography
                   variant="body2"
-                  sx={{ color: "#fff", mb: 1, fontWeight: "500" }}
+                  sx={{ 
+                    color: "#fff", 
+                    mb: 1, 
+                    fontWeight: "500",
+                    fontSize: "14px"
+                  }}
                 >
                   Phone Number
                 </Typography>
                 <TextField
                   name="phoneNo"
-                  value={formData.phoneNo}
+                  value={formData.phoneNo || ""}
                   onChange={handleChange}
-                  placeholder="0712345645"
+                  placeholder="Enter Phone Number"
                   fullWidth
                   error={!!errors.phoneNo}
                   helperText={errors.phoneNo}
                   sx={{
                     "& .MuiOutlinedInput-root": {
-                      backgroundColor: "#171c2d",
+                      backgroundColor: "#0f1322",
                       border: "1px solid #333",
                       borderRadius: "8px",
-                      boxShadow: "0 8px 12px rgba(24, 23, 23, 0.4)",
                       "& fieldset": {
                         border: "none",
                       },
@@ -240,6 +327,7 @@ export default function EditNFCUserDialog({
                       },
                       "&.Mui-focused fieldset": {
                         border: "1px solid #00d4ff",
+                        boxShadow: "0 0 0 2px rgba(0, 212, 255, 0.1)",
                       },
                       "&.Mui-error fieldset": {
                         border: "1px solid #f44336",
@@ -248,15 +336,18 @@ export default function EditNFCUserDialog({
                     "& .MuiInputBase-input": {
                       color: "#fff",
                       padding: "12px 14px",
+                      fontSize: "14px",
                     },
                     "& .MuiInputBase-input::placeholder": {
-                      color: "#888",
+                      color: "#666",
                       opacity: 1,
+                      fontSize: "14px",
                     },
                     "& .MuiFormHelperText-root": {
                       color: "#f44336",
                       marginLeft: 0,
                       marginTop: "4px",
+                      fontSize: "12px",
                     },
                   }}
                 />
@@ -266,24 +357,28 @@ export default function EditNFCUserDialog({
               <Box>
                 <Typography
                   variant="body2"
-                  sx={{ color: "#fff", mb: 1, fontWeight: "500" }}
+                  sx={{ 
+                    color: "#fff", 
+                    mb: 1, 
+                    fontWeight: "500",
+                    fontSize: "14px"
+                  }}
                 >
                   NIC Number
                 </Typography>
                 <TextField
                   name="nicNumber"
-                  value={formData.nicNumber}
+                  value={formData.nicNumber || ""}
                   onChange={handleChange}
-                  placeholder="Enter NIC number"
+                  placeholder="Enter NIC Number"
                   fullWidth
                   error={!!errors.nicNumber}
                   helperText={errors.nicNumber}
                   sx={{
                     "& .MuiOutlinedInput-root": {
-                      backgroundColor: "#171c2d",
+                      backgroundColor: "#0f1322",
                       border: "1px solid #333",
                       borderRadius: "8px",
-                      boxShadow: "0 8px 12px rgba(24, 23, 23, 0.4)",
                       "& fieldset": {
                         border: "none",
                       },
@@ -292,6 +387,7 @@ export default function EditNFCUserDialog({
                       },
                       "&.Mui-focused fieldset": {
                         border: "1px solid #00d4ff",
+                        boxShadow: "0 0 0 2px rgba(0, 212, 255, 0.1)",
                       },
                       "&.Mui-error fieldset": {
                         border: "1px solid #f44336",
@@ -300,15 +396,57 @@ export default function EditNFCUserDialog({
                     "& .MuiInputBase-input": {
                       color: "#fff",
                       padding: "12px 14px",
+                      fontSize: "14px",
                     },
                     "& .MuiInputBase-input::placeholder": {
-                      color: "#888",
+                      color: "#666",
                       opacity: 1,
+                      fontSize: "14px",
                     },
                     "& .MuiFormHelperText-root": {
                       color: "#f44336",
                       marginLeft: 0,
                       marginTop: "4px",
+                      fontSize: "12px",
+                    },
+                  }}
+                />
+              </Box>
+
+              {/* Active User Switch - Text and toggle next to each other */}
+              <Box sx={{ 
+                display: 'flex', 
+                alignItems: 'center',
+                gap: 2,
+                mt: 1
+              }}>
+                <Typography sx={{ 
+                  color: "#fff", 
+                  fontSize: "14px", 
+                  fontWeight: "500" 
+                }}>
+                  Active User
+                </Typography>
+                <Switch
+                  checked={formData.activeUser !== undefined ? formData.activeUser : true}
+                  onChange={handleSwitchChange}
+                  sx={{
+                    "& .MuiSwitch-switchBase": {
+                      color: "#666",
+                      "&.Mui-checked": {
+                        color: "#00d4ff",
+                        "&:hover": {
+                          backgroundColor: "rgba(0, 212, 255, 0.1)",
+                        },
+                      },
+                    },
+                    "& .MuiSwitch-track": {
+                      backgroundColor: "#444",
+                      opacity: 1,
+                    },
+                    "& .Mui-checked + .MuiSwitch-track": {
+                      backgroundColor: "#00d4ff",
+                      opacity: 0.5,
                     },
                   }}
                 />
@@ -320,23 +458,25 @@ export default function EditNFCUserDialog({
             sx={{
               justifyContent: "space-between",
               gap: 2,
-              pb: 3,
-              px: 3,
+              p: 3,
+              pt: 1,
             }}
           >
             <Button
               onClick={handleClose}
               sx={{
-                backgroundColor: "#333",
+                backgroundColor: "transparent",
                 color: "#fff",
                 fontWeight: "bold",
-                padding: "10px 14px",
+                padding: "12px 24px",
                 borderRadius: "8px",
                 textTransform: "none",
                 fontSize: "14px",
+                border: "1px solid #333",
                 width: "48%",
                 "&:hover": {
-                  backgroundColor: "#444",
+                  backgroundColor: "rgba(255,255,255,0.05)",
+                  border: "1px solid #444",
                 },
               }}
             >
@@ -345,20 +485,22 @@ export default function EditNFCUserDialog({
             <Button
               type="submit"
               sx={{
-                background: "linear-gradient(90deg, #33B2F7, #CF36E1)",
+                background: "linear-gradient(90deg, #00d4ff 0%, #e100ffff 100%)",
                 color: "#fff",
                 fontWeight: "bold",
-                padding: "10px 14px",
+                padding: "12px 24px",
                 borderRadius: "8px",
                 textTransform: "none",
                 fontSize: "14px",
                 width: "48%",
+                boxShadow: "0 4px 15px rgba(0, 212, 255, 0.3)",
                 "&:hover": {
-                  background: "linear-gradient(135deg, #00b8e6 0%, #6b5bd4 100%)",
+                  background: "linear-gradient(90deg, #00c4eb 0%, #d100e6 100%)",
+                  boxShadow: "0 6px 20px rgba(0, 212, 255, 0.4)",
                 },
               }}
             >
-              Update
+              Update Customer
             </Button>
           </DialogActions>
         </form>
