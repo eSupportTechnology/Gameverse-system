@@ -24,10 +24,10 @@ import EditNFCUserDialog from "./EditNFCUserDialog";
 import DeleteConfirmDialog from "./DeleteConfirmDialog";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { nfcUsers } from "../assets/assets";
+//import { nfcUsers } from "../assets/assets";
 
 export default function NFCUserContent() {
-  const [users, setUsers] = useState(nfcUsers);
+  const [users, setUsers] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -57,7 +57,7 @@ export default function NFCUserContent() {
 
       if (res.data.success) {
         // Merge backend data with dummy data
-        const backendUsers = res.data.data.map(user => {
+        const backendUsers = res.data.data.map((user) => {
           // Format phone number: XXX XXXXXXX
           let formattedPhone = user.phone_no;
           if (user.phone_no) {
@@ -76,27 +76,30 @@ export default function NFCUserContent() {
             status: user.status,
             avatar: user.avatar || "/images/user.png",
             nicNumber: user.nic_number,
-            isDummy: false, // Mark as API user (can be deleted)
+            // isDummy: false, // Mark as API user (can be deleted)
           };
         });
         
-        // Mark dummy users
-        const dummyUsersWithFlag = nfcUsers.map(user => ({
-          ...user,
-          isDummy: true, // Mark as dummy (cannot be deleted)
-        }));
+      //   // Mark dummy users
+      //   const dummyUsersWithFlag = nfcUsers.map(user => ({
+      //     ...user,
+      //     isDummy: true, // Mark as dummy (cannot be deleted)
+      //   }));
         
-        // Combine dummy users with backend users
-        setUsers([...dummyUsersWithFlag, ...backendUsers]);
+      //   // Combine dummy users with backend users
+      //   setUsers([...dummyUsersWithFlag, ...backendUsers]);
+
+        setUsers(backendUsers);
       }
     } catch (err) {
       console.error("Error fetching NFC users:", err);
-      // Keep dummy data if fetch fails with flag
-      const dummyUsersWithFlag = nfcUsers.map(user => ({
-        ...user,
-        isDummy: true,
-      }));
-      setUsers(dummyUsersWithFlag);
+      toast.error("Failed to load users from backend");
+      // // Keep dummy data if fetch fails with flag
+      // const dummyUsersWithFlag = nfcUsers.map(user => ({
+      //   ...user,
+      //   isDummy: true,
+      // }));
+      // setUsers(dummyUsersWithFlag);
     }
   };
 
@@ -132,12 +135,12 @@ export default function NFCUserContent() {
 
   const handleDeleteUser = (user) => {
     // Only allow deletion of API users (not dummy data)
-    if (!user.isDummy) {
+    //if (!user.isDummy) {
       setDeleteUserId(user.id);
       setDeleteDialogOpen(true);
-    } else {
-      toast.error("Cannot delete dummy data users");
-    }
+    // } else {
+    //   toast.error("Cannot delete dummy data users");
+    // }
   };
 
   const confirmDelete = async () => {
@@ -226,9 +229,9 @@ export default function NFCUserContent() {
     }
   };
 
-  const toggleUserStatus = async (userId, isDummy) => {
+  const toggleUserStatus = async (userId) => {
     // Only allow status toggle for API users (not dummy data)
-    if (!isDummy) {
+    //if (!isDummy) {
       try {
         const token = localStorage.getItem("aToken");
         const res = await axios.patch(
@@ -249,9 +252,9 @@ export default function NFCUserContent() {
         console.error("Error toggling user status:", err);
         toast.error(err.response?.data?.message || "Failed to update user status");
       }
-    } else {
-      toast.error("Cannot modify dummy data users");
-    }
+    // } else {
+    //   toast.error("Cannot modify dummy data users");
+    // }
   };
 
   return (
