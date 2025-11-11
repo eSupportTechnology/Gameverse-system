@@ -8,9 +8,8 @@ import {
   Button,
   MenuItem,
   Box,
-  InputAdornment,
-  IconButton,
   Typography,
+  // Divider,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import CancelPopup from "./CancelPopup";
@@ -42,41 +41,66 @@ export default function AddStationDialog({
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // here neeed to type as like placeholder "HH:MM"
-  const handleTimeChange = (e) => {
+  const handleTimeChange = (e, type = "normal") => {
     const val = e.target.value;
-    setFormData((prev) => ({ ...prev, time: val })); // keep raw "HH:MM"
+    if (type === "vr") {
+      setFormData((prev) => ({ ...prev, vrTime: val }));
+    } else {
+      setFormData((prev) => ({ ...prev, time: val }));
+    }
+  };
+
+  const handlePriceChange = (e, type = "normal") => {
+    const val = e.target.value;
+    if (type === "vr") {
+      setFormData((prev) => ({ ...prev, vrPrice: val }));
+    } else {
+      setFormData((prev) => ({ ...prev, price: val }));
+    }
   };
 
   const handleSubmit = async () => {
+    
     const timePattern = /^([0-1]?[0-9]|2[0-3]):([0-5][0-9])$/;
-
+    
     if (!timePattern.test(formData.time)) {
       alert("Please enter valid time in HH:MM format (e.g., 00:30)");
       return;
     }
 
-    // convert to integer minutes for backend
+    
     const [hours, minutes] = formData.time.split(":").map(Number);
     const totalMinutes = hours * 60 + minutes;
 
-    const payload = { ...formData, time: totalMinutes };
+    
+    let vrTotalMinutes = 0;
+    if (formData.vrTime && timePattern.test(formData.vrTime)) {
+      const [vrHours, vrMinutes] = formData.vrTime.split(":").map(Number);
+      vrTotalMinutes = vrHours * 60 + vrMinutes;
+    }
 
-    // Store the payload and show success dialog
+    const payload = { 
+      ...formData, 
+      time: totalMinutes,
+      vrTime: formData.vrTime ? vrTotalMinutes : null,
+      vrPrice: formData.vrPrice || null
+    };
+
+    
     setPendingPayload({ payload, isEditing });
     setCreateSuccess(true);
   };
 
-  // Handle success dialog OK button - actually create the station
+  
   const handleSuccessOk = async () => {
     if (!pendingPayload) return;
 
     const { payload, isEditing: editing } = pendingPayload;
 
     try {
-      const token = localStorage.getItem("aToken"); // get token dynamically
+      const token = localStorage.getItem("aToken");
       const url = editing
-        ? `http://127.0.0.1:8000/api/stations/${formData.id}` // update endpoint
+        ? `http://127.0.0.1:8000/api/stations/${formData.id}`
         : "http://127.0.0.1:8000/api/stations";
 
       const method = editing ? "put" : "post";
@@ -84,7 +108,7 @@ export default function AddStationDialog({
       const res = await axios({
         method,
         url,
-        data: payload, // send integer here ✅
+        data: payload,
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -93,11 +117,10 @@ export default function AddStationDialog({
 
       toast.success(`Station ${editing ? "updated" : "created"} successfully!`);
 
-      // Pass the station data properly to parent
       if (editing) {
-        onCreate(res.data.data || res.data, true); // true = updated
+        onCreate(res.data.data || res.data, true);
       } else {
-        onCreate(res.data.data || res.data, false); // false = created
+        onCreate(res.data.data || res.data, false);
       }
 
       setFormData({
@@ -105,9 +128,11 @@ export default function AddStationDialog({
         type: "",
         location: "",
         price: "",
+        vrPrice: "",
+        time: "",
+        vrTime: "",
         status: "Available",
         bookings: 0,
-        time: "",
       });
       
       setCreateSuccess(false);
@@ -149,15 +174,16 @@ export default function AddStationDialog({
           }}
         >
           {isEditing ? "Edit Station" : "Add New Station"}
-          <IconButton onClick={handleOpenCancelPopup} sx={{ color: "#94a3b8" }}>
-            <CloseIcon />
-          </IconButton>
+          <CloseIcon 
+            onClick={handleOpenCancelPopup} 
+            sx={{ color: "#94a3b8", cursor: "pointer" }} 
+          />
         </DialogTitle>
 
         <DialogContent>
           {/* Station Name */}
           <Typography variant="subtitle2" sx={{ color: "#94a3b8", mb: 0.5 }}>
-            Station Name
+            Station name
           </Typography>
           <TextField
             select
@@ -191,9 +217,9 @@ export default function AddStationDialog({
             <MenuItem value="Car Racing Simulator">Car Racing Simulator</MenuItem>
           </TextField>
 
-          {/* Station Type */}
+          {/* Category */}
           <Typography variant="subtitle2" sx={{ color: "#94a3b8", mb: 0.5 }}>
-            Station Type
+            Category
           </Typography>
           <TextField
             select
@@ -222,7 +248,7 @@ export default function AddStationDialog({
             <MenuItem value="Simulator">Simulator</MenuItem>
           </TextField>
 
-          {/* Location, Price, Time */}
+          {/* Location */}
           <Typography variant="subtitle2" sx={{ color: "#94a3b8", mb: 0.5 }}>
             Location
           </Typography>
@@ -232,50 +258,35 @@ export default function AddStationDialog({
             value={formData.location}
             onChange={handleChange}
             fullWidth
-            placeholder="Zone A, Zone B, etc."
+            placeholder="Zone A, Zone B, ...etc"
             sx={{
-              mb: 2,
+              mb: 3,
               backgroundColor: "#1e293b4b",
               "& .MuiOutlinedInput-root": {
                 borderRadius: "10px",
                 color: "white",
                 "& fieldset": { borderColor: "#334155" },
+                "&:hover fieldset": { borderColor: "#ffffff71" },
+              },
+              "& .MuiInputBase-input::placeholder": {
+                color: "#94a3b8",
+                opacity: 1,
               },
             }}
           />
 
-          <Box display="flex" gap={2} mt={1}>
-            {/* Price */}
-            <Box flex={1}>
-              <Typography variant="subtitle2" sx={{ color: "#94a3b8", mb: 0.5 }}>
-                Price
-              </Typography>
-              <TextField
-                margin="dense"
-                name="price"
-                type="number"
-                value={formData.price}
-                onChange={handleChange}
-                fullWidth
-                placeholder="0000"
-                InputProps={{
-                  startAdornment: <InputAdornment position="start">LKR</InputAdornment>,
-                }}
-                sx={{
-                  backgroundColor: "#1e293b4b",
-                  "& .MuiOutlinedInput-root": {
-                    borderRadius: "10px",
-                    color: "white",
-                    "& fieldset": { borderColor: "#334155" },
-                  },
-                }}
-              />
-            </Box>
+          {/* <Divider sx={{ borderColor: "#334155", mb: 3 }} /> */}
 
+          {/* Pricing Details (Normal) */}
+          <Typography variant="subtitle2" sx={{ color: "#94a3b8", mb: 1 }}>
+            Pricing Details (Normal)
+          </Typography>
+          
+          <Box display="flex" gap={2} mb={3}>
             {/* Time */}
             <Box flex={1}>
               <Typography variant="subtitle2" sx={{ color: "#f3f4f5ff", mb: 0.5 }}>
-                Time (HH:MM)
+                Time
               </Typography>
               <TextField
                 select
@@ -324,13 +335,139 @@ export default function AddStationDialog({
                 }}
               >
                 <MenuItem value="" disabled>
-                  <em style={{ color: "#94a3b8", fontStyle: "normal" }}>Select time</em>
+                  <em style={{ color: "#94a3b8", fontStyle: "normal" }}>30 Min</em>
                 </MenuItem>
-                <MenuItem value="12:00">12:00</MenuItem>
-                <MenuItem value="01:00">01:00</MenuItem>
-                <MenuItem value="01:30">01:30</MenuItem>
-                <MenuItem value="02:00">02:00</MenuItem>
+                <MenuItem value="00:30">30 Min</MenuItem>
+                <MenuItem value="01:00">1 Hour</MenuItem>
+                <MenuItem value="01:30">1 Hour 30 Min</MenuItem>
+                <MenuItem value="02:00">2 Hours</MenuItem>
               </TextField>
+            </Box>
+
+            {/* Price */}
+            <Box flex={1}>
+              <Typography variant="subtitle2" sx={{ color: "#f3f4f5ff", mb: 0.5 }}>
+                Price
+              </Typography>
+              <TextField
+                margin="dense"
+                name="price"
+                type="number"
+                value={formData.price}
+                onChange={handlePriceChange}
+                fullWidth
+                placeholder="LKR 000"
+                sx={{
+                  backgroundColor: "#1e293b4b",
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: "10px",
+                    color: "white",
+                    "& fieldset": { borderColor: "#334155" },
+                    "&:hover fieldset": { borderColor: "#ffffff71" },
+                  },
+                  "& .MuiInputBase-input::placeholder": {
+                    color: "#94a3b8",
+                    opacity: 1,
+                  },
+                }}
+              />
+            </Box>
+          </Box>
+
+          {/* Pricing Details (+VR) */}
+          <Typography variant="subtitle2" sx={{ color: "#94a3b8", mb: 1 }}>
+            Pricing Details (+VR)
+          </Typography>
+          
+          <Box display="flex" gap={2}>
+            {/* Time */}
+            <Box flex={1}>
+              <Typography variant="subtitle2" sx={{ color: "#f3f4f5ff", mb: 0.5 }}>
+                Time
+              </Typography>
+              <TextField
+                select
+                margin="dense"
+                name="vrTime"
+                value={formData.vrTime || ""}
+                onChange={(e) => handleTimeChange(e, "vr")}
+                fullWidth
+                displayEmpty
+                sx={{
+                  backgroundColor: "#1e293b4b",
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: "10px",
+                    backgroundColor: "#1e293b4b",
+                    color: "white",
+                    "& fieldset": { borderColor: "#809fcd4e" },
+                    "&:hover fieldset": { borderColor: "#ffffff71" },
+                    "& .MuiSelect-icon": { color: "#fff" },
+                  },
+                  "& .MuiSelect-select:empty": { color: "#94a3b8" },
+                }}
+                SelectProps={{
+                  displayEmpty: true,
+                  MenuProps: {
+                    PaperProps: {
+                      sx: {
+                        backgroundColor: "#1e293b",
+                        color: "white",
+                        maxHeight: 300,
+                        "& .MuiMenuItem-root": {
+                          backgroundColor: "#1e293b",
+                          borderBottom: "1px solid #334155",
+                          "&:hover": {
+                            backgroundColor: "#334155",
+                          },
+                          "&.Mui-selected": {
+                            backgroundColor: "#334155",
+                            "&:hover": {
+                              backgroundColor: "#475569",
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                }}
+              >
+                <MenuItem value="" disabled>
+                  <em style={{ color: "#94a3b8", fontStyle: "normal" }}>30 Min</em>
+                </MenuItem>
+                <MenuItem value="00:30">30 Min</MenuItem>
+                <MenuItem value="01:00">1 Hour</MenuItem>
+                <MenuItem value="01:30">1 Hour 30 Min</MenuItem>
+                <MenuItem value="02:00">2 Hours</MenuItem>
+              </TextField>
+            </Box>
+
+            {/* Price */}
+            <Box flex={1}>
+              <Typography variant="subtitle2" sx={{ color: "#f3f4f5ff", mb: 0.5 }}>
+                Price
+              </Typography>
+              <TextField
+                margin="dense"
+                name="vrPrice"
+                type="number"
+                value={formData.vrPrice}
+                onChange={(e) => handlePriceChange(e, "vr")}
+                fullWidth
+                placeholder="LKR 000"
+                sx={{
+                  backgroundColor: "#1e293b4b",
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: "10px",
+                    color: "white",
+                    "& fieldset": { borderColor: "#334155" },
+                    "&:hover fieldset": { borderColor: "#ffffff71" },
+                  },
+                  "& .MuiInputBase-input::placeholder": {
+                    color: "#94a3b8",
+                    opacity: 1,
+                  },
+                }}
+              />
             </Box>
           </Box>
         </DialogContent>
