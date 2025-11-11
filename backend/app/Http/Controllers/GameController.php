@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Game; // Make sure you have a Game model
+use App\Models\Game;
 
 class GameController extends Controller
 {
@@ -32,6 +32,7 @@ class GameController extends Controller
             'location' => 'required|string|max:255',
             'method' => 'required|string|max:50',
             'price' => 'required|numeric|min:0',
+            'team_game' => 'required|boolean', // Now required to always get true/false
         ]);
 
         $game = Game::create([
@@ -39,6 +40,7 @@ class GameController extends Controller
             'location' => $request->location,
             'method' => $request->method,
             'price' => $request->price,
+            'team_game' => $request->team_game,
         ]);
 
         return response()->json($game, 201);
@@ -57,14 +59,16 @@ class GameController extends Controller
             'location' => 'required|string|max:255',
             'method' => 'required|string|max:50',
             'price' => 'required|numeric|min:0',
+            'team_game' => 'required|boolean',
         ]);
 
-        $game->update([
-            'title' => $request->title,
-            'location' => $request->location,
-            'method' => $request->method,
-            'price' => $request->price,
-        ]);
+        // Update fields individually
+        $game->title = $request->title;
+        $game->location = $request->location;
+        $game->method = $request->method;
+        $game->price = $request->price;
+        $game->team_game = $request->team_game; // works for true/false
+        $game->save();
 
         return response()->json($game);
     }
