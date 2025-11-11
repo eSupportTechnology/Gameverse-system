@@ -34,7 +34,7 @@ const GameCard = ({ game: initialGame, onPlay, onUpdate }) => {
         bgcolor: "#171C2D",
         borderRadius: 0,
         boxShadow: "0px 0px 4px rgba(0,0,0,0.4)",
-        width: 260,
+        width: 280,
         height: 185,
         transition: "0.3s",
       }}

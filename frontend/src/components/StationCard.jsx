@@ -129,49 +129,48 @@ const StationCard = ({ station, onEdit, onToggleStatus }) => {
           </Typography>
 
           {/* ===== Time + Price (single background box) ===== */}
-<Box
-  sx={{
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    mb: 1,
-    backgroundColor: "rgba(37,99,235,0.15)", // single background
-    px: 2,
-    py: 0.4,
-    borderRadius: "6px",
-  }}
->
-  {/* Time */}
-  <Typography sx={{ color: "#e5e5e6", fontSize: "0.7rem" }}>
-    {station.time} min
-  </Typography>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              mb: 1,
+              backgroundColor: "rgba(210, 216, 229, 0.1)", // single background
+              px: 2,
+              py: 0.4,
+              borderRadius: "6px",
+            }}
+          >
+            {/* Time */}
+            <Typography sx={{ color: "#e5e5e6", fontSize: "0.7rem" }}>
+              {station.time} min
+            </Typography>
 
-  {/* Price */}
-  <Typography
-    sx={{
-      color: "#38BDF8",
-      fontWeight: 700,
-      fontSize: "0.8rem",
-    }}
-  >
-    LKR {station.price}
-  </Typography>
-</Box>
+            {/* Price */}
+            <Typography
+              sx={{
+                color: "#b3b6b8ff",
+                fontWeight: 700,
+                fontSize: "0.8rem",
+              }}
+            >
+              LKR {station.price}
+            </Typography>
+          </Box>
 
-
-          {/* ===== Location + Bookings ===== */}
-          <Typography sx={{ color: "#9CA3AF", fontSize: "0.8rem", mb: 0.3 }}>
-            Location:{" "}
-            <span style={{ color: "#fff", fontWeight: 600 }}>
+          {/* ===== Location + Bookings (Two-column layout) ===== */}
+          <Box sx={{ display: "flex", justifyContent: "space-between", mb: 0.3 }}>
+            <Typography sx={{ color: "#9CA3AF", fontSize: "0.8rem" }}>Location:</Typography>
+            <Typography sx={{ color: "#fff", fontWeight: 600, fontSize: "0.8rem" }}>
               {station.location}
-            </span>
-          </Typography>
-          <Typography sx={{ color: "#9CA3AF", fontSize: "0.8rem", mb: 1 }}>
-            No of bookings:{" "}
-            <span style={{ color: "#fff", fontWeight: 600 }}>
+            </Typography>
+          </Box>
+          <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
+            <Typography sx={{ color: "#9CA3AF", fontSize: "0.8rem" }}>No of bookings:</Typography>
+            <Typography sx={{ color: "#fff", fontWeight: 600, fontSize: "0.8rem" }}>
               {station.bookings}
-            </span>
-          </Typography>
+            </Typography>
+          </Box>
         </Box>
 
         {/* ===== Bottom Button ===== */}
