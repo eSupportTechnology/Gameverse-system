@@ -33,18 +33,18 @@ export default function EditNFCUserDialog({
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    
+
     // For phone number, format automatically
     if (name === "phoneNo") {
       // Remove all non-numeric characters
       const numericValue = value.replace(/\D/g, "");
-      
+
       // Format: add space after 3rd digit
       let formattedValue = numericValue;
       if (numericValue.length > 3) {
         formattedValue = numericValue.slice(0, 3) + " " + numericValue.slice(3, 10);
       }
-      
+
       // Limit to 10 digits (excluding space)
       if (numericValue.length <= 10) {
         setFormData((prev) => ({ ...prev, [name]: formattedValue }));
@@ -52,7 +52,7 @@ export default function EditNFCUserDialog({
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
     }
-    
+
     // Clear error when user starts typing
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: "" }));
@@ -110,7 +110,7 @@ export default function EditNFCUserDialog({
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     if (validateForm()) {
       onUpdate(formData);
       setErrors({});
@@ -134,8 +134,8 @@ export default function EditNFCUserDialog({
         fullWidth
         PaperProps={{
           sx: {
-            backgroundColor: "#171c2d",
-            border: "1px solid #333",
+            backgroundColor: "#111827",
+            border: "1px solid #374151",
             borderRadius: "12px",
             backgroundImage: "none",
           },
@@ -149,9 +149,7 @@ export default function EditNFCUserDialog({
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            borderBottom: "1px solid #333",
-            pb: 2,
-            pt: 2.5,
+            py: 1,
             px: 3,
           }}
         >
@@ -171,15 +169,15 @@ export default function EditNFCUserDialog({
         </DialogTitle>
 
         <form onSubmit={handleSubmit}>
-          <DialogContent sx={{ py: 3, px: 3 }}>
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+          <DialogContent sx={{ py: 1, px: 3 }}>
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
               {/* NFC Card Number */}
               <Box>
                 <Typography
                   variant="body2"
-                  sx={{ 
-                    color: "#fff", 
-                    mb: 1, 
+                  sx={{
+                    color: "#fff",
+                    mb: 1,
                     fontWeight: "500",
                     fontSize: "14px"
                   }}
@@ -237,9 +235,9 @@ export default function EditNFCUserDialog({
               <Box>
                 <Typography
                   variant="body2"
-                  sx={{ 
-                    color: "#fff", 
-                    mb: 1, 
+                  sx={{
+                    color: "#fff",
+                    mb: 1,
                     fontWeight: "500",
                     fontSize: "14px"
                   }}
@@ -297,9 +295,9 @@ export default function EditNFCUserDialog({
               <Box>
                 <Typography
                   variant="body2"
-                  sx={{ 
-                    color: "#fff", 
-                    mb: 1, 
+                  sx={{
+                    color: "#fff",
+                    mb: 1,
                     fontWeight: "500",
                     fontSize: "14px"
                   }}
@@ -357,9 +355,9 @@ export default function EditNFCUserDialog({
               <Box>
                 <Typography
                   variant="body2"
-                  sx={{ 
-                    color: "#fff", 
-                    mb: 1, 
+                  sx={{
+                    color: "#fff",
+                    mb: 1,
                     fontWeight: "500",
                     fontSize: "14px"
                   }}
@@ -414,16 +412,16 @@ export default function EditNFCUserDialog({
               </Box>
 
               {/* Active User Switch - Text and toggle next to each other */}
-              <Box sx={{ 
-                display: 'flex', 
+              <Box sx={{
+                display: 'flex',
                 alignItems: 'center',
                 gap: 2,
-                mt: 1
+                mt: 0.5
               }}>
-                <Typography sx={{ 
-                  color: "#fff", 
-                  fontSize: "14px", 
-                  fontWeight: "500" 
+                <Typography sx={{
+                  color: "#fff",
+                  fontSize: "14px",
+                  fontWeight: "500"
                 }}>
                   Active User
                 </Typography>
@@ -459,11 +457,11 @@ export default function EditNFCUserDialog({
               justifyContent: "space-between",
               gap: 2,
               p: 3,
-              pt: 1,
+              pt: 0.5,
             }}
           >
             <Button
-              onClick={handleClose}
+              onClick={handleOpenCancelPopup}
               sx={{
                 backgroundColor: "transparent",
                 color: "#fff",
@@ -475,7 +473,7 @@ export default function EditNFCUserDialog({
                 border: "1px solid #333",
                 width: "48%",
                 "&:hover": {
-                  backgroundColor: "rgba(255,255,255,0.05)",
+                  backgroundColor: "#374151",
                   border: "1px solid #444",
                 },
               }}
@@ -485,7 +483,7 @@ export default function EditNFCUserDialog({
             <Button
               type="submit"
               sx={{
-                background: "linear-gradient(90deg, #00d4ff 0%, #e100ffff 100%)",
+                background: "linear-gradient(90deg, #00d4ff 0%, #8A38F5 100%)",
                 color: "#fff",
                 fontWeight: "bold",
                 padding: "12px 24px",
@@ -493,14 +491,14 @@ export default function EditNFCUserDialog({
                 textTransform: "none",
                 fontSize: "14px",
                 width: "48%",
-                boxShadow: "0 4px 15px rgba(0, 212, 255, 0.3)",
+                // boxShadow: "0 4px 15px rgba(0, 212, 255, 0.3)",
                 "&:hover": {
-                  background: "linear-gradient(90deg, #00c4eb 0%, #d100e6 100%)",
-                  boxShadow: "0 6px 20px rgba(0, 212, 255, 0.4)",
+                  background: "linear-gradient(90deg, #8A38F5 0%, #00d4ff 100%)",
+                  // boxShadow: "0 6px 20px rgba(0, 212, 255, 0.4)",
                 },
               }}
             >
-              Update Customer
+              Update 
             </Button>
           </DialogActions>
         </form>
@@ -509,7 +507,7 @@ export default function EditNFCUserDialog({
       <CancelPopup
         open={openCancelPopup}
         onClose={handleCloseCancelPopup}
-        onConfirm={handleConfirmCancel}
+        handleConfirm={handleConfirmCancel}
       />
     </>
   );

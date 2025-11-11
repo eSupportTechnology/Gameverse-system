@@ -200,28 +200,20 @@ export default function UserManagement() {
           }}
         >
           <Button
-           
-           sx={{
-  backgroundColor: "#0d2a38",
-  color: "#fff",
-  border: "1px solid #00b8ff",
-  textTransform: "none",
-  fontWeight: "bold",
-  px: 5,
-  borderRadius: "5px",
-  "&:hover": {
-    backgroundColor: "#10374b",
-    borderColor: "#00c8ff",
-  },
-}}
-           
-           
-           
-           
-           
-           
-           
-           
+
+            sx={{
+              backgroundColor: "#0d2a38",
+              color: "#fff",
+              border: "1px solid #00b8ff",
+              textTransform: "none",
+              fontWeight: "bold",
+              px: 5,
+              borderRadius: "5px",
+              "&:hover": {
+                backgroundColor: "#10374b",
+                borderColor: "#00c8ff",
+              },
+            }}
           >
             All Users
           </Button>

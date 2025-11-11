@@ -24,6 +24,7 @@ import EditNFCUserDialog from "./EditNFCUserDialog";
 import DeleteConfirmDialog from "./DeleteConfirmDialog";
 import axios from "axios";
 import { toast } from "react-toastify";
+import UpdateSuccessDialog from "./UpdateSuccess";
 //import { nfcUsers } from "../assets/assets";
 
 export default function NFCUserContent() {
@@ -34,6 +35,7 @@ export default function NFCUserContent() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [deleteUserId, setDeleteUserId] = useState(null);
+  const [successDialogOpen, setSuccessDialogOpen] = useState(false);
 
   const [formData, setFormData] = useState({
     fullName: "",
@@ -66,7 +68,7 @@ export default function NFCUserContent() {
               formattedPhone = numericPhone.slice(0, 3) + " " + numericPhone.slice(3);
             }
           }
-          
+
           return {
             id: user.id,
             fullName: user.full_name,
@@ -79,15 +81,15 @@ export default function NFCUserContent() {
             // isDummy: false, // Mark as API user (can be deleted)
           };
         });
-        
-      //   // Mark dummy users
-      //   const dummyUsersWithFlag = nfcUsers.map(user => ({
-      //     ...user,
-      //     isDummy: true, // Mark as dummy (cannot be deleted)
-      //   }));
-        
-      //   // Combine dummy users with backend users
-      //   setUsers([...dummyUsersWithFlag, ...backendUsers]);
+
+        //   // Mark dummy users
+        //   const dummyUsersWithFlag = nfcUsers.map(user => ({
+        //     ...user,
+        //     isDummy: true, // Mark as dummy (cannot be deleted)
+        //   }));
+
+        //   // Combine dummy users with backend users
+        //   setUsers([...dummyUsersWithFlag, ...backendUsers]);
 
         setUsers(backendUsers);
       }
@@ -136,8 +138,8 @@ export default function NFCUserContent() {
   const handleDeleteUser = (user) => {
     // Only allow deletion of API users (not dummy data)
     //if (!user.isDummy) {
-      setDeleteUserId(user.id);
-      setDeleteDialogOpen(true);
+    setDeleteUserId(user.id);
+    setDeleteDialogOpen(true);
     // } else {
     //   toast.error("Cannot delete dummy data users");
     // }
@@ -184,7 +186,7 @@ export default function NFCUserContent() {
         toast.success("User created successfully");
         setAddDialogOpen(false);
         fetchUsers(); // Refresh the list
-        
+
         // Reset form
         setFormData({
           fullName: "",
@@ -219,7 +221,7 @@ export default function NFCUserContent() {
       );
 
       if (res.data.success) {
-        toast.success("User updated successfully");
+        setSuccessDialogOpen(true);
         setEditDialogOpen(false);
         fetchUsers(); // Refresh the list
       }
@@ -232,26 +234,26 @@ export default function NFCUserContent() {
   const toggleUserStatus = async (userId) => {
     // Only allow status toggle for API users (not dummy data)
     //if (!isDummy) {
-      try {
-        const token = localStorage.getItem("aToken");
-        const res = await axios.patch(
-          `http://127.0.0.1:8000/api/nfc-users/${userId}/toggle-status`,
-          {},
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        if (res.data.success) {
-          toast.success("User status updated successfully");
-          fetchUsers(); // Refresh the list
+    try {
+      const token = localStorage.getItem("aToken");
+      const res = await axios.patch(
+        `http://127.0.0.1:8000/api/nfc-users/${userId}/toggle-status`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
-      } catch (err) {
-        console.error("Error toggling user status:", err);
-        toast.error(err.response?.data?.message || "Failed to update user status");
+      );
+
+      if (res.data.success) {
+        toast.success("User status updated successfully");
+        fetchUsers(); // Refresh the list
       }
+    } catch (err) {
+      console.error("Error toggling user status:", err);
+      toast.error(err.response?.data?.message || "Failed to update user status");
+    }
     // } else {
     //   toast.error("Cannot modify dummy data users");
     // }
@@ -318,10 +320,9 @@ export default function NFCUserContent() {
         {/* Filter and Search in same line with box */}
         <Box
           sx={{
-            backgroundColor: "#171c2d",
+            backgroundColor: "#0E111B",
             borderRadius: "8px",
-            border: "1px solid #333",
-            padding: "16px 20px",
+            padding: "8px 20px",
             mb: 3,
             display: "flex",
             alignItems: "center",
@@ -329,41 +330,28 @@ export default function NFCUserContent() {
           }}
         >
           {/* All Customer Filter */}
-          <Chip 
-            label="All Customer" 
-                      sx={{
-  backgroundColor: "#0d2a38",
-  color: "#fff",
-  border: "1px solid #00b8ff",
-  textTransform: "none",
-  fontWeight: "bold",
-  px: 3,
-  py: 2,
-  borderRadius: "5px",
-  "&:hover": {
-    backgroundColor: "#10374b",
-    borderColor: "#00c8ff",
-  },
-}}
-           
-           
-           
-           
-           
-           
-           
-           
-           
-           
-           
-           
-           
+          <Chip
+            label="All Customer"
+            sx={{
+              backgroundColor: "#0d2a38",
+              color: "#0CD7FF",
+              border: "1px solid #00b8ff",
+              textTransform: "none",
+              fontWeight: "bold",
+              px: 3,
+              py: 3,
+              borderRadius: "5px",
+              "&:hover": {
+                backgroundColor: "#10374b",
+                borderColor: "#00c8ff",
+              },
+            }}
           />
 
           {/* Search */}
           <Box sx={{ width: "400px" }}>
             <TextField
-              placeholder="Search"
+              placeholder="Search customers..."
               value={searchQuery}
               onChange={handleSearchChange}
               sx={{
@@ -385,7 +373,7 @@ export default function NFCUserContent() {
                 "& .MuiInputBase-input": {
                   color: "#fff",
                   padding: "10px 14px",
-                  fontSize: "14px",
+                  fontSize: "16px",
                 },
                 "& .MuiInputBase-input::placeholder": {
                   color: "#666",
@@ -404,200 +392,211 @@ export default function NFCUserContent() {
         </Box>
       </Box>
 
-      {/* Users Table */}
-      <TableContainer
-        component={Paper}
-        sx={{
-          backgroundColor: "#171c2d",
-          borderRadius: "12px",
-          border: "1px solid #333",
-          overflow: "hidden",
-        }}
-      >
-        <Table sx={{ minWidth: 650 }}>
-          <TableHead>
-            <TableRow sx={{ backgroundColor: "#0f1322" }}>
-              <TableCell sx={{ 
-                color: "#969aa3", 
-                fontWeight: "bold", 
-                borderBottom: "2px solid #333",
-                py: 2,
-                fontSize: "14px",
-                width: "25%"
-              }}>
-                Customer
-              </TableCell>
-              <TableCell sx={{ 
-                color: "#969aa3", 
-                fontWeight: "bold", 
-                borderBottom: "2px solid #333",
-                py: 2,
-                fontSize: "14px",
-                width: "20%"
-              }}>
-                Contact Number
-              </TableCell>
-              <TableCell sx={{ 
-                color: "#969aa3", 
-                fontWeight: "bold", 
-                borderBottom: "2px solid #333",
-                py: 2,
-                fontSize: "14px",
-                width: "15%"
-              }}>
-                Card No
-              </TableCell>
-              <TableCell sx={{ 
-                color: "#969aa3", 
-                fontWeight: "bold", 
-                borderBottom: "2px solid #333",
-                py: 2,
-                fontSize: "14px",
-                width: "15%"
-              }}>
-                Points
-              </TableCell>
-              <TableCell sx={{ 
-                color: "#969aa3", 
-                fontWeight: "bold", 
-                borderBottom: "2px solid #333",
-                py: 2,
-                fontSize: "14px",
-                width: "15%"
-              }}>
-                Status
-              </TableCell>
-              <TableCell sx={{ 
-                color: "#969aa3", 
-                fontWeight: "bold", 
-                borderBottom: "2px solid #333",
-                py: 2,
-                fontSize: "14px",
-                width: "10%"
-              }}>
-                Action
-              </TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {filteredUsers.map((user) => (
-              <TableRow
-                key={user.id}
-                sx={{ 
-                  '&:last-child td, &:last-child th': { borderBottom: 0 },
-                  '&:hover': {
-                    backgroundColor: 'rgba(255, 255, 255, 0.02)',
-                  }
-                }}
-              >
-                <TableCell sx={{ 
-                  borderBottom: "none",
-                  py: 2
-                }}>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                    <Avatar
-                      src={user.avatar}
-                      sx={{ 
-                        width: 40, 
-                        height: 40,
-                        backgroundColor: "#333"
-                      }}
-                    />
-                    <Typography sx={{ 
-                      color: "#fff", 
-                      fontWeight: "500",
-                      fontSize: "14px"
-                    }}>
-                      {user.fullName}
-                    </Typography>
-                  </Box>
-                </TableCell>
-                <TableCell sx={{ 
-                  color: "#e1e3e7", 
-                  borderBottom: "none",
+      <Box sx={{
+        backgroundColor: "#0E111B",
+        p: 1,
+        borderRadius: '8px',
+      }}>
+        {/* Users Table */}
+        <TableContainer
+          component={Paper}
+          sx={{
+            backgroundColor: "#171c2d",
+            borderRadius: "12px",
+            border: "1px solid #333",
+            overflow: "hidden",
+          }}
+        >
+          <Table sx={{ minWidth: 650 }}>
+            <TableHead>
+              <TableRow sx={{ backgroundColor: "#171c2d" }}>
+                <TableCell sx={{
+                  color: "#969aa3",
+                  fontWeight: "bold",
+                  borderBottom: "2px solid #333",
                   py: 2,
-                  fontSize: "14px"
+                  fontSize: "14px",
+                  width: "25%"
                 }}>
-                  {user.phoneNo}
+                  Customer
                 </TableCell>
-                <TableCell sx={{ 
-                  color: "#e1e3e7", 
-                  borderBottom: "none",
+                <TableCell sx={{
+                  color: "#969aa3",
+                  fontWeight: "bold",
+                  borderBottom: "2px solid #333",
                   py: 2,
-                  fontSize: "14px"
+                  fontSize: "14px",
+                  width: "20%"
                 }}>
-                  {user.cardNo}
+                  Contact Number
                 </TableCell>
-                <TableCell sx={{ 
-                  color: "#e1e3e7", 
-                  borderBottom: "none",
+                <TableCell sx={{
+                  color: "#969aa3",
+                  fontWeight: "bold",
+                  borderBottom: "2px solid #333",
                   py: 2,
-                  fontSize: "14px"
+                  fontSize: "14px",
+                  width: "15%"
                 }}>
-                  {user.points}
+                  Card No
                 </TableCell>
-                <TableCell sx={{ 
-                  borderBottom: "none",
-                  py: 2
+                <TableCell sx={{
+                  color: "#969aa3",
+                  fontWeight: "bold",
+                  borderBottom: "2px solid #333",
+                  py: 2,
+                  fontSize: "14px",
+                  width: "15%"
                 }}>
-                  <Chip
-                    label="Active"
-                    sx={{
-                      backgroundColor: "#153329",
-                      color: "#00bf63",
-                      fontWeight: "bold",
-                      fontSize: "12px",
-                      height: "24px",
-                      '& .MuiChip-label': {
-                        px: 1.5,
-                      }
-                    }}
-                  />
+                  Points
                 </TableCell>
-                <TableCell sx={{ 
-                  borderBottom: "none",
-                  py: 2
+                <TableCell sx={{
+                  color: "#969aa3",
+                  fontWeight: "bold",
+                  borderBottom: "2px solid #333",
+                  py: 2,
+                  fontSize: "14px",
+                  width: "15%"
                 }}>
-                  <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
-                    <IconButton
-                      onClick={() => handleEditUser(user)}
-                      sx={{
-                        color: "#fffffffc",
-                        backgroundColor: "rgba(142, 142, 142, 0.74)",
-                        borderRadius: "6px",
-                        width: "32px",
-                        height: "32px",
-                        '&:hover': {
-                          backgroundColor: "rgba(0, 212, 255, 0.2)",
-                        }
-                      }}
-                    >
-                      <EditIcon fontSize="small" />
-                    </IconButton>
-                    
-                    <IconButton
-                      onClick={() => handleDeleteUser(user)}
-                      sx={{
-                        color: "#fffffffc",
-                        backgroundColor: "rgba(142, 142, 142, 0.74)",
-                        borderRadius: "1px",
-                        width: "32px",
-                        height: "32px",
-                        '&:hover': {
-                          backgroundColor: "rgba(255, 68, 68, 0.2)",
-                        }
-                      }}
-                    >
-                      <DeleteIcon fontSize="small" />
-                    </IconButton>
-                  </Box>
+                  Status
+                </TableCell>
+                <TableCell sx={{
+                  color: "#969aa3",
+                  fontWeight: "bold",
+                  borderBottom: "2px solid #333",
+                  py: 2,
+                  fontSize: "14px",
+                  width: "10%"
+                }}>
+                  Action
                 </TableCell>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+            </TableHead>
+            <TableBody>
+              {filteredUsers.map((user) => (
+                <TableRow
+                  key={user.id}
+                  sx={{
+                    '&:last-child td, &:last-child th': { borderBottom: 0 },
+                    '&:hover': {
+                      backgroundColor: 'rgba(255, 255, 255, 0.02)',
+                    }
+                  }}
+                >
+                  <TableCell sx={{
+                    borderBottom: "none",
+                    py: 2
+                  }}>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                      <Avatar
+                        src={user.avatar}
+                        sx={{
+                          width: 40,
+                          height: 40,
+                          backgroundColor: "#333"
+                        }}
+                      />
+                      <Typography sx={{
+                        color: "#fff",
+                        fontWeight: "500",
+                        fontSize: "14px"
+                      }}>
+                        {user.fullName}
+                      </Typography>
+                    </Box>
+                  </TableCell>
+                  <TableCell sx={{
+                    color: "#e1e3e7",
+                    borderBottom: "none",
+                    py: 2,
+                    fontSize: "14px"
+                  }}>
+                    {user.phoneNo}
+                  </TableCell>
+                  <TableCell sx={{
+                    color: "#e1e3e7",
+                    borderBottom: "none",
+                    py: 2,
+                    fontSize: "14px"
+                  }}>
+                    {user.cardNo}
+                  </TableCell>
+                  <TableCell sx={{
+                    color: "#e1e3e7",
+                    borderBottom: "none",
+                    py: 2,
+                    fontSize: "14px",
+                    pl: 4,
+                  }}>
+                    {user.points}
+                  </TableCell>
+                  <TableCell
+                    onClick={() => toggleUserStatus(user.id)}
+                    sx={{
+                      borderBottom: "none",
+                      py: 2,
+                      cursor: 'pointer',
 
+                    }}>
+                    <Chip
+                      label={user.status === "active" ? "Active" : "Inactive"}
+                      sx={{
+                        backgroundColor: user.status === "active" ? "#153329" : "#4b1e1e",
+                        color: user.status === "active" ? "#00bf63" : "#ff4c4c",
+                        fontWeight: "bold",
+                        borderRadius: '8px',
+                        fontSize: "12px",
+                        height: "24px",
+                        '& .MuiChip-label': {
+                          px: 2,
+                        }
+                      }}
+                    />
+                  </TableCell>
+                  <TableCell sx={{
+                    borderBottom: "none",
+                    py: 2
+                  }}>
+                    <Box sx={{ display: "flex", gap: 3, alignItems: "center" }}>
+                      <IconButton
+                        onClick={() => handleEditUser(user)}
+                        sx={{
+                          color: "#fffffffc",
+                          backgroundColor: "rgba(142, 142, 142, 0.74)",
+                          borderRadius: "6px",
+                          width: "32px",
+                          height: "32px",
+                          '&:hover': {
+                            backgroundColor: "rgba(0, 212, 255, 0.2)",
+                          }
+                        }}
+                      >
+                        <EditIcon fontSize="small" />
+                      </IconButton>
+
+                      <IconButton
+                        onClick={() => handleDeleteUser(user)}
+                        sx={{
+                          color: "#fffffffc",
+                          backgroundColor: "rgba(142, 142, 142, 0.74)",
+                          borderRadius: "1px",
+                          width: "32px",
+                          height: "32px",
+                          '&:hover': {
+                            backgroundColor: "rgba(255, 68, 68, 0.2)",
+                          }
+                        }}
+                      >
+                        <DeleteIcon fontSize="small" />
+                      </IconButton>
+                    </Box>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Box>
       {/* Dialogs */}
       <AddNFCUserDialog
         open={addDialogOpen}
@@ -621,6 +620,11 @@ export default function NFCUserContent() {
         onConfirm={confirmDelete}
         title="Delete NFC User"
         message="Are you sure you want to delete this NFC user? This action cannot be undone."
+      />
+
+      <UpdateSuccessDialog
+        open={successDialogOpen}
+        onClose={() => setSuccessDialogOpen(false)}
       />
     </Box>
   );

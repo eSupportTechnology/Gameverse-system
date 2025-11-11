@@ -19,7 +19,7 @@ class AdminUserController extends Controller
     {
         try {
             // Manual validation for more control
-             $validator = Validator::make($request->all(), [
+            $validator = Validator::make($request->all(), [
                 'fullname'      => 'required|string|max:255',
                 'username'      => 'required|string|max:50|unique:userroles,username',
                 'email'         => 'required|email|unique:userroles,email',
@@ -29,7 +29,7 @@ class AdminUserController extends Controller
                 'active_status' => 'sometimes|boolean',
                 'avatar'        => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             ]);
-            
+
 
             if ($validator->fails()) {
                 return response()->json([
@@ -51,9 +51,11 @@ class AdminUserController extends Controller
             $tempPasswordForEmail = null;
 
             if ($request->has('password') && $request->input('password') !== '') {
-                $passwordToStore = Hash::make($request->input('password')); 
-                $mustReset = false;
-                $tempPasswordCreatedAt = null; // explicitly set null
+                $plainPassword = $request->input('password');
+                $passwordToStore = Hash::make($plainPassword);
+                $mustReset = true; 
+                $tempPasswordCreatedAt = now();
+                $tempPasswordForEmail = $plainPassword; 
                 Log::error('get send password: ');
             } else {
                 // generate a strong temporary password
@@ -61,7 +63,7 @@ class AdminUserController extends Controller
                 $passwordToStore = Hash::make($tempPasswordForEmail);
                 $mustReset = true;
                 $tempPasswordCreatedAt = now();
-                 Log::error('get randome password: ');
+                Log::error('get randome password: ');
             }
 
             $userData = [
@@ -87,15 +89,13 @@ class AdminUserController extends Controller
                     Mail::to($user->email)->queue(new SendTempPassword($user, $tempPasswordForEmail));
                     // Mail::to($user->email)->send(new SendTempPassword($user, $tempPasswordForEmail));
                 } catch (\Exception $e) {
-                    Log::error('Failed to send temp password email: '.$e->getMessage());
-                    
+                    Log::error('Failed to send temp password email: ' . $e->getMessage());
                 }
                 // For local/testing only — return temp password to creator
-                    if (app()->environment('local')) {
-                        $tempForCreator = $tempPasswordForEmail;
-                    }
-                    Log::error('Temp password: ' . $tempForCreator);
-
+                if (app()->environment('local')) {
+                    $tempForCreator = $tempPasswordForEmail;
+                }
+                Log::error('Temp password: ' . $tempForCreator);
             }
 
             return response()->json([
@@ -204,8 +204,8 @@ class AdminUserController extends Controller
         $users = UserRole::all();
         $users->transform(function ($user) {
             $user->avatar = $user->avatar
-                ? url($user->avatar)  
-                : url('images/default.png');      
+                ? url($user->avatar)
+                : url('images/default.png');
             return $user;
         });
         return response()->json($users);
