@@ -13,6 +13,7 @@ import {
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import CancelPopup from "./CancelPopup";
+import scan from '../assets/scan.png'
 
 export default function AddNFCUserDialog({
   open,
@@ -45,18 +46,18 @@ export default function AddNFCUserDialog({
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    
+
     // For phone number, format automatically
     if (name === "phoneNo") {
       // Remove all non-numeric characters
       const numericValue = value.replace(/\D/g, "");
-      
+
       // Format: add space after 3rd digit
       let formattedValue = numericValue;
       if (numericValue.length > 3) {
         formattedValue = numericValue.slice(0, 3) + " " + numericValue.slice(3, 10);
       }
-      
+
       // Limit to 10 digits (excluding space)
       if (numericValue.length <= 10) {
         setFormData((prev) => ({ ...prev, [name]: formattedValue }));
@@ -64,7 +65,7 @@ export default function AddNFCUserDialog({
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
     }
-    
+
     // Clear error when user starts typing
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: "" }));
@@ -112,7 +113,7 @@ export default function AddNFCUserDialog({
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     if (validateForm()) {
       onCreate(formData);
       setFormData(initializeFormData());
@@ -137,8 +138,8 @@ export default function AddNFCUserDialog({
         fullWidth
         PaperProps={{
           sx: {
-            backgroundColor: "#171c2d",
-            border: "1px solid #333",
+            backgroundColor: "#111827",
+            border: "1px solid #374151",
             borderRadius: "12px",
             backgroundImage: "none",
           },
@@ -152,9 +153,7 @@ export default function AddNFCUserDialog({
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            borderBottom: "1px solid #333",
-            pb: 2,
-            pt: 2.5,
+            py: 1,
             px: 3,
           }}
         >
@@ -174,15 +173,15 @@ export default function AddNFCUserDialog({
         </DialogTitle>
 
         <form onSubmit={handleSubmit}>
-          <DialogContent sx={{ py: 3, px: 3 }}>
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+          <DialogContent sx={{ py: 1, px: 3 }}>
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
               {/* NFC Card Number */}
               <Box>
                 <Typography
                   variant="body2"
-                  sx={{ 
-                    color: "#fff", 
-                    mb: 1, 
+                  sx={{
+                    color: "#fff",
+                    mb: 1,
                     fontWeight: "500",
                     fontSize: "14px"
                   }}
@@ -197,6 +196,19 @@ export default function AddNFCUserDialog({
                   fullWidth
                   error={!!errors.nfcCardNumber}
                   helperText={errors.nfcCardNumber}
+                  InputProps={{
+                    endAdornment: (
+                      <Box sx={{ display: "flex", alignItems: "center", pl: 1 }}>
+                        <img
+                          src={scan}
+                          alt="NFC"
+                          width={18}
+                          height={18}
+                          style={{ marginRight: 8 }}
+                        />
+                      </Box>
+                    ),
+                  }}
                   sx={{
                     "& .MuiOutlinedInput-root": {
                       backgroundColor: "#0f1322",
@@ -240,9 +252,9 @@ export default function AddNFCUserDialog({
               <Box>
                 <Typography
                   variant="body2"
-                  sx={{ 
-                    color: "#fff", 
-                    mb: 1, 
+                  sx={{
+                    color: "#fff",
+                    mb: 1,
                     fontWeight: "500",
                     fontSize: "14px"
                   }}
@@ -300,9 +312,9 @@ export default function AddNFCUserDialog({
               <Box>
                 <Typography
                   variant="body2"
-                  sx={{ 
-                    color: "#fff", 
-                    mb: 1, 
+                  sx={{
+                    color: "#fff",
+                    mb: 1,
                     fontWeight: "500",
                     fontSize: "14px"
                   }}
@@ -360,9 +372,9 @@ export default function AddNFCUserDialog({
               <Box>
                 <Typography
                   variant="body2"
-                  sx={{ 
-                    color: "#fff", 
-                    mb: 1, 
+                  sx={{
+                    color: "#fff",
+                    mb: 1,
                     fontWeight: "500",
                     fontSize: "14px"
                   }}
@@ -417,16 +429,16 @@ export default function AddNFCUserDialog({
               </Box>
 
               {/* Active User Switch - Text and toggle next to each other */}
-              <Box sx={{ 
-                display: 'flex', 
+              <Box sx={{
+                display: 'flex',
                 alignItems: 'center',
                 gap: 2,
-                mt: 1
+                mt: 0.5
               }}>
-                <Typography sx={{ 
-                  color: "#fff", 
-                  fontSize: "14px", 
-                  fontWeight: "500" 
+                <Typography sx={{
+                  color: "#fff",
+                  fontSize: "14px",
+                  fontWeight: "500"
                 }}>
                   Active User
                 </Typography>
@@ -462,7 +474,7 @@ export default function AddNFCUserDialog({
               justifyContent: "space-between",
               gap: 2,
               p: 3,
-              pt: 1,
+              pt: 0.5,
             }}
           >
             <Button
@@ -478,7 +490,7 @@ export default function AddNFCUserDialog({
                 border: "1px solid #333",
                 width: "48%",
                 "&:hover": {
-                  backgroundColor: "rgba(255,255,255,0.05)",
+                  backgroundColor: "#374151",
                   border: "1px solid #444",
                 },
               }}
@@ -488,7 +500,7 @@ export default function AddNFCUserDialog({
             <Button
               type="submit"
               sx={{
-                background: "linear-gradient(90deg, #00d4ff 0%, #e100ffff 100%)",
+                background: "linear-gradient(90deg, #00d4ff 0%, #8A38F5 100%)",
                 color: "#fff",
                 fontWeight: "bold",
                 padding: "12px 24px",
@@ -496,10 +508,10 @@ export default function AddNFCUserDialog({
                 textTransform: "none",
                 fontSize: "14px",
                 width: "48%",
-                boxShadow: "0 4px 15px rgba(0, 212, 255, 0.3)",
+                // boxShadow: "0 4px 15px rgba(0, 212, 255, 0.3)",
                 "&:hover": {
-                  background: "linear-gradient(90deg, #eb00ac9a 0%, #e000bb9a 100%)",
-                  boxShadow: "0 6px 20px rgba(0, 212, 255, 0.4)",
+                  background: "linear-gradient(90deg, #8A38F5 0%, #00d4ff 100%)",
+                  // boxShadow: "0 6px 20px rgba(0, 212, 255, 0.4)",
                 },
               }}
             >
@@ -512,7 +524,7 @@ export default function AddNFCUserDialog({
       <CancelPopup
         open={openCancelPopup}
         onClose={handleCloseCancelPopup}
-        onConfirm={handleConfirmCancel}
+        handleConfirm={handleConfirmCancel}
       />
     </>
   );
