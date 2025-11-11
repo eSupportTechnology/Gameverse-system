@@ -25,7 +25,7 @@ const GamesManagement = () => {
 
   const token = localStorage.getItem('aToken');
 
-  // ✅ Fetch all games (for admin)
+  // Fetch all games (for admin)
   const fetchGames = useCallback(async () => {
     try {
       const res = await axios.get('http://127.0.0.1:8000/api/games', {
@@ -50,7 +50,7 @@ const GamesManagement = () => {
 
   const categories = [{ label: 'All Games' }];
 
-  // ✅ Filter with search
+  // Filter with search
   const filteredGames = games.filter((game) =>
     game.title?.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -129,7 +129,7 @@ const GamesManagement = () => {
         </Box>
       </Box>
 
-      {/* ✅ Filter + Search Bar (Operator style) */}
+      {/* Filter + Search Bar */}
       <Box
         display="flex"
         flexDirection={{ xs: 'column', md: 'row' }}
@@ -141,7 +141,7 @@ const GamesManagement = () => {
         bgcolor="#0E111B"
         mb={2}
       >
-        {/* Left: Category */}
+        {/* Category */}
         <ToggleButtonGroup
           value={activeCategory}
           exclusive
@@ -172,7 +172,7 @@ const GamesManagement = () => {
           ))}
         </ToggleButtonGroup>
 
-        {/* Right: Search Bar */}
+        {/* Search Bar */}
         <TextField
           variant="outlined"
           placeholder="Search games..."
@@ -197,15 +197,17 @@ const GamesManagement = () => {
         />
       </Box>
 
-      {/* Games Display */}
+      {/* Games Display with fixed 4-card grid */}
       <Box sx={{ minHeight: '100vh', backgroundColor: '#0E111B', borderRadius: '10px', p: 2 }}>
         {filteredGames.length > 0 ? (
           <Box
             sx={{
-              display: 'flex',
-              flexWrap: 'wrap',
+              display: 'grid',
+              gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' },
               gap: 2,
-              justifyContent: { xs: 'center', md: 'flex-start' },
+              justifyContent: 'center',
+              maxWidth: 1200,
+              margin: '0 auto',
             }}
           >
             {filteredGames.map((game) => (
