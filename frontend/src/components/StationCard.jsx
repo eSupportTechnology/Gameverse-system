@@ -128,25 +128,22 @@ const StationCard = ({ station, onEdit, onToggleStatus }) => {
             {station.type}
           </Typography>
 
-          {/* ===== Time + Price (single background box) ===== */}
+          {/* ===== Time + Price ===== */}
           <Box
             sx={{
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
               mb: 1,
-              backgroundColor: "rgba(210, 216, 229, 0.1)", // single background
+              backgroundColor: "rgba(210, 216, 229, 0.1)",
               px: 2,
               py: 0.4,
               borderRadius: "6px",
             }}
           >
-            {/* Time */}
             <Typography sx={{ color: "#e5e5e6", fontSize: "0.7rem" }}>
               {station.time} min
             </Typography>
-
-            {/* Price */}
             <Typography
               sx={{
                 color: "#b3b6b8ff",
@@ -158,16 +155,28 @@ const StationCard = ({ station, onEdit, onToggleStatus }) => {
             </Typography>
           </Box>
 
-          {/* ===== Location + Bookings (Two-column layout) ===== */}
-          <Box sx={{ display: "flex", justifyContent: "space-between", mb: 0.3 }}>
-            <Typography sx={{ color: "#9CA3AF", fontSize: "0.8rem" }}>Location:</Typography>
-            <Typography sx={{ color: "#fff", fontWeight: 600, fontSize: "0.8rem" }}>
+          {/* ===== Location + Bookings ===== */}
+          <Box
+            sx={{ display: "flex", justifyContent: "space-between", mb: 0.3 }}
+          >
+            <Typography sx={{ color: "#9CA3AF", fontSize: "0.8rem" }}>
+              Location:
+            </Typography>
+            <Typography
+              sx={{ color: "#fff", fontWeight: 600, fontSize: "0.8rem" }}
+            >
               {station.location}
             </Typography>
           </Box>
-          <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
-            <Typography sx={{ color: "#9CA3AF", fontSize: "0.8rem" }}>No of bookings:</Typography>
-            <Typography sx={{ color: "#fff", fontWeight: 600, fontSize: "0.8rem" }}>
+          <Box
+            sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}
+          >
+            <Typography sx={{ color: "#9CA3AF", fontSize: "0.8rem" }}>
+              No of bookings:
+            </Typography>
+            <Typography
+              sx={{ color: "#fff", fontWeight: 600, fontSize: "0.8rem" }}
+            >
               {station.bookings}
             </Typography>
           </Box>
@@ -178,17 +187,22 @@ const StationCard = ({ station, onEdit, onToggleStatus }) => {
           fullWidth
           onClick={() => onToggleStatus(station.id)}
           sx={{
-            backgroundColor: `${theme.button}28`,
-            color: theme.button, // ✅ dynamic font color
+            backgroundColor:
+              status === "available" ? `${theme.button}28` : "#10B98128",
+            color: status === "available" ? theme.button : "#10B981",
             py: 0.2,
             fontWeight: 400,
             borderRadius: "6px",
             fontSize: "0.8rem",
             minHeight: "20px",
-            border: `1px solid ${theme.button}`,
+            border: `1px solid ${
+              status === "available" ? theme.button : "#10B981"
+            }`,
             textTransform: "none",
             "&:hover": {
-              backgroundColor: `${theme.buttonHover}`,
+              backgroundColor:
+                status === "available" ? theme.buttonHover : "#059669",
+              color: "#fff",
             },
           }}
         >
