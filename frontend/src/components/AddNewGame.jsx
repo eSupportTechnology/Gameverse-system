@@ -90,7 +90,6 @@ const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmi
       method: trimmedMethod,
       price: Number(price),
     };
-
     const token = localStorage.getItem("aToken");
 
     try {
