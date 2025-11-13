@@ -19,7 +19,7 @@ import { toast } from "react-toastify";
 
 const paymentMethods = ["Coin", "Arrow", "Per Hour"];
 
-const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmit }) => {
+const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmit, fetchGames }) => {
   const [createSuccess, setCreateSuccess] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
 
@@ -71,6 +71,12 @@ const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmi
     return true;
   };
 
+  // Handle success dialog OK button
+  const handleSuccessOk = () => {
+    setCreateSuccess(false);
+    handleClose(); // Close the main form
+  };
+
   const handleSubmit = async () => {
     const trimmedTitle = title.trim();
     const trimmedLocation = location.trim();
@@ -105,15 +111,22 @@ const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmi
         data: gameData,
       });
 
-      toast.success(`Game ${mode === "edit" ? "updated" : "created"} successfully!`);
+      // toast.success(`Game ${mode === "edit" ? "updated" : "created"} successfully!`);
       setCreateSuccess(true);
 
-      setTimeout(() => {
-        setCreateSuccess(false);
-        handleClose();
-      }, 1500);
+
+      // setTimeout(() => {
+      //   setCreateSuccess(false);
+      //   handleClose();
+      // }, 1500);
 
       if (onSubmit) onSubmit(response.data); // send updated game back
+
+      try {
+        await fetchGames();
+      } catch (err) {
+        console.error("Error refreshing game list:", err);
+      }
     } catch (err) {
       console.error("Validation errors:", err.response?.data);
       toast.error(err.response?.data?.message || "Failed to save game.");
@@ -297,6 +310,77 @@ const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmi
         </DialogActions>
 
         <CancelPopup open={cancelOpen} handleCancelClose={handleCancelClose} handleConfirm={handleConfirmCancel} />
+      </Dialog>
+
+      {/* create Success Popup */}
+      <Dialog
+        open={createSuccess}
+        PaperProps={{
+          sx: {
+            bgcolor: "#0A192F",
+            borderRadius: "16px",
+            py: 2,
+            px: 8,
+            textAlign: "center",
+            color: "white",
+            border: '1px solid #3B4859'
+          },
+        }}
+      >
+        <DialogContent>
+          <Box sx={{ mb: 1, display: 'flex', justifyContent: 'center' }}>
+            <Box sx={{
+              width: 80,
+              height: 80,
+              borderRadius: '50%',
+              border: '3px solid',
+              borderColor: 'transparent',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: 'linear-gradient(#0A192F, #0A192F) padding-box, linear-gradient(90deg, #00C6FF, #FF00CC) border-box',
+            }}>
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M5 13l4 4L19 7" stroke="url(#gradient)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                <defs>
+                  <linearGradient id="gradient" x1="5" y1="12" x2="19" y2="12">
+                    <stop offset="0%" stopColor="#00C6FF" />
+                    <stop offset="100%" stopColor="#FF00CC" />
+                  </linearGradient>
+                </defs>
+              </svg>
+            </Box>
+          </Box>
+          <Typography
+            variant="h6"
+            sx={{
+              background: "linear-gradient(90deg, #00C6FF, #FF00CC)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              fontSize: 24,
+              fontWeight: 600,
+              mb: 1
+            }}
+          >
+            {mode === 'edit' ? 'Update Successful!' : 'Create Successful!'}
+          </Typography>
+          <Button
+            onClick={handleSuccessOk}
+            sx={{
+              px: 8,
+              fontSize: 14,
+              textTransform: 'capitalize',
+              borderRadius: "8px",
+              background: "linear-gradient(90deg, rgba(12, 215, 255, 0.4) 0%, rgba(138, 56, 245, 0.4) 73%)",
+              color: "white",
+              "&:hover": {
+                background: "linear-gradient(90deg, #0CD7FF 0%, #8A38F5 73%)",
+              },
+            }}
+          >
+            Ok
+          </Button>
+        </DialogContent>
       </Dialog>
     </>
   );

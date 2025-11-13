@@ -125,6 +125,7 @@ const GamesManagement = () => {
             onSubmit={handleSaveGame}
             initialData={editGame}
             mode={editGame ? 'edit' : 'add'}
+            fetchGames={fetchGames}
           />
         </Box>
       </Box>
