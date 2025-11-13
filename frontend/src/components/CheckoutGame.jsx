@@ -15,10 +15,11 @@ const CheckoutGame = ({ game, handleClose }) => {
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
 
-  // ✅ Editable fields
+  //  Editable fields
   const [units, setUnits] = useState("0");
   const [players, setPlayers] = useState(1);
   const [discount, setDiscount] = useState(0);
+  const [unitPrice, setUnitPrice] = useState(game.price)
 
   const handleCancelOpen = () => setCancelOpen(true);
   const handleCancelClose = () => setCancelOpen(false);
@@ -36,10 +37,7 @@ const CheckoutGame = ({ game, handleClose }) => {
   // const fullAmount = unitPrice * units;
   // const discount = 0; // default
   // const balance = fullAmount - discount;
-
-  //Use game.price as unit price
-  const unitPrice = Number(game.price) || 0;
-
+;
   // Calculate full amount and balance dynamically
   const unitsNumber = Number(units) || 0;
   const playersNumber = Number(players) || 1;
@@ -93,7 +91,36 @@ const CheckoutGame = ({ game, handleClose }) => {
                     ? "1 Coin Price:"
                     : "Unit Price:"}
             </Typography>
-            <Typography fontSize={14} color="#FFFFFF">LKR {unitPrice}</Typography>
+            <TextField
+              type="number"
+              value={unitPrice}
+              onChange={(e) => setUnitPrice(e.target.value)} // keep as string
+              inputProps={{ min: 0 }}
+              InputProps={{
+                startAdornment: (
+                  <span style={{ color: "#9CA3AF", fontSize: 12}}>LKR</span>
+                ),
+              }}
+              sx={{
+                width: 80,
+                "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button": {
+                  WebkitAppearance: "none",
+                  margin: 0,
+                },
+                "& input[type=number]": { MozAppearance: "textfield" },
+                "& .MuiInputBase-input": {
+                  color: "#9CA3AF",
+                  textAlign: "center",
+                  fontSize: 13,
+                  padding: "4px 0",
+                  lineHeight: 1.2,
+                },
+                "& .MuiOutlinedInput-root": {
+                  "& fieldset": { borderColor: "#374151" },
+                  padding: "0px 8px",
+                },
+              }}
+            />
           </Box>
 
           {/* Units */}
@@ -176,6 +203,11 @@ const CheckoutGame = ({ game, handleClose }) => {
               value={discount}
               onChange={(e) => setDiscount(e.target.value)} // keep as string
               inputProps={{ min: 0 }}
+              InputProps={{
+                startAdornment: (
+                  <span style={{ color: "#9CA3AF", fontSize: 12}}>LKR</span>
+                ),
+              }}
               sx={{
                 width: 80,
                 "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button": {
@@ -192,7 +224,7 @@ const CheckoutGame = ({ game, handleClose }) => {
                 },
                 "& .MuiOutlinedInput-root": {
                   "& fieldset": { borderColor: "#374151" },
-                  padding: 0
+                  padding: "px 8px",
                 },
               }}
             />
