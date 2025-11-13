@@ -28,6 +28,7 @@ class BookingController extends Controller
     public function store(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
+            'nfc_card_number' => 'nullable|string|max:255',
             'customer_name' => 'required|string|max:255',
             'phone_number' => 'required|string|max:20',
             'station' => 'required|string|max:255',
@@ -73,6 +74,7 @@ class BookingController extends Controller
             // Normalize booking data for frontend compatibility
             $normalizedBooking = [
                 'id' => $booking->id,
+                'nfc_card_number' => $booking->nfc_card_number,
                 'customer_name' => $booking->customer_name,
                 'phone_number' => $booking->phone_number,
                 'station' => $booking->station,
@@ -85,7 +87,7 @@ class BookingController extends Controller
                 'payment_method' => $booking->payment_method ?? '',
                 'created_at' => $booking->created_at,
                 'updated_at' => $booking->updated_at,
-                // Add backward compatibility aliases
+                // Backward compatibility aliases
                 'date' => $booking->booking_date ? $booking->booking_date->format('Y-m-d') : null,
                 'time' => $booking->start_time,
                 'phone' => $booking->phone_number,
@@ -95,7 +97,7 @@ class BookingController extends Controller
             
             return response()->json([
                 'success' => true,
-                'data' => $booking
+                'data' => $normalizedBooking
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -114,6 +116,7 @@ class BookingController extends Controller
             $booking = Booking::findOrFail($id);
             
             $validator = Validator::make($request->all(), [
+                'nfc_card_number' => 'nullable|string|max:255',
                 'customer_name' => 'string|max:255',
                 'phone_number' => 'string|max:20',
                 'station' => 'string|max:255',
@@ -144,7 +147,8 @@ class BookingController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to update booking'
+                'message' => 'Failed to update booking',
+                'error' => $e->getMessage()
             ], 500);
         }
     }
