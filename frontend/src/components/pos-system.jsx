@@ -32,13 +32,28 @@ import searchIcon from "../assets/search.png";
 import scanIcon from "../assets/scan.png";
 import addIcon from "../assets/plus.png";
 import EditIcon from "../assets/editicon.png";
+import sucessIcon from "../assets/sucessicon.png";
 import AddNFCUserDialog from "./AddNFCUserDialog";
 
 const initialProducts = [
   //{ id: 1, price: 800, item_name: "Chicken Burger", category: "Snacks", stock: 15 },
-  { id: 2, price: 200, item_name: "Energy Drink", category: "Drinks", stock: 24, fav: true,},
+  {
+    id: 2,
+    price: 200,
+    item_name: "Energy Drink",
+    category: "Drinks",
+    stock: 24,
+    fav: true,
+  },
   //{ id: 3, price: 500, item_name: "Hot Dog", category: "Snacks", stock: 10 },
-  { id: 4, price: 250, item_name: "Popcorn (Salted)", category: "Snacks", stock: 12, fav: true,},
+  {
+    id: 4,
+    price: 250,
+    item_name: "Popcorn (Salted)",
+    category: "Snacks",
+    stock: 12,
+    fav: true,
+  },
   //{ id: 5, price: 400, item_name: "Popcorn (Salted)", category: "Dessert", stock: 6 },
   //{ id: 6, price: 200, item_name: "Vanilla Cup", category: "Ice-Cream", stock: 30, fav: true,},
   //{ id: 7, price: 500, item_name: "Chicken Nuggets (6pcs)", category: "Snacks", stock: 34,},
@@ -765,7 +780,6 @@ const PosSystem = () => {
             {/* Cart Box */}
             <Box
               sx={{
-                bgcolor: "#171E2A",
                 p: 2,
                 borderRadius: 2,
                 minHeight: 200,
@@ -792,7 +806,7 @@ const PosSystem = () => {
                     {totalPrice.toFixed(2)}
                   </Typography>
                 </Box>
-              </Box>
+             </Box>
               {cart.length === 0 ? (
                 <Typography color="gray" fontSize={14}>
                   Cart is empty
@@ -806,6 +820,7 @@ const PosSystem = () => {
                       borderRadius: 2,
                       p: 2,
                       mb: 2,
+                      height: "34px",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "space-between",
@@ -1632,10 +1647,10 @@ const PosSystem = () => {
             bgcolor: "#111827",
             color: "white",
             p: 3,
-            borderRadius: 2,
-            width: 400,
+            borderRadius: 3,
+            width: 380,
             mx: "auto",
-            mt: "10%",
+            mt: "6%",
             outline: "none",
           }}
         >
@@ -1656,7 +1671,7 @@ const PosSystem = () => {
           </Box>
 
           {/* Customer Info */}
-          <Box sx={{ display: "flex", alignItems: "center", gap: 2, mt: 2 }}>
+          <Box display="flex" alignItems="center" gap={2} mt={3}>
             <Box
               sx={{
                 bgcolor: "#334155",
@@ -1667,29 +1682,35 @@ const PosSystem = () => {
                 alignItems: "center",
                 justifyContent: "center",
                 fontWeight: "bold",
+                fontSize: 20,
               }}
             >
-              {walkInCustomer.name?.[0]?.toUpperCase()}
+              {(walkInCustomer?.name || "Alex Chen")[0].toUpperCase()}
             </Box>
             <Box>
-              <Typography>{walkInCustomer.name}</Typography>
+              <Typography fontWeight="500">
+                {walkInCustomer?.name || "Alex Chen"}
+              </Typography>
               <Typography variant="body2" color="gray">
-                {walkInCustomer.phone}
+                {walkInCustomer?.phone || "GV001234"}
               </Typography>
             </Box>
           </Box>
 
           {/* Totals */}
-          <Box sx={{ mt: 3 }}>
-            <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-              <Typography>Subtotal:</Typography>
-              <Typography>LKR{subtotal}</Typography>
+          <Box mt={3}>
+            <Box display="flex" justifyContent="space-between" mb={1}>
+              <Typography>Total:</Typography>
+              <Typography fontWeight="400">
+                LKR {Number(subtotal).toFixed(2)}
+              </Typography>
             </Box>
-            <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-              <Typography>Discount:</Typography>
-              <Typography>LKR{discount}</Typography>
+            <Box display="flex" justifyContent="space-between" mb={1}>
+              <Typography>Discount</Typography>
+              {/* <Typography>LKR {Number(discount).toFixed(2)}</Typography> */}
+              <Typography color="#94A3B8">.................</Typography>
             </Box>
-            <Box sx={{ borderBottom: "1px solid #334155", my: 1 }} />
+            <Box borderBottom="1px solid #334155" my={2} />
             <Box
               sx={{
                 display: "flex",
@@ -1697,29 +1718,28 @@ const PosSystem = () => {
                 fontWeight: "bold",
               }}
             >
-              <Typography>Total:</Typography>
-              <Typography sx={{ color: "#38bdf8" }}>LKR{total}</Typography>
+              <Typography fontWeight="600">Balance:</Typography>
+              <Typography fontWeight="400" sx={{ color: "#38BDF8" }}>
+                LKR {Number(total).toFixed(2)}
+              </Typography>
             </Box>
           </Box>
 
-          {/* Actions */}
-          <Box sx={{ display: "flex", gap: 2, mt: 3 }}>
-            <Button
-              fullWidth
-              variant="outlined"
-              sx={{ borderColor: "#334155", color: "white" }}
-              onClick={() => setCart([])}
-            >
-              Clear Cart
-            </Button>
+          {/* Pay Button */}
+          <Box mt={4}>
             <Button
               fullWidth
               sx={{
-                background: "linear-gradient(90deg,#6366f1,#ec4899)",
+                py: 1,
+                fontWeight: "bold",
+                borderRadius: 2,
+                background: "linear-gradient(90deg, #05DFFF, #BC0BFF)",
                 color: "white",
-                "&:hover": { opacity: 0.9 },
+                textTransform: "none",
+                fontSize: 16,
+                "&:hover": { opacity: 0.95 },
               }}
-              onClick={handleCheckout}
+              onClick={() => setOpenPaymentSuccess(true)}
             >
               Pay Now
             </Button>
@@ -1748,7 +1768,7 @@ const PosSystem = () => {
         >
           <Box sx={{ mb: 2 }}>
             <img
-              src="/images/successful.png"
+              src= {sucessIcon}
               alt="cancel"
               style={{ width: 60, height: 60, margin: "0 auto" }}
             />
