@@ -15,6 +15,10 @@ import {
   TableRow,
   Paper,
   Chip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import EditIcon from "@mui/icons-material/Edit";
@@ -36,6 +40,7 @@ export default function NFCUserContent() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [deleteUserId, setDeleteUserId] = useState(null);
   const [successDialogOpen, setSuccessDialogOpen] = useState(false);
+  const [addSuccessDialog, setAddSuccessDialog] = useState(false)
 
   const [formData, setFormData] = useState({
     fullName: "",
@@ -183,7 +188,7 @@ export default function NFCUserContent() {
       });
 
       if (res.data.success) {
-        toast.success("User created successfully");
+        setAddSuccessDialog(true);
         setAddDialogOpen(false);
         fetchUsers(); // Refresh the list
 
@@ -626,6 +631,59 @@ export default function NFCUserContent() {
         open={successDialogOpen}
         onClose={() => setSuccessDialogOpen(false)}
       />
+
+      <Dialog
+        open={addSuccessDialog}
+        onClose={() => setAddSuccessDialog(false)}
+        PaperProps={{
+          sx: {
+            backgroundColor: "#070F1E",
+            color: "white",
+            width: "400px",
+            padding: "20px",
+            borderRadius: "12px",
+            border: "2px solid #0aaffb59",
+            //boxShadow: "0px 0px 30px rgba(8, 0, 255, 0.39)", // green glow
+            textAlign: "center",
+          },
+        }}
+      >
+        <DialogTitle
+          sx={{
+            fontWeight: "600",
+            background: "linear-gradient(to right, #1963f6d0, #e428edff)",
+            WebkitBackgroundClip: "text",
+            fontSize: "24px",
+            WebkitTextFillColor: "transparent",
+          }}
+        >
+          <img
+            src="/images/create.png" 
+            alt="success"
+            width="80"
+
+            height={80}
+            style={{ marginBottom: 8 }}
+          />
+          <br />
+          Customer Added Successful !
+        </DialogTitle>
+        <DialogContent></DialogContent>
+        <DialogActions sx={{ justifyContent: "center" }}>
+          <Button
+            onClick={() => setAddSuccessDialog(false)}
+            sx={{
+              background: "linear-gradient(to right, #2287a3d0, #8a38f557)",
+              color: "#fff",
+              width: "150px",
+              textTransform: "none",
+              "&:hover": { opacity: 0.9 },
+            }}
+          >
+            OK
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }
