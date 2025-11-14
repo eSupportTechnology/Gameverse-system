@@ -35,15 +35,15 @@ import EditIcon from "../assets/editicon.png";
 import AddNFCUserDialog from "./AddNFCUserDialog";
 
 const initialProducts = [
-  // { id: 1, price: 800, name: "Chicken Burger", category: "Snacks", stock: 15 },
-  // { id: 2, price: 200, name: "Energy Drink", category: "Drinks", stock: 24, fav: true },
-  // { id: 3, price: 500, name: "Hot Dog", category: "Snacks", stock: 10 },
-  // { id: 4, price: 250, name: "Popcorn (Salted)", category: "Snacks", stock: 12, fav: true },
-  // { id: 5, price: 400, name: "Popcorn (Salted)", category: "Dessert", stock: 6 },
-  // { id: 6, price: 200, name: "Vanilla Cup", category: "Ice-Cream", stock: 30, fav: true },
-  // { id: 7, price: 500, name: "Chicken Nuggets (6pcs)", category: "Snacks", stock: 34 },
-  // { id: 8, price: 350, name: "Brownie", category: "Dessert", stock: 16 },
-  // { id: 9, price: 200, name: "Chocolate Cup", category: "Ice-Cream", stock: 24, fav: true },
+  //{ id: 1, price: 800, item_name: "Chicken Burger", category: "Snacks", stock: 15 },
+  { id: 2, price: 200, item_name: "Energy Drink", category: "Drinks", stock: 24, fav: true,},
+  //{ id: 3, price: 500, item_name: "Hot Dog", category: "Snacks", stock: 10 },
+  { id: 4, price: 250, item_name: "Popcorn (Salted)", category: "Snacks", stock: 12, fav: true,},
+  //{ id: 5, price: 400, item_name: "Popcorn (Salted)", category: "Dessert", stock: 6 },
+  //{ id: 6, price: 200, item_name: "Vanilla Cup", category: "Ice-Cream", stock: 30, fav: true,},
+  //{ id: 7, price: 500, item_name: "Chicken Nuggets (6pcs)", category: "Snacks", stock: 34,},
+  //{ id: 8, price: 350, item_name: "Brownie", category: "Dessert", stock: 16 },
+  //{ id: 9, price: 200, item_name: "Chocolate Cup", category: "Ice-Cream", stock: 24, fav: true,},
 ];
 
 const initialCategories = ["All", "Drinks", "Snacks", "Dessert", "Ice Cream"];
@@ -63,7 +63,7 @@ const textFieldSx = {
 const PosSystem = () => {
   const { aToken } = useContext(AdminContext);
 
-  const [products, setProducts] = useState([]);
+  const [products, setProducts] = useState(initialProducts);
   const [loading, setLoading] = useState(true);
   const [cart, setCart] = useState([]);
   const [categories, setCategories] = useState(initialCategories);
@@ -256,11 +256,12 @@ const PosSystem = () => {
       );
 
       if (response.data.success) {
-        setProducts(response.data.data);
-        console.log(response.data.data);
+        setProducts([...initialProducts, ...response.data.data]);
       }
     } catch (error) {
       console.error("Error fetching POS items:", error);
+      // IMPORTANT FIX
+      setProducts(initialProducts);
     } finally {
       setLoading(false);
     }
@@ -385,15 +386,20 @@ const PosSystem = () => {
 
   // Filters
   // Search filter
-  const searchedProducts = products.filter((p) =>
-    p.item_name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const searchedProducts = products.filter((p) => {
+    const title = p.item_name || p.name || "";
+    return title.toLowerCase().includes(searchTerm.toLowerCase());
+  });
 
   // Category filter
   const filteredProducts =
     activeCategory === "All"
       ? searchedProducts
-      : searchedProducts.filter((p) => p.category === activeCategory);
+      : searchedProducts.filter(
+          (p) =>
+            (p.category || p.item_category || "").toLowerCase() ===
+            activeCategory.toLowerCase()
+        );
 
   // Totals
   const subtotal = cart.reduce((acc, item) => acc + item.price * item.qty, 0);
