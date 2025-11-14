@@ -147,7 +147,7 @@ const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmi
           <DialogTitle sx={{ color: "#FFFFFF", fontSize: 18, fontWeight: "bold" }}>
             {mode === "edit" ? "Edit Game" : "Add New Game"}
           </DialogTitle>
-          <IconButton onClick={handleCancelOpen} sx={{ color: "#FFFFFF" }}>
+          <IconButton onClick={()=>handleClose(false)} sx={{ color: "#FFFFFF" }}>
             <CloseIcon />
           </IconButton>
         </Box>
