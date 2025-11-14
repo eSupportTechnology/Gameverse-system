@@ -6,18 +6,21 @@ use Illuminate\Database\Eloquent\Model;
 
 class Booking extends Model
 {
+
     protected $fillable = [
-        'customer_name',
-        'phone_number',
-        'station',
-        'booking_date',
-        'start_time',
-        'duration',
-        'extended_time',
-        'payment_method',
-        'amount',
-        'status'
-    ];
+    'nfc_card_number',
+    'customer_name',
+    'phone_number',
+    'station',
+    'booking_date',
+    'start_time',
+    'duration',
+    'extended_time',
+    'payment_method',
+    'amount',
+    'status',
+];
+
 
     protected $casts = [
         'booking_date' => 'date',

@@ -1,5 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Box, Typography, Button, ToggleButton, ToggleButtonGroup } from '@mui/material';
+import {
+  Box,
+  Typography,
+  Button,
+  ToggleButton,
+  ToggleButtonGroup,
+  TextField,
+  InputAdornment,
+} from '@mui/material';
+import SearchIcon from '@mui/icons-material/Search';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import AddNewGame from './AddNewGame';
@@ -12,48 +21,44 @@ const GamesManagement = () => {
   const [selectedGame, setSelectedGame] = useState(null);
   const [games, setGames] = useState([]);
   const [editGame, setEditGame] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const token = localStorage.getItem('aToken');
 
-  // ✅ Fetch all games from backend (memoized to prevent re-creation)
+  // Fetch all games (for admin)
   const fetchGames = useCallback(async () => {
     try {
-      const response = await axios.get('http://127.0.0.1:8000/api/games', {
+      const res = await axios.get('http://127.0.0.1:8000/api/games', {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setGames(response.data);
+      const data = Array.isArray(res.data.data)
+        ? res.data.data
+        : Array.isArray(res.data)
+        ? res.data
+        : [];
+      setGames(data);
     } catch (error) {
       console.error('Error fetching games:', error);
       toast.error('Failed to fetch games.');
+      setGames([]);
     }
-  }, [token]); // ✅ stable dependency
+  }, [token]);
 
-  // ✅ Fetch once on mount (no ESLint warning)
   useEffect(() => {
     fetchGames();
   }, [fetchGames]);
 
-  // Filter buttons
-  const categories = [
-    { label: 'All Games', keyword: '' },
-    { label: 'Arcade Machine', keyword: 'Arcade' },
-    { label: 'Archery', keyword: 'Archery' },
-    { label: 'Carrom', keyword: 'Carrom' },
-  ];
+  const categories = [{ label: 'All Games' }];
 
-  const filteredGames = games.filter((game) => {
-    if (activeCategory === 'All Games') return true;
-    if (activeCategory === 'Arcade Machine') return game.method === 'Coin';
-    if (activeCategory === 'Archery') return game.method === 'Arrow';
-    if (activeCategory === 'Carrom') return game.method === 'Per Hour';
-    return true;
-  });
+  // Filter with search
+  const filteredGames = games.filter((game) =>
+    game.title?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
-  // ✅ Refresh list after Add/Edit
   const handleSaveGame = () => {
     setEditGame(null);
     setOpenAddGame(false);
-    fetchGames(); // reload games from backend
+    fetchGames();
   };
 
   const handleEditGame = (game) => {
@@ -63,39 +68,38 @@ const GamesManagement = () => {
 
   const handleDeleteGame = async (gameId) => {
     if (!window.confirm('Are you sure you want to delete this game?')) return;
-
     try {
       await axios.delete(`http://127.0.0.1:8000/api/games/${gameId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      fetchGames();
       toast.success('Game deleted successfully!');
-    } catch (error) {
-      console.error('Error deleting game:', error);
-      toast.error(error.response?.data?.message || 'Failed to delete game.');
+      fetchGames();
+    } catch (err) {
+      console.error('Error deleting game:', err);
+      toast.error(err.response?.data?.message || 'Failed to delete game.');
     }
   };
 
   return (
-    <Box sx={{ p: 2, bgcolor: '1E1E1E', color: '#fff', minHeight: '100vh', overflowX: 'hidden', ml: 0 }}>
-      {/* Header Section */}
+    <Box sx={{ p: 2, bgcolor: '#1E1E1E', color: '#fff', minHeight: '100vh' }}>
+      {/* Header */}
       <Box
         display="flex"
         flexDirection={{ xs: 'column', md: 'row' }}
-        justifyContent={{ xs: 'flex-start', md: 'space-between' }}
-        alignItems={{ xs: 'flex-start', md: 'center' }}
+        justifyContent="space-between"
+        alignItems="center"
         mb={2}
       >
-        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+        <Box>
           <Typography variant="h5" fontWeight="bold" fontSize={24}>
-            Other Games Management
+            Admin Games Management
           </Typography>
           <Typography variant="body2" color="gray" fontSize={16}>
-            Monitor and control gaming stations
+            Manage all available game stations
           </Typography>
         </Box>
 
-        <Box display="flex" mt={{ xs: 2, md: 0 }} width={{ xs: '100%', md: 'auto' }}>
+        <Box mt={{ xs: 2, md: 0 }}>
           <Button
             variant="contained"
             sx={{
@@ -121,38 +125,36 @@ const GamesManagement = () => {
             onSubmit={handleSaveGame}
             initialData={editGame}
             mode={editGame ? 'edit' : 'add'}
+            fetchGames={fetchGames}
           />
         </Box>
       </Box>
 
-      {/* Category Filter Buttons */}
+      {/* Filter + Search Bar */}
       <Box
         display="flex"
         flexDirection={{ xs: 'column', md: 'row' }}
-        justifyContent={{ xs: 'flex-start', md: 'space-between' }}
+        justifyContent="space-between"
+        alignItems="center"
         px={1.5}
         py={1.5}
         borderRadius="10px"
         bgcolor="#0E111B"
-        alignItems={{ xs: 'flex-start', md: 'center' }}
         mb={2}
       >
+        {/* Category */}
         <ToggleButtonGroup
           value={activeCategory}
           exclusive
           onChange={(e, newCategory) => newCategory && setActiveCategory(newCategory)}
           sx={{
-            borderRadius: '12px',
             gap: 1,
             flexWrap: 'wrap',
             '& .MuiToggleButton-root': {
-              flex: 1,
-              minWidth: 100,
-              width: '100%',
-              bgcolor: '#374151',
+              bgcolor: '#0CD7FF',
               color: '#9CA3AF',
               border: 'none',
-              borderRadius: '6px',
+              padding: '6px 27px',
               textTransform: 'none',
               fontWeight: '600',
               fontSize: 12,
@@ -165,35 +167,65 @@ const GamesManagement = () => {
           }}
         >
           {categories.map((cat) => (
-            <ToggleButton key={cat.label} value={cat.label} sx={{ px: 2, py: 1 }}>
+            <ToggleButton key={cat.label} value={cat.label}>
               {cat.label}
             </ToggleButton>
           ))}
         </ToggleButtonGroup>
+
+        {/* Search Bar */}
+        <TextField
+          variant="outlined"
+          placeholder="Search games..."
+          size="small"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          sx={{
+            width: { xs: '100%', md: 400 },
+            mt: { xs: 2, md: 0 },
+            bgcolor: '#544f5b1f',
+            input: { color: '#fff' },
+            '& .MuiOutlinedInput-notchedOutline': { borderColor: '#33B2F780' },
+            '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#0CD7FF' },
+          }}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon sx={{ color: '#9CA3AF', fontSize: 18 }} />
+              </InputAdornment>
+            ),
+          }}
+        />
       </Box>
 
-      {/* Games Display Section */}
-      <Box sx={{ minHeight: '100vh', backgroundColor: '#0E111B', borderRadius: '10px' }}>
-        <Box
-          sx={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            justifyContent: { xs: 'center', md: 'flex-start' },
-            gap: 2,
-            p: 2,
-          }}
-        >
-          {filteredGames.map((game) => (
-            <Box key={game.id} sx={{ flex: '1 1 250px', maxWidth: 280 }}>
+      {/* Games Display with fixed 4-card grid */}
+      <Box sx={{ minHeight: '100vh', backgroundColor: '#0E111B', borderRadius: '10px', p: 2 }}>
+        {filteredGames.length > 0 ? (
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' },
+              gap: 2,
+              justifyContent: 'center',
+              maxWidth: 1200,
+              margin: '0 auto',
+            }}
+          >
+            {filteredGames.map((game) => (
               <GameCard
+                key={game.id}
                 game={game}
                 onPlay={() => setSelectedGame(game)}
                 onEdit={() => handleEditGame(game)}
                 onDelete={() => handleDeleteGame(game.id)}
               />
-            </Box>
-          ))}
-        </Box>
+            ))}
+          </Box>
+        ) : (
+          <Typography color="gray" textAlign="center" mt={4}>
+            No games found.
+          </Typography>
+        )}
 
         {selectedGame && (
           <CheckoutGame game={selectedGame} handleClose={() => setSelectedGame(null)} />

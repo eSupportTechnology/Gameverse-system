@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, IconButton } from "@mui/material";
+import { Box, Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, IconButton, TextField } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import PaymentSuccess from '../assets/PaymentSuccess.png';
 import CancelPopup from './CancelPopup';
@@ -15,6 +15,11 @@ const CheckoutGame = ({ game, handleClose }) => {
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
 
+  // ✅ Editable fields
+  const [units, setUnits] = useState("0");
+  const [players, setPlayers] = useState(1);
+  const [discount, setDiscount] = useState(0);
+
   const handleCancelOpen = () => setCancelOpen(true);
   const handleCancelClose = () => setCancelOpen(false);
   const handleConfirm = () => {
@@ -24,15 +29,45 @@ const CheckoutGame = ({ game, handleClose }) => {
 
   if (!game) return null;
 
-  // Get unit price from method
-  const unitPrice = methodUnitPrice[game.method] || 0;
-  // Calculate units from total price
-  const units = Math.floor(game.price / unitPrice) || 1;
-  const fullAmount = unitPrice * units;
-  const discount = 0; // default
-  const balance = fullAmount - discount;
+  // // Get unit price from method
+  // const unitPrice = methodUnitPrice[game.method] || 0;
+  // // Calculate units from total price
+  // const units = Math.floor(game.price / unitPrice) || 1;
+  // const fullAmount = unitPrice * units;
+  // const discount = 0; // default
+  // const balance = fullAmount - discount;
 
-  const handlePay = () => setPaymentSuccess(true);
+  //Use game.price as unit price
+  const unitPrice = Number(game.price) || 0;
+
+  // Calculate full amount and balance dynamically
+  const unitsNumber = Number(units) || 0;
+  const playersNumber = Number(players) || 1;
+
+  const fullAmount = game.team_game
+    ? unitPrice * unitsNumber * playersNumber
+    : unitPrice * unitsNumber;
+
+  // calculate balance
+  const discountNumber = Number(discount) || 0;
+  const balance = fullAmount - discountNumber;
+
+  // handle checkout
+  const handlePay = () => {
+    const paymentData = {
+      unitPrice: unitPrice,
+      units: unitsNumber,
+      players: playersNumber,
+      fullAmount: fullAmount,
+      discount: discountNumber,
+      balance: balance,
+    };
+
+    console.log("Payment Data:", paymentData);
+
+    // Show success popup
+    setPaymentSuccess(true);
+  };
 
   return (
     <div>
@@ -49,17 +84,83 @@ const CheckoutGame = ({ game, handleClose }) => {
         <DialogContent sx={{ py: 1 }}>
           {/* Unit Price */}
           <Box display="flex" justifyContent="space-between" mb={1.5}>
-            <Typography fontSize={14} color="#FFFFFF">Unit Price:</Typography>
+            <Typography fontSize={14} color="#FFFFFF">
+              {game.team_game
+                ? "1 Hour Price (per person):"
+                : game.method === "Arrow"
+                  ? "1 Arrow Price:"
+                  : game.method === "Coin"
+                    ? "1 Coin Price:"
+                    : "Unit Price:"}
+            </Typography>
             <Typography fontSize={14} color="#FFFFFF">LKR {unitPrice}</Typography>
           </Box>
 
           {/* Units */}
           <Box display="flex" justifyContent="space-between" mb={1.5}>
-            <Typography fontSize={14} color="#FFFFFF">{game.method}:</Typography>
-            <Typography fontSize={13} color="#9CA3AF" sx={{ border: '1px solid #374151', py: 0.2, px: 2, minWidth: 50, textAlign: "center", display: "inline-block" }}>
-              {units}
+            <Typography fontSize={14} color="#FFFFFF">
+              {game.team_game
+                ? "Hours:"
+                : game.method === "Arrow"
+                  ? "Arrows:"
+                  : game.method === "Coin"
+                    ? "Coins:"
+                    : "Unit Price:"}
             </Typography>
+            <TextField
+              type="number"
+              value={units}
+              onChange={(e) => setUnits(e.target.value)}
+              sx={{
+                width: 70,
+                // height:20,
+                "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button": {
+                  WebkitAppearance: "none",
+                  margin: 0,
+                },
+                "& input[type=number]": { MozAppearance: "textfield" },
+                "& .MuiInputBase-input": {
+                  color: "#9CA3AF", textAlign: "center", fontSize: 13,
+                  padding: "4px 0",
+                  lineHeight: 1.2,
+                },
+                "& .MuiOutlinedInput-root": { "& fieldset": { borderColor: "#374151" }, padding: 0, },
+              }}
+            />
           </Box>
+
+          {
+            game.team_game && (
+              <Box display="flex" justifyContent="space-between" mb={1.5}>
+                <Typography fontSize={14} color="#FFFFFF">players:</Typography>
+                <TextField
+                  type="number"
+                  value={players}
+                  onChange={(e) => setPlayers(e.target.value)}
+                  inputProps={{ min: 1 }}
+                  sx={{
+                    width: 70,
+                    "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button": {
+                      WebkitAppearance: "none",
+                      margin: 0,
+                    },
+                    "& input[type=number]": { MozAppearance: "textfield" },
+                    "& .MuiInputBase-input": {
+                      color: "#9CA3AF",
+                      textAlign: "center",
+                      fontSize: 13,
+                      padding: "4px 0",
+                      lineHeight: 1.2,
+                    },
+                    "& .MuiOutlinedInput-root": {
+                      "& fieldset": { borderColor: "#374151" },
+                      padding: 0
+                    },
+                  }}
+                />
+              </Box>
+            )
+          }
 
           {/* Full Amount */}
           <Box display="flex" justifyContent="space-between" mb={1.5}>
@@ -70,9 +171,32 @@ const CheckoutGame = ({ game, handleClose }) => {
           {/* Discount */}
           <Box display="flex" justifyContent="space-between" mb={1.5}>
             <Typography fontSize={14} color="#FFFFFF">Discount:</Typography>
-            <Typography fontSize={12} color="#9CA3AF" sx={{ border: '1px solid #374151', py: 0.2, px: 2, minWidth: 50, textAlign: "center", display: "inline-block" }}>
-              LKR {discount}
-            </Typography>
+            <TextField
+              type="number"
+              value={discount}
+              onChange={(e) => setDiscount(e.target.value)} // keep as string
+              inputProps={{ min: 0 }}
+              sx={{
+                width: 80,
+                "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button": {
+                  WebkitAppearance: "none",
+                  margin: 0,
+                },
+                "& input[type=number]": { MozAppearance: "textfield" },
+                "& .MuiInputBase-input": {
+                  color: "#9CA3AF",
+                  textAlign: "center",
+                  fontSize: 13,
+                  padding: "4px 0",
+                  lineHeight: 1.2,
+                },
+                "& .MuiOutlinedInput-root": {
+                  "& fieldset": { borderColor: "#374151" },
+                  padding: 0
+                },
+              }}
+            />
+
           </Box>
 
           <hr style={{ border: "none", borderTop: "1px solid #374151" }} />

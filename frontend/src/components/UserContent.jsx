@@ -13,11 +13,10 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddUserDialog from "./AddUserDialog";
 import DeleteConfirmDialog from "./DeleteConfirmDialog";
-import DeleteSuccessDialog from "./DeleteSuccessDialog"; 
+import DeleteSuccessDialog from "./DeleteSuccessDialog";
 import UpdateSuccessDialog from "./UpdateSuccess";
 import CreateSuccessDialog from "./CreateSuccessDialog";
 import axios from "axios";
-
 
 export default function UserManagement() {
   const [open, setOpen] = useState(false);
@@ -33,7 +32,7 @@ export default function UserManagement() {
     password: "",
     active_status: true,
     avatar: null,
-    profile_img: ''
+    profile_img: "",
   });
 
   const [isEditing, setIsEditing] = useState(false);
@@ -49,7 +48,7 @@ export default function UserManagement() {
 
   const mapUser = (user) => ({
     id: user.id,
-    fullName: user.fullname,      
+    fullName: user.fullname,
     username: user.username,
     email: user.email,
     role: user.role,
@@ -58,14 +57,12 @@ export default function UserManagement() {
     avatar: user.avatar || "/images/default.png",
   });
 
-
   // Fetch users from backend
   useEffect(() => {
     const fetchUsers = async () => {
       try {
         const res = await axios.get("http://localhost:8000/api/users");
 
-        // Map API data into your UI format
         const formattedUsers = res.data.map((user) => ({
           id: user.id,
           fullName: user.fullname,
@@ -89,7 +86,12 @@ export default function UserManagement() {
   const handleOpen = () => {
     setIsEditing(false);
     setFormData({
-      fullname: "", role: "operator", username: "", email: "", password: "", active_status: true,
+      fullname: "",
+      role: "operator",
+      username: "",
+      email: "",
+      password: "",
+      active_status: true,
       avatar: null,
     });
     setOpen(true);
@@ -106,14 +108,12 @@ export default function UserManagement() {
       email: user.email || "",
       role: user.role,
       active_status: user.status === "Active",
-      password: "", // don’t preload password
-      avatar: user.avatar || null,  
+      password: "",
+      avatar: user.avatar || null,
     });
 
     setOpen(true);
   };
-
-
 
   const handleDeleteClick = (index) => {
     setDeleteIndex(index);
@@ -127,21 +127,18 @@ export default function UserManagement() {
     try {
       const token = localStorage.getItem("aToken");
 
-      await axios.delete(`http://localhost:8000/api/delete-user/${userId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      await axios.delete(`http://localhost:8000/api/delete-user/${userId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       setUsers((prev) => prev.filter((_, idx) => idx !== deleteIndex));
       setDeleteDialogOpen(false);
       setDeleteIndex(null);
-      setDeleteSuccessOpen(true); // ✅ show success popup
+      setDeleteSuccessOpen(true);
     } catch (error) {
       console.error("Delete failed:", error);
     }
-
   };
 
   const handleClose = () => setOpen(false);
@@ -149,27 +146,28 @@ export default function UserManagement() {
   const handleCreateOrUpdate = (user) => {
     const formattedUser = mapUser(user);
     if (isEditing && editIndex !== null) {
-      setUsers((prev) => prev.map((u, idx) => (idx === editIndex ? formattedUser : u)));
-      //updateSuccessOpen(true);
-      setUpdateSuccessOpen(true); // update success popup
+      setUsers((prev) =>
+        prev.map((u, idx) => (idx === editIndex ? formattedUser : u))
+      );
+      setUpdateSuccessOpen(true);
     } else {
       setUsers((prev) => [...prev, formattedUser]);
-      setCreateSuccessOpen(true); // ✅ create success popup
+      setCreateSuccessOpen(true);
     }
     setOpen(false);
   };
-
-
-
 
   return (
     <Box sx={{ backgroundColor: "#000", minHeight: "500vh", color: "#fff", pt: "70px", px: 3 }}>
       {/* HEADER & SEARCH */}
       <Box sx={{ mb: 3 }}>
-        <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
+        {/* Top header */}
+        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
           <Box>
             <Typography variant="h6" fontWeight={600}>User Management</Typography>
-            <Typography variant="body2" color="gray">Manage users, roles, and permissions</Typography>
+            <Typography variant="body2" color="gray">
+              Manage users, roles, and permissions
+            </Typography>
           </Box>
           <Button
             onClick={handleOpen}
@@ -189,11 +187,41 @@ export default function UserManagement() {
           </Button>
         </Box>
 
-        <Box sx={{ backgroundColor: "#111827", p: 1, borderRadius: 2, mb: 1, display: "flex" }}>
+        {/* All Users + Search bar */}
+        <Box
+          sx={{
+            backgroundColor: "#171C2D",
+            borderRadius: "10px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            p: 1.2,
+            mb: 2,
+          }}
+        >
+          <Button
+
+            sx={{
+              backgroundColor: "#0d2a38",
+              color: "#fff",
+              border: "1px solid #00b8ff",
+              textTransform: "none",
+              fontWeight: "bold",
+              px: 5,
+              borderRadius: "5px",
+              "&:hover": {
+                backgroundColor: "#10374b",
+                borderColor: "#00c8ff",
+              },
+            }}
+          >
+            All Users
+          </Button>
+
           <TextField
-            placeholder="Search"
+            placeholder="Search users..."
             variant="outlined"
-            fullWidth
+            size="small"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             InputProps={{
@@ -208,20 +236,17 @@ export default function UserManagement() {
                 input: { color: "white" },
               },
             }}
-            sx={{ width: "50%" }}
+            sx={{ width: "40%" }}
           />
         </Box>
       </Box>
 
-      {/* OUTER CONTAINER - #0E111B */}
+      {/* OUTER CONTAINER */}
       <Box sx={{ backgroundColor: "#0E111B", p: 2, borderRadius: 2, overflowX: "auto", paddingBottom: "100px" }}>
-        {/* TABLE CONTAINER - #374151 */}
         <Box sx={{ backgroundColor: "#37415174", borderRadius: 1, p: 2 }}>
           {/* Table Header */}
           <Box
             sx={{
-              display: "grid",
-              //gridTemplateColumns: "1.5fr 1fr 1fr 1fr 0.5fr",
               display: "grid",
               gridTemplateColumns: "0.75fr 1fr 1fr 0.5fr 0.61fr",
               gap: 2,
@@ -248,9 +273,9 @@ export default function UserManagement() {
                 sx={{
                   display: "grid",
                   gridTemplateColumns: "0.75fr 1fr 1fr 0.5fr 0.65fr",
-                  gap: 1,
+                  gap: 2,
                   alignItems: "center",
-                  py: 0.5,
+                  py: 2,
                 }}
               >
                 {/* User */}
@@ -276,18 +301,31 @@ export default function UserManagement() {
                   {user.status}
                 </Box>
                 <Typography color="white">{user.lastLogin}</Typography>
-                <Box sx={{ padding: 1 }}>
+
+                {/* Action Buttons */}
+                <Box sx={{ display: "flex", gap: 1, justifyContent: "center", alignItems: "center" }}>
                   <IconButton
                     onClick={() => handleEditClick(user, idx)}
-                    sx={{ color: "#9CA3AF", background: "#c0bdbd43", p: 1, m: 1, "&:hover": { color: "#fff" } }}
+                    sx={{
+                      color: "#9CA3AF",
+                      background: "#ffffff1a",
+                      p: 1,
+                      "&:hover": { color: "#fff", background: "#ffffff2d" },
+                    }}
                   >
-                    <EditIcon />
+                    <EditIcon fontSize="small" />
                   </IconButton>
+
                   <IconButton
                     onClick={() => handleDeleteClick(idx)}
-                    sx={{ color: "#9CA3AF", background: "#c0bdbd43", p: 1, "&:hover": { color: "#fff", background: "#c0bdbdfb" } }}
+                    sx={{
+                      color: "#f87171",
+                      background: "#ffffff1a",
+                      p: 1,
+                      "&:hover": { color: "#fff", background: "#dc2626" },
+                    }}
                   >
-                    <DeleteIcon />
+                    <DeleteIcon fontSize="small" />
                   </IconButton>
                 </Box>
               </Box>
@@ -295,7 +333,7 @@ export default function UserManagement() {
         </Box>
       </Box>
 
-      {/* Add/Edit Dialog */}
+      {/* Dialogs */}
       <AddUserDialog
         open={open}
         onClose={handleClose}
@@ -304,33 +342,28 @@ export default function UserManagement() {
         setFormData={setFormData}
         isEditing={isEditing}
       />
+      
 
-      {/* Delete Confirm Dialog */}
       <DeleteConfirmDialog
         open={deleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}
         onConfirm={confirmDelete}
       />
 
-      {/* Delete Success Dialog */}
       <DeleteSuccessDialog
         open={deleteSuccessOpen}
         onClose={() => setDeleteSuccessOpen(false)}
       />
 
-      {/* Create Success Dialog */}
       <CreateSuccessDialog
         open={createSuccessOpen}
         onClose={() => setCreateSuccessOpen(false)}
       />
+
       <UpdateSuccessDialog
         open={updateSuccessOpen}
         onClose={() => setUpdateSuccessOpen(false)}
       />
-
-
-
-
     </Box>
   );
 }

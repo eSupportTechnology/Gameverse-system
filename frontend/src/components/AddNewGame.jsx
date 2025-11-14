@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -9,53 +9,37 @@ import {
   Box,
   Typography,
   IconButton,
-  MenuItem
+  MenuItem,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import CancelPopup from './CancelPopup';
-import gameicon from '../assets/gameicon.png';
-import axios from 'axios';
-import { toast } from 'react-toastify';
+import CancelPopup from "./CancelPopup";
+import gameicon from "../assets/gameicon.png";
+import axios from "axios";
+import { toast } from "react-toastify";
 
 const paymentMethods = ["Coin", "Arrow", "Per Hour"];
 
-const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmit }) => {
+const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmit, fetchGames }) => {
   const [createSuccess, setCreateSuccess] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
 
   const [title, setTitle] = useState("");
+  const [teamGame, setTeamGame] = useState(null); // rename to match backend
   const [location, setLocation] = useState("");
   const [method, setMethod] = useState("Coin");
   const [price, setPrice] = useState("");
-
-  // ✅ Strict validation for pricing method
-  const validateMethodForGame = (gameTitle, chosenMethod) => {
-    const lowerTitle = gameTitle.toLowerCase();
-
-    if (lowerTitle.includes("archery machine") && chosenMethod !== "Coin") {
-      toast.warning("⚠️ Please select the correct pricing method: 'Coin' for Archery Machine.");
-      return false;
-    }
-    if (lowerTitle.includes("archery") && !lowerTitle.includes("machine") && chosenMethod !== "Arrow") {
-      toast.warning("⚠️ Please select the correct pricing method: 'Arrow' for Archery.");
-      return false;
-    }
-    if (lowerTitle.includes("carrom") && chosenMethod !== "Per Hour") {
-      toast.warning("⚠️ Please select the correct pricing method: 'Per Hour' for Carrom.");
-      return false;
-    }
-    return true;
-  };
 
   useEffect(() => {
     if (open) {
       if (mode === "edit" && initialData) {
         setTitle(initialData.title ?? "");
+        setTeamGame(initialData.team_game ?? null); // sync with backend
         setLocation(initialData.location ?? "");
         setMethod(initialData.method ?? "Coin");
         setPrice(initialData.price ?? "");
       } else {
         setTitle("");
+        setTeamGame(null);
         setLocation("");
         setMethod("Coin");
         setPrice("");
@@ -70,65 +54,87 @@ const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmi
     handleClose(false);
   };
 
+  const validateMethodForGame = (gameTitle, chosenMethod) => {
+    const lowerTitle = gameTitle.toLowerCase();
+    if (lowerTitle.includes("archery machine") && chosenMethod !== "Coin") {
+      toast.warning("⚠️ Archery Machine should use 'Coin' method only.");
+      return false;
+    }
+    if (lowerTitle.includes("archery") && !lowerTitle.includes("machine") && chosenMethod !== "Arrow") {
+      toast.warning("⚠️ Archery should use 'Arrow' method only.");
+      return false;
+    }
+    if (lowerTitle.includes("carrom") && chosenMethod !== "Per Hour") {
+      toast.warning("⚠️ Carrom should use 'Per Hour' method only.");
+      return false;
+    }
+    return true;
+  };
+
+  // Handle success dialog OK button
+  const handleSuccessOk = () => {
+    setCreateSuccess(false);
+    handleClose(); // Close the main form
+  };
+
   const handleSubmit = async () => {
     const trimmedTitle = title.trim();
     const trimmedLocation = location.trim();
     const trimmedMethod = method.trim();
 
-    // ✅ Empty field validation
-    if (!trimmedTitle || !trimmedLocation || !price) {
+    if (!trimmedTitle || !trimmedLocation || !price || teamGame === null) {
       toast.error("All fields are required!");
       return;
     }
 
-    // ✅ Strict pricing method validation before creation
-    if (!validateMethodForGame(trimmedTitle, trimmedMethod)) {
-      return; // Stop creation
-    }
+    if (!validateMethodForGame(trimmedTitle, trimmedMethod)) return;
 
     const gameData = {
       title: trimmedTitle,
+      team_game: teamGame, // match backend
       location: trimmedLocation,
       method: trimmedMethod,
       price: Number(price),
     };
+    const token = localStorage.getItem("aToken");
 
     try {
-      const token = localStorage.getItem("aToken");
       const url =
         mode === "edit"
           ? `http://127.0.0.1:8000/api/games/${initialData.id}`
           : "http://127.0.0.1:8000/api/games";
 
-      await axios({
+      const response = await axios({
         method: mode === "edit" ? "put" : "post",
         url,
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
         data: gameData,
       });
 
-      toast.success(`Game ${mode === "edit" ? "updated" : "created"} successfully!`);
+      // toast.success(`Game ${mode === "edit" ? "updated" : "created"} successfully!`);
       setCreateSuccess(true);
 
-      setTimeout(() => {
-        setCreateSuccess(false);
-        handleClose();
-      }, 1500);
 
-      if (onSubmit) onSubmit();
+      // setTimeout(() => {
+      //   setCreateSuccess(false);
+      //   handleClose();
+      // }, 1500);
+
+      if (onSubmit) onSubmit(response.data); // send updated game back
+
+      try {
+        await fetchGames();
+      } catch (err) {
+        console.error("Error refreshing game list:", err);
+      }
     } catch (err) {
-      console.error('Validation errors:', err.response?.data);
-      toast.error(
-        err.response?.data?.message ||
-        JSON.stringify(err.response?.data) ||
-        "Failed to save game."
-      );
+      console.error("Validation errors:", err.response?.data);
+      toast.error(err.response?.data?.message || "Failed to save game.");
     }
   };
 
   return (
     <>
-      {/* Main Dialog */}
       <Dialog
         open={open}
         fullWidth
@@ -139,11 +145,10 @@ const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmi
             backgroundColor: "#111827",
             color: "white",
             py: 2,
-            border: '1px solid #374151'
-          }
+            border: "1px solid #374151",
+          },
         }}
       >
-        {/* Header */}
         <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", px: 1 }}>
           <DialogTitle sx={{ color: "#FFFFFF", fontSize: 18, fontWeight: "bold" }}>
             {mode === "edit" ? "Edit Game" : "Add New Game"}
@@ -153,11 +158,12 @@ const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmi
           </IconButton>
         </Box>
 
-        {/* Form */}
         <DialogContent dividers sx={{ py: 0, pb: 2 }}>
           {/* Game Name */}
-          <Box display="flex" flexDirection="column" gap={1} mb={1}>
-            <Typography variant="body2" sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF" }}>Game Name</Typography>
+          <Box mb={1}>
+            <Typography variant="body2" sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF" }}>
+              Game Name
+            </Typography>
             <TextField
               variant="outlined"
               fullWidth
@@ -169,15 +175,69 @@ const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmi
                 sx: {
                   backgroundColor: "#1F2937",
                   borderRadius: "6px",
-                  border: '1px solid #374151',
-                  color: "white"
-                }
+                  border: "1px solid #374151",
+                  color: "white",
+                },
               }}
             />
           </Box>
 
+          {/* Team Game Toggle */}
+          <Box mb={2}>
+            <Typography variant="body2" sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF", mb: 0.5 }}>
+              Team Game
+            </Typography>
+            <Box display="flex" gap={2}>
+              <Box
+                onClick={() => setTeamGame(true)}
+                sx={{
+                  flex: 1,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  px: 2,
+                  py: 1,
+                  borderRadius: "8px",
+                  border: "1px solid rgba(255, 255, 255, 0.2)",
+                  backgroundColor: teamGame === true ? "rgba(255, 255, 255, 0.05)" : "transparent",
+                  cursor: "pointer",
+                }}
+              >
+                <Typography sx={{ color: teamGame === true ? "#ffffff" : "rgba(255,255,255,0.6)", fontSize: 14 }}>
+                  Yes
+                </Typography>
+                {teamGame === true && (
+                  <Box sx={{ width: 10, height: 10, borderRadius: "50%", backgroundColor: "rgba(255,255,255,0.8)" }} />
+                )}
+              </Box>
+
+              <Box
+                onClick={() => setTeamGame(false)}
+                sx={{
+                  flex: 1,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  px: 2,
+                  py: 1,
+                  borderRadius: "8px",
+                  border: "1px solid rgba(255, 255, 255, 0.2)",
+                  backgroundColor: teamGame === false ? "rgba(255, 255, 255, 0.05)" : "transparent",
+                  cursor: "pointer",
+                }}
+              >
+                <Typography sx={{ color: teamGame === false ? "#ffffff" : "rgba(255,255,255,0.6)", fontSize: 14 }}>
+                  No
+                </Typography>
+                {teamGame === false && (
+                  <Box sx={{ width: 10, height: 10, borderRadius: "50%", backgroundColor: "rgba(255,255,255,0.8)" }} />
+                )}
+              </Box>
+            </Box>
+          </Box>
+
           {/* Location */}
-          <Box display="flex" flexDirection="column" gap={1} mb={1}>
+          <Box mb={1}>
             <Typography variant="body2" sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF" }}>Location</Typography>
             <TextField
               variant="outlined"
@@ -190,14 +250,14 @@ const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmi
                 sx: {
                   backgroundColor: "#1F2937",
                   borderRadius: "6px",
-                  border: '1px solid #374151',
-                  color: "white"
-                }
+                  border: "1px solid #374151",
+                  color: "white",
+                },
               }}
             />
           </Box>
 
-          {/* Pricing Method */}
+          {/* Method + Price */}
           <Typography variant="body2" sx={{ fontSize: 12, color: "#9CA3AF", mb: 0.5 }}>Pricing Method</Typography>
           <Box display="grid" gridTemplateColumns={{ xs: "1fr", md: "1fr 1fr" }} gap={2} mt={1}>
             <TextField
@@ -205,16 +265,14 @@ const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmi
               fullWidth
               size="small"
               value={method}
-              onChange={(e) => {
-                setMethod(e.target.value);
-              }}
+              onChange={(e) => setMethod(e.target.value)}
               InputProps={{
                 sx: {
                   backgroundColor: "#1F2937",
                   borderRadius: "6px",
-                  border: '1px solid #374151',
-                  color: "white"
-                }
+                  border: "1px solid #374151",
+                  color: "white",
+                },
               }}
             >
               {paymentMethods.map((m) => (
@@ -234,40 +292,19 @@ const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmi
                 sx: {
                   backgroundColor: "#1F2937",
                   borderRadius: "6px",
-                  border: '1px solid #374151',
-                  color: "white"
-                }
+                  border: "1px solid #374151",
+                  color: "white",
+                },
               }}
             />
           </Box>
         </DialogContent>
 
-        {/* Actions */}
         <DialogActions sx={{ px: 3 }}>
-          <Button
-            onClick={handleCancelOpen}
-            variant="contained"
-            sx={{
-              fontSize: 16,
-              fontWeight: 'bold',
-              backgroundColor: "#1F2937",
-              width: '50%',
-              py: 0.5
-            }}
-          >
+          <Button onClick={handleCancelOpen} variant="contained" sx={{ fontSize: 16, fontWeight: "bold", backgroundColor: "#1F2937", width: "50%", py: 0.5 }}>
             Cancel
           </Button>
-          <Button
-            onClick={handleSubmit}
-            variant="contained"
-            sx={{
-              fontSize: 16,
-              fontWeight: 'bold',
-              width: '50%',
-              py: 0.5,
-              background: "linear-gradient(to right, #0CD7FF, #8A38F5)"
-            }}
-          >
+          <Button onClick={handleSubmit} variant="contained" sx={{ fontSize: 16, fontWeight: "bold", width: "50%", py: 0.5, background: "linear-gradient(to right, #0CD7FF, #8A38F5)" }}>
             {mode === "edit" ? "Update" : "Create"}
           </Button>
         </DialogActions>
@@ -275,7 +312,7 @@ const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmi
         <CancelPopup open={cancelOpen} handleCancelClose={handleCancelClose} handleConfirm={handleConfirmCancel} />
       </Dialog>
 
-      {/* Success Popup */}
+      {/* create Success Popup */}
       <Dialog
         open={createSuccess}
         PaperProps={{
@@ -287,11 +324,33 @@ const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmi
             textAlign: "center",
             color: "white",
             border: '1px solid #3B4859'
-          }
+          },
         }}
       >
         <DialogContent>
-          <Box sx={{ mb: 1 }}><img src={gameicon} alt="" width={80} /></Box>
+          <Box sx={{ mb: 1, display: 'flex', justifyContent: 'center' }}>
+            <Box sx={{
+              width: 80,
+              height: 80,
+              borderRadius: '50%',
+              border: '3px solid',
+              borderColor: 'transparent',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: 'linear-gradient(#0A192F, #0A192F) padding-box, linear-gradient(90deg, #00C6FF, #FF00CC) border-box',
+            }}>
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M5 13l4 4L19 7" stroke="url(#gradient)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                <defs>
+                  <linearGradient id="gradient" x1="5" y1="12" x2="19" y2="12">
+                    <stop offset="0%" stopColor="#00C6FF" />
+                    <stop offset="100%" stopColor="#FF00CC" />
+                  </linearGradient>
+                </defs>
+              </svg>
+            </Box>
+          </Box>
           <Typography
             variant="h6"
             sx={{
@@ -303,16 +362,20 @@ const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmi
               mb: 1
             }}
           >
-            {mode === "edit" ? "Update Successful!" : "Create Successful!"}
+            {mode === 'edit' ? 'Update Successful!' : 'Create Successful!'}
           </Typography>
           <Button
-            onClick={() => { setCreateSuccess(false); handleClose(); }}
+            onClick={handleSuccessOk}
             sx={{
               px: 8,
               fontSize: 14,
+              textTransform: 'capitalize',
               borderRadius: "8px",
               background: "linear-gradient(90deg, rgba(12, 215, 255, 0.4) 0%, rgba(138, 56, 245, 0.4) 73%)",
-              color: "white"
+              color: "white",
+              "&:hover": {
+                background: "linear-gradient(90deg, #0CD7FF 0%, #8A38F5 73%)",
+              },
             }}
           >
             Ok

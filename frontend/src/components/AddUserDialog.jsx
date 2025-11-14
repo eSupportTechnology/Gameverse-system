@@ -70,6 +70,12 @@ export default function AddUserDialog({
     setLoading(true);
     setMessage("");
 
+    if (!formData.fullname || !formData.username || !formData.email || (!isEditing && !formData.password)) {
+      toast.error("Please fill all required fields.");
+      setLoading(false);
+      return;
+    }
+
     try {
       const token = localStorage.getItem("aToken");
       if (!token) {
@@ -313,6 +319,28 @@ export default function AddUserDialog({
           onChange={handleChange}
           fullWidth
           placeholder="Enter email"
+          sx={{
+            mb: 2,
+            backgroundColor: "#1e293b4b",
+            "& .MuiOutlinedInput-root": {
+              borderRadius: "10px",
+              color: "white",
+              "& fieldset": { borderColor: "#334155" },
+            },
+          }}
+        />
+
+        <Typography variant="subtitle2" sx={{ color: "#94a3b8", mb: 0.5 }}>
+          password
+        </Typography>
+        <TextField
+          margin="dense"
+          name="password"
+          value={formData.password || ""}
+          onChange={handleChange}
+          fullWidth
+          placeholder="Enter password"
+          required
           sx={{
             mb: 2,
             backgroundColor: "#1e293b4b",

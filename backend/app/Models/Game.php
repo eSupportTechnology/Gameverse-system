@@ -14,11 +14,11 @@ class Game extends Model
         'location',
         'method',
         'price',
+        'team_game',
     ];
 
-    // Optional: you can add a computed attribute for quantity
-    // public function getQuantityAttribute() {
-        // $values = ['Coin' => 100, 'Arrow' => 150, 'Per Hour' => 75];
-        // return isset($values[$this->method]) ? intval($this->price / $values[$this->method]) : 0;
-    // }
+    // Ensure team_game is always a boolean
+    protected $casts = [
+        'team_game' => 'boolean',
+    ];
 }

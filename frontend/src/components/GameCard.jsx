@@ -1,60 +1,131 @@
-import React, { useState } from 'react';
-import { Card, CardContent, Typography, Button, Box } from "@mui/material";
+
+import React, { useState, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  Typography,
+  Button,
+  Box,
+  IconButton,
+  Tooltip,
+  Divider,
+} from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
-import AddNewGame from './AddNewGame';
+import AddNewGame from "./AddNewGame";
 
 const methodValue = { Coin: 100, Arrow: 150, "Per Hour": 75 };
 
-const GameCard = ({ game, onPlay, onUpdate }) => {
+const GameCard = ({ game: initialGame, onPlay, onUpdate }) => {
   const [editOpen, setEditOpen] = useState(false);
+  const [game, setGame] = useState(initialGame || {}); // default empty object
 
-  const quantity = Math.floor(game.price / (methodValue[game.method] || 1));
+  useEffect(() => {
+    if (initialGame) setGame(initialGame);
+  }, [initialGame]);
+
+  // Prevent undefined access
+  if (!game || !game.title) return null;
+
+  const quantity = Math.floor((game.price || 0) / (methodValue[game.method] || 1));
 
   return (
-    <div>
-      <Card sx={{ bgcolor: "#171C2D", borderRadius: "5px", pb: 2, boxShadow: "0 2px 8px rgba(0,0,0,0.4)", height: 135 }}>
-        <CardContent>
-          <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
-            <Typography variant="h6" fontWeight={500} fontSize={16} color="#fff">{game.title}</Typography>
-            <EditIcon onClick={() => setEditOpen(true)} sx={{ fontSize: 16, color: "gray", cursor: "pointer" }} />
-          </Box>
+    <Card
+      sx={{
+        bgcolor: "#171C2D",
+        borderRadius: 0,
+        boxShadow: "0px 0px 4px rgba(0,0,0,0.4)",
+        width: 280,
+        height: 185,
+        transition: "0.3s",
+      }}
+    >
+      <CardContent sx={{ px: 2, py: 1.5 }}>
+        {/* Title + Edit Icon */}
+        <Box display="flex" justifyContent="space-between" alignItems="center">
+          <Typography
+            variant="h6"
+            fontWeight={500}
+            fontSize={15}
+            color="#FFFFFF"
+            noWrap
+          >
+            {game.title}
+          </Typography>
+          <Tooltip title="Edit">
+            <IconButton size="small" onClick={() => setEditOpen(true)}>
+              <EditIcon sx={{ fontSize: 16, color: "gray" }} />
+            </IconButton>
+          </Tooltip>
+        </Box>
 
-          <Box display="flex" justifyContent="flex-start" mb={1}>
-            <Typography fontWeight={200} fontSize={12} color="#fff">
-              Location: <span style={{ fontWeight: 700 }}>{game.location}</span>
-            </Typography>
-          </Box>
+        {/* Divider line */}
+        <Divider sx={{ backgroundColor: "#2E3350", my: 1 }} />
 
-          <Box display="flex" justifyContent="space-between" mb={2}>
-            <Typography fontSize={12} color="#FFFFFF">
-              {quantity} {game.method}{quantity > 1 ? "s" : ""}
-            </Typography>
-            <Typography fontSize={12} color="#0CD7FF">
-              LKR {game.price}
-            </Typography>
-          </Box>
+        {/* Team Game */}
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={0.4}>
+          <Typography fontSize={13} color="#FFFFFF">
+            Team Game
+          </Typography>
+          <Typography fontSize={13} color="#FFFFFF" fontWeight={500}>
+            {game.team_game ? "Yes" : "No"}
+          </Typography>
+        </Box>
 
-          <Button fullWidth variant="contained"
-            sx={{ bgcolor: "rgba(138, 56, 245, 0.2)", color: "#fff", borderRadius: "5px", py: 0.2, textTransform: "none", "&:hover": { bgcolor: "#1F2937" } }}
-            onClick={() => onPlay(game)}>
-            Play
-          </Button>
+        {/* Location */}
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={0.4}>
+          <Typography fontSize={13} color="#FFFFFF">
+            Location
+          </Typography>
+          <Typography fontSize={13} color="#FFFFFF" fontWeight={500}>
+            {game.location || "-"}
+          </Typography>
+        </Box>
 
-          {/* EDIT MODAL */}
-          <AddNewGame
-            open={editOpen}
-            handleClose={() => setEditOpen(false)}
-            mode="edit"
-            initialData={game}
-            onSubmit={(updatedGameData) => {
-              // only update local UI, backend call already happens inside AddNewGame
-              if (onUpdate) onUpdate(updatedGameData);
-              setEditOpen(false);
-            }}
-          />
-        </CardContent>
-      </Card>
-    </div>
+        {/* Method + Price */}
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={1.5}>
+          <Typography fontSize={13} color="#FFFFFF">
+            {game.method === "Per Hour"
+              ? "1 Hour"
+              : `${quantity} ${game.method}${quantity > 1 ? "s" : ""}`}
+          </Typography>
+          <Typography fontSize={13} color="#0CD7FF" fontWeight={600}>
+            LKR {game.price || 0}
+          </Typography>
+        </Box>
+
+        {/* Play Button */}
+        <Button
+          fullWidth
+          variant="contained"
+          sx={{
+            bgcolor: "#8A38F51F",
+            color: "#FFFFFF",
+            borderRadius: 0,
+            py: 0.5,
+            textTransform: "none",
+            fontSize: 13,
+            "&:hover": {
+              bgcolor: "#8A38F540",
+            },
+          }}
+          onClick={() => onPlay && onPlay(game)}
+        >
+          Play
+        </Button>
+
+        {/* Edit Modal */}
+        <AddNewGame
+          open={editOpen}
+          handleClose={() => setEditOpen(false)}
+          mode="edit"
+          initialData={game}
+          onSubmit={(updatedGameData) => {
+            if (onUpdate) onUpdate(updatedGameData);
+            setEditOpen(false);
+          }}
+        />
+      </CardContent>
+    </Card>
   );
 };
 

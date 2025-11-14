@@ -45,7 +45,8 @@ class OperaterGameController extends Controller
             'title' => 'required|string|max:255',
             'location' => 'required|string|max:255',
             'method' => 'required|in:Coin,Arrow,Per Hour',
-            'price' => 'required|numeric|min:0'
+            'price' => 'required|numeric|min:0',
+            'is_team_game' => 'boolean', // ✅ new validation
         ]);
 
         $game = OperaterGame::create([
@@ -54,6 +55,7 @@ class OperaterGameController extends Controller
             'location' => $validated['location'],
             'method' => $validated['method'],
             'price' => $validated['price'],
+            'is_team_game' => $validated['is_team_game'] ?? false, // ✅ added
         ]);
 
         return response()->json([
@@ -106,7 +108,8 @@ class OperaterGameController extends Controller
             'title' => 'sometimes|required|string|max:255',
             'location' => 'sometimes|required|string|max:255',
             'method' => 'sometimes|required|in:Coin,Arrow,Per Hour',
-            'price' => 'sometimes|required|numeric|min:0'
+            'price' => 'sometimes|required|numeric|min:0',
+            'is_team_game' => 'sometimes|boolean', // ✅ added
         ]);
 
         $game->update($validated);
