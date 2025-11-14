@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState, useRef } from "react";
 import {
   Box,
   Typography,
@@ -7,8 +7,12 @@ import {
   Card,
   CardContent,
   IconButton,
+  Popper,
+  Paper,
   Modal,
   MenuItem,
+  Select,
+  FormControl,
   TextField,
   Radio,
   RadioGroup,
@@ -21,10 +25,14 @@ import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
 import StarIcon from "@mui/icons-material/Star";
 import CloseIcon from "@mui/icons-material/Close";
-import EditIcon from "@mui/icons-material/Edit";
 import axios from "axios";
 import { AdminContext } from "../context/AdminContext";
 import { toast } from "react-toastify";
+import searchIcon from "../assets/search.png";
+import scanIcon from "../assets/scan.png";
+import addIcon from "../assets/plus.png";
+import EditIcon from "../assets/editicon.png";
+import AddNFCUserDialog from "./AddNFCUserDialog";
 
 const initialProducts = [
   // { id: 1, price: 800, name: "Chicken Burger", category: "Snacks", stock: 15 },
@@ -53,8 +61,7 @@ const textFieldSx = {
 };
 
 const PosSystem = () => {
-
-  const { aToken } = useContext(AdminContext)
+  const { aToken } = useContext(AdminContext);
 
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -73,8 +80,12 @@ const PosSystem = () => {
   const [createSuccess, setcreateSuccess] = useState(false);
   const [editSuccess, seteditSuccess] = useState(false);
 
+  const selectRef = useRef(null);
+  const plusRef = useRef(null);
   const [newCategory, setNewCategory] = useState("");
   const [showNewCategory, setShowNewCategory] = useState(false);
+
+  const [searchTerm, setSearchTerm] = useState("");
 
   const [newItem, setNewItem] = useState({
     category: "",
@@ -92,7 +103,26 @@ const PosSystem = () => {
     isFirstTime: true,
   });
 
+  // ---------------- NFC USER FORM STATE ----------------
+  const [nfcFormData, setNfcFormData] = useState({
+    fullName: "",
+    phoneNo: "",
+    nicNumber: "",
+  });
+
   const [nfcPoints, setNfcPoints] = useState(0);
+
+  const handleCreateNFCUser = (data) => {
+    console.log("New NFC User:", data);
+    // TODO: send to backend if needed
+    setOpenAddNFCUserDialog(false);
+  };
+
+  // NFC Dialog State
+  const [openAddNFCUserDialog, setOpenAddNFCUserDialog] = useState(false);
+
+  const handleOpenAddNFCUserDialog = () => setOpenAddNFCUserDialog(true);
+  const handleCloseAddNFCUserDialog = () => setOpenAddNFCUserDialog(false);
 
   // Cart operations
   const addToCart = (product) => {
@@ -120,6 +150,10 @@ const PosSystem = () => {
   const handleDeleteCart = (product) => {
     setCart(cart.filter((p) => p.id !== product.id));
   };
+
+  const totalPrice = cart.reduce((sum, item) => {
+    return sum + item.price * item.qty;
+  }, 0);
 
   //  Add Item
   const handleAddItemClose = () => {
@@ -212,16 +246,18 @@ const PosSystem = () => {
   const fetchItems = async () => {
     try {
       const token = localStorage.getItem("aToken"); // your Sanctum token or similar
-      const response = await axios.get("http://localhost:8000/api/pos/get-items", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await axios.get(
+        "http://localhost:8000/api/pos/get-items",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       if (response.data.success) {
         setProducts(response.data.data);
         console.log(response.data.data);
-
       }
     } catch (error) {
       console.error("Error fetching POS items:", error);
@@ -267,7 +303,7 @@ const PosSystem = () => {
     }
   };
 
-  // checkot 
+  // checkot
   const handleCheckout = async () => {
     try {
       const payload = {
@@ -307,8 +343,6 @@ const PosSystem = () => {
       toast.error(error.response?.data?.message || "Checkout failed!");
     }
   };
-
-
 
   const handleAddCategory = () => {
     if (newCategory.trim() && !categories.includes(newCategory)) {
@@ -350,87 +384,83 @@ const PosSystem = () => {
   const handleCancelClose = () => setOpenCancelConfirm(false);
 
   // Filters
+  // Search filter
+  const searchedProducts = products.filter((p) =>
+    p.item_name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Category filter
   const filteredProducts =
     activeCategory === "All"
-      ? products
-      : products.filter((p) => p.category === activeCategory);
+      ? searchedProducts
+      : searchedProducts.filter((p) => p.category === activeCategory);
 
   // Totals
   const subtotal = cart.reduce((acc, item) => acc + item.price * item.qty, 0);
   const discount = 0;
   const total = subtotal - discount;
 
-  const calculatePoints = () => {
-    let points = walkInCustomer.points;
-    let isFirstTime = walkInCustomer.isFirstTime;
+  // const calculatePoints = () => {
+  //   let points = walkInCustomer.points;
+  //   let isFirstTime = walkInCustomer.isFirstTime;
 
-    if (isFirstTime) {
-      points += 30;
-      isFirstTime = false;
-    }
+  //   if (isFirstTime) {
+  //     points += 30;
+  //     isFirstTime = false;
+  //   }
 
-    points += Math.floor(cart.reduce((acc, item) => acc + item.price * item.qty, 0) / 100);
+  //   points += Math.floor(
+  //     cart.reduce((acc, item) => acc + item.price * item.qty, 0) / 100
+  //   );
 
-    setWalkInCustomer({ ...walkInCustomer, points, isFirstTime });
-    setNfcPoints(points);
-    setOpenNFCPoints(true);
-  };
+  //   setWalkInCustomer({ ...walkInCustomer, points, isFirstTime });
+  //   setNfcPoints(points);
+  //   setOpenNFCPoints(true);
+  // };
 
   return (
     <Box
       sx={{
-        display: "flex",
-        flexDirection: { xs: "column", md: "row" },
         bgcolor: "black",
         color: "white",
         p: 2,
-        gap: 2,
-        width: "100%",
+        //width: "100%",
         height: "100vh",
-        overflow: "hidden",
-      }}
-    >
-      {/* ---------------- Left Section (Products) ---------------- */}
-      <Box sx={{
-        flex: 2,
-        width: "100%",
         display: "flex",
         flexDirection: "column",
-        gap: 2,
-        overflowY: "auto",
-        maxHeight: "100vh",
+      }}
+    >
+      {/* ---------------- FULL-WIDTH TOP HEADER ---------------- */}
 
-
-        scrollbarWidth: 'thin', // for Firefox
-        scrollbarColor: '#374151 transparent',
-
-      }}>
+      <Box sx={{ width: "100%", mb: 2 }}>
+        {/* Title + Add Button */}
         <Box
           sx={{
             display: "flex",
-            flexDirection: { xs: "column", sm: "row" },
             justifyContent: "space-between",
-            alignItems: "center",
-            gap: 1,
+            alignItems: "flex-end",
+            mb: 1.5,
           }}
         >
+          {/* LEFT TITLE */}
           <Box>
-            <Typography variant="h6" fontWeight="bold">
+            <Typography sx={{ fontSize: 22, fontWeight: 700 }}>
               POS System
             </Typography>
-            <Typography variant="body2" color="gray">
+            <Typography sx={{ fontSize: 13, color: "#9CA3AF" }}>
               Point of Sale and Product Management
             </Typography>
           </Box>
+          {/* RIGHT BUTTON */}
           <Button
             sx={{
               background: "linear-gradient(to right, #06b6d4, #9333ea)",
               color: "white",
-              borderRadius: 2,
-              width: { xs: "100%", sm: 213 },
-              height: 50,
-              fontSize: 16,
+              px: 3,
+              py: 1,
+              fontSize: 15,
               fontWeight: "bold",
+              borderRadius: "10px",
               textTransform: "none",
             }}
             onClick={() => setOpenAddItem(true)}
@@ -439,282 +469,400 @@ const PosSystem = () => {
           </Button>
         </Box>
 
-        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 2, bgcolor: "#0E111B", p: 1, }}>
-          {categories.map((cat) => (
-            <Button
-              key={cat}
-              variant="contained"
-              onClick={() => setActiveCategory(cat)}
-              sx={{
-                bgcolor: activeCategory === cat ? "#0B3C49" : "#1F2937",
-                color: "white",
-                textTransform: "none",
-                "&:hover": { bgcolor: "#374151" },
-                minWidth: 80,
-              }}
-            >
-              {cat}
-            </Button>
-          ))}
-        </Box>
-
+        {/* Categories + Search */}
         <Box
           sx={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-            gap: 2,
-            pr: 1,
-            alignItems: "stretch",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            //width: "100%",
+            height: 60,
+            bgcolor: "#0E111B",
+            p: 1,
           }}
         >
-          {filteredProducts.map((item) => (
-            <Card
-              key={item.id}
-              sx={{
-                bgcolor: "#171E2A",
-                borderRadius: 2,
-                position: "relative",
-                minHeight: 150,
-                minWidth: 200,
-                width: "100%",
-                border: 2,
-                borderColor: "#374151",
-              }}
-            >
-              <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <Typography
-                    sx={{ color: "#0CD7FF", fontWeight: "bold", fontSize: 14 }}
-                  >
-                    LKR{item.price}
-                  </Typography>
+          {/* Left: Category Buttons */}
+          <Box sx={{ display: "flex", gap: 1 }}>
+            {categories.map((cat) => (
+              <Button
+                key={cat}
+                variant="contained"
+                onClick={() => setActiveCategory(cat)}
+                sx={{
+                  bgcolor: activeCategory === cat ? "#0B3C49" : "#1F2937",
+                  color: "white",
+                  textTransform: "none",
+                  "&:hover": { bgcolor: "#374151" },
+                  minWidth: 80,
+                  height: 38,
+                  borderRadius: "8px",
+                  px: 3,
+                }}
+              >
+                {cat}
+              </Button>
+            ))}
+          </Box>
 
-                  {/* Edit Icon */}
-                  <IconButton
-                    size="small"
-                    sx={{ color: "white" }}
-                    onClick={() => {
-                      setSelectedItem(item); // store full item object
-                      setNewItem({
-                        category: item.category,
-                        name: item.item_name,
-                        price: item.price,
-                        stock: item.stock,
-                        loyalty: item.loyality_price ? "Yes" : "No",
-                      });
-                      setOpenEditItem(true);
-                    }}
-                  >
-                    <EditIcon sx={{ fontSize: 14 }} />
-                  </IconButton>
-                </Box>
-
-                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <Typography variant="subtitle1" color="white" fontSize={12}>
-                    {item.item_name}
-                  </Typography>
-
-                  {item.fav && (
-                    <IconButton
-                      size="small"
-                      sx={{ color: "white" }}
-                    >
-                      <StarIcon
-                        sx={{
-                          color: "#C6379F",
-                          width: 15,
-                          height: 14,
-                        }}
-                      />
-                    </IconButton>
-
-                  )}
-                </Box>
-
-                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <Typography variant="body2" color="#9CA3AF" fontSize={10}>
-                    {item.category}
-                  </Typography>
-
-                  <Box></Box>
-                </Box>
-
-                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <Typography variant="body2" color="white" sx={{ mt: 1 }} fontSize={12}>
-                    Stock: {item.stock}
-                  </Typography>
-
-                  <IconButton
-                    size="small"
-                    onClick={() => addToCart(item)}
-                  >
-                    <img
-                      src="/images/add.png"
-                      alt="add"
-                      style={{ width: 25, height: 25 }}
-                    />
-                  </IconButton>
-                </Box>
-              </CardContent>
-            </Card>
-          ))}
-
+          {/* Right: Search Bar */}
+          <TextField
+            placeholder="Search items..."
+            size="small"
+            variant="outlined"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            sx={{
+              width: 487,
+              bgcolor: "#1E293B",
+              borderRadius: "8px",
+              "& input": { color: "white", paddingLeft: "8px" },
+              "& fieldset": { borderColor: "#374151" },
+            }}
+            InputProps={{
+              startAdornment: (
+                <img
+                  src={searchIcon}
+                  alt="search"
+                  style={{ width: 18, opacity: 0.7, marginRight: 6 }}
+                />
+              ),
+            }}
+          />
         </Box>
       </Box>
 
-      {/* ---------------- Right Section ---------------- */}
-      <Box sx={{
-        flex: 1,
-        display: "flex",
-        flexDirection: "column",
-        gap: 2,
-        width: "100%",
-        maxWidth: { md: 400 }, // keep within screen
-        overflow: "hidden",
-      }}>
-        {/* Customer Box */}
+      {/* LEFT + RIGHT SECTIONS BELOW HEADER */}
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: { xs: "column", md: "row" },
+          gap: 2,
+          height: "calc(100vh - 120px)", // adjust 120px if your header height differs
+          overflow: "hidden",
+          flexGrow: 1,
+        }}
+      >
+        {/* LEFT SECTION: Products Grid */}
         <Box
           sx={{
-            bgcolor: "#0E111B",
-            p: 2,
-            borderRadius: 2,
-            display: "flex",
-            flexDirection: "column",
-            gap: 1,
+            flex: 2,
+            overflowY: "auto",
+            "&::-webkit-scrollbar": { width: "8px" },
+            "&::-webkit-scrollbar-track": { background: "#0E111B" },
+            "&::-webkit-scrollbar-thumb": {
+              background: "#3B4556",
+              borderRadius: "8px",
+            },
+            "&::-webkit-scrollbar-thumb:hover": {
+              background: "#4A5568",
+            },
           }}
         >
-          <Typography fontWeight="bold" mb={0.05}>
-            Customer
-          </Typography>
           <Box
             sx={{
-              flex: 1,
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 1,
+              bgcolor: "#0E111B",
+              p: 2,
+              borderRadius: 2,
+              //height: "100%",
             }}
           >
-            <Button
+            <Box
               sx={{
-                bgcolor: "#334155",
-                color: "#9CA3AF",
-                textTransform: "none",
-                width: "100%",
-                height: 35,
-                borderRadius: 1.5,
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+                gap: 2,
               }}
-              onClick={calculatePoints}
             >
-              Read NFC Card
-            </Button>
-            <Button
-              fullWidth
-              sx={{
-                background: "linear-gradient(to right,  #400935ff, #5717a4ff)",
-                color: "white",
-                textTransform: "none",
-                width: "100%",
-                height: 35,
-                borderRadius: 1.5,
-              }}
-              onClick={handleWalkInOpen}
-            >
-              Walk in customer
-            </Button>
+              {filteredProducts.map((item) => (
+                <Card
+                  key={item.id}
+                  sx={{
+                    bgcolor: "#171E2A",
+                    borderRadius: 2,
+                    position: "relative",
+                    minHeight: 150,
+                    minWidth: 200,
+                    //width: "100%",
+                    border: 2,
+                    borderColor: "#374151",
+                  }}
+                >
+                  <CardContent
+                    sx={{ display: "flex", flexDirection: "column", gap: 1 }}
+                  >
+                    <Box
+                      sx={{ display: "flex", justifyContent: "space-between" }}
+                    >
+                      <Typography
+                        sx={{
+                          color: "#0CD7FF",
+                          fontWeight: "bold",
+                          fontSize: 14,
+                        }}
+                      >
+                        LKR{item.price}
+                      </Typography>
+
+                      {/* Edit Icon */}
+                      <IconButton
+                        size="small"
+                        sx={{ color: "white" }}
+                        onClick={() => {
+                          setSelectedItem(item); // store full item object
+                          setNewItem({
+                            category: item.category,
+                            name: item.item_name,
+                            price: item.price,
+                            stock: item.stock,
+                            loyalty: item.loyality_price ? "Yes" : "No",
+                          });
+                          setOpenEditItem(true);
+                        }}
+                      >
+                        <img
+                          src={EditIcon}
+                          alt="edit"
+                          style={{ width: 16, height: 16 }}
+                        />
+                      </IconButton>
+                    </Box>
+
+                    <Box
+                      sx={{ display: "flex", justifyContent: "space-between" }}
+                    >
+                      <Typography
+                        variant="subtitle1"
+                        color="white"
+                        fontSize={12}
+                      >
+                        {item.item_name}
+                      </Typography>
+
+                      {item.fav && (
+                        <IconButton size="small" sx={{ color: "white" }}>
+                          <StarIcon
+                            sx={{
+                              color: "#C6379F",
+                              width: 15,
+                              height: 14,
+                            }}
+                          />
+                        </IconButton>
+                      )}
+                    </Box>
+
+                    <Box
+                      sx={{ display: "flex", justifyContent: "space-between" }}
+                    >
+                      <Typography variant="body2" color="#9CA3AF" fontSize={10}>
+                        {item.category}
+                      </Typography>
+                      <Box></Box>
+                    </Box>
+
+                    <Box
+                      sx={{ display: "flex", justifyContent: "space-between" }}
+                    >
+                      <Typography
+                        variant="body2"
+                        color="white"
+                        sx={{ mt: 1 }}
+                        fontSize={12}
+                      >
+                        Stock: {item.stock}
+                      </Typography>
+
+                      <IconButton size="small" onClick={() => addToCart(item)}>
+                        <img
+                          src="/images/add.png"
+                          alt="add"
+                          style={{ width: 25, height: 25 }}
+                        />
+                      </IconButton>
+                    </Box>
+                  </CardContent>
+                </Card>
+              ))}
+            </Box>
           </Box>
         </Box>
 
-        {/* Cart Box */}
+        {/* ---------------- Right Section ---------------- */}
         <Box
           sx={{
-            bgcolor: "#171E2A",
-            p: 2,
-            borderRadius: 2,
             flex: 1,
-            minHeight: 200,
             overflowY: "auto",
-            scrollbarWidth: 'thin', // for Firefox
-            scrollbarColor: '#374151 transparent',
+            "&::-webkit-scrollbar": { width: "8px" },
+            "&::-webkit-scrollbar-track": { background: "#0E111B" },
+            "&::-webkit-scrollbar-thumb": {
+              background: "#3B4556",
+              borderRadius: "8px",
+            },
+            "&::-webkit-scrollbar-thumb:hover": {
+              background: "#4A5568",
+            },
           }}
         >
-          <Typography fontWeight={600} mb={2} fontSize={16}>
-            Cart
-          </Typography>
-          {cart.length === 0 ? (
-            <Typography color="gray" fontSize={14}>
-              Cart is empty
-            </Typography>
-          ) : (
-            cart.map((item) => (
-              <Box
-                key={item.id}
+          {/* Single container for NFC + Cart */}
+          <Box
+            sx={{
+              bgcolor: "#0E111B",
+              p: 2,
+              borderRadius: 2,
+              display: "flex",
+              flexDirection: "column",
+              gap: 2,
+              height: "100%",
+              overflowY: "auto",
+            }}
+          >
+            <Typography fontWeight="bold">NFC Card Number</Typography>
+
+            {/* NFC Input Box */}
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 1,
+                bgcolor: "#1E293B",
+                borderRadius: 1.5,
+                height: "34px",
+                p: 1,
+              }}
+            >
+              <TextField
+                placeholder="Enter NFC Card Number"
+                variant="standard"
+                InputProps={{ disableUnderline: true }}
                 sx={{
-                  bgcolor: "#1E293B",
-                  borderRadius: 2,
-                  p: 2,
-                  mb: 2,
+                  flex: 1,
+                  input: { color: "#fff" },
+                }}
+              />
+
+              <IconButton>
+                <img src={scanIcon} />
+              </IconButton>
+
+              <IconButton onClick={handleOpenAddNFCUserDialog}>
+                <img src={addIcon} width={25} height={25} alt="Add NFC User" />
+              </IconButton>
+              <AddNFCUserDialog
+                open={openAddNFCUserDialog}
+                onClose={handleCloseAddNFCUserDialog}
+                onCreate={handleCreateNFCUser}
+                formData={nfcFormData}
+                setFormData={setNfcFormData}
+              />
+            </Box>
+
+            {/* Cart Box */}
+            <Box
+              sx={{
+                bgcolor: "#171E2A",
+                p: 2,
+                borderRadius: 2,
+                minHeight: 200,
+                flexGrow: 1, // so cart box expands in container if needed
+                overflowY: "auto",
+              }}
+            >
+              <Box
+                sx={{
                   display: "flex",
-                  alignItems: "center",
                   justifyContent: "space-between",
+                  alignItems: "center",
+                  mb: 2,
                 }}
               >
-                <Box>
-                  <Typography fontWeight={600} fontSize={14}>
-                    {item.name}
+                <Typography fontWeight={600} fontSize={16}>
+                  Cart Items
+                </Typography>
+                <Box sx={{ display: "flex", gap: 1 }}>
+                  <Typography fontSize={16} fontWeight={600}>
+                    Total:
                   </Typography>
-                  <Typography variant="body2" color="#9CA3AF" fontSize={12}>
-                    LKR{item.price}
+                  <Typography fontSize={16} fontWeight={600} color="#10B981">
+                    {totalPrice.toFixed(2)}
                   </Typography>
-                </Box>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <IconButton
-                    size="small"
-                    sx={{ bgcolor: "#334155", color: "white" }}
-                    onClick={() => removeFromCart(item)}
-                  >
-                    <RemoveIcon />
-                  </IconButton>
-                  <Typography>{item.qty}</Typography>
-                  <IconButton
-                    size="small"
-                    sx={{ bgcolor: "#334155", color: "white" }}
-                    onClick={() => addToCart(item)}
-                  >
-                    <AddIcon />
-                  </IconButton>
-                  <IconButton
-                    size="small"
-                    sx={{ bgcolor: "#42262F", borderRadius: "8px", p: 1 }}
-                    onClick={() => handleDeleteCart(item)}
-                  >
-                    <img
-                      src="/images/delete.png"
-                      alt="delete"
-                      style={{ width: 20, height: 20 }}
-                    />
-                  </IconButton>
                 </Box>
               </Box>
-            ))
-          )}
-        </Box>
+              {cart.length === 0 ? (
+                <Typography color="gray" fontSize={14}>
+                  Cart is empty
+                </Typography>
+              ) : (
+                cart.map((item) => (
+                  <Box
+                    key={item.id}
+                    sx={{
+                      bgcolor: "#1E293B",
+                      borderRadius: 2,
+                      p: 2,
+                      mb: 2,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    <Box>
+                      <Typography fontWeight={600} fontSize={14}>
+                        {item.item_name}
+                      </Typography>
+                      <Typography variant="body2" color="#9CA3AF" fontSize={12}>
+                        LKR{item.price}
+                      </Typography>
+                    </Box>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <IconButton
+                        size="small"
+                        sx={{ bgcolor: "#334155", color: "white" }}
+                        onClick={() => removeFromCart(item)}
+                      >
+                        <RemoveIcon />
+                      </IconButton>
+                      <Typography>{item.qty}</Typography>
+                      <IconButton
+                        size="small"
+                        sx={{ bgcolor: "#334155", color: "white" }}
+                        onClick={() => addToCart(item)}
+                      >
+                        <AddIcon />
+                      </IconButton>
+                      <IconButton
+                        size="small"
+                        sx={{ bgcolor: "#42262F", borderRadius: "8px", p: 1 }}
+                        onClick={() => handleDeleteCart(item)}
+                      >
+                        <img
+                          src="/images/delete.png"
+                          alt="delete"
+                          style={{ width: 20, height: 20 }}
+                        />
+                      </IconButton>
+                    </Box>
+                  </Box>
+                ))
+              )}
+            </Box>
 
-        <Button
-          fullWidth
-          sx={{
-            background: "linear-gradient(to right, #06b6d4, #9333ea)",
-            color: "white",
-            borderRadius: 2,
-            py: 1.5,
-            fontWeight: "bold",
-            textTransform: "none",
-          }}
-          onClick={handleCheckoutOpenWithValidation}
-        >
-          Checkout
-        </Button>
+            <Button
+              fullWidth
+              sx={{
+                background: "linear-gradient(to right, #06b6d4, #9333ea)",
+                color: "white",
+                borderRadius: 2,
+                py: 1.5,
+                fontWeight: "bold",
+                textTransform: "none",
+                mt: 2,
+              }}
+              onClick={handleCheckoutOpenWithValidation}
+            >
+              Checkout
+            </Button>
+          </Box>
+        </Box>
       </Box>
 
       {/* ---------------- Add Item Modal ---------------- */}
@@ -731,6 +879,7 @@ const PosSystem = () => {
             outline: "none",
           }}
         >
+          {/* Header */}
           <Box
             display="flex"
             justifyContent="space-between"
@@ -744,67 +893,157 @@ const PosSystem = () => {
             </IconButton>
           </Box>
 
-          <Box mt={1} display="flex" flexDirection="column" gap={0.9} sx={{ color: "#374151" }} >
+          {/* Form Fields */}
+          <Box
+            mt={1}
+            display="flex"
+            flexDirection="column"
+            gap={1}
+            sx={{ color: "#374151" }}
+          >
             {/* Category Selector */}
-            <Typography variant="body2" sx={{ color: "374151" }}>
+            <Typography variant="body2" sx={{ color: "white" }}>
               Category
             </Typography>
-            <TextField
-              select
-              label="Select Category"
-              value={newItem.category}
-              onChange={(e) => {
-                if (e.target.value === "Other") {
-                  setShowNewCategory(true);
-                  setNewItem({ ...newItem, category: "" }); // reset selection for new category
-                } else {
-                  setNewItem({ ...newItem, category: e.target.value });
-                  setShowNewCategory(false);
+            <FormControl fullWidth>
+              <Select
+                displayEmpty
+                value={newItem.category}
+                onChange={(e) => {
+                  if (e.target.value === "Other") {
+                    setShowNewCategory(true); // open popup modal
+                  } else {
+                    setNewItem({ ...newItem, category: e.target.value });
+                  }
+                }}
+                MenuProps={{
+                  PaperProps: {
+                    sx: {
+                      bgcolor: "#0E111B",
+                      color: "white",
+                      border: "1px solid #1F2937",
+                      borderRadius: "8px",
+                      mt: 1,
+                      "& .MuiMenuItem-root": {
+                        color: "#9CA3AF",
+                        fontSize: "0.9rem",
+                        "&:hover": { backgroundColor: "#1E293B" },
+                      },
+                    },
+                  },
+                }}
+                sx={{
+                  bgcolor: "#0E111B",
+                  color: "white",
+                  borderRadius: "8px",
+                  "& .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#374151",
+                  },
+                  "&:hover .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#6B7280",
+                  },
+                  "& .MuiSvgIcon-root": { color: "#9CA3AF" },
+                }}
+                renderValue={(selected) =>
+                  !selected ? "Select Category" : selected
                 }
-              }}
-              fullWidth
-              sx={{
-                ...textFieldSx,
-                "& .MuiInputLabel-root": {
-                  color: "#9CA3AF", // change to your desired color
-                },
-              }}
-            >
-              {categories.slice(1).map((cat) => (
-                <MenuItem key={cat} value={cat}>
-                  {cat}
+              >
+                {["Drinks", "Snacks", "Dessert", "Ice Cream"].map((cat) => (
+                  <MenuItem key={cat} value={cat}>
+                    {cat}
+                  </MenuItem>
+                ))}
+                <MenuItem
+                  value="Other"
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    color: "#9CA3AF",
+                  }}
+                >
+                  Other category
+                  <Typography
+                    component="span"
+                    sx={{
+                      color: "#9CA3AF",
+                      fontWeight: "bold",
+                      fontSize: "1.2rem",
+                      ml: 1,
+                    }}
+                  >
+                    +
+                  </Typography>
                 </MenuItem>
-              ))}
-              <MenuItem value="Other" onClick={() => setShowNewCategory(true)}>
-                Other category +
-              </MenuItem>
-            </TextField>
+              </Select>
+            </FormControl>
 
-            {/* Input box for Other Category */}
-            {showNewCategory && (
-              <Box sx={{ mt: 2, display: "flex", gap: 1 }}>
+            {/* ---------------- Popup Box for "Other Category" ---------------- */}
+            <Modal
+              open={showNewCategory}
+              onClose={() => setShowNewCategory(false)}
+            >
+              <Box
+                sx={{
+                  bgcolor: "#0E111B",
+                  color: "white",
+                  borderRadius: 2,
+                  p: 3,
+                  width: 250,
+                  mx: "auto",
+                  mt: "25vh",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 2,
+                  boxShadow: "0px 0px 20px rgba(0,0,0,0.6)",
+                  border: "1px solid #1F2937",
+                }}
+              >
+                <Typography fontSize={14} color="#9CA3AF">
+                  Category
+                </Typography>
                 <TextField
                   placeholder="Enter Category"
                   value={newCategory}
                   onChange={(e) => setNewCategory(e.target.value)}
                   fullWidth
-                  sx={textFieldSx}
+                  variant="outlined"
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      color: "white",
+                      "& fieldset": { borderColor: "#374151" },
+                      "&:hover fieldset": { borderColor: "#6B7280" },
+                    },
+                    "& .MuiInputBase-input::placeholder": {
+                      color: "#9CA3AF",
+                      opacity: 1,
+                    },
+                    "& .MuiInputBase-root": {
+                      bgcolor: "#171C2D",
+                      borderRadius: 1,
+                      height: 40,
+                    },
+                  }}
                 />
                 <Button
                   variant="contained"
-                  onClick={handleAddCategory}
+                  onClick={() => {
+                    handleAddCategory();
+                    setShowNewCategory(false);
+                  }}
                   disabled={!newCategory.trim()}
                   sx={{
-                    background: "linear-gradient(to right, #3b82f6, #9333ea)",
+                    background: "linear-gradient(to right, #06b6d4, #9333ea)",
                     textTransform: "none",
+                    height: 36,
+                    borderRadius: 1,
                   }}
                 >
                   Add
                 </Button>
               </Box>
-            )}
+            </Modal>
 
-            {/* Item */}
+            {/* Item Name */}
             <Typography variant="body2" sx={{ color: "white" }}>
               Item
             </Typography>
@@ -817,11 +1056,10 @@ const PosSystem = () => {
               variant="outlined"
               sx={{
                 ...textFieldSx,
-                "& .MuiInputLabel-root": {
-                  color: "#9CA3AF",
-                },
+                "& .MuiInputLabel-root": { color: "#9CA3AF" },
               }}
             />
+
             {/* Price */}
             <Typography variant="body2" sx={{ color: "white" }}>
               Price
@@ -837,11 +1075,10 @@ const PosSystem = () => {
               variant="outlined"
               sx={{
                 ...textFieldSx,
-                "& .MuiInputLabel-root": {
-                  color: "#9CA3AF",
-                },
+                "& .MuiInputLabel-root": { color: "#9CA3AF" },
               }}
             />
+
             {/* Stock */}
             <Typography variant="body2" sx={{ color: "white" }}>
               Stock
@@ -857,11 +1094,10 @@ const PosSystem = () => {
               variant="outlined"
               sx={{
                 ...textFieldSx,
-                "& .MuiInputLabel-root": {
-                  color: "#9CA3AF",
-                },
+                "& .MuiInputLabel-root": { color: "#9CA3AF" },
               }}
             />
+
             {/* Loyalty */}
             <Box>
               <Typography variant="body2" sx={{ color: "white", mb: 1 }}>
@@ -893,12 +1129,9 @@ const PosSystem = () => {
                     }}
                     onClick={() => setNewItem({ ...newItem, loyalty: option })}
                   >
-                    {/* Label Left */}
                     <Typography sx={{ color: "#9CA3AF", fontSize: "0.9rem" }}>
                       {option}
                     </Typography>
-
-                    {/* Radio Right */}
                     <Radio
                       value={option}
                       checked={newItem.loyalty === option}
@@ -907,15 +1140,15 @@ const PosSystem = () => {
                       }
                       sx={{
                         color: "gray",
-                        "&.Mui-checked": {
-                          color: "#9CA3AF", // purple highlight
-                        },
+                        "&.Mui-checked": { color: "#9CA3AF" },
                       }}
                     />
                   </Box>
                 ))}
               </RadioGroup>
             </Box>
+
+            {/* Buttons */}
             <Box display="flex" justifyContent="space-between" mt={2} gap={2}>
               <Button
                 variant="contained"
@@ -924,7 +1157,6 @@ const PosSystem = () => {
                   bgcolor: "#1e293b",
                   "&:hover": { bgcolor: "#334155" },
                   color: "white",
-
                 }}
                 onClick={handleCancelClick}
               >
@@ -973,7 +1205,13 @@ const PosSystem = () => {
             </IconButton>
           </Box>
 
-          <Box mt={1} display="flex" flexDirection="column" gap={0.9} sx={{ color: "#374151" }} >
+          <Box
+            mt={1}
+            display="flex"
+            flexDirection="column"
+            gap={0.9}
+            sx={{ color: "#374151" }}
+          >
             {/* Category Selector */}
             <Typography variant="body2" sx={{ color: "374151" }}>
               Category
@@ -1153,7 +1391,6 @@ const PosSystem = () => {
                   bgcolor: "#1e293b",
                   "&:hover": { bgcolor: "#334155" },
                   color: "white",
-
                 }}
                 onClick={handleCancelClick}
               >
@@ -1628,7 +1865,6 @@ const PosSystem = () => {
             src="/images/successu.png"
             alt="success"
             width="80"
-
             height={80}
             style={{ marginBottom: 8 }}
           />
@@ -1681,7 +1917,6 @@ const PosSystem = () => {
             src="/images/successu.png"
             alt="success"
             width="80"
-
             height={80}
             style={{ marginBottom: 8 }}
           />
