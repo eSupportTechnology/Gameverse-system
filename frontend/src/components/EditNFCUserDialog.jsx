@@ -129,7 +129,6 @@ export default function EditNFCUserDialog({
     <>
       <Dialog
         open={open}
-        onClose={handleClose}
         maxWidth="sm"
         fullWidth
         PaperProps={{
@@ -506,7 +505,7 @@ export default function EditNFCUserDialog({
 
       <CancelPopup
         open={openCancelPopup}
-        onClose={handleCloseCancelPopup}
+        handleCancelClose={handleCloseCancelPopup}
         handleConfirm={handleConfirmCancel}
       />
     </>
