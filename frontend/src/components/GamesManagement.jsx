@@ -27,6 +27,7 @@ const GamesManagement = () => {
 
   // Fetch all games (for admin)
   const fetchGames = useCallback(async () => {
+    console.log(' Fetch.........');
     try {
       const res = await axios.get('http://127.0.0.1:8000/api/games', {
         headers: { Authorization: `Bearer ${token}` },
@@ -34,9 +35,12 @@ const GamesManagement = () => {
       const data = Array.isArray(res.data.data)
         ? res.data.data
         : Array.isArray(res.data)
-        ? res.data
-        : [];
+          ? res.data
+          : [];
       setGames(data);
+      console.log('FetchGames successful. Number of items:', data.length);
+
+
     } catch (error) {
       console.error('Error fetching games:', error);
       toast.error('Failed to fetch games.');
@@ -125,7 +129,6 @@ const GamesManagement = () => {
             onSubmit={handleSaveGame}
             initialData={editGame}
             mode={editGame ? 'edit' : 'add'}
-            fetchGames={fetchGames}
           />
         </Box>
       </Box>

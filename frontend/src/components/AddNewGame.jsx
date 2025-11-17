@@ -19,7 +19,7 @@ import { toast } from "react-toastify";
 
 const paymentMethods = ["Coin", "Arrow", "Per Hour"];
 
-const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmit, fetchGames }) => {
+const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmit, }) => {
   const [createSuccess, setCreateSuccess] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
 
@@ -28,6 +28,7 @@ const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmi
   const [location, setLocation] = useState("");
   const [method, setMethod] = useState("Coin");
   const [price, setPrice] = useState("");
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (open) {
@@ -111,9 +112,7 @@ const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmi
         data: gameData,
       });
 
-      // toast.success(`Game ${mode === "edit" ? "updated" : "created"} successfully!`);
       setCreateSuccess(true);
-
 
       // setTimeout(() => {
       //   setCreateSuccess(false);
@@ -122,11 +121,6 @@ const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmi
 
       if (onSubmit) onSubmit(response.data); // send updated game back
 
-      try {
-        await fetchGames();
-      } catch (err) {
-        console.error("Error refreshing game list:", err);
-      }
     } catch (err) {
       console.error("Validation errors:", err.response?.data);
       toast.error(err.response?.data?.message || "Failed to save game.");
@@ -153,7 +147,7 @@ const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmi
           <DialogTitle sx={{ color: "#FFFFFF", fontSize: 18, fontWeight: "bold" }}>
             {mode === "edit" ? "Edit Game" : "Add New Game"}
           </DialogTitle>
-          <IconButton onClick={handleCancelOpen} sx={{ color: "#FFFFFF" }}>
+          <IconButton onClick={()=>handleClose(false)} sx={{ color: "#FFFFFF" }}>
             <CloseIcon />
           </IconButton>
         </Box>

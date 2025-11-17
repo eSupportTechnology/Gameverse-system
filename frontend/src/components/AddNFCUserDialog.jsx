@@ -109,7 +109,7 @@ export default function AddNFCUserDialog({
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
+  }; 
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -122,18 +122,18 @@ export default function AddNFCUserDialog({
   };
 
   const handleClose = () => {
-    if (formData.nfcCardNumber || formData.fullName || formData.phoneNo || formData.nicNumber) {
-      handleOpenCancelPopup();
-    } else {
-      onClose();
-    }
+    handleOpenCancelPopup();
+    // if (formData.nfcCardNumber || formData.fullName || formData.phoneNo || formData.nicNumber) {
+    //   handleOpenCancelPopup();
+    // } else {
+    //   onClose();
+    // }
   };
 
   return (
     <>
       <Dialog
         open={open}
-        onClose={handleClose}
         maxWidth="sm"
         fullWidth
         PaperProps={{
@@ -159,7 +159,7 @@ export default function AddNFCUserDialog({
         >
           Add New NFC Customer
           <IconButton
-            onClick={handleClose}
+            onClick={()=>onClose()}
             sx={{
               color: "#888",
               "&:hover": {
@@ -523,7 +523,7 @@ export default function AddNFCUserDialog({
 
       <CancelPopup
         open={openCancelPopup}
-        onClose={handleCloseCancelPopup}
+        handleCancelClose={handleCloseCancelPopup}
         handleConfirm={handleConfirmCancel}
       />
     </>

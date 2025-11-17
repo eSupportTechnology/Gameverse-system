@@ -37,7 +37,7 @@ const CheckoutGame = ({ game, handleClose }) => {
   // const fullAmount = unitPrice * units;
   // const discount = 0; // default
   // const balance = fullAmount - discount;
-;
+  ;
   // Calculate full amount and balance dynamically
   const unitsNumber = Number(units) || 0;
   const playersNumber = Number(players) || 1;
@@ -91,37 +91,101 @@ const CheckoutGame = ({ game, handleClose }) => {
                     ? "1 Coin Price:"
                     : "Unit Price:"}
             </Typography>
-            <TextField
+
+            {/* <TextField
               type="number"
               value={unitPrice}
-              onChange={(e) => setUnitPrice(e.target.value)} // keep as string
+              onChange={(e) => setUnitPrice(e.target.value)}
               inputProps={{ min: 0 }}
               InputProps={{
                 startAdornment: (
-                  <span style={{ color: "#9CA3AF", fontSize: 12}}>LKR</span>
+                  <span style={{ color: "#FFFFFF", fontSize: 14, marginRight: -2 }}>LKR</span>
                 ),
+                 disableUnderline: true,
               }}
+              variant="standard"
               sx={{
-                width: 80,
+                width: 55,
+                backgroundColor: "#0E111B",
+                borderRadius: "6px",
+                display: "flex",
+                justifyContent: "flex-end",
+
                 "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button": {
                   WebkitAppearance: "none",
                   margin: 0,
                 },
                 "& input[type=number]": { MozAppearance: "textfield" },
-                "& .MuiInputBase-input": {
-                  color: "#9CA3AF",
-                  textAlign: "center",
+
+               "& .MuiInputBase-root": {
+                  padding: "0 !important",
+                  display: "flex",
+                  justifyContent: "flex-end",
+                  alignItems: "center",
+                  gap: 0, // remove spacing
+                },
+                "& input": {
+                  color: "#FFFFFF",
+                  textAlign: "right",   // align to end
                   fontSize: 13,
                   padding: "4px 0",
                   lineHeight: 1.2,
                 },
-                "& .MuiOutlinedInput-root": {
-                  "& fieldset": { borderColor: "#374151" },
-                  padding: "0px 8px",
+                "& .MuiInputBase-root:before, & .MuiInputBase-root:after": {
+                  display: "none",
+                },
+              }}
+            /> */}
+            <TextField
+              type="number"
+              value={unitPrice}
+              onChange={(e) => setUnitPrice(e.target.value)}
+              inputProps={{ min: 0 }}
+              InputProps={{
+                startAdornment: (
+                  <span style={{ color: "#FFFFFF", fontSize: 14, marginRight: 1 }}>LKR</span>
+                ),
+                disableUnderline: true,
+              }}
+              variant="standard"
+              sx={{
+                // Dynamic width based on number length + LKR gap + extra padding
+                width: `${(unitPrice?.toString().length || 1) * 9 + 20 + 6}px`,
+                maxWidth: 100,
+                backgroundColor: "#0E111B",
+                borderRadius: "6px",
+                display: "flex",
+                justifyContent: "flex-center",
+
+                "& .MuiInputBase-root": {
+                  padding: "0 !important",
+                  display: "flex",
+                  justifyContent: "flex-end",
+                  alignItems: "center",
+                  gap: 0,
+                },
+
+                "& input": {
+                  color: "#FFFFFF",
+                  textAlign: "right",
+                  fontSize: 14,
+                  padding: "4px 0",
+                  lineHeight: 1.2,
+                  // Remove number input arrows
+                  "&::-webkit-outer-spin-button, &::-webkit-inner-spin-button": {
+                    WebkitAppearance: "none",
+                    margin: 0,
+                  },
+                  "&[type=number]": { MozAppearance: "textfield" },
+                },
+
+                // Remove underline/borders
+                "& .MuiInputBase-root:before, & .MuiInputBase-root:after": {
+                  display: "none",
                 },
               }}
             />
-          </Box>
+        </Box>
 
           {/* Units */}
           <Box display="flex" justifyContent="space-between" mb={1.5}>
@@ -147,7 +211,7 @@ const CheckoutGame = ({ game, handleClose }) => {
                 },
                 "& input[type=number]": { MozAppearance: "textfield" },
                 "& .MuiInputBase-input": {
-                  color: "#9CA3AF", textAlign: "center", fontSize: 13,
+                  color: "#9CA3AF", textAlign: "center", fontSize: 14,
                   padding: "4px 0",
                   lineHeight: 1.2,
                 },
@@ -205,7 +269,7 @@ const CheckoutGame = ({ game, handleClose }) => {
               inputProps={{ min: 0 }}
               InputProps={{
                 startAdornment: (
-                  <span style={{ color: "#9CA3AF", fontSize: 12}}>LKR</span>
+                  <span style={{ color: "#9CA3AF", fontSize: 12 }}>LKR</span>
                 ),
               }}
               sx={{
