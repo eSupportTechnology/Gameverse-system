@@ -1,6 +1,7 @@
 import { Box, Button, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material'
 import React, { useState } from 'react'
 import AddGameDialog from './AddGameDialog';
+import AddEventDialog from './AddEventDialog';
 
 
 const categories = [
@@ -12,6 +13,7 @@ const categories = [
 const WebManagement = () => {
   const [activeCategory, setActiveCategory] = useState('Booking Games');
   const [openAddGame, setOpenAddGame] = useState(false);
+  const [openAddEvent, setOpenAddEvent] = useState(false);
   return (
     <div>
       <Box sx={{ p: 2, bgcolor: "1E1E1E", color: "#fff", minHeight: "100vh", overflowX: "hidden", ml: 0 }}>
@@ -90,7 +92,7 @@ const WebManagement = () => {
                   fontWeight: "600",
                   "&:hover": { background: "linear-gradient(to right, #0bbfe0, #732ed1)" },
                 }}
-                // onClick={() => setOpenDialog(true)}
+                onClick={() => setOpenAddEvent(true)}
               >
                 + Add Event & Tournaments
               </Button>
@@ -99,6 +101,11 @@ const WebManagement = () => {
             <AddGameDialog
             open={openAddGame}
             onClose={()=>setOpenAddGame(false)}
+            />
+
+            <AddEventDialog
+            open={openAddEvent}
+            onClose={()=>setOpenAddEvent(false)}
             />
           </Box>
 
