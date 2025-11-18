@@ -14,6 +14,7 @@ const Reports = () => {
       <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
 
       {/* Main content */}
+      
       <Box
         sx={{
           flexGrow: 1,

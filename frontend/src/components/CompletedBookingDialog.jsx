@@ -1,376 +1,366 @@
-import React, { useState } from "react";
+// components/CompletedBookingDialog.jsx
+import React, { useState } from 'react';
 import {
   Dialog,
+  DialogTitle,
   DialogContent,
-  Button,
-  Typography,
   Box,
+  Typography,
+  Button,
   IconButton,
-  Divider,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import StarIcon from "@mui/icons-material/Star";
+import SportsEsportsIcon from "@mui/icons-material/SportsEsports";
+import CreditCardIcon from "@mui/icons-material/CreditCard";
 
-// Mock players data for completed bookings
-const mockPlayers = [
-  {
-    id: 1,
-    name: "Player 01",
-    online: true,
-    booking: {
-      id: "123456",
-      customer_name: "Nithin Kumar",
-      phone: "+94 725656963",
-      station: "PS5 Station 1",
-      start_time: "12:00",
-      end_time: "12:30",
-      duration: "2h 0m",
-      extended_time: "00.00",
-      online_deposit: "000",
-      total_amount: "400",
-      balance_amount: "000",
-      loyalty_points: 150,
-      status: "completed",
-    },
-  },
-  {
-    id: 2,
-    name: "Player 02",
-    online: true,
-    booking: {
-      id: "789012",
-      customer_name: "Aravind Silva",
-      phone: "+94 714589632",
-      station: "PS5 Station 2",
-      start_time: "14:00",
-      end_time: "15:30",
-      duration: "1h 30m",
-      extended_time: "00.15",
-      online_deposit: "200",
-      total_amount: "500",
-      balance_amount: "300",
-      loyalty_points: 120,
-      status: "completed",
-    },
-  },
-  {
-    id: 3,
-    name: "Player 03",
-    online: false,
-    booking: {
-      id: "345678",
-      customer_name: "Ravindu Perera",
-      phone: "+94 765432198",
-      station: "PS5 Station 3",
-      start_time: "16:30",
-      end_time: "18:30",
-      duration: "2h 0m",
-      extended_time: "00.10",
-      online_deposit: "100",
-      total_amount: "400",
-      balance_amount: "100",
-      loyalty_points: 180,
-      status: "completed",
-    },
-  },
-  {
-    id: 4,
-    name: "Player 04",
-    online: false,
-    booking: {
-      id: "901234",
-      customer_name: "Sahan Wijesinghe",
-      phone: "+94 778956321",
-      station: "PS5 Station 4",
-      start_time: "18:00",
-      end_time: "20:30",
-      duration: "2h 30m",
-      extended_time: "00.20",
-      online_deposit: "300",
-      total_amount: "700",
-      balance_amount: "400",
-      loyalty_points: 200,
-      status: "completed",
-    },
-  },
-];
+// Import the payment success popup
+
+
+import PaymentSuccessPopup from "../components/paymentsuccess";
+import successicon from "../assets/success.png";
 
 const CompletedBookingDialog = ({ open, onClose, onCollectPayment }) => {
-  const [activePlayer, setActivePlayer] = useState(0);
-  const player = mockPlayers[activePlayer];
-  const booking = player.booking;
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [paymentSuccessOpen, setPaymentSuccessOpen] = useState(false);
+
+  // Sample completed booking data for each player
+  const players = [
+    {
+      id: 1,
+      name: "Player 01",
+      online: true,
+      booking: {
+        id: "123456",
+        customer_name: "Nithin Kumar",
+        phone: "+94 725656963",
+        station: "PS5 Station 1",
+        start_time: "12:00",
+        end_time: "12:30",
+        duration: "2h 0m",
+        extended_time: "00.00",
+        online_deposit: "000",
+        total_amount: "400",
+        balance_amount: "000",
+        loyalty_points: 150,
+        status: "completed"
+      }
+    },
+    {
+      id: 2,
+      name: "Player 02",
+      online: true,
+      booking: {
+        id: "789012",
+        customer_name: "Kamal Perera",
+        phone: "+94 774589632",
+        station: "PS5 Station 2",
+        start_time: "13:00",
+        end_time: "14:30",
+        duration: "1h 30m",
+        extended_time: "15.00",
+        online_deposit: "200",
+        total_amount: "500",
+        balance_amount: "300",
+        loyalty_points: 120,
+        status: "completed"
+      }
+    },
+    {
+      id: 3,
+      name: "Player 03",
+      online: false,
+      booking: {
+        id: "345678",
+        customer_name: "Saman Silva",
+        phone: "+94 712345678",
+        station: "PS5 Station 3",
+        start_time: "15:00",
+        end_time: "17:00",
+        duration: "2h 0m",
+        extended_time: "00.00",
+        online_deposit: "150",
+        total_amount: "450",
+        balance_amount: "300",
+        loyalty_points: 180,
+        status: "completed"
+      }
+    },
+    {
+      id: 4,
+      name: "Player 04",
+      online: true,
+      booking: {
+        id: "901234",
+        customer_name: "Nimal Fernando",
+        phone: "+94 776543219",
+        station: "PS5 Station 4",
+        start_time: "18:00",
+        end_time: "19:00",
+        duration: "1h 0m",
+        extended_time: "30.00",
+        online_deposit: "100",
+        total_amount: "300",
+        balance_amount: "200",
+        loyalty_points: 90,
+        status: "completed"
+      }
+    }
+  ];
+
+  const activeBooking = players[activeIndex]?.booking;
+
+  const handleCollectPayment = () => {
+    // Close the current dialog
+    if (onClose) onClose();
+    
+    // Open payment success popup after a short delay
+    setTimeout(() => {
+      setPaymentSuccessOpen(true);
+    }, 300);
+
+    // Call the original onCollectPayment if provided
+    if (onCollectPayment) {
+      onCollectPayment(activeBooking);
+    }
+  };
+
+  const handlePaymentSuccessClose = () => {
+    setPaymentSuccessOpen(false);
+  };
 
   return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      maxWidth="sm"
-      fullWidth
-      PaperProps={{
-        sx: {
-          bgcolor: "#0B1220",
-          color: "#fff",
-          borderRadius: "16px",
-          border: "1px solid #1F2937",
-        },
-      }}
-    >
-      {/* Header */}
-      <Box
-        sx={{
-          p: 2.5,
-          pb: 1,
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
+    <>
+      <Dialog
+        open={open}
+        onClose={onClose}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: { 
+            bgcolor: "#111827", 
+            borderRadius: "12px", 
+            color: "#fff",
+            background: "linear-gradient(135deg, #0F172A 0%, #1E293B 100%)",
+            border: "1px solid #374151"
+          },
         }}
       >
-        <Typography variant="h6" fontWeight="bold">
-          Booking Details
-        </Typography>
-        <IconButton
-          onClick={onClose}
-          sx={{
-            color: "#9CA3AF",
-            "&:hover": { color: "#fff", bgcolor: "rgba(255,255,255,0.1)" },
-          }}
-        >
-          <CloseIcon />
-        </IconButton>
-      </Box>
-
-      <DialogContent sx={{ p: 3, pt: 0 }}>
-        {/* Player Tabs */}
-        <Box sx={{ display: "flex", gap: 1.5, mb: 3 }}>
-          {mockPlayers.map((p, i) => (
-            <Box
-              key={p.id}
-              onClick={() => setActivePlayer(i)}
-              sx={{
-                flex: 1,
-                cursor: "pointer",
-                py: 1.2,
-                borderRadius: "8px",
-                textAlign: "center",
-                position: "relative",
-                bgcolor: activePlayer === i ? "#00B8D4" : "#1E2535",
-                transition: "0.25s",
-                "&:hover": { bgcolor: "#263145" },
-              }}
-            >
-              {p.online && (
-                <Box
-                  sx={{
-                    position: "absolute",
-                    top: 6,
-                    right: 8,
-                    width: 8,
-                    height: 8,
-                    borderRadius: "50%",
-                    bgcolor: "#00FF00",
-                    boxShadow: "0 0 8px 2px rgba(0,255,0,0.6)",
-                  }}
-                />
-              )}
-              <Typography
-                sx={{
-                  color: "#fff",
-                  fontWeight: activePlayer === i ? "bold" : "normal",
-                  fontSize: "0.875rem",
-                }}
-              >
-                {p.name}
-              </Typography>
-            </Box>
-          ))}
-        </Box>
-
-        {/* Booking Card */}
-        <Box
-          sx={{
-            bgcolor: "#151C2C",
-            borderRadius: "12px",
-            p: 2.5,
-            mb: 3,
-          }}
-        >
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "flex-start",
-              mb: 1.5,
+        {/* Header */}
+        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", px: 3, pt: 3, pb: 1 }}>
+          <DialogTitle sx={{ 
+            color: "#FFFFFF", 
+            fontSize: 20, 
+            fontWeight: "bold",
+            p: 0
+          }}>
+            Booking Details
+          </DialogTitle>
+          <IconButton 
+            onClick={onClose} 
+            sx={{ 
+              color: "#FFFFFF",
+              '&:hover': { bgcolor: "#374151" }
             }}
           >
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <CloseIcon />
+          </IconButton>
+        </Box>
+
+        <DialogContent sx={{ py: 0, pb: 3, px: 3 }}>
+          {/* Player Tabs - EXACT SAME as InProgressBookingDialog */}
+          <Box sx={{ display: "flex", gap: 1.5, mb: 3 }}>
+            {players.map((p, i) => (
               <Box
+                key={p.id}
+                onClick={() => setActiveIndex(i)}
                 sx={{
-                  bgcolor: "#FD00B533",
-                  color: "#FD00B5",
-                  borderRadius: "20px",
-                  px: 1.5,
-                  py: 0.5,
-                  fontSize: "0.75rem",
-                  fontWeight: "bold",
+                  flex: 1,
+                  cursor: "pointer",
+                  py: 1.2,
+                  borderRadius: "8px",
+                  textAlign: "center",
+                  position: "relative",
+                  bgcolor: activeIndex === i ? "#00B8D4" : "#1E2535",
+                  transition: "0.25s",
+                  "&:hover": { bgcolor: "#263145" },
                 }}
               >
+                {p.online && (
+                  <Box
+                    sx={{
+                      position: "absolute",
+                      top: -3,
+                      right: -3,
+                      width: 10,
+                      height: 10,
+                      borderRadius: "50%",
+                      bgcolor: "#00FF00",
+                      boxShadow: "0 0 10px 3px rgba(0,255,0,0.6)",
+                    }}
+                  />
+                )}
+                <Typography
+                  sx={{
+                    color: "#fff",
+                    fontWeight: activeIndex === i ? "bold" : "normal",
+                    fontSize: "0.875rem",
+                  }}
+                >
+                  {p.name}
+                </Typography>
+              </Box>
+            ))}
+          </Box>
+
+          {/* Status & Customer Info */}
+          <Box sx={{ 
+            display: "flex", 
+            justifyContent: "space-between", 
+            alignItems: "flex-start",
+            mb: 3,
+            p: 2,
+            bgcolor: '#1F2937',
+            borderRadius: '8px',
+            border: '1px solid #374151'
+          }}>
+            <Box sx={{ flex: 1 }}>
+              <Box sx={{ 
+                bgcolor: "#FD00B5", 
+                color: "#fff",
+                px: 2,
+                py: 0.5,
+                borderRadius: "12px",
+                fontSize: "12px",
+                fontWeight: "bold",
+                display: "inline-block",
+                mb: 2
+              }}>
                 Completed
               </Box>
-              <Typography
-                sx={{
-                  color: "#9CA3AF",
-                  fontSize: "0.75rem",
-                  fontWeight: "bold",
-                }}
-              >
-                Booking #{booking.id}
-              </Typography>
+              <Box>
+                <Typography fontSize={14} fontWeight="bold" color="#FFFFFF" mb={0.5}>
+                  Name : {activeBooking.customer_name}
+                </Typography>
+                <Typography fontSize={12} color="#9CA3AF" mb={0.5}>ID : {activeBooking.id}</Typography>
+                <Typography fontSize={12} color="#9CA3AF">PN : {activeBooking.phone}</Typography>
+              </Box>
             </Box>
 
-            <Box sx={{ textAlign: "right" }}>
-              <Typography
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "flex-end",
-                  color: "#FD00B5",
-                  fontWeight: "bold",
-                  fontSize: "0.9rem",
-                  gap: 0.5,
-                }}
-              >
-                <StarIcon sx={{ fontSize: 16, color: "#FD00B5" }} />
-                {booking.loyalty_points} pts
+            {/* Booking ID & Loyalty Points */}
+            <Box textAlign="right" sx={{ flex: 0.4 }}>
+              <Typography fontSize={12} color="#FFFFFF" mb={1}>
+                Booking #{activeBooking.id}
               </Typography>
-              <Typography
-                sx={{
-                  fontSize: "0.7rem",
-                  color: "#9CA3AF",
-                }}
-              >
-                Loyalty Points
-              </Typography>
+              <Box display="flex" flexDirection="column" alignItems="flex-end" gap={0.5}>
+                <Box display="flex" alignItems="center" gap={0.5}>
+                  <StarIcon sx={{ color: '#C2048F', fontSize: 16 }} />
+                  <Typography fontWeight="bold" color="#C2048F" fontSize={14}>
+                    {activeBooking.loyalty_points} pts
+                  </Typography>
+                </Box>
+              </Box>
+              <Typography fontSize={10} color="#9CA3AF" mt={0.5}>Loyalty Points</Typography>
             </Box>
           </Box>
 
-          <Typography sx={{ fontWeight: "bold", mb: 0.5 }}>
-            Name : {booking.customer_name}
-          </Typography>
-          <Typography sx={{ color: "#9CA3AF", mb: 0.5 }}>
-            ID : {booking.id}
-          </Typography>
-          <Typography sx={{ color: "#9CA3AF" }}>
-            PN : {booking.phone}
-          </Typography>
-        </Box>
-
-        {/* Session + Payment Info */}
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: { xs: "column", sm: "row" },
-            gap: 2,
-            mb: 2,
-          }}
-        >
-          {/* Session Details */}
-          <Box
-            sx={{
+          {/* Session Details & Payment Info - SIDE BY SIDE */}
+          <Box sx={{ 
+            display: "flex", 
+            gap: 2, 
+            mb: 3 
+          }}>
+            {/* Session Details - Left Side */}
+            <Box sx={{ 
               flex: 1,
-              bgcolor: "#151C2C",
-              borderRadius: "12px",
-              p: 2,
-            }}
-          >
-            <Typography sx={{ fontWeight: "bold", mb: 2 }}>
-              🎮 Session Details
-            </Typography>
-            <DetailRow label="Station" value={booking.station} />
-            <DetailRow
-              label="Time"
-              value={`${booking.start_time} - ${booking.end_time}`}
-            />
-            <DetailRow label="Duration" value={booking.duration} />
-            <DetailRow
-              label="Extended Time"
-              value={booking.extended_time}
-            />
+              bgcolor: "#1F2937", 
+              p: 2, 
+              borderRadius: "8px",
+              border: "1px solid #374151"
+            }}>
+              <Box display="flex" alignItems="center" gap={1} mb={2}>
+                <SportsEsportsIcon sx={{ color: "#0CD7FF", fontSize: 18 }} />
+                <Typography fontSize={15} fontWeight={600} color="#FFFFFF">
+                  Session Details
+                </Typography>
+              </Box>
+              
+              <DetailRow label="Station:" value={activeBooking.station} />
+              <DetailRow label="Time:" value={`${activeBooking.start_time} - ${activeBooking.end_time}`} />
+              <DetailRow label="Duration:" value={activeBooking.duration} />
+              <DetailRow label="Extended Time:" value={activeBooking.extended_time} />
+            </Box>
+
+            {/* Payment Info - Right Side */}
+            <Box sx={{ 
+              flex: 1,
+              bgcolor: "#1F2937", 
+              p: 2, 
+              borderRadius: "8px",
+              border: "1px solid #374151"
+            }}>
+              <Box display="flex" alignItems="center" gap={1} mb={2}>
+                <CreditCardIcon sx={{ color: "#8A38F5", fontSize: 18 }} />
+                <Typography fontSize={15} fontWeight={600} color="#FFFFFF">
+                  Payment Info
+                </Typography>
+              </Box>
+              
+              <DetailRow label="Online Deposit" value={`LKR ${activeBooking.online_deposit}`} />
+              <Box sx={{ my: 1.5, borderTop: "1px solid #374151" }} />
+              <DetailRow label="Total amounts:" value={`LKR ${activeBooking.total_amount}`} highlight />
+              <DetailRow label="Balance amounts:" value={`LKR ${activeBooking.balance_amount}`} highlight />
+            </Box>
           </Box>
 
-          {/* Payment Info */}
-          <Box
+          {/* Collect Payment Button */}
+          <Button
+            fullWidth
+            onClick={handleCollectPayment}
             sx={{
-              flex: 1,
-              bgcolor: "#151C2C",
-              borderRadius: "12px",
-              p: 2,
+              background: "linear-gradient(90deg, #8A38F5 0%, #0CD7FF 100%)",
+              fontSize: 16,
+              color: "#fff",
+              py: 1.5,
+              borderRadius: "8px",
+              fontWeight: "bold",
+              textTransform: "none",
+              boxShadow: '0 4px 12px rgba(138, 56, 245, 0.3)',
+              '&:hover': {
+                background: "linear-gradient(90deg, #7A28E5 0%, #00C7EF 100%)",
+                boxShadow: '0 6px 16px rgba(138, 56, 245, 0.4)',
+              }
             }}
           >
-            <Typography sx={{ fontWeight: "bold", mb: 2 }}>
-              💳 Payment Info
-            </Typography>
-            <DetailRow
-              label="Online Deposit"
-              value={`LKR ${booking.online_deposit}`}
-            />
-            <DetailRow
-              label="Total amounts:"
-              value={`LKR ${booking.total_amount}`}
-              highlight
-            />
-            <DetailRow
-              label="Balance amounts:"
-              value={`LKR ${booking.balance_amount}`}
-            />
-          </Box>
-        </Box>
+            Collect Payment
+          </Button>
+        </DialogContent>
+      </Dialog>
 
-        <Divider sx={{ borderColor: "#1F2937", mb: 2 }} />
-
-        {/* Collect Payment Button */}
-        <Button
-          fullWidth
-          variant="contained"
-          onClick={onCollectPayment}
-          sx={{
-            textTransform: "none",
-            borderRadius: "10px",
-            fontWeight: "bold",
-            py: 1.5,
-            fontSize: "1rem",
-            background:
-              "linear-gradient(90deg, #00C6FF 0%, #8B00FF 100%)",
-            "&:hover": {
-              background:
-                "linear-gradient(90deg, #00B0E0 0%, #7800E0 100%)",
-            },
-          }}
-        >
-          Collect Payment
-        </Button>
-      </DialogContent>
-    </Dialog>
+      {/* Payment Success Popup */}
+      <PaymentSuccessPopup
+        open={paymentSuccessOpen}
+        onClose={handlePaymentSuccessClose}
+        icon={successicon}
+      />
+    </>
   );
 };
 
-// DetailRow component for table rows
-const DetailRow = ({ label, value, highlight }) => (
-  <Box
-    sx={{
-      display: "flex",
-      justifyContent: "space-between",
-      mb: 1,
-    }}
-  >
-    <Typography sx={{ color: "#9CA3AF", fontSize: "0.875rem" }}>
-      {label}:
+// Reusable detail row component
+const DetailRow = ({ label, value, highlight = false }) => (
+  <Box display="flex" justifyContent="space-between" alignItems="center" py={1}>
+    <Typography 
+      fontSize={13} 
+      color={highlight ? "#0CD7FF" : "#9CA3AF"}
+      fontWeight={highlight ? 600 : 400}
+    >
+      {label}
     </Typography>
-    <Typography
-      sx={{
-        color: highlight ? "#00C6FF" : "#fff",
-        fontSize: "0.875rem",
-        fontWeight: highlight ? "bold" : "normal",
-      }}
+    <Typography 
+      fontSize={13} 
+      color={highlight ? "#0CD7FF" : "#FFFFFF"}
+      fontWeight={highlight ? 600 : 400}
     >
       {value}
     </Typography>

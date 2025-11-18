@@ -11,6 +11,7 @@ import {
   Typography,
   Select,
   IconButton,
+  InputAdornment,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import AddIcon from "@mui/icons-material/Add";
@@ -21,7 +22,6 @@ const BookingForm = ({ open, handleClose, onBookingCreated }) => {
   const [cancelConfirm, setCancelConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // Form state
   const [formData, setFormData] = useState({
     nfcCardNumber: "",
     customerName: "",
@@ -33,19 +33,12 @@ const BookingForm = ({ open, handleClose, onBookingCreated }) => {
     amount: 400,
   });
 
-  // Handle input changes
   const handleInputChange = (field, value) => {
     if (field === "phoneNumber") {
       const numericValue = value.replace(/\D/g, "");
-      setFormData((prev) => ({
-        ...prev,
-        [field]: numericValue,
-      }));
+      setFormData((prev) => ({ ...prev, [field]: numericValue }));
     } else {
-      setFormData((prev) => ({
-        ...prev,
-        [field]: value,
-      }));
+      setFormData((prev) => ({ ...prev, [field]: value }));
     }
   };
 
@@ -124,6 +117,24 @@ const BookingForm = ({ open, handleClose, onBookingCreated }) => {
     }
   };
 
+  // Station options from the provided list
+  const stationOptions = [
+    "PSS Station 1",
+    "PSS Station 2", 
+    "PSS Station 3",
+    "PSS Station 4",
+    "PSS Station 5",
+    "Racing Simulator 1",
+    "Racing Simulator 2",
+    "Racing Simulator 3",
+    "Racing Simulator 4",
+    "Supreme Billiard 1",
+    "Supreme Billiard 2",
+    "Premium Billiard 1",
+    "Premium Billiard 2",
+    "Premium Billiard 3"
+  ];
+
   return (
     <Dialog
       open={open}
@@ -155,7 +166,10 @@ const BookingForm = ({ open, handleClose, onBookingCreated }) => {
           <Typography variant="body2" sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF" }}>
             NFC Card Number
           </Typography>
-          <Box display="flex" alignItems="center" gap={1}>
+
+          {/* FIELD + PLUS ICON ROW */}
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            {/* NFC TextField */}
             <TextField
               variant="outlined"
               fullWidth
@@ -164,27 +178,44 @@ const BookingForm = ({ open, handleClose, onBookingCreated }) => {
               value={formData.nfcCardNumber}
               onChange={(e) => handleInputChange("nfcCardNumber", e.target.value)}
               InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <Box
+                      component="img"
+                      src="/images/nfc.png"
+                      alt="NFC"
+                      sx={{ width: 22, height: 22, cursor: "pointer" }}
+                      onClick={() => console.log("NFC icon clicked")}
+                    />
+                  </InputAdornment>
+                ),
                 sx: {
                   backgroundColor: "#1F2937",
                   borderRadius: "6px",
-                  "& input::placeholder": {
-                    color: "#9CA3AF",
-                    fontSize: "14px",
-                  },
+                  "& input::placeholder": { color: "#9CA3AF", fontSize: "14px" },
                   color: "white",
                   fontWeight: 500,
                 },
               }}
             />
-            <IconButton
+
+            {/* PLUS ICON BOX (OUTSIDE FIELD) */}
+            <Box
               sx={{
+                width: 38,
+                height: 38,
                 backgroundColor: "#1F2937",
-                color: "#0CD7FF",
+                borderRadius: "8px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
                 "&:hover": { backgroundColor: "#374151" },
               }}
+              onClick={() => console.log("Add NFC clicked")}
             >
-              <AddIcon />
-            </IconButton>
+              <AddIcon sx={{ color: "white", fontSize: 22 }} />
+            </Box>
           </Box>
         </Box>
 
@@ -206,10 +237,7 @@ const BookingForm = ({ open, handleClose, onBookingCreated }) => {
                 sx: {
                   backgroundColor: "#1F2937",
                   borderRadius: "6px",
-                  "& input::placeholder": {
-                    color: "#9CA3AF",
-                    fontSize: "14px",
-                  },
+                  "& input::placeholder": { color: "#9CA3AF", fontSize: "14px" },
                   color: "white",
                   fontWeight: 500,
                 },
@@ -275,12 +303,13 @@ const BookingForm = ({ open, handleClose, onBookingCreated }) => {
               }}
             >
               <MenuItem value="">
-                <em style={{ fontSize: 14, color: "#9CA3AF", fontStyle: "normal" }}>
-                  Select station
-                </em>
+                <em style={{ fontSize: 14, color: "#9CA3AF", fontStyle: "normal" }}>Select station</em>
               </MenuItem>
-              <MenuItem value="station1">Station 1</MenuItem>
-              <MenuItem value="station2">Station 2</MenuItem>
+              {stationOptions.map((station, index) => (
+                <MenuItem key={index} value={station}>
+                  {station}
+                </MenuItem>
+              ))}
             </Select>
           </Box>
 
@@ -325,18 +354,12 @@ const BookingForm = ({ open, handleClose, onBookingCreated }) => {
               }}
               MenuProps={{
                 PaperProps: {
-                  sx: {
-                    backgroundColor: "#1F2937",
-                    color: "white",
-                    border: "1px solid #374151",
-                  },
+                  sx: { backgroundColor: "#1F2937", color: "white", border: "1px solid #374151" },
                 },
               }}
             >
               <MenuItem value="">
-                <em style={{ fontSize: 14, color: "#9CA3AF", fontStyle: "normal" }}>
-                  Select time
-                </em>
+                <em style={{ fontSize: 14, color: "#9CA3AF", fontStyle: "normal" }}>Select time</em>
               </MenuItem>
               <MenuItem value="12:00">12:00</MenuItem>
               <MenuItem value="01:00">01:00</MenuItem>
@@ -363,18 +386,12 @@ const BookingForm = ({ open, handleClose, onBookingCreated }) => {
               }}
               MenuProps={{
                 PaperProps: {
-                  sx: {
-                    backgroundColor: "#1F2937",
-                    color: "white",
-                    border: "1px solid #374151",
-                  },
+                  sx: { backgroundColor: "#1F2937", color: "white", border: "1px solid #374151" },
                 },
               }}
             >
               <MenuItem value="">
-                <em style={{ fontSize: 14, color: "#9CA3AF", fontStyle: "normal" }}>
-                  Select duration
-                </em>
+                <em style={{ fontSize: 14, color: "#9CA3AF", fontStyle: "normal" }}>Select duration</em>
               </MenuItem>
               <MenuItem value="30m">30 min</MenuItem>
               <MenuItem value="1h 30m">1 hour 30 min</MenuItem>
@@ -401,9 +418,7 @@ const BookingForm = ({ open, handleClose, onBookingCreated }) => {
             }}
           >
             <MenuItem value="">
-              <em style={{ fontSize: 14, color: "#9CA3AF", fontStyle: "normal" }}>
-                Select payment method
-              </em>
+              <em style={{ fontSize: 14, color: "#9CA3AF", fontStyle: "normal" }}>Select payment method</em>
             </MenuItem>
             <MenuItem value="cash">Cash</MenuItem>
             <MenuItem value="card">Card</MenuItem>
@@ -412,14 +427,7 @@ const BookingForm = ({ open, handleClose, onBookingCreated }) => {
         </Box>
 
         {/* Amount */}
-        <Box
-          mt={3}
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
+        <Box mt={3} sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <Typography variant="h6" color="cyan">
             Amount
           </Typography>
@@ -465,147 +473,125 @@ const BookingForm = ({ open, handleClose, onBookingCreated }) => {
           {loading ? "Creating..." : "Create Booking"}
         </Button>
       </DialogActions>
-          <Dialog
-  open={cancelConfirm}
-  PaperProps={{
-    sx: {
-      bgcolor: "#0A192F",
-      borderRadius: "16px",
-      py: 2,
-      px: 4,
-      textAlign: "center",
-      color: "white",
-      border: '1px solid #3B4859'
-    },
-  }}
->
-  <DialogContent>
-    <Box sx={{ mb: 1, display: 'flex', justifyContent: 'center' }}>
-      <img src="/images/cancel.png" alt="Cancel" width={80} />
-    </Box>
-    <Typography
-      variant="h6"
-      sx={{
-        background: "linear-gradient(90deg, #00C6FF, #FF00CC)",
-        WebkitBackgroundClip: "text",
-        WebkitTextFillColor: "transparent",
-        fontSize: 20,
-        fontWeight: 600,
-        mb: 3
-      }}
-    >
-      Are you want to cancel this?
-    </Typography>
-    <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center' }}>
-      <Button
-        onClick={handleConfirmCancel}
-        sx={{
-          px: 6,
-          fontSize: 14,
-          textTransform: 'capitalize',
-          borderRadius: "8px",
-          background: "linear-gradient(90deg, rgba(12, 215, 255, 0.4) 0%, rgba(138, 56, 245, 0.4) 73%)",
-          color: "white",
-          "&:hover": {
-            background: "linear-gradient(90deg, #0CD7FF 0%, #8A38F5 73%)",
+
+      {/* Cancel Confirmation Dialog */}
+      <Dialog
+        open={cancelConfirm}
+        PaperProps={{
+          sx: {
+            bgcolor: "#0A192F",
+            borderRadius: "16px",
+            py: 2,
+            px: 4,
+            textAlign: "center",
+            color: "white",
+            border: '1px solid #3B4859'
           },
         }}
       >
-        Yes
-      </Button>
-      <Button
-        onClick={() => setCancelConfirm(false)}
-        sx={{
-          px: 6,
-          fontSize: 14,
-          textTransform: 'capitalize',
-          borderRadius: "8px",
-          background: "#1F2937",
-          color: "white",
-          "&:hover": {
-            background: "#374151",
+        <DialogContent>
+          <Box sx={{ mb: 1, display: 'flex', justifyContent: 'center' }}>
+            <img src="/images/cancel.png" alt="Cancel" width={80} />
+          </Box>
+          <Typography
+            variant="h6"
+            sx={{
+              background: "linear-gradient(90deg, #00C6FF, #FF00CC)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              fontSize: 20,
+              fontWeight: 600,
+              mb: 3
+            }}
+          >
+            Are you want to cancel this?
+          </Typography>
+          <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center' }}>
+            <Button
+              onClick={handleConfirmCancel}
+              sx={{
+                px: 6,
+                fontSize: 14,
+                textTransform: 'capitalize',
+                borderRadius: "8px",
+                background: "linear-gradient(90deg, rgba(12, 215, 255, 0.4) 0%, rgba(138, 56, 245, 0.4) 73%)",
+                color: "white",
+                "&:hover": {
+                  background: "linear-gradient(90deg, #0CD7FF 0%, #8A38F5 73%)",
+                },
+              }}
+            >
+              Yes
+            </Button>
+            <Button
+              onClick={() => setCancelConfirm(false)}
+              sx={{
+                px: 6,
+                fontSize: 14,
+                textTransform: 'capitalize',
+                borderRadius: "8px",
+                background: "#1F2937",
+                color: "white",
+                "&:hover": { background: "#374151" },
+              }}
+            >
+              No
+            </Button>
+          </Box>
+        </DialogContent>
+      </Dialog>
+
+      {/* Success Dialog */}
+      <Dialog
+        open={createSuccess}
+        PaperProps={{
+          sx: {
+            bgcolor: "#0A192F",
+            borderRadius: "16px",
+            py: 2,
+            px: 8,
+            textAlign: "center",
+            color: "white",
+            border: '1px solid #3B4859'
           },
         }}
       >
-        No
-      </Button>
-    </Box>
-  </DialogContent>
-</Dialog>
-          
-<Dialog
-  open={createSuccess}
-  PaperProps={{
-    sx: {
-      bgcolor: "#0A192F",
-      borderRadius: "16px",
-      py: 2,
-      px: 8,
-      textAlign: "center",
-      color: "white",
-      border: '1px solid #3B4859'
-    },
-  }}
->
-  <DialogContent>
-    <Box sx={{ mb: 1, display: 'flex', justifyContent: 'center' }}>
-      <Box sx={{
-        width: 80,
-        height: 80,
-        borderRadius: '50%',
-        border: '3px solid',
-        borderColor: 'transparent',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: 'linear-gradient(#0A192F, #0A192F) padding-box, linear-gradient(90deg, #00C6FF, #FF00CC) border-box',
-      }}>
-        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M5 13l4 4L19 7" stroke="url(#gradient)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
-          <defs>
-            <linearGradient id="gradient" x1="5" y1="12" x2="19" y2="12">
-              <stop offset="0%" stopColor="#00C6FF"/>
-              <stop offset="100%" stopColor="#FF00CC"/>
-            </linearGradient>
-          </defs>
-        </svg>
-      </Box>
-    </Box>
-    <Typography
-      variant="h6"
-      sx={{
-        background: "linear-gradient(90deg, #00C6FF, #FF00CC)",
-        WebkitBackgroundClip: "text",
-        WebkitTextFillColor: "transparent",
-        fontSize: 24,
-        fontWeight: 600,
-        mb: 1
-      }}
-    >
-      Create Successful !
-    </Typography>
-    <Button
-      onClick={handleSuccessOk}
-      sx={{
-        px: 8,
-        fontSize: 14,
-        textTransform: 'capitalize',
-        borderRadius: "8px",
-        background: "linear-gradient(90deg, rgba(12, 215, 255, 0.4) 0%, rgba(138, 56, 245, 0.4) 73%)",
-        color: "white",
-        "&:hover": {
-          background: "linear-gradient(90deg, #0CD7FF 0%, #8A38F5 73%)",
-        },
-      }}
-    >
-      Ok
-    </Button>
-  </DialogContent>
-</Dialog>
-      {/* Cancel and Success Dialogs */}
-      {/* ✅ Keep your existing cancel and success popups same as your version */}
+        <DialogContent>
+          <Box sx={{ mb: 1, display: 'flex', justifyContent: 'center' }}>
+            <img src="/images/success.png" alt="Success" width={80} />
+          </Box>
+          <Typography
+            variant="h6"
+            sx={{
+              background: "linear-gradient(90deg, #00C6FF, #FF00CC)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              fontSize: 20,
+              fontWeight: 600,
+              mb: 3
+            }}
+          >
+            Booking Created Successfully
+          </Typography>
+          <Button
+            onClick={handleSuccessOk}
+            sx={{
+              px: 6,
+              fontSize: 14,
+              textTransform: 'capitalize',
+              borderRadius: "8px",
+              background: "linear-gradient(90deg, rgba(12, 215, 255, 0.4) 0%, rgba(138, 56, 245, 0.4) 73%)",
+              color: "white",
+              "&:hover": {
+                background: "linear-gradient(90deg, #0CD7FF 0%, #8A38F5 73%)",
+              },
+            }}
+          >
+            OK
+          </Button>
+        </DialogContent>
+      </Dialog>
     </Dialog>
   );
 };
-
 export default BookingForm;
