@@ -17,6 +17,9 @@ import callOfDuty from './call_of_duty.jpg'
 import carGame from './car_game.png'
 import freeFire from './free_fire.png'
 import pubg from './pubg.png'
+import station2 from './station_2.jpg'
+import station3 from './station_3.jpg'
+import station4 from './station_4.jpg'
 
 // Simple booking data for quick reference and calendar views
 export const bookings = [
@@ -738,5 +741,28 @@ export const Gallery = [
     title: "Free Fire Championship",
     image: freeFire,
   },
+];
+
+export const AllStations = [
+  {
+    title: "PS5 Station 1",
+    desc: "Latest PS5 games with 4K graphics and immersive gameplay on premium gaming setups",
+    image: PS5station,
+  },
+  {
+    title: "PS5 Station 2",
+    desc: "Latest PS5 games with 4K graphics and immersive gameplay on premium gaming setups",
+    image: station2,
+  },
+  {
+    title: "PS5 Station 3",
+    desc: "Latest PS5 games with 4K graphics and immersive gameplay on premium gaming setups",
+    image: station3 ,
+  },
+  {
+    title: "PS5 Station 4",
+    desc: "Latest PS5 games with 4K graphics and immersive gameplay on premium gaming setups",
+    image: station4 ,
+  }
 ];
 

@@ -1,8 +1,10 @@
 import { Box, Button, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material'
 import React, { useState } from 'react'
+import { useNavigate } from "react-router-dom";
 import AddGameDialog from './AddGameDialog';
 import AddEventDialog from './AddEventDialog';
 import { BookingGames, OtherGames, Event } from '../assets/assets';
+import AddGalleyDialog from './AddGalleyDialog';
 
 
 const categories = [
@@ -12,10 +14,20 @@ const categories = [
   { label: "Gallery" }
 ]
 
+const routeMap = {
+  "PS5 Stations": "/web-portal/station",
+  "Pool Tables": "/web-portal/pool",
+  "Racing Simulators": "/web-portal/simulator",
+};
+
+
 const WebManagement = () => {
+  const navigate = useNavigate();
+
   const [activeCategory, setActiveCategory] = useState('Booking Games');
   const [openAddGame, setOpenAddGame] = useState(false);
   const [openAddEvent, setOpenAddEvent] = useState(false);
+  const [openAddPhoto, setOpenAddPhoto] = useState(false)
 
   return (
     <div>
@@ -112,7 +124,7 @@ const WebManagement = () => {
                   fontWeight: "600",
                   "&:hover": { background: "linear-gradient(to right, #0bbfe0, #732ed1)" },
                 }}
-                onClick={() => setOpenAddEvent(true)}
+                onClick={() => setOpenAddPhoto(true)}
               >
                 + Add Photos
               </Button>
@@ -126,6 +138,11 @@ const WebManagement = () => {
             <AddEventDialog
               open={openAddEvent}
               onClose={() => setOpenAddEvent(false)}
+            />
+
+            <AddGalleyDialog
+              open={openAddPhoto}
+              onClose={() => setOpenAddPhoto(false)}
             />
           </Box>
 
@@ -190,7 +207,7 @@ const WebManagement = () => {
 
                   {/* BUTTON */}
                   <Box sx={{ py: 2 }}>
-                    <button className="card-button">{item.button}</button>
+                    <button  onClick={() => navigate(routeMap[item.title])}  className="card-button">{item.button}</button>
                   </Box>
                 </Box>
               ))
@@ -329,13 +346,13 @@ const WebManagement = () => {
                     backgroundClip: "content-box, border-box",
 
                   }}>
-                    <Box sx={{flexGrow: 1, display: "flex", flexDirection: "column", borderRadius: "12px", height: 248 }}>
+                    <Box sx={{ flexGrow: 1, display: "flex", flexDirection: "column", borderRadius: "12px", height: 248 }}>
                       {/* IMAGE */}
                       <img
                         src={item.image}
                         alt={item.title}
                         style={{
-                          borderRadius:"12px",
+                          borderRadius: "12px",
                           width: "100%",
                           height: "100%",
                           objectFit: "cover",
