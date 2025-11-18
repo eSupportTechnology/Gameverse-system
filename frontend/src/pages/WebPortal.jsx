@@ -6,6 +6,7 @@ import Sidebar from '../components/Sidebar';
 import WebManagement from '../components/WebManagement';
 import AllPs5Stations from '../components/AllPs5Stations';
 import AllPoolTabels from '../components/AllPoolTabels';
+import AllRacingSimulators from '../components/AllRacingSimulators';
 
 
 const WebPortal = () => {
@@ -26,7 +27,7 @@ const WebPortal = () => {
               <Route path="/" element={<WebManagement />} />
               <Route path="/station" element={<AllPs5Stations />} />
               <Route path="/pool" element={<AllPoolTabels />} />
-
+              <Route path="/simulator" element={<AllRacingSimulators />} />
             </Routes>
           </Box>
         </Box>

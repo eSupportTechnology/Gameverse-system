@@ -20,6 +20,14 @@ import pubg from './pubg.png'
 import station2 from './station_2.jpg'
 import station3 from './station_3.jpg'
 import station4 from './station_4.jpg'
+import PremiumBilliard1 from './premium_billiard_1.jpg'
+import PremiumBilliard2 from './premium_billiard_2.jpg'
+import supermeBilliard1 from './superme_billiard_1.jpg'
+import supermeBilliard2 from './superme_billiard_2.jpg'
+import racing1 from './racing1.jpg'
+import racing2 from './racing2.jpg'
+import racing3 from './racing3.jpg'
+import racing4 from './racing4.png'
 
 // Simple booking data for quick reference and calendar views
 export const bookings = [
@@ -763,6 +771,52 @@ export const AllStations = [
     title: "PS5 Station 4",
     desc: "Latest PS5 games with 4K graphics and immersive gameplay on premium gaming setups",
     image: station4 ,
+  }
+];
+
+export const AllPool = [
+  {
+    title: "Supreme Billiard 1",
+    desc: "Latest PS5 games with 4K graphics and immersive gameplay on premium gaming setups",
+    image: supermeBilliard1,
+  },
+  {
+    title: "Supreme Billiard 1",
+    desc: "Latest PS5 games with 4K graphics and immersive gameplay on premium gaming setups",
+    image: supermeBilliard2,
+  },
+  {
+    title: "Premium Billiard 1",
+    desc: "Latest PS5 games with 4K graphics and immersive gameplay on premium gaming setups",
+    image: PremiumBilliard1 ,
+  },
+  {
+    title: "Premium Billiard 2",
+    desc: "Latest PS5 games with 4K graphics and immersive gameplay on premium gaming setups",
+    image: PremiumBilliard2 ,
+  }
+];
+
+export const AllRacing = [
+  {
+    title: "Racing Simulator 1",
+    desc: "Latest PS5 games with 4K graphics and immersive gameplay on premium gaming setups",
+    image: racing1,
+  },
+  {
+    title: "Racing Simulator 2",
+    desc: "Latest PS5 games with 4K graphics and immersive gameplay on premium gaming setups",
+    image: racing2,
+  },
+  {
+    title: "Racing Simulator 3",
+    desc: "Latest PS5 games with 4K graphics and immersive gameplay on premium gaming setups",
+    image: racing3 ,
+  },
+  {
+    title: "Racing Simulator 4",
+    desc: "Latest PS5 games with 4K graphics and immersive gameplay on premium gaming setups",
+    image: racing4 ,
   }
 ];
 
