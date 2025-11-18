@@ -19,7 +19,7 @@ import axios from 'axios';
 
 const BookingManagement = () => {
   const [view, setView] = React.useState("timeline");
-  const [date, setDate] = React.useState(new Date());
+  const [date, setDate] = React.useState(new Date().toISOString().split('T')[0]);
   const [openDialog, setOpenDialog] = useState(false);
   const [apiBookings, setApiBookings] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -404,15 +404,23 @@ const BookingManagement = () => {
           value={date}
           onChange={(e) => setDate(e.target.value)}
           InputLabelProps={{ shrink: true }}
-          inputProps={{ style: { height: "40px", padding: "0 12px" } }}
+          inputProps={{ 
+            style: { 
+              height: "40px", 
+              padding: "0 12px",
+              color: "#fff" 
+            } 
+          }}
           sx={{
             bgcolor: "#1F2937",
             cursor: "pointer",
-            input: { color: "#fff" },
             "& .MuiOutlinedInput-root": {
               "& fieldset": { borderColor: "#555" },
               "&:hover fieldset": { borderColor: "#888" },
               "&.Mui-focused fieldset": { borderColor: "#00E5FF" },
+            },
+            "& .MuiInputBase-input": {
+              color: "#fff",
             },
             mb: { xs: 2, sm: 2, md: 0 }
           }}

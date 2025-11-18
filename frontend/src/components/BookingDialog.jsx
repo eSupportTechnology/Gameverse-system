@@ -12,6 +12,9 @@ import {
 import CloseIcon from "@mui/icons-material/Close";
 import EditIcon from "@mui/icons-material/Edit";
 
+// Import CancelPopup
+import CancelPopup from "../components/CancelPopup";
+
 // Mock players data with separate booking data - ALL UPCOMING
 const mockPlayers = [
   {
@@ -125,6 +128,7 @@ const calculateEndTime = (startTime, duration) => {
 
 const BookingDialog = ({ open, onClose, onEdit }) => {
   const [activePlayer, setActivePlayer] = useState(0);
+  const [cancelOpen, setCancelOpen] = useState(false);
   const player = mockPlayers[activePlayer];
   const booking = player.booking;
 
@@ -144,275 +148,293 @@ const BookingDialog = ({ open, onClose, onEdit }) => {
     console.log("Editing booking:", booking);
   };
 
-  const handleCancel = () => {
+  const handleCancelClick = () => {
+    setCancelOpen(true);
+  };
+
+  const handleCancelConfirm = () => {
     console.log("Canceling booking:", booking);
+    setCancelOpen(false);
     onClose();
   };
 
-  return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      maxWidth="sm"
-      fullWidth
-      PaperProps={{
-        sx: {
-          bgcolor: "#111827",
-          color: "#fff",
-          borderRadius: "12px",
-          border: "1px solid #333",
-        },
-      }}
-    >
-      {/* Header with Close Icon */}
-      <Box sx={{ p: 2, pb: 1, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <Typography
-          variant="h6"
-          fontWeight="bold"
-          sx={{ fontSize: "1.25rem" }}
-        >
-          Booking Details
-        </Typography>
-        <IconButton
-          onClick={onClose}
-          sx={{
-            color: "#9CA3AF",
-            "&:hover": {
-              color: "#fff",
-              bgcolor: "rgba(255,255,255,0.1)"
-            }
-          }}
-        >
-          <CloseIcon />
-        </IconButton>
-      </Box>
+  const handleCancelClose = () => {
+    setCancelOpen(false);
+  };
 
-      <DialogContent sx={{ p: 0 }}>
-        <Box sx={{ p: 3, pt: 0 }}>
-          {/* Player Tabs - Fixed with corner online indicators */}
-          <Box sx={{ display: "flex", gap: 1, mb: 3 }}>
-            {mockPlayers.map((p, i) => (
-              <Box
-                key={p.id}
-                onClick={() => setActivePlayer(i)}
-                sx={{
-                  flex: 1,
-                  cursor: "pointer",
-                  p: 1.2,
-                  textAlign: "center",
-                  borderRadius: "8px",
-                  bgcolor: activePlayer === i ? "#0097A7" : "#2A2D3E",
-                  border: "1px solid #3A3D4F",
-                  transition: "0.2s ease",
-                  position: "relative",
-                  overflow: "visible", // This allows the dot to show outside
-                  "&:hover": { bgcolor: "#374151" },
-                }}
-              >
-                {/* Online indicator - Positioned at corner with reduced size and no border */}
-                {p.online && (
-                  <Box
+  return (
+    <>
+      <Dialog
+        open={open}
+        onClose={onClose}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: {
+            bgcolor: "#111827",
+            color: "#fff",
+            borderRadius: "12px",
+            border: "1px solid #333",
+          },
+        }}
+      >
+        {/* Header with Close Icon */}
+        <Box sx={{ p: 2, pb: 1, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <Typography
+            variant="h6"
+            fontWeight="bold"
+            sx={{ fontSize: "1.25rem" }}
+          >
+            Booking Details
+          </Typography>
+          <IconButton
+            onClick={onClose}
+            sx={{
+              color: "#9CA3AF",
+              "&:hover": {
+                color: "#fff",
+                bgcolor: "rgba(255,255,255,0.1)"
+              }
+            }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </Box>
+
+        <DialogContent sx={{ p: 0 }}>
+          <Box sx={{ p: 3, pt: 0 }}>
+            {/* Player Tabs - Fixed with corner online indicators */}
+            <Box sx={{ display: "flex", gap: 1, mb: 3 }}>
+              {mockPlayers.map((p, i) => (
+                <Box
+                  key={p.id}
+                  onClick={() => setActivePlayer(i)}
+                  sx={{
+                    flex: 1,
+                    cursor: "pointer",
+                    p: 1.2,
+                    textAlign: "center",
+                    borderRadius: "8px",
+                    bgcolor: activePlayer === i ? "#0097A7" : "#2A2D3E",
+                    border: "1px solid #3A3D4F",
+                    transition: "0.2s ease",
+                    position: "relative",
+                    overflow: "visible", // This allows the dot to show outside
+                    "&:hover": { bgcolor: "#374151" },
+                  }}
+                >
+                  {/* Online indicator - Positioned at corner with reduced size and no border */}
+                  {p.online && (
+                    <Box
+                      sx={{
+                        position: "absolute",
+                        top: -2, // Position slightly above the top border
+                        right: -2, // Position slightly outside the right border
+                        width: 10, // Reduced size
+                        height: 10, // Reduced size
+                        borderRadius: "50%",
+                        bgcolor: "#00FF00",
+                        boxShadow: "0 0 6px 2px rgba(0,255,0,0.6)",
+                        zIndex: 2,
+                      }}
+                    />
+                  )}
+                  <Typography
                     sx={{
-                      position: "absolute",
-                      top: -2, // Position slightly above the top border
-                      right: -2, // Position slightly outside the right border
-                      width: 10, // Reduced size
-                      height: 10, // Reduced size
-                      borderRadius: "50%",
-                      bgcolor: "#00FF00",
-                      boxShadow: "0 0 6px 2px rgba(0,255,0,0.6)",
-                      zIndex: 2,
+                      color: "#fff",
+                      fontWeight: activePlayer === i ? "bold" : "normal",
+                      fontSize: "0.875rem",
                     }}
-                  />
-                )}
+                  >
+                    {p.name}
+                  </Typography>
+                </Box>
+              ))}
+            </Box>
+
+            {/* Booking Card */}
+            <Box
+              sx={{
+                bgcolor: "#18212F",
+                p: 2,
+                borderRadius: "8px",
+                mb: 2,
+              }}
+            >
+              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 1 }}>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <Typography
+                    sx={{
+                      bgcolor: `${statusColors[booking.status]}33`,
+                      color: statusColors[booking.status],
+                      borderRadius: "12px",
+                      px: 1.5,
+                      py: 0.5,
+                      fontSize: "0.75rem",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    {statusText[booking.status]}
+                  </Typography>
+                  <Typography
+                    sx={{
+                      color: "#9CA3AF",
+                      fontSize: "0.75rem",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    Booking #{booking.id}
+                  </Typography>
+                </Box>
                 <Typography
                   sx={{
-                    color: "#fff",
-                    fontWeight: activePlayer === i ? "bold" : "normal",
+                    color: "#FD00B5",
+                    fontWeight: "bold",
                     fontSize: "0.875rem",
                   }}
                 >
-                  {p.name}
+                  {booking.loyalty_points} pts
                 </Typography>
               </Box>
-            ))}
-          </Box>
 
-          {/* Booking Card */}
-          <Box
-            sx={{
-              bgcolor: "#18212F",
-              p: 2,
-              borderRadius: "8px",
-              mb: 2,
-            }}
-          >
-            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 1 }}>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                <Typography
-                  sx={{
-                    bgcolor: `${statusColors[booking.status]}33`,
-                    color: statusColors[booking.status],
-                    borderRadius: "12px",
-                    px: 1.5,
-                    py: 0.5,
-                    fontSize: "0.75rem",
-                    fontWeight: "bold",
-                  }}
-                >
-                  {statusText[booking.status]}
-                </Typography>
-                <Typography
-                  sx={{
-                    color: "#9CA3AF",
-                    fontSize: "0.75rem",
-                    fontWeight: "bold",
-                  }}
-                >
-                  Booking #{booking.id}
-                </Typography>
-              </Box>
               <Typography
+                variant="body2"
+                sx={{ color: "#fff", fontWeight: "bold", mb: 0.5 }}
+              >
+                Name : {booking.customer_name}
+              </Typography>
+              <Typography
+                variant="body2"
+                sx={{ color: "#9CA3AF", fontSize: "0.875rem", mb: 0.5 }}
+              >
+                ID : {booking.id}
+              </Typography>
+              <Typography
+                variant="body2"
+                sx={{ color: "#9CA3AF", fontSize: "0.875rem" }}
+              >
+                PN : {booking.phone}
+              </Typography>
+            </Box>
+
+            {/* Session Details & Payment Info */}
+            <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
+              {/* Session Details */}
+              <Box
                 sx={{
-                  color: "#FD00B5",
-                  fontWeight: "bold",
-                  fontSize: "0.875rem",
+                  flex: 1,
+                  bgcolor: "#18212F",
+                  p: 2,
+                  borderRadius: "8px",
                 }}
               >
-                {booking.loyalty_points} pts
-              </Typography>
-            </Box>
+                <Typography
+                  variant="subtitle1"
+                  sx={{ fontWeight: "bold", fontSize: "0.875rem", mb: 1.5 }}
+                >
+                  🎮 Session Details
+                </Typography>
 
-            <Typography
-              variant="body2"
-              sx={{ color: "#fff", fontWeight: "bold", mb: 0.5 }}
-            >
-              Name : {booking.customer_name}
-            </Typography>
-            <Typography
-              variant="body2"
-              sx={{ color: "#9CA3AF", fontSize: "0.875rem", mb: 0.5 }}
-            >
-              ID : {booking.id}
-            </Typography>
-            <Typography
-              variant="body2"
-              sx={{ color: "#9CA3AF", fontSize: "0.875rem" }}
-            >
-              PN : {booking.phone}
-            </Typography>
-          </Box>
+                <DetailRow label="Station" value={booking.station} />
+                <DetailRow
+                  label="Time"
+                  value={`${booking.start_time} - ${calculateEndTime(
+                    booking.start_time,
+                    booking.duration
+                  )}`}
+                />
+                <DetailRow label="Duration" value={booking.duration} />
+                <DetailRow label="Extended Time" value={booking.extended_time} />
+              </Box>
 
-          {/* Session Details & Payment Info */}
-          <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
-            {/* Session Details */}
-            <Box
-              sx={{
-                flex: 1,
-                bgcolor: "#18212F",
-                p: 2,
-                borderRadius: "8px",
-              }}
-            >
-              <Typography
-                variant="subtitle1"
-                sx={{ fontWeight: "bold", fontSize: "0.875rem", mb: 1.5 }}
+              {/* Payment Info */}
+              <Box
+                sx={{
+                  flex: 1,
+                  bgcolor: "#18212F",
+                  p: 2,
+                  borderRadius: "8px",
+                }}
               >
-                🎮 Session Details
-              </Typography>
-
-              <DetailRow label="Station" value={booking.station} />
-              <DetailRow
-                label="Time"
-                value={`${booking.start_time} - ${calculateEndTime(
-                  booking.start_time,
-                  booking.duration
-                )}`}
-              />
-              <DetailRow label="Duration" value={booking.duration} />
-              <DetailRow label="Extended Time" value={booking.extended_time} />
-            </Box>
-
-            {/* Payment Info */}
-            <Box
-              sx={{
-                flex: 1,
-                bgcolor: "#18212F",
-                p: 2,
-                borderRadius: "8px",
-              }}
-            >
-              <Typography
-                variant="subtitle1"
-                sx={{ fontWeight: "bold", fontSize: "0.875rem", mb: 1.5 }}
-              >
-                💳 Payment Info
-              </Typography>
-              <DetailRow
-                label="Online Deposit"
-                value={`LKR ${booking.online_deposit}`}
-              />
-              <DetailRow
-                label="Total amounts"
-                value={`LKR ${booking.total_amount}`}
-              />
-              <DetailRow
-                label="Balance amounts"
-                value={`LKR ${booking.balance_amount}`}
-              />
+                <Typography
+                  variant="subtitle1"
+                  sx={{ fontWeight: "bold", fontSize: "0.875rem", mb: 1.5 }}
+                >
+                  💳 Payment Info
+                </Typography>
+                <DetailRow
+                  label="Online Deposit"
+                  value={`LKR ${booking.online_deposit}`}
+                />
+                <DetailRow
+                  label="Total amounts"
+                  value={`LKR ${booking.total_amount}`}
+                />
+                <DetailRow
+                  label="Balance amounts"
+                  value={`LKR ${booking.balance_amount}`}
+                />
+              </Box>
             </Box>
           </Box>
-        </Box>
-      </DialogContent>
+        </DialogContent>
 
-      {/* Action Buttons */}
-      <DialogActions sx={{ p: 3, pt: 0, display: "flex", gap: 2 }}>
-        <Button
-          variant="outlined"
-          fullWidth
-          startIcon={<EditIcon />}
-          onClick={handleEdit}
-          sx={{
-            borderColor: "#0CD7FF",
-            color: "#0CD7FF",
-            textTransform: "none",
-            borderRadius: "8px",
-            fontWeight: "bold",
-            bgcolor: "#0CD7FF10",
-            fontSize: "0.875rem",
-            py: 1.5,
-            "&:hover": {
+        {/* Action Buttons */}
+        <DialogActions sx={{ p: 3, pt: 0, display: "flex", gap: 2 }}>
+          <Button
+            variant="outlined"
+            fullWidth
+            startIcon={<EditIcon />}
+            onClick={handleEdit}
+            sx={{
               borderColor: "#0CD7FF",
-              bgcolor: "#0CD7FF20",
-            },
-          }}
-        >
-          Edit
-        </Button>
-        <Button
-          variant="outlined"
-          fullWidth
-          startIcon={<CloseIcon />}
-          onClick={handleCancel}
-          sx={{
-            borderColor: "#dc2626",
-            color: "#dc2626",
-            textTransform: "none",
-            borderRadius: "8px",
-            bgcolor: "#dc262610",
-            fontWeight: "bold",
-            fontSize: "0.875rem",
-            py: 1.5,
-            "&:hover": {
+              color: "#0CD7FF",
+              textTransform: "none",
+              borderRadius: "8px",
+              fontWeight: "bold",
+              bgcolor: "#0CD7FF10",
+              fontSize: "0.875rem",
+              py: 1.5,
+              "&:hover": {
+                borderColor: "#0CD7FF",
+                bgcolor: "#0CD7FF20",
+              },
+            }}
+          >
+            Edit
+          </Button>
+          <Button
+            variant="outlined"
+            fullWidth
+            startIcon={<CloseIcon />}
+            onClick={handleCancelClick}
+            sx={{
               borderColor: "#dc2626",
-              bgcolor: "#dc262620",
-            },
-          }}
-        >
-          Cancel
-        </Button>
-      </DialogActions>
-    </Dialog>
+              color: "#dc2626",
+              textTransform: "none",
+              borderRadius: "8px",
+              bgcolor: "#dc262610",
+              fontWeight: "bold",
+              fontSize: "0.875rem",
+              py: 1.5,
+              "&:hover": {
+                borderColor: "#dc2626",
+                bgcolor: "#dc262620",
+              },
+            }}
+          >
+            Cancel
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Cancel Popup */}
+      <CancelPopup
+        open={cancelOpen}
+        handleCancelClose={handleCancelClose}
+        handleConfirm={handleCancelConfirm}
+      />
+    </>
   );
 };
 
