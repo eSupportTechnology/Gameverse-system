@@ -13,6 +13,10 @@ import poolGaming from './pool_gaming.jpg'
 import caromGaming from './carom_gaming.png'
 import archeryGaming from './archery_gaming.png'
 import arcadeMachine from './arcade_machine.png'
+import callOfDuty from './call_of_duty.jpg'
+import carGame from './car_game.png'
+import freeFire from './free_fire.png'
+import pubg from './pubg.png'
 
 // Simple booking data for quick reference and calendar views
 export const bookings = [
@@ -692,5 +696,47 @@ export const OtherGames = [
     desc: "Latest PS5 games with 4K graphics and immersive gameplay on premium gaming setups",
     image: poolGaming ,
   }
+];
+
+export const Event = [
+  {
+    title: "Call of Duty Championship",
+    date: "AUG 25, 2025",
+    image: callOfDuty,
+  },
+  {
+    title: "PUBG Championship",
+    date: "AUG 30, 2025",
+    image: pubg,
+  },
+  {
+    title: "Car Game Championship",
+    date: "AUG 17, 2025",
+    image: carGame,
+  },
+  {
+    title: "Free Fire Championship",
+    date: "AUG 20, 2025",
+    image: freeFire,
+  },
+];
+
+export const Gallery = [
+  {
+    title: "Call of Duty Championship",
+    image: callOfDuty,
+  },
+  {
+    title: "PUBG Championship",
+    image: pubg,
+  },
+  {
+    title: "Car Game Championship",
+    image: carGame,
+  },
+  {
+    title: "Free Fire Championship",
+    image: freeFire,
+  },
 ];
 

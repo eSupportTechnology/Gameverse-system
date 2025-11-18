@@ -2,13 +2,14 @@ import { Box, Button, ToggleButton, ToggleButtonGroup, Typography } from '@mui/m
 import React, { useState } from 'react'
 import AddGameDialog from './AddGameDialog';
 import AddEventDialog from './AddEventDialog';
-import { BookingGames, OtherGames } from '../assets/assets';
+import { BookingGames, OtherGames, Event } from '../assets/assets';
 
 
 const categories = [
   { label: 'Booking Games' },
   { label: 'Other Games' },
-  { label: 'Event & Tournaments' }
+  { label: 'Event & Tournaments' },
+  { label: "Gallery" }
 ]
 
 const WebManagement = () => {
@@ -97,6 +98,23 @@ const WebManagement = () => {
                 onClick={() => setOpenAddEvent(true)}
               >
                 + Add Event & Tournaments
+              </Button>
+            )}
+            {activeCategory === "Gallery" && (
+              <Button
+                variant="contained"
+                sx={{
+                  background: "linear-gradient(to right, #0CD7FF, #8A38F5)",
+                  borderRadius: "6px",
+                  px: 4,
+                  py: 1,
+                  textTransform: "none",
+                  fontWeight: "600",
+                  "&:hover": { background: "linear-gradient(to right, #0bbfe0, #732ed1)" },
+                }}
+                onClick={() => setOpenAddEvent(true)}
+              >
+                + Add Photos
               </Button>
             )}
             {/* add fotm this to  */}
@@ -227,6 +245,103 @@ const WebManagement = () => {
                   {/* BUTTON */}
                   <Box sx={{ py: 2 }}>
                     <button className="card-button-red">Remove</button>
+                  </Box>
+                </Box>
+              ))
+            }
+
+            {activeCategory === "Event & Tournaments" &&
+              Event.map((item, index) => (
+                <Box
+                  key={index}
+                  sx={{
+                    borderRadius: "12px",
+                    overflow: "hidden",
+                    height: "100%",
+                  }}
+                >
+                  <Box sx={{
+                    borderRadius: "12px",
+                    display: "flex",
+                    flexDirection: "column",
+                    border: "1px solid transparent",
+                    backgroundImage: "linear-gradient(#0E111B, #0E111B), linear-gradient(180deg, #CF36E1, #15A2EF)",
+                    backgroundOrigin: "border-box",
+                    backgroundClip: "content-box, border-box",
+
+                  }}>
+                    <Box sx={{ backgroundColor: "#000000", flexGrow: 1, display: "flex", flexDirection: "column", borderRadius: "12px", height: 295 }}>
+                      {/* IMAGE */}
+                      <img
+                        src={item.image}
+                        alt={item.title}
+                        style={{
+                          width: "100%",
+                          height: "196px",
+                          objectFit: "cover",
+                        }}
+                      />
+
+                      {/* TEXT CONTENT */}
+                      <Box sx={{ p: 2, textAlign: "center", flexGrow: 1, }}>
+                        <h3 style={{ fontSize: "16px", fontWeight: "500", color: "white" }}>
+                          {item.title}
+                        </h3>
+                        <p style={{
+                          fontSize: "14px",
+                          fontWeight: "400",
+                          marginTop: "8px",
+                          background: "linear-gradient(180deg, #CF36E1, #15A2EF)",
+                          WebkitBackgroundClip: "text",
+                          WebkitTextFillColor: "transparent",
+                        }}>
+                          {item.date}
+                        </p>
+                      </Box>
+                    </Box>
+                  </Box>
+
+                  {/* BUTTON */}
+                  <Box sx={{ py: 2 }}>
+                    <button className="card-button-red">Remove</button>
+                  </Box>
+                </Box>
+              ))
+            }
+
+            {activeCategory === "Gallery" &&
+              Event.map((item, index) => (
+                <Box
+                  key={index}
+                  sx={{
+                    borderRadius: "12px",
+                    overflow: "hidden",
+                    height: "100%",
+                  }}
+                >
+                  <Box sx={{
+                    borderRadius: "12px",
+                    display: "flex",
+                    flexDirection: "column",
+                    border: "1px solid transparent",
+                    backgroundImage: "linear-gradient(#0E111B, #0E111B), linear-gradient(180deg, #CF36E1, #15A2EF)",
+                    backgroundOrigin: "border-box",
+                    backgroundClip: "content-box, border-box",
+
+                  }}>
+                    <Box sx={{flexGrow: 1, display: "flex", flexDirection: "column", borderRadius: "12px", height: 248 }}>
+                      {/* IMAGE */}
+                      <img
+                        src={item.image}
+                        alt={item.title}
+                        style={{
+                          borderRadius:"12px",
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
+                        }}
+                      />
+                    </Box>
                   </Box>
                 </Box>
               ))
