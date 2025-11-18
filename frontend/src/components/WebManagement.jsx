@@ -2,7 +2,7 @@ import { Box, Button, ToggleButton, ToggleButtonGroup, Typography } from '@mui/m
 import React, { useState } from 'react'
 import AddGameDialog from './AddGameDialog';
 import AddEventDialog from './AddEventDialog';
-import { BookingGames } from '../assets/assets';
+import { BookingGames, OtherGames } from '../assets/assets';
 
 
 const categories = [
@@ -118,57 +118,119 @@ const WebManagement = () => {
           <Box
             sx={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+              gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
               gap: 2,
               p: 2,
               alignItems: "stretch",
             }}
           >
             {/* Booking Games section */}
-            {BookingGames.map((item, index) => (
-              <Box
-                key={index}
-                sx={{
-                  borderRadius: "12px",
-                  overflow: "hidden",
-                  height: "100%",
-                }}
-              >
-                <Box sx={{
-                  backgroundColor: "#000000",
-                  borderRadius: "12px",
-                  display: "flex",
-                  flexDirection: "column",
-                  height: 400,
-                }}>
-                  {/* IMAGE */}
-                  <img
-                    src={item.image}
-                    alt={item.title}
-                    style={{
-                      width: "100%",
-                      height: "240px",
-                      objectFit: "cover",
-                    }}
-                  />
+            {activeCategory === "Booking Games" &&
+              BookingGames.map((item, index) => (
+                <Box
+                  key={index}
+                  sx={{
+                    borderRadius: "12px",
+                    overflow: "hidden",
+                    height: "100%",
+                  }}
+                >
+                  <Box sx={{
+                    backgroundColor: "#000000",
+                    borderRadius: "12px",
+                    display: "flex",
+                    flexDirection: "column",
+                    height: 400,
+                    border: "1px solid transparent",
+                    backgroundImage: "linear-gradient(#0E111B, #0E111B), linear-gradient(180deg, #CF36E1, #15A2EF)",
+                    backgroundOrigin: "border-box",
+                    backgroundClip: "content-box, border-box",
+                  }}>
+                    <Box sx={{ backgroundColor: "#000000", flexGrow: 1, display: "flex", flexDirection: "column", borderRadius: "12px" }}>
+                      {/* IMAGE */}
+                      <img
+                        src={item.image}
+                        alt={item.title}
+                        style={{
+                          width: "100%",
+                          height: "240px",
+                          objectFit: "cover",
+                        }}
+                      />
 
-                  {/* TEXT CONTENT */}
-                  <Box sx={{ p: 2, textAlign: "center", flexGrow: 1 }}>
-                    <h3 style={{ fontSize: "16px", fontWeight: "500", color: "white" }}>
-                      {item.title}
-                    </h3>
-                    <p style={{ fontSize: "14px", fontWeight: "400", marginTop: "8px", color: "#FFFFFF" }}>
-                      {item.desc}
-                    </p>
+                      {/* TEXT CONTENT */}
+                      <Box sx={{ p: 2, textAlign: "center", flexGrow: 1 }}>
+                        <h3 style={{ fontSize: "16px", fontWeight: "500", color: "white" }}>
+                          {item.title}
+                        </h3>
+                        <p style={{ fontSize: "14px", fontWeight: "400", marginTop: "8px", color: "#FFFFFF" }}>
+                          {item.desc}
+                        </p>
+                      </Box>
+                    </Box>
+                  </Box>
+
+                  {/* BUTTON */}
+                  <Box sx={{ py: 2 }}>
+                    <button className="card-button">{item.button}</button>
                   </Box>
                 </Box>
+              ))
+            }
 
-                {/* BUTTON */}
-                <Box sx={{ py: 2 }}>
-                  <button className="card-button">{item.button}</button>
+
+            {activeCategory === "Other Games" &&
+              OtherGames.map((item, index) => (
+                <Box
+                  key={index}
+                  sx={{
+                    borderRadius: "12px",
+                    overflow: "hidden",
+                    height: "100%",
+                  }}
+                >
+                  <Box sx={{
+                    borderRadius: "12px",
+                    display: "flex",
+                    flexDirection: "column",
+                    height: 360,
+                    border: "1px solid transparent",
+                    backgroundImage: "linear-gradient(#0E111B, #0E111B), linear-gradient(180deg, #CF36E1, #15A2EF)",
+                    backgroundOrigin: "border-box",
+                    backgroundClip: "content-box, border-box",
+
+                  }}>
+                    <Box sx={{ backgroundColor: "#000000", flexGrow: 1, display: "flex", flexDirection: "column", borderRadius: "12px" }}>
+                      {/* IMAGE */}
+                      <img
+                        src={item.image}
+                        alt={item.title}
+                        style={{
+                          width: "100%",
+                          height: "190px",
+                          objectFit: "cover",
+                        }}
+                      />
+
+                      {/* TEXT CONTENT */}
+                      <Box sx={{ p: 2, textAlign: "center", flexGrow: 1, }}>
+                        <h3 style={{ fontSize: "16px", fontWeight: "500", color: "white" }}>
+                          {item.title}
+                        </h3>
+                        <p style={{ fontSize: "14px", fontWeight: "400", marginTop: "8px", color: "#FFFFFF" }}>
+                          {item.desc}
+                        </p>
+                      </Box>
+                    </Box>
+                  </Box>
+
+                  {/* BUTTON */}
+                  <Box sx={{ py: 2 }}>
+                    <button className="card-button-red">Remove</button>
+                  </Box>
                 </Box>
-              </Box>
-            ))}
+              ))
+            }
 
           </Box>
         </div>

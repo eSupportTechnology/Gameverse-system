@@ -9,6 +9,10 @@
 import poolTable from './pool_table.jpg'
 import PS5station from './ps5_station.jpg'
 import racingSimulator from './racing_simulators.jpg'
+import poolGaming from './pool_gaming.jpg'
+import caromGaming from './carom_gaming.png'
+import archeryGaming from './archery_gaming.png'
+import arcadeMachine from './arcade_machine.png'
 
 // Simple booking data for quick reference and calendar views
 export const bookings = [
@@ -664,6 +668,29 @@ export const BookingGames = [
     desc: "Latest PS5 games with 4K graphics and immersive gameplay on premium gaming setups",
     image: racingSimulator ,
     button: "View Simulators"
+  }
+];
+
+export const OtherGames = [
+  {
+    title: "Arcade Machine",
+    desc: "Latest PS5 games with 4K graphics and immersive gameplay on premium gaming setups",
+    image: arcadeMachine,
+  },
+  {
+    title: "Archery Gaming",
+    desc: "Latest PS5 games with 4K graphics and immersive gameplay on premium gaming setups",
+    image: archeryGaming,
+  },
+  {
+    title: "Carrom Gaming",
+    desc: "Latest PS5 games with 4K graphics and immersive gameplay on premium gaming setups",
+    image: caromGaming ,
+  },
+  {
+    title: "Pool Gaming",
+    desc: "Latest PS5 games with 4K graphics and immersive gameplay on premium gaming setups",
+    image: poolGaming ,
   }
 ];
 
