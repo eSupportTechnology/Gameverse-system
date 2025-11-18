@@ -1,7 +1,6 @@
 import React from "react";
 import { Box, Typography, LinearProgress } from "@mui/material";
 import PersonIcon from "@mui/icons-material/Person";
-import SidebarLayout from "../components/Sidebar";
 
 export default function TVScreens() {
   // Sample data for next in line
@@ -22,27 +21,27 @@ export default function TVScreens() {
   ];
 
   return (
-    <Box sx={{ display: "flex", height: "100vh", overflow: "hidden" }}>
-      <SidebarLayout />
-      <Box
-        sx={{
-          flex: 1,
-          height: "100vh",
-          backgroundColor: "#000",
-          backgroundImage: "linear-gradient(135deg, #1a0033 0%, #0a0a1a 100%)",
-          display: "flex",
-          flexDirection: "column",
-          padding: 2,
-          overflowY: "auto",
-        }}
-      >
+    <Box
+      sx={{
+        height: "100vh",
+        width: "100vw",
+        backgroundColor: "#000",
+        backgroundImage: "linear-gradient(135deg, #1a0033 0%, #0a0a1a 100%)",
+        display: "flex",
+        flexDirection: "column",
+        padding: 1.5,
+        overflow: "hidden",
+        boxSizing: "border-box",
+      }}
+    >
         {/* Header */}
         <Box
           sx={{
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            marginBottom: 2,
+            marginBottom: 1,
+            flexShrink: 0,
           }}
         >
           <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
@@ -72,7 +71,9 @@ export default function TVScreens() {
           sx={{
             display: "flex",
             flexDirection: "column",
-            gap: 2,
+            gap: 1.5,
+            flex: 1,
+            minHeight: 0,
           }}
         >
           {/* Current Player - Full Width */}
@@ -80,8 +81,9 @@ export default function TVScreens() {
             sx={{
               backgroundColor: "rgba(30, 15, 60, 0.8)",
               borderRadius: 3,
-              padding: 2.5,
+              padding: 2,
               border: "1px solid rgba(138, 43, 226, 0.4)",
+              flexShrink: 0,
             }}
           >
             <Typography
@@ -233,7 +235,7 @@ export default function TVScreens() {
           </Box>
 
           {/* Bottom Section - Next in Line & QR Code side by side */}
-          <Box sx={{ display: "flex", gap: 2.5 }}>
+          <Box sx={{ display: "flex", gap: 1.5, flex: 1, minHeight: 0 }}>
             {/* Next in Line */}
             <Box
               sx={{
@@ -348,6 +350,5 @@ export default function TVScreens() {
           </Box>
         </Box>
       </Box>
-    </Box>
   );
 }
