@@ -1,6 +1,5 @@
 import React from "react";
 import { Box, Typography, LinearProgress } from "@mui/material";
-import SidebarLayout from "../components/Sidebar";
 
 export default function SupremeBilliardTV() {
   const currentPlayer = {
@@ -20,20 +19,19 @@ export default function SupremeBilliardTV() {
   ];
 
   return (
-    <Box sx={{ display: "flex", height: "100vh", overflow: "hidden" }}>
-      <SidebarLayout />
-      <Box
-        sx={{
-          flex: 1,
-          height: "100vh",
-          backgroundColor: "#000",
-          backgroundImage: "linear-gradient(135deg, #1a0033 0%, #0a0a1a 100%)",
-          display: "flex",
-          flexDirection: "column",
-          padding: 2,
-          overflowY: "auto",
-        }}
-      >
+    <Box
+      sx={{
+        height: "100vh",
+        width: "100vw",
+        backgroundColor: "#000",
+        backgroundImage: "linear-gradient(135deg, #1a0033 0%, #0a0a1a 100%)",
+        display: "flex",
+        flexDirection: "column",
+        padding: 1.5,
+        overflow: "hidden",
+        boxSizing: "border-box",
+      }}
+    >
         {/* Header */}
         <Box
           sx={{
@@ -345,6 +343,5 @@ export default function SupremeBilliardTV() {
           </Box>
         </Box>
       </Box>
-    </Box>
   );
 }

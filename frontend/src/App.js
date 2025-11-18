@@ -1,4 +1,4 @@
-import { useContext } from "react";
+import { useContext, useEffect } from "react";
 import { Navigate, Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import Booking from "./pages/Booking";
 import NFCUsers from "./pages/NFCUsers";
@@ -47,10 +47,10 @@ function App() {
             
             {/* TV Screens Routes */}
             <Route path="/tv-screens" element={<TVScreenControl />} />
-            <Route path="/tv-screens/ps5-station" element={<PS5StationTVScreen />} />
-            <Route path="/tv-screens/racing-simulator" element={<RacingSimulatorTV />} />
-            <Route path="/tv-screens/supreme-billiard" element={<SupremeBilliardTV />} />
-            <Route path="/tv-screens/premium-billiard" element={<PremiumBilliardTV />} />
+            <Route path="/ps5-station" element={<PS5StationTVScreen />} />
+            <Route path="/racing-simulator" element={<RacingSimulatorTV />} />
+            <Route path="/supreme-billiard" element={<SupremeBilliardTV />} />
+            <Route path="/premium-billiard" element={<PremiumBilliardTV />} />
             <Route path="/tv-screens/offers" element={<TVOffers />} />
             <Route
               path="/settings"
