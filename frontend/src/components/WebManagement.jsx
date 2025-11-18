@@ -2,6 +2,7 @@ import { Box, Button, ToggleButton, ToggleButtonGroup, Typography } from '@mui/m
 import React, { useState } from 'react'
 import AddGameDialog from './AddGameDialog';
 import AddEventDialog from './AddEventDialog';
+import { BookingGames } from '../assets/assets';
 
 
 const categories = [
@@ -14,6 +15,7 @@ const WebManagement = () => {
   const [activeCategory, setActiveCategory] = useState('Booking Games');
   const [openAddGame, setOpenAddGame] = useState(false);
   const [openAddEvent, setOpenAddEvent] = useState(false);
+
   return (
     <div>
       <Box sx={{ p: 2, bgcolor: "1E1E1E", color: "#fff", minHeight: "100vh", overflowX: "hidden", ml: 0 }}>
@@ -74,7 +76,7 @@ const WebManagement = () => {
                   fontWeight: "600",
                   "&:hover": { background: "linear-gradient(to right, #0bbfe0, #732ed1)" },
                 }}
-               onClick={() => setOpenAddGame(true)}
+                onClick={() => setOpenAddGame(true)}
               >
                 + Add Games
               </Button>
@@ -99,17 +101,79 @@ const WebManagement = () => {
             )}
             {/* add fotm this to  */}
             <AddGameDialog
-            open={openAddGame}
-            onClose={()=>setOpenAddGame(false)}
+              open={openAddGame}
+              onClose={() => setOpenAddGame(false)}
             />
 
             <AddEventDialog
-            open={openAddEvent}
-            onClose={()=>setOpenAddEvent(false)}
+              open={openAddEvent}
+              onClose={() => setOpenAddEvent(false)}
             />
           </Box>
 
         </Box>
+
+        {/* Card sections */}
+        <div style={{ minHeight: "100vh", backgroundColor: '#0E111B', borderRadius: "10px", }}>
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+              gap: 2,
+              p: 2,
+              alignItems: "stretch",
+            }}
+          >
+            {/* Booking Games section */}
+            {BookingGames.map((item, index) => (
+              <Box
+                key={index}
+                sx={{
+                  borderRadius: "12px",
+                  overflow: "hidden",
+                  height: "100%",
+                }}
+              >
+                <Box sx={{
+                  backgroundColor: "#000000",
+                  borderRadius: "12px",
+                  display: "flex",
+                  flexDirection: "column",
+                  height: 400,
+                }}>
+                  {/* IMAGE */}
+                  <img
+                    src={item.image}
+                    alt={item.title}
+                    style={{
+                      width: "100%",
+                      height: "240px",
+                      objectFit: "cover",
+                    }}
+                  />
+
+                  {/* TEXT CONTENT */}
+                  <Box sx={{ p: 2, textAlign: "center", flexGrow: 1 }}>
+                    <h3 style={{ fontSize: "16px", fontWeight: "500", color: "white" }}>
+                      {item.title}
+                    </h3>
+                    <p style={{ fontSize: "14px", fontWeight: "400", marginTop: "8px", color: "#FFFFFF" }}>
+                      {item.desc}
+                    </p>
+                  </Box>
+                </Box>
+
+                {/* BUTTON */}
+                <Box sx={{ py: 2 }}>
+                  <button className="card-button">{item.button}</button>
+                </Box>
+              </Box>
+            ))}
+
+          </Box>
+        </div>
+
+
 
       </Box>
 

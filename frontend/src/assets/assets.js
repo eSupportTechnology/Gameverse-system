@@ -6,6 +6,10 @@
  * for development and testing purposes.
  */
 
+import poolTable from './pool_table.jpg'
+import PS5station from './ps5_station.jpg'
+import racingSimulator from './racing_simulators.jpg'
+
 // Simple booking data for quick reference and calendar views
 export const bookings = [
     { station: "PSS Station 1", time: "12:30", user: "Nithin K", status: "inprogress", date: "2025-10-03" },
@@ -635,4 +639,31 @@ export const appConstants = {
   bookingSlotDuration: 30, // minutes
   maxBookingDuration: 480 // 8 hours in minutes
 };
+
+
+/**
+ * WEB PORATAL DUMMY DATA
+ * ====================
+ */
+
+export const BookingGames = [
+  {
+    title: "PS5 Stations",
+    desc: "Latest PS5 games with 4K graphics and immersive gameplay on premium gaming setups",
+    image: PS5station,
+    button: "View Stations"
+  },
+  {
+    title: "Pool Tables",
+    desc: "Latest PS5 games with 4K graphics and immersive gameplay on premium gaming setups",
+    image: poolTable,
+    button: "View Tables"
+  },
+  {
+    title: "Racing Simulators",
+    desc: "Latest PS5 games with 4K graphics and immersive gameplay on premium gaming setups",
+    image: racingSimulator ,
+    button: "View Simulators"
+  }
+];
 
