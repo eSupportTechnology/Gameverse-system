@@ -10,6 +10,7 @@ import RacingSimulatorTV from "./pages/RacingSimulatorTV";
 import Station from "./pages/Station";
 import SupremeBilliardTV from "./pages/SupremeBilliardTV";
 import TVOffers from "./pages/TVOffers";
+import ValuableOffersScreen from "./pages/ValuableOffersScreen";
 import TVScreenControl from "./pages/TVScreenControl";
 import User from "./pages/Users";
 import { ToastContainer } from "react-toastify";
@@ -52,6 +53,7 @@ function App() {
             <Route path="/supreme-billiard" element={<SupremeBilliardTV />} />
             <Route path="/premium-billiard" element={<PremiumBilliardTV />} />
             <Route path="/tv-screens/offers" element={<TVOffers />} />
+            <Route path="/valuable-offers" element={<ValuableOffersScreen />} />
             <Route
               path="/settings"
               element={<div style={{ color: "#fff", marginTop: "80px", padding: "16px" }}>Settings (Coming soon)</div>}
