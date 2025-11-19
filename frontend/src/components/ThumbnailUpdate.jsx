@@ -1,7 +1,7 @@
 import React from "react";
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button } from "@mui/material";
 
-const ThumbnailUpdate = ({ open, onClose }) => {
+const ThumbnailUpdate = ({ open, onClose , message}) => {
   return (
     <div>
       <Dialog
@@ -38,7 +38,7 @@ const ThumbnailUpdate = ({ open, onClose }) => {
                 style={{ marginBottom: 8 }}
               />
               <br />
-              Thumbnail Added Successful !
+              {message}
             </DialogTitle>
       
             <DialogContent />

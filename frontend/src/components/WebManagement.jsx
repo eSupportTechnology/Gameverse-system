@@ -1,9 +1,10 @@
 import { Box, Button, ToggleButton, ToggleButtonGroup, Typography, Dialog, DialogTitle, DialogContent, DialogActions, IconButton, TextField, } from '@mui/material'
+import DeleteIcon from "@mui/icons-material/Delete";
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from "react-router-dom";
 import AddGameDialog from './AddGameDialog';
 import AddEventDialog from './AddEventDialog';
-import { BookingGames, OtherGames, Event } from '../assets/assets';
+import { BookingGames, OtherGames, Event, Gallery } from '../assets/assets';
 import AddGalleyDialog from './AddGalleyDialog';
 import EditIcon from '../assets/editicon.png';
 import CloseIcon from "@mui/icons-material/Close";
@@ -34,6 +35,7 @@ const WebManagement = () => {
   const [bookingGames, setBookingGames] = useState(BookingGames);
   const [games, setGames] = useState(OtherGames);
   const [event, setEvent] = useState(Event)
+  const [gallery, setGallery] = useState(Gallery)
   const [activeCategory, setActiveCategory] = useState('Booking Games');
 
   const [openAddGame, setOpenAddGame] = useState(false);
@@ -51,6 +53,11 @@ const WebManagement = () => {
   const [removeEvent, setRemoveEvent] = useState(false)
 
   const [openAddPhoto, setOpenAddPhoto] = useState(false)
+  const [photoRemoveMessage, setPhotoRemoveMessage] = useState("");
+  const [photoToRemove, setPhotoToRemove] = useState(null);
+  const [removePhoto, setRemovePhoto] = useState(false)
+
+
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [editStationCategory, setEditStationCategory] = useState(false)
   const [selectedImage, setSelectedImage] = useState(null);
@@ -161,6 +168,30 @@ const WebManagement = () => {
   };
 
 
+  // Gallery section
+  const handleAddPhoto = (newPhoto) => {
+    setGallery([...gallery, newPhoto]);
+    console.log("new photo aded");
+  };
+
+  const handleRemovePhoto = (index) => {
+    setPhotoToRemove(index);
+    setPhotoRemoveMessage('Are you want to remove this event?')
+    setRemovePhoto(true);
+  };
+
+  const removePhotoConfirm = async () => {
+    setGallery(gallery.filter((_, i) => i !== photoToRemove));
+    setRemovePhoto(false);
+    setPhotoToRemove(null);
+  }
+
+  const cancelRemovePhoto = () => {
+    setRemovePhoto(false);
+    setPhotoToRemove(null);
+  };
+
+
   useEffect(() => {
     if (selectedCategory?.image) {
       setSelectedImage(selectedCategory.image);
@@ -268,12 +299,6 @@ const WebManagement = () => {
                 + Add Photos
               </Button>
             )}
-            {/* add fotm this to  */}
-
-            <AddGalleyDialog
-              open={openAddPhoto}
-              onClose={() => setOpenAddPhoto(false)}
-            />
           </Box>
 
         </Box>
@@ -562,7 +587,7 @@ const WebManagement = () => {
             }
 
             {activeCategory === "Gallery" &&
-              Event.map((item, index) => (
+              gallery.map((item, index) => (
                 <Box
                   key={index}
                   sx={{
@@ -588,9 +613,10 @@ const WebManagement = () => {
                       cursor: "pointer",
                       zIndex: 10,
                     }}
-                    onClick={() => console.log("Edit clicked")}
+                    onClick={() => handleRemovePhoto(index)}
                   >
-                    <img src={EditIcon} alt="edit-icon" style={{ width: 16 }} />
+                    <DeleteIcon style={{ fontSize: 16, color: "white" }} />
+
                   </Box>
 
                   <Box sx={{
@@ -873,6 +899,21 @@ const WebManagement = () => {
         handleRemoveClose={cancelRemoveEvent}
         removeConfirm={removeEventConfirm}
         message={eventRemoveMessage}
+      />
+
+
+      {/* Add photo in Gallery section */}
+      <AddGalleyDialog
+        open={openAddPhoto}
+        onClose={() => setOpenAddPhoto(false)}
+        onSubmit={handleAddPhoto}
+      />
+
+      <RemovePopup
+        open={removePhoto}
+        handleRemoveClose={cancelRemovePhoto}
+        removeConfirm={removePhotoConfirm}
+        message={photoRemoveMessage}
       />
 
     </div>

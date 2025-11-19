@@ -21,6 +21,7 @@ const AddEventDialog = ({ open, onClose, onSubmit, initialData }) => {
   const [date, setDate] = useState("");
   const [thumbnail, setThumbnail] = useState(null);
 
+  const [successMessage, setSuccessMessage] = useState("")
   const [thumbUpdateSuccess, setThumbUpdateSuccess] = useState(false);
   const [openUpdateSuccess, setOpenUpdateSucess] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false)
@@ -43,6 +44,7 @@ const AddEventDialog = ({ open, onClose, onSubmit, initialData }) => {
     if (file) {
       setThumbnail(URL.createObjectURL(file));
     }
+    setSuccessMessage('Thumbnail Added Successful !')
     setThumbUpdateSuccess(true);
 
   };
@@ -206,7 +208,7 @@ const AddEventDialog = ({ open, onClose, onSubmit, initialData }) => {
         {/* ACTION BUTTONS */}
         <DialogActions sx={{ px: 3, pb: 2, mt: 1 }}>
           <Button
-            onClick={() => setCancelOpen(true)}
+            onClick={()=>setCancelOpen(true)}
             sx={{
               flex: 1,
               borderRadius: "8px",
@@ -249,6 +251,7 @@ const AddEventDialog = ({ open, onClose, onSubmit, initialData }) => {
       <ThumbnailUpdate
         open={thumbUpdateSuccess}
         onClose={() => setThumbUpdateSuccess(false)}
+        message = {successMessage}
       />
 
       {/* update Sucess */}
