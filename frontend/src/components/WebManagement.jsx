@@ -1,11 +1,16 @@
-import { Box, Button, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material'
-import React, { useState } from 'react'
+import { Box, Button, ToggleButton, ToggleButtonGroup, Typography, Dialog, DialogTitle, DialogContent, DialogActions, IconButton, TextField, } from '@mui/material'
+import React, { useEffect, useState } from 'react'
 import { useNavigate } from "react-router-dom";
 import AddGameDialog from './AddGameDialog';
 import AddEventDialog from './AddEventDialog';
 import { BookingGames, OtherGames, Event } from '../assets/assets';
 import AddGalleyDialog from './AddGalleyDialog';
 import EditIcon from '../assets/editicon.png';
+import CloseIcon from "@mui/icons-material/Close";
+import upload from '../assets/upload.png'
+import CancelPopup from './CancelPopup';
+import UpdateSuccessDialog from './UpdateSuccess';
+import ThumbnailUpdate from './ThumbnailUpdate';
 
 
 const categories = [
@@ -25,10 +30,62 @@ const routeMap = {
 const WebManagement = () => {
   const navigate = useNavigate();
 
+  const [bookingGames, setBookingGames] = useState(BookingGames);
   const [activeCategory, setActiveCategory] = useState('Booking Games');
   const [openAddGame, setOpenAddGame] = useState(false);
   const [openAddEvent, setOpenAddEvent] = useState(false);
   const [openAddPhoto, setOpenAddPhoto] = useState(false)
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [editStationCategory, setEditStationCategory] = useState(false)
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [cancelOpen, setCancelOpen] = useState(false);
+  const [openCategoryUpdate, setOpenCategoryUpdate] = useState(false)
+  const [thumbUpdateSuccess, setThumbUpdateSuccess] = useState(false);
+
+
+
+  const handleUpdate = () => {
+    const updatedList = bookingGames.map((game) =>
+      game.title === selectedCategory.titleBeforeEdit
+        ? selectedCategory
+        : game
+    );
+
+    setBookingGames(updatedList);
+    console.log(updatedList);
+
+    setEditStationCategory(false);
+    setOpenCategoryUpdate(true)
+  };
+
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setSelectedImage(reader.result);
+      setSelectedCategory({
+        ...selectedCategory,
+        image: reader.result
+      });
+      setThumbUpdateSuccess(true);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleConfirm = async () => {
+    setCancelOpen(false);
+    setEditStationCategory(false)
+  }
+
+
+  useEffect(() => {
+    if (selectedCategory?.image) {
+      setSelectedImage(selectedCategory.image);
+    }
+  }, [selectedCategory]);
+
 
   return (
     <div>
@@ -162,7 +219,7 @@ const WebManagement = () => {
           >
             {/* Booking Games section */}
             {activeCategory === "Booking Games" &&
-              BookingGames.map((item, index) => (
+              bookingGames.map((item, index) => (
                 <Box
                   key={index}
                   sx={{
@@ -181,14 +238,17 @@ const WebManagement = () => {
                       width: 36,
                       height: 36,
                       borderRadius: "50%",
-                      backgroundColor: "#C500FFCC",  
+                      backgroundColor: "#C500FFCC",
                       display: "flex",
                       justifyContent: "center",
                       alignItems: "center",
                       cursor: "pointer",
                       zIndex: 10,
                     }}
-                    onClick={() => console.log("Edit clicked")}
+                    onClick={() => {
+                      setSelectedCategory({ ...item, titleBeforeEdit: item.title });
+                      setEditStationCategory(true);
+                    }}
                   >
                     <img src={EditIcon} alt="edit-icon" style={{ width: 16 }} />
                   </Box>
@@ -206,15 +266,31 @@ const WebManagement = () => {
                   }}>
                     <Box sx={{ backgroundColor: "#000000", flexGrow: 1, display: "flex", flexDirection: "column", borderRadius: "12px" }}>
                       {/* IMAGE */}
-                      <img
-                        src={item.image}
-                        alt={item.title}
-                        style={{
-                          width: "100%",
-                          height: "240px",
-                          objectFit: "cover",
-                        }}
-                      />
+                      {item.image ? (
+                        <img
+                          src={item.image}
+                          alt={item.title}
+                          style={{
+                            width: "100%",
+                            height: "240px",
+                            objectFit: "cover",
+                          }}
+                        />
+                      ) : (
+                        <Box sx={{
+                          display:'flex',
+                          flexDirection:'column',
+                          alignItems:'center',
+                          justifyContent:'center',
+                          height:"240px",
+                          backgroundColor:'#0E111B'
+
+                        }}>
+                          <img src={upload} alt="upload" style={{ width: 30, height: 30, marginBottom: 6 }} />
+                          Upload thumbnail
+                        </Box>
+                      )}
+
 
                       {/* TEXT CONTENT */}
                       <Box sx={{ p: 2, textAlign: "center", flexGrow: 1 }}>
@@ -245,7 +321,7 @@ const WebManagement = () => {
                     borderRadius: "12px",
                     overflow: "hidden",
                     height: "100%",
-                    position:'relative'
+                    position: 'relative'
                   }}
                 >
                   {/* EDIT ICON BUTTON */}
@@ -257,7 +333,7 @@ const WebManagement = () => {
                       width: 30,
                       height: 30,
                       borderRadius: "50%",
-                      backgroundColor: "#C500FFCC",  
+                      backgroundColor: "#C500FFCC",
                       display: "flex",
                       justifyContent: "center",
                       alignItems: "center",
@@ -320,7 +396,7 @@ const WebManagement = () => {
                     borderRadius: "12px",
                     overflow: "hidden",
                     height: "100%",
-                    position:"relative"
+                    position: "relative"
                   }}
                 >
                   {/* EDIT ICON BUTTON */}
@@ -332,7 +408,7 @@ const WebManagement = () => {
                       width: 30,
                       height: 30,
                       borderRadius: "50%",
-                      backgroundColor: "#C500FFCC",  
+                      backgroundColor: "#C500FFCC",
                       display: "flex",
                       justifyContent: "center",
                       alignItems: "center",
@@ -401,7 +477,7 @@ const WebManagement = () => {
                     borderRadius: "12px",
                     overflow: "hidden",
                     height: "100%",
-                    position:'relative'
+                    position: 'relative'
                   }}
                 >
                   {/* EDIT ICON BUTTON */}
@@ -413,7 +489,7 @@ const WebManagement = () => {
                       width: 30,
                       height: 30,
                       borderRadius: "50%",
-                      backgroundColor: "#C500FFCC",  
+                      backgroundColor: "#C500FFCC",
                       display: "flex",
                       justifyContent: "center",
                       alignItems: "center",
@@ -452,14 +528,215 @@ const WebManagement = () => {
                 </Box>
               ))
             }
-
           </Box>
+
         </div>
-
-
-
       </Box>
 
+      {/* Edit Station Category */}
+      <Dialog
+        open={editStationCategory}
+        fullWidth
+        maxWidth="xs"
+        PaperProps={{
+          sx: {
+            backgroundColor: "#111827",
+            color: "white",
+            borderRadius: "12px",
+            border: "0.5px solid #374151",
+            p: 1,
+          },
+        }}
+      >
+
+        {/* FORM BODY */}
+        <DialogContent sx={{
+          /* Scrollbar styling */
+          "&::-webkit-scrollbar": {
+            width: "6px",
+          },
+          "&::-webkit-scrollbar-track": {
+            background: "transparent",
+          },
+          "&::-webkit-scrollbar-thumb": {
+            backgroundColor: "#4B5563",
+            borderRadius: "10px",
+          },
+
+        }}>
+          <Box sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            fontWeight: "700",
+            fontSize: "18px",
+            py: 0,
+          }}>
+            Edit Station Category Details
+            <IconButton onClick={() => setEditStationCategory(false)} sx={{ color: "#9CA3AF" }}>
+              <CloseIcon />
+            </IconButton>
+
+          </Box>
+
+          {/* Game Name */}
+          <p style={{ marginBottom: 6, fontSize: '14px', fontWeight: 500 }}>Category Name</p>
+          <TextField
+            fullWidth
+            placeholder="Enter Category Name"
+            variant="outlined"
+            value={selectedCategory?.title || ""}
+            onChange={(e) =>
+              setSelectedCategory({ ...selectedCategory, title: e.target.value })
+            }
+            InputProps={{
+              sx: {
+                backgroundColor: "#171C2D",
+                borderRadius: "8px",
+                color: "white",
+                border: "0.5px solid #374151",
+
+                "& .MuiInputBase-input": {
+                  padding: "12px 14px",
+                  fontSize: "14px",
+                },
+              },
+            }}
+          />
+
+
+          {/* Description */}
+          <p style={{ marginTop: 15, marginBottom: 6, fontSize: '14px', fontWeight: 500 }}>Description</p>
+          <TextField
+            fullWidth
+            multiline
+            rows={3}
+            placeholder="Enter Short Description"
+            variant="outlined"
+            value={selectedCategory?.desc || ""}
+            onChange={(e) =>
+              setSelectedCategory({ ...selectedCategory, desc: e.target.value })
+            }
+            InputProps={{
+              sx: {
+                backgroundColor: "#171C2D",
+                borderRadius: "8px",
+                color: "white",
+                border: "0.5px solid #374151",
+
+                "& .MuiInputBase-input": {
+                  fontSize: "14px",
+                },
+              },
+            }}
+          />
+
+          {/* Thumbnail Upload */}
+          <p style={{ marginTop: 15, marginBottom: 6, fontSize: '14px', fontWeight: 500 }}>Thumbnail</p>
+          <Box
+            sx={{
+              backgroundColor: "#171C2D",
+              borderRadius: "8px",
+              height: 190,
+              border: "0.5px solid #374151",
+              display: "flex",
+              flexDirection: 'column',
+              justifyContent: "center",
+              alignItems: "center",
+              color: "#aaa",
+              cursor: "pointer",
+            }}
+            onClick={() => document.getElementById("thumbnailUpload").click()}
+          >
+            <input
+              type="file"
+              accept="image/*"
+              style={{ display: "none" }}
+              id="thumbnailUpload"
+              onChange={(e) => handleImageUpload(e)}
+            />
+
+            {selectedImage ? (
+              <img
+                src={selectedImage}
+                alt="thumbnail preview"
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                  borderRadius: "8px"
+                }}
+              />
+            ) : (
+              <>
+                <img src={upload} alt="upload" style={{ width: 30, height: 30, marginBottom: 6 }} />
+                Upload thumbnail
+              </>
+            )}
+
+          </Box>
+        </DialogContent>
+
+        {/* ACTION BUTTONS */}
+        <DialogActions sx={{ px: 3, pb: 2, mt: 1 }}>
+          <Button
+            onClick={() => setCancelOpen(true)}
+            sx={{
+              flex: 1,
+              borderRadius: "8px",
+              backgroundColor: "#1A1D2A",
+              color: "white",
+              fontSize: '14px',
+              fontWeight: "bold",
+              textTransform: "none",
+              boxShadow: "0 2px 6px rgba(0,0,0,0.3)",
+              "&:hover": {
+                backgroundColor: "#3B4859",
+              },
+            }}
+          >
+            Cancel
+          </Button>
+
+          <Button
+            variant="contained"
+            onClick={handleUpdate}
+            sx={{
+              fontSize: '14px',
+              fontWeight: "bold",
+              flex: 1,
+              textTransform: "none",
+              borderRadius: "8px",
+              background: "linear-gradient(to right, #0CD7FF, #8A38F5)",
+              boxShadow: "0 2px 6px rgba(0,0,0,0.3)",
+              "&:hover": {
+                background: "linear-gradient(to right, #8A38F5, #0CD7FF)",
+              },
+            }}
+          >
+            Update
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* cancel popu */}
+      <CancelPopup
+        open={cancelOpen}
+        handleCancelClose={() => setCancelOpen(false)}
+        handleConfirm={handleConfirm}
+      />
+
+      {/* update sucessfull */}
+      <UpdateSuccessDialog
+        open={openCategoryUpdate}
+        onClose={() => setOpenCategoryUpdate(false)}
+      />
+
+      {/* update Thumbnail */}
+      <ThumbnailUpdate
+        open={thumbUpdateSuccess}
+        onClose={() => setThumbUpdateSuccess(false)}
+      />
     </div>
   )
 }
