@@ -33,15 +33,23 @@ const WebManagement = () => {
 
   const [bookingGames, setBookingGames] = useState(BookingGames);
   const [games, setGames] = useState(OtherGames);
+  const [event, setEvent] = useState(Event)
   const [activeCategory, setActiveCategory] = useState('Booking Games');
 
   const [openAddGame, setOpenAddGame] = useState(false);
   const [openEditGame, setOpenEditGame] = useState(false);
   const [editData, setEditData] = useState(null);
+  const [gameRemoveMessage, setGameRemoveMessage] = useState("");
   const [gameToRemove, setGameToRemove] = useState(null);
   const [removeGame, setRemoveGame] = useState(false)
 
   const [openAddEvent, setOpenAddEvent] = useState(false);
+  const [openEditEvent, setOpenEditEvent] = useState(false);
+  const [editEvent, setEditEvent] = useState(null);
+  const [eventRemoveMessage, setEventRemoveMessage] = useState("");
+  const [eventToRemove, setEventToRemove] = useState(null);
+  const [removeEvent, setRemoveEvent] = useState(false)
+
   const [openAddPhoto, setOpenAddPhoto] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [editStationCategory, setEditStationCategory] = useState(false)
@@ -105,6 +113,7 @@ const WebManagement = () => {
 
   const handleRemoveGame = (title) => {
     setGameToRemove(title);
+    setGameRemoveMessage("Are you want to remove this game?")
     setRemoveGame(true);
   };
 
@@ -115,10 +124,41 @@ const WebManagement = () => {
   }
 
   const cancelRemoveGame = () => {
-  setRemoveGame(false);
-  setGameToRemove(null);
-};
+    setRemoveGame(false);
+    setGameToRemove(null);
+  };
 
+  // Event and tournerment
+  const handleAddEvent = (newEvent) => {
+    setEvent([...event, newEvent]);
+    console.log(newEvent);
+
+  };
+
+  const handleUpdateEvent = (updatedEvent) => {
+    setEvent((prev) =>
+      prev.map((event) =>
+        event.title === editEvent.title ? updatedEvent : event
+      )
+    );
+  };
+
+  const handleRemoveEvent = (title) => {
+    setEventToRemove(title);
+    setEventRemoveMessage('Are you want to remove this event?')
+    setRemoveEvent(true);
+  };
+
+  const removeEventConfirm = async () => {
+    setEvent(event.filter((event) => event.title !== eventToRemove));
+    setRemoveEvent(false);
+    setEventToRemove(null);
+  }
+
+  const cancelRemoveEvent = () => {
+    setRemoveEvent(false);
+    setEventToRemove(null);
+  };
 
 
   useEffect(() => {
@@ -229,12 +269,6 @@ const WebManagement = () => {
               </Button>
             )}
             {/* add fotm this to  */}
-
-
-            <AddEventDialog
-              open={openAddEvent}
-              onClose={() => setOpenAddEvent(false)}
-            />
 
             <AddGalleyDialog
               open={openAddPhoto}
@@ -434,7 +468,7 @@ const WebManagement = () => {
             }
 
             {activeCategory === "Event & Tournaments" &&
-              Event.map((item, index) => (
+              event.map((item, index) => (
                 <Box
                   key={index}
                   sx={{
@@ -460,7 +494,10 @@ const WebManagement = () => {
                       cursor: "pointer",
                       zIndex: 10,
                     }}
-                    onClick={() => console.log("Edit clicked")}
+                    onClick={() => {
+                      setEditEvent(item);
+                      setOpenEditEvent(true);
+                    }}
                   >
                     <img src={EditIcon} alt="edit-icon" style={{ width: 16 }} />
                   </Box>
@@ -492,23 +529,33 @@ const WebManagement = () => {
                         <h3 style={{ fontSize: "16px", fontWeight: "500", color: "white" }}>
                           {item.title}
                         </h3>
-                        <p style={{
-                          fontSize: "14px",
-                          fontWeight: "400",
-                          marginTop: "8px",
-                          background: "linear-gradient(180deg, #CF36E1, #15A2EF)",
-                          WebkitBackgroundClip: "text",
-                          WebkitTextFillColor: "transparent",
-                        }}>
-                          {item.date}
+                        <p
+                          style={{
+                            fontSize: "14px",
+                            fontWeight: "400",
+                            marginTop: "8px",
+                            background: "linear-gradient(180deg, #CF36E1, #15A2EF)",
+                            WebkitBackgroundClip: "text",
+                            WebkitTextFillColor: "transparent",
+                          }}
+                        >
+                          {new Date(item.date).toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                          })}
                         </p>
+
                       </Box>
                     </Box>
                   </Box>
 
                   {/* BUTTON */}
                   <Box sx={{ py: 2 }}>
-                    <button className="card-button-red">Remove</button>
+                    <button
+                      className="card-button-red"
+                      onClick={() => handleRemoveEvent(item.title)}
+                    >Remove</button>
                   </Box>
                 </Box>
               ))
@@ -783,6 +830,7 @@ const WebManagement = () => {
         onClose={() => setThumbUpdateSuccess(false)}
       />
 
+
       {/* Add & update other game section */}
       <AddGameDialog
         open={openAddGame}
@@ -797,11 +845,34 @@ const WebManagement = () => {
         initialData={editData}
       />
 
-      {/* remove confirm */}
+      {/* remove Game confirm */}
       <RemovePopup
         open={removeGame}
         handleRemoveClose={cancelRemoveGame}
         removeConfirm={removeGameConfirm}
+        message={gameRemoveMessage}
+      />
+
+
+      {/* Add & update other Event section */}
+      <AddEventDialog
+        open={openAddEvent}
+        onClose={() => setOpenAddEvent(false)}
+        onSubmit={handleAddEvent}
+      />
+
+      <AddEventDialog
+        open={openEditEvent}
+        onClose={() => setOpenEditEvent(false)}
+        onSubmit={handleUpdateEvent}
+        initialData={editEvent}
+      />
+
+      <RemovePopup
+        open={removeEvent}
+        handleRemoveClose={cancelRemoveEvent}
+        removeConfirm={removeEventConfirm}
+        message={eventRemoveMessage}
       />
 
     </div>

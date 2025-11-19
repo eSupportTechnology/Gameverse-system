@@ -3,7 +3,7 @@ import { Button, Dialog, DialogActions, DialogContent, Typography, Box } from "@
 import cancelicon from '../assets/cancelicon.png'
 
 
-const RemovePopup = ({ open, handleRemoveClose, removeConfirm }) => {
+const RemovePopup = ({ open, handleRemoveClose,message, removeConfirm }) => {
   return (
     <div>
       <Dialog
@@ -35,7 +35,7 @@ const RemovePopup = ({ open, handleRemoveClose, removeConfirm }) => {
               fontWeight: 600,
             }}
           >
-            Are you want to remove this games?
+            {message}
           </Typography>
         </DialogContent>
 
