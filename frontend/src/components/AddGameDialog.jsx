@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -11,9 +11,62 @@ import {
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import upload from '../assets/upload.png'
+import ThumbnailUpdate from "./ThumbnailUpdate";
+import UpdateSuccessDialog from "./UpdateSuccess";
+import CancelPopup from "./CancelPopup";
+import RemovePopup from "./RemovePopup";
 
-const AddGameDialog = ({ open, onClose }) => {
+const AddGameDialog = ({ open, onClose, onSubmit, initialData }) => { 
+
+  const [title, setTitle] = useState("");
+  const [desc, setDesc] = useState("");
+  const [thumbnail, setThumbnail] = useState(null);
+
+  const [thumbUpdateSuccess, setThumbUpdateSuccess] = useState(false);
+   const [openUpdateSuccess, setOpenUpdateSucess] = useState(false);
+   const [cancelOpen, setCancelOpen] = useState(false)
+   
+
+  // Load initial data when editing
+  useEffect(() => {
+    if (initialData) {
+      setTitle(initialData.title);
+      setDesc(initialData.desc);
+      setThumbnail(initialData.image);
+    } else {
+      setTitle("");
+      setDesc("");
+      setThumbnail(null);
+    }
+  }, [initialData]);
+
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setThumbnail(URL.createObjectURL(file));
+    }
+    setThumbUpdateSuccess(true);
+    
+  };
+
+  const handleSubmit = () => {
+    onSubmit({
+      title,
+      desc,
+      image: thumbnail,
+    });
+    setOpenUpdateSucess(true)
+    onClose();
+    
+  };
+
+  const handleConfirm = async () => {
+    setCancelOpen(false);
+    onClose()
+  }
+
   return (
+    <>
     <Dialog
       open={open}
       onClose={onClose}
@@ -67,7 +120,7 @@ const AddGameDialog = ({ open, onClose }) => {
           fontSize: "18px",
           py: 0,
         }}>
-          Add Games
+         {initialData ? "Edit Game" : "Add Game"}
           <IconButton onClick={onClose} sx={{ color: "#9CA3AF" }}>
             <CloseIcon />
           </IconButton>
@@ -80,6 +133,8 @@ const AddGameDialog = ({ open, onClose }) => {
           fullWidth
           placeholder="Enter Game Name"
           variant="outlined"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
           InputProps={{
             sx: {
               backgroundColor: "#171C2D",
@@ -104,6 +159,8 @@ const AddGameDialog = ({ open, onClose }) => {
           rows={3}
           placeholder="Enter Short Description"
           variant="outlined"
+          value={desc}
+          onChange={(e) => setDesc(e.target.value)}
           InputProps={{
             sx: {
               backgroundColor: "#171C2D",
@@ -133,20 +190,40 @@ const AddGameDialog = ({ open, onClose }) => {
             color: "#aaa",
             cursor: "pointer",
           }}
+          onClick={() => document.getElementById("fileInput").click()}
         >
-          <img
-            src={upload}
-            alt="upload"
-            style={{ width: 30, height: 30, marginBottom: 6 }}
+          <input
+            type="file"
+            accept="image/*"
+            id="fileInput"
+            style={{ display: "none" }}
+            onChange={handleImageUpload}
           />
-          Upload thumbnail
+
+          {thumbnail ? (
+            <img
+              src={thumbnail}
+              alt="Thumbnail"
+              style={{
+                width: "100%",
+                height: "100%",
+                borderRadius: "8px",
+                objectFit: "cover",
+              }}
+            />
+          ) : (
+            <>
+              <img src={upload} style={{ width: 30, marginBottom: 6 }} />
+              Upload thumbnail
+            </>
+          )}
         </Box>
       </DialogContent>
 
       {/* ACTION BUTTONS */}
       <DialogActions sx={{ px: 3, pb: 2, mt: 1 }}>
         <Button
-          onClick={onClose}
+          onClick={()=>setCancelOpen(true)}
           sx={{
             flex: 1,
             borderRadius: "8px",
@@ -165,6 +242,7 @@ const AddGameDialog = ({ open, onClose }) => {
         </Button>
 
         <Button
+         onClick={handleSubmit}
           variant="contained"
           sx={{
             fontSize: '14px',
@@ -179,10 +257,32 @@ const AddGameDialog = ({ open, onClose }) => {
             },
           }}
         >
-          Add
+          {initialData ? "Update" : "Add"}
         </Button>
       </DialogActions>
     </Dialog>
+
+      {/* Thumbnail update success */}
+      <ThumbnailUpdate
+      open={thumbUpdateSuccess}
+      onClose={()=>setThumbUpdateSuccess(false)}
+      />
+
+      {/* update success */}
+      <UpdateSuccessDialog
+       open={openUpdateSuccess}
+      onClose={()=>setOpenUpdateSucess(false)}
+      />
+
+      {/* cancel dialog */}
+      <CancelPopup
+      open={cancelOpen}
+        handleCancelClose={() => setCancelOpen(false)}
+        handleConfirm={handleConfirm}
+      />
+
+
+    </>
   );
 };
 

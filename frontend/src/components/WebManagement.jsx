@@ -11,6 +11,7 @@ import upload from '../assets/upload.png'
 import CancelPopup from './CancelPopup';
 import UpdateSuccessDialog from './UpdateSuccess';
 import ThumbnailUpdate from './ThumbnailUpdate';
+import RemovePopup from './RemovePopup';
 
 
 const categories = [
@@ -31,8 +32,15 @@ const WebManagement = () => {
   const navigate = useNavigate();
 
   const [bookingGames, setBookingGames] = useState(BookingGames);
+  const [games, setGames] = useState(OtherGames);
   const [activeCategory, setActiveCategory] = useState('Booking Games');
+
   const [openAddGame, setOpenAddGame] = useState(false);
+  const [openEditGame, setOpenEditGame] = useState(false);
+  const [editData, setEditData] = useState(null);
+  const [gameToRemove, setGameToRemove] = useState(null);
+  const [removeGame, setRemoveGame] = useState(false)
+
   const [openAddEvent, setOpenAddEvent] = useState(false);
   const [openAddPhoto, setOpenAddPhoto] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -41,6 +49,7 @@ const WebManagement = () => {
   const [cancelOpen, setCancelOpen] = useState(false);
   const [openCategoryUpdate, setOpenCategoryUpdate] = useState(false)
   const [thumbUpdateSuccess, setThumbUpdateSuccess] = useState(false);
+
 
 
 
@@ -78,6 +87,38 @@ const WebManagement = () => {
     setCancelOpen(false);
     setEditStationCategory(false)
   }
+
+  // other game section
+  const handleAddGame = (newGame) => {
+    setGames([...games, newGame]);
+    console.log(newGame);
+
+  };
+
+  const handleUpdateGame = (updatedGame) => {
+    setGames((prev) =>
+      prev.map((g) =>
+        g.title === editData.title ? updatedGame : g
+      )
+    );
+  };
+
+  const handleRemoveGame = (title) => {
+    setGameToRemove(title);
+    setRemoveGame(true);
+  };
+
+  const removeGameConfirm = async () => {
+    setGames(games.filter((game) => game.title !== gameToRemove));
+    setRemoveGame(false);
+    setGameToRemove(null);
+  }
+
+  const cancelRemoveGame = () => {
+  setRemoveGame(false);
+  setGameToRemove(null);
+};
+
 
 
   useEffect(() => {
@@ -188,10 +229,7 @@ const WebManagement = () => {
               </Button>
             )}
             {/* add fotm this to  */}
-            <AddGameDialog
-              open={openAddGame}
-              onClose={() => setOpenAddGame(false)}
-            />
+
 
             <AddEventDialog
               open={openAddEvent}
@@ -278,12 +316,12 @@ const WebManagement = () => {
                         />
                       ) : (
                         <Box sx={{
-                          display:'flex',
-                          flexDirection:'column',
-                          alignItems:'center',
-                          justifyContent:'center',
-                          height:"240px",
-                          backgroundColor:'#0E111B'
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          height: "240px",
+                          backgroundColor: '#0E111B'
 
                         }}>
                           <img src={upload} alt="upload" style={{ width: 30, height: 30, marginBottom: 6 }} />
@@ -314,7 +352,7 @@ const WebManagement = () => {
 
 
             {activeCategory === "Other Games" &&
-              OtherGames.map((item, index) => (
+              games.map((item, index) => (
                 <Box
                   key={index}
                   sx={{
@@ -340,7 +378,11 @@ const WebManagement = () => {
                       cursor: "pointer",
                       zIndex: 10,
                     }}
-                    onClick={() => console.log("Edit clicked")}
+                    onClick={() => {
+                      setEditData(item);
+                      setOpenEditGame(true);
+                    }}
+
                   >
                     <img src={EditIcon} alt="edit-icon" style={{ width: 16 }} />
                   </Box>
@@ -382,7 +424,10 @@ const WebManagement = () => {
 
                   {/* BUTTON */}
                   <Box sx={{ py: 2 }}>
-                    <button className="card-button-red">Remove</button>
+                    <button
+                      className="card-button-red"
+                      onClick={() => handleRemoveGame(item.title)}
+                    >Remove</button>
                   </Box>
                 </Box>
               ))
@@ -737,6 +782,28 @@ const WebManagement = () => {
         open={thumbUpdateSuccess}
         onClose={() => setThumbUpdateSuccess(false)}
       />
+
+      {/* Add & update other game section */}
+      <AddGameDialog
+        open={openAddGame}
+        onClose={() => setOpenAddGame(false)}
+        onSubmit={handleAddGame}
+      />
+
+      <AddGameDialog
+        open={openEditGame}
+        onClose={() => setOpenEditGame(false)}
+        onSubmit={handleUpdateGame}
+        initialData={editData}
+      />
+
+      {/* remove confirm */}
+      <RemovePopup
+        open={removeGame}
+        handleRemoveClose={cancelRemoveGame}
+        removeConfirm={removeGameConfirm}
+      />
+
     </div>
   )
 }
