@@ -45,7 +45,20 @@ const AddGameDialog = ({ open, onClose }) => {
       </DialogTitle> */}
 
       {/* FORM BODY */}
-      <DialogContent sx={{}}>
+      <DialogContent sx={{
+        /* Scrollbar styling */
+        "&::-webkit-scrollbar": {
+          width: "6px",
+        },
+        "&::-webkit-scrollbar-track": {
+          background: "transparent",
+        },
+        "&::-webkit-scrollbar-thumb": {
+          backgroundColor: "#4B5563",
+          borderRadius: "10px",
+        },
+
+      }}>
         <Box sx={{
           display: "flex",
           justifyContent: "space-between",
@@ -139,12 +152,12 @@ const AddGameDialog = ({ open, onClose }) => {
             borderRadius: "8px",
             backgroundColor: "#1A1D2A",
             color: "white",
-            fontSize:'14px',
-            fontWeight:"bold",
+            fontSize: '14px',
+            fontWeight: "bold",
             textTransform: "none",
             boxShadow: "0 2px 6px rgba(0,0,0,0.3)",
             "&:hover": {
-              backgroundColor: "#3B4859", 
+              backgroundColor: "#3B4859",
             },
           }}
         >
@@ -154,15 +167,15 @@ const AddGameDialog = ({ open, onClose }) => {
         <Button
           variant="contained"
           sx={{
-            fontSize:'14px',
-            fontWeight:"bold",
+            fontSize: '14px',
+            fontWeight: "bold",
             flex: 1,
             textTransform: "none",
             borderRadius: "8px",
             background: "linear-gradient(to right, #0CD7FF, #8A38F5)",
             boxShadow: "0 2px 6px rgba(0,0,0,0.3)",
             "&:hover": {
-              background: "linear-gradient(to right, #8A38F5, #0CD7FF)", 
+              background: "linear-gradient(to right, #8A38F5, #0CD7FF)",
             },
           }}
         >

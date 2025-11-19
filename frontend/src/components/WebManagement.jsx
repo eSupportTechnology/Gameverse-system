@@ -5,6 +5,7 @@ import AddGameDialog from './AddGameDialog';
 import AddEventDialog from './AddEventDialog';
 import { BookingGames, OtherGames, Event } from '../assets/assets';
 import AddGalleyDialog from './AddGalleyDialog';
+import EditIcon from '../assets/editicon.png';
 
 
 const categories = [
@@ -168,8 +169,30 @@ const WebManagement = () => {
                     borderRadius: "12px",
                     overflow: "hidden",
                     height: "100%",
+                    position: "relative",
                   }}
                 >
+                  {/* EDIT ICON BUTTON */}
+                  <Box
+                    sx={{
+                      position: "absolute",
+                      top: 10,
+                      right: 10,
+                      width: 36,
+                      height: 36,
+                      borderRadius: "50%",
+                      backgroundColor: "#C500FFCC",  
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      cursor: "pointer",
+                      zIndex: 10,
+                    }}
+                    onClick={() => console.log("Edit clicked")}
+                  >
+                    <img src={EditIcon} alt="edit-icon" style={{ width: 16 }} />
+                  </Box>
+
                   <Box sx={{
                     backgroundColor: "#000000",
                     borderRadius: "12px",
@@ -207,7 +230,7 @@ const WebManagement = () => {
 
                   {/* BUTTON */}
                   <Box sx={{ py: 2 }}>
-                    <button  onClick={() => navigate(routeMap[item.title])}  className="card-button">{item.button}</button>
+                    <button onClick={() => navigate(routeMap[item.title])} className="card-button">{item.button}</button>
                   </Box>
                 </Box>
               ))
@@ -222,8 +245,30 @@ const WebManagement = () => {
                     borderRadius: "12px",
                     overflow: "hidden",
                     height: "100%",
+                    position:'relative'
                   }}
                 >
+                  {/* EDIT ICON BUTTON */}
+                  <Box
+                    sx={{
+                      position: "absolute",
+                      top: 10,
+                      right: 10,
+                      width: 30,
+                      height: 30,
+                      borderRadius: "50%",
+                      backgroundColor: "#C500FFCC",  
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      cursor: "pointer",
+                      zIndex: 10,
+                    }}
+                    onClick={() => console.log("Edit clicked")}
+                  >
+                    <img src={EditIcon} alt="edit-icon" style={{ width: 16 }} />
+                  </Box>
+
                   <Box sx={{
                     borderRadius: "12px",
                     display: "flex",
@@ -275,8 +320,30 @@ const WebManagement = () => {
                     borderRadius: "12px",
                     overflow: "hidden",
                     height: "100%",
+                    position:"relative"
                   }}
                 >
+                  {/* EDIT ICON BUTTON */}
+                  <Box
+                    sx={{
+                      position: "absolute",
+                      top: 10,
+                      right: 10,
+                      width: 30,
+                      height: 30,
+                      borderRadius: "50%",
+                      backgroundColor: "#C500FFCC",  
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      cursor: "pointer",
+                      zIndex: 10,
+                    }}
+                    onClick={() => console.log("Edit clicked")}
+                  >
+                    <img src={EditIcon} alt="edit-icon" style={{ width: 16 }} />
+                  </Box>
+
                   <Box sx={{
                     borderRadius: "12px",
                     display: "flex",
@@ -334,8 +401,30 @@ const WebManagement = () => {
                     borderRadius: "12px",
                     overflow: "hidden",
                     height: "100%",
+                    position:'relative'
                   }}
                 >
+                  {/* EDIT ICON BUTTON */}
+                  <Box
+                    sx={{
+                      position: "absolute",
+                      top: 10,
+                      right: 10,
+                      width: 30,
+                      height: 30,
+                      borderRadius: "50%",
+                      backgroundColor: "#C500FFCC",  
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      cursor: "pointer",
+                      zIndex: 10,
+                    }}
+                    onClick={() => console.log("Edit clicked")}
+                  >
+                    <img src={EditIcon} alt="edit-icon" style={{ width: 16 }} />
+                  </Box>
+
                   <Box sx={{
                     borderRadius: "12px",
                     display: "flex",

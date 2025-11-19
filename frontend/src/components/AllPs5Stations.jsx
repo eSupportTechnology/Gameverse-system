@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { AllStations } from '../assets/assets';
 import CloseIcon from "@mui/icons-material/Close";
 import upload from '../assets/upload.png'
+import EditIcon from '../assets/editicon.png';
 
 const AllPs5Stations = () => {
   const navigate = useNavigate();
@@ -109,8 +110,30 @@ const AllPs5Stations = () => {
                   borderRadius: "12px",
                   overflow: "hidden",
                   height: "100%",
+                  position:'relative'
                 }}
               >
+                {/* EDIT ICON BUTTON */}
+                  <Box
+                    sx={{
+                      position: "absolute",
+                      top: 10,
+                      right: 10,
+                      width: 30,
+                      height: 30,
+                      borderRadius: "50%",
+                      backgroundColor: "#C500FFCC",  
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      cursor: "pointer",
+                      zIndex: 10,
+                    }}
+                    onClick={() => console.log("Edit clicked")}
+                  >
+                    <img src={EditIcon} alt="edit-icon" style={{ width: 16 }} />
+                  </Box>
+
                 <Box sx={{
                   borderRadius: "12px",
                   display: "flex",
