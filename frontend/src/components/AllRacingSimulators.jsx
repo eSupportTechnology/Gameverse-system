@@ -1,11 +1,14 @@
-import { Box, Button, Typography } from '@mui/material'
+import { Box, Button, Typography, Dialog, DialogContent, DialogTitle, IconButton, TextField, MenuItem, } from '@mui/material'
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import React from 'react'
+import React, { useState } from 'react'
 import { useNavigate } from "react-router-dom";
 import { AllRacing } from '../assets/assets';
+import CloseIcon from "@mui/icons-material/Close";
+import upload from '../assets/upload.png'
 
 const AllRacingSimulators = () => {
   const navigate = useNavigate();
+  const [openAddRacing, setOpenAddRacing] = useState(false);
   return (
     <div>
       <Box sx={{ p: 2, bgcolor: "1E1E1E", color: "#fff", minHeight: "100vh", overflowX: "hidden", ml: 0 }}>
@@ -70,16 +73,10 @@ const AllRacingSimulators = () => {
                 fontWeight: "600",
                 "&:hover": { background: "linear-gradient(to right, #0bbfe0, #732ed1)" },
               }}
-            // onClick={() => setOpenAddGame(true)}
+              onClick={() => setOpenAddRacing(true)}
             >
               + Add Racing Simulators
             </Button>
-
-            {/* <AddGameDialog
-                    open={openAddGame}
-                    onClose={() => setOpenAddGame(false)}
-                  /> */}
-
 
           </Box>
 
@@ -150,6 +147,258 @@ const AllRacingSimulators = () => {
 
           </Box>
         </div>
+
+        {/* ADD Pool Dialog */}
+        {/* Dialog */}
+        <Dialog
+          open={openAddRacing}
+          onClose={() => setOpenAddRacing(false)}
+          maxWidth="xs"
+          fullWidth
+          PaperProps={{
+            style: {
+              backgroundColor: "#111827",
+              color: "white",
+              borderRadius: "12px",
+              border: "0.5px solid #374151",
+            },
+          }}
+        >
+          <DialogTitle sx={{ color: "white", fontWeight: "bold", fontSize: '18px' }}>
+            Add Racing Simulator
+            <IconButton
+              onClick={() => setOpenAddRacing(false)}
+              sx={{ position: "absolute", right: 8, top: 8, color: "white" }}
+            >
+              <CloseIcon />
+            </IconButton>
+          </DialogTitle>
+
+          <DialogContent
+            sx={{
+              // maxHeight: "70vh",            
+              // overflowY: "auto",
+
+              /* Scrollbar styling */
+              "&::-webkit-scrollbar": {
+                width: "6px",
+              },
+              "&::-webkit-scrollbar-track": {
+                background: "transparent",
+              },
+              "&::-webkit-scrollbar-thumb": {
+                backgroundColor: "#4B5563",
+                borderRadius: "10px",
+              },
+            }}
+          >
+
+            {/* Station Name */}
+            <p style={{ marginBottom: 6, fontSize: '14px', fontWeight: 500 }}>Simulator Name</p>
+            <TextField
+              fullWidth
+              placeholder="Enter Simulator Name"
+              variant="outlined"
+              InputProps={{
+                sx: {
+                  backgroundColor: "#171C2D",
+                  borderRadius: "8px",
+                  color: "white",
+                  border: "0.5px solid #374151",
+
+                  "& .MuiInputBase-input": {
+                    padding: "12px 14px",
+                    fontSize: "14px",
+                  },
+                },
+              }}
+            />
+
+            {/* Description */}
+            <p style={{ marginTop: 15, marginBottom: 6, fontSize: '14px', fontWeight: 500 }}>Description</p>
+            <TextField
+              fullWidth
+              multiline
+              rows={3}
+              placeholder="Enter Short Description"
+              variant="outlined"
+              InputProps={{
+                sx: {
+                  backgroundColor: "#171C2D",
+                  borderRadius: "8px",
+                  color: "white",
+                  border: "0.5px solid #374151",
+
+                  "& .MuiInputBase-input": {
+                    fontSize: "14px",
+                  },
+                },
+              }}
+            />
+
+            {/* Pricing Normal */}
+            <Box sx={{ mt: 2 }}>
+              <p style={{ marginBottom: 1, fontSize: '14px', fontWeight: 500 }}>Pricing Details (Normal)</p>
+              <Box
+                sx={{
+                  display: "flex",
+                  gap: 2,
+                }}
+              >
+                {/* TIME */}
+                <Box sx={{ flex: 1 }}>
+                  <p style={{ marginBottom: 6, fontSize: 12, fontWeight: 200, color: "#9CA3AF" }}>
+                    Time
+                  </p>
+
+                  <TextField
+                    select
+                    fullWidth
+                    defaultValue="30 Min"
+                    sx={{
+                      "& .MuiOutlinedInput-root fieldset": { borderColor: "#374151" },
+                      "& .MuiSelect-select": { color: "#9CA3AF" },
+                      "& .MuiOutlinedInput-root": { height: 45 },   // align height
+                    }}
+                  >
+                    <MenuItem value="30 Min">30 Min</MenuItem>
+                    <MenuItem value="1 Hour">1 Hour</MenuItem>
+                  </TextField>
+                </Box>
+
+                {/* PRICE */}
+                <Box sx={{ flex: 1 }}>
+                  <p style={{ marginBottom: 6, fontSize: 12, fontWeight: 200, color: "#9CA3AF" }}>
+                    Price
+                  </p>
+
+                  <TextField
+                    fullWidth
+                    placeholder="LKR 000"
+                    sx={{
+                      input: { color: "white" },
+                      "& .MuiOutlinedInput-root fieldset": { borderColor: "#374151" },
+                      "& .MuiOutlinedInput-root": { height: 45 },
+                    }}
+                  />
+                </Box>
+              </Box>
+
+            </Box>
+
+            {/* Pricing VR */}
+            <Box sx={{ mt: 2 }}>
+              <p style={{ marginBottom: 1, fontSize: '14px', fontWeight: 500 }}>Pricing Details ( +VR )</p>
+              <Box
+                sx={{
+                  display: "flex",
+                  gap: 2,
+                }}
+              >
+                {/* TIME */}
+                <Box sx={{ flex: 1 }}>
+                  <p style={{ marginBottom: 6, fontSize: 12, fontWeight: 200, color: "#9CA3AF" }}>
+                    Time
+                  </p>
+
+                  <TextField
+                    select
+                    fullWidth
+                    defaultValue="30 Min"
+                    sx={{
+                      "& .MuiOutlinedInput-root fieldset": { borderColor: "#374151" },
+                      "& .MuiSelect-select": { color: "#9CA3AF" },
+                      "& .MuiOutlinedInput-root": { height: 45 },   // align height
+                    }}
+                  >
+                    <MenuItem value="30 Min">30 Min</MenuItem>
+                    <MenuItem value="1 Hour">1 Hour</MenuItem>
+                  </TextField>
+                </Box>
+
+                {/* PRICE */}
+                <Box sx={{ flex: 1 }}>
+                  <p style={{ marginBottom: 6, fontSize: 12, fontWeight: 200, color: "#9CA3AF" }}>
+                    Price
+                  </p>
+
+                  <TextField
+                    fullWidth
+                    placeholder="LKR 000"
+                    sx={{
+                      input: { color: "white" },
+                      "& .MuiOutlinedInput-root fieldset": { borderColor: "#374151" },
+                      "& .MuiOutlinedInput-root": { height: 45 },   // same height as select
+                    }}
+                  />
+                </Box>
+              </Box>
+
+            </Box>
+
+            {/* Thumbnail Upload */}
+            <p style={{ marginTop: 15, marginBottom: 6, fontSize: '14px', fontWeight: 500 }}>Thumbnail</p>
+            <Box
+              sx={{
+                backgroundColor: "#171C2D",
+                borderRadius: "8px",
+                height: 190,
+                border: "0.5px solid #374151",
+                display: "flex",
+                flexDirection: 'column',
+                justifyContent: "center",
+                alignItems: "center",
+                color: "#aaa",
+                cursor: "pointer",
+              }}
+            >
+              <img
+                src={upload}
+                alt="upload"
+                style={{ width: 30, height: 30, marginBottom: 6 }}
+              />
+              Upload thumbnail
+            </Box>
+
+            {/* Actions */}
+            <Box sx={{ display: "flex", justifyContent: "space-between", mt: 4, gap: 2 }}>
+              <Button onClick={() => setOpenAddRacing(false)}
+                sx={{
+                  flex: 1,
+                  borderRadius: "4px",
+                  backgroundColor: "#1A1D2A",
+                  color: "white",
+                  fontSize: '14px',
+                  fontWeight: "bold",
+                  textTransform: "none",
+                  boxShadow: "0 2px 6px rgba(0,0,0,0.3)",
+                  "&:hover": {
+                    backgroundColor: "#3B4859",
+                  },
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="contained"
+                sx={{
+                  fontSize: '14px',
+                  fontWeight: "bold",
+                  flex: 1,
+                  textTransform: "none",
+                  borderRadius: "4px",
+                  background: "linear-gradient(to right, #0CD7FF, #8A38F5)",
+                  boxShadow: "0 2px 6px rgba(0,0,0,0.3)",
+                  "&:hover": {
+                    background: "linear-gradient(to right, #8A38F5, #0CD7FF)",
+                  },
+                }}
+              >
+                Add
+              </Button>
+            </Box>
+          </DialogContent>
+        </Dialog>
 
       </Box>
 
