@@ -54,7 +54,7 @@ function App() {
             <Route path="/racing-simulator" element={<RacingSimulatorTV />} />
             <Route path="/supreme-billiard" element={<SupremeBilliardTV />} />
             <Route path="/premium-billiard" element={<PremiumBilliardTV />} />
-            <Route path="/tv-screens/offers" element={<TVOffers />} />
+            {/* <Route path="/tv-screens/offers" element={<TVOffers />} /> */}
             <Route path="/valuable-offers" element={<ValuableOffersScreen />} />
             <Route
               path="/settings"
