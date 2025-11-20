@@ -8,10 +8,121 @@ import { AllStations } from '../assets/assets';
 import CloseIcon from "@mui/icons-material/Close";
 import upload from '../assets/upload.png'
 import EditIcon from '../assets/editicon.png';
+import ThumbnailUpdate from './ThumbnailUpdate';
+import UpdateSuccessDialog from './UpdateSuccess';
+import CancelPopup from './CancelPopup';
+import RemovePopup from './RemovePopup';
+import backArrow from '../assets/back_arrow.png'
 
 const AllPs5Stations = () => {
   const navigate = useNavigate();
-  const [openAddStation, setOpenAddStation] = useState(false);
+  const [stations, setStations] = useState(AllStations);
+  const [openDialog, setOpenDialog] = useState(false);
+  const [dialogMode, setDialogMode] = useState("add"); // add | edit
+  const [editIndex, setEditIndex] = useState(null);
+
+  // form fields
+  const [stationName, setStationName] = useState("");
+  const [description, setDescription] = useState("");
+  const [priceNormal, setPriceNormal] = useState("");
+  const [timeNormal, setTimeNormal] = useState("");
+  const [priceVR, setPriceVR] = useState("");
+  const [timeVR, setTimeVR] = useState("");
+  const [thumbnail, setThumbnail] = useState(null);
+
+  const [openAddSuccess, setOpenAddSuccess] = useState(false)
+  const [addMessage, setAddMessage] = useState('')
+  const [openUpdateSuccess, setOpenUpdateSuccess] = useState(false)
+  const [cancelOpen, setCancelOpen] = useState(false)
+
+  const [removeMessage, setRemoveMessage] = useState("");
+  const [stationToRemove, setStationToRemove] = useState(null);
+  const [removeStation, setRemoveStation] = useState(false)
+
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setThumbnail(URL.createObjectURL(file));
+    }
+  };
+
+  // open ADD dialog
+  const handleAdd = () => {
+    setDialogMode("add");
+    setStationName("");
+    setDescription("");
+    setPriceNormal("");
+    setPriceVR("");
+    setTimeNormal("30 Min");
+    setTimeVR("30 Min");
+    setThumbnail("");
+    setOpenDialog(true);
+  };
+
+  // open EDIT dialog
+  const handleEdit = (item, index) => {
+    setDialogMode("edit");
+    setEditIndex(index);
+
+    setStationName(item.title);
+    setDescription(item.desc);
+    setPriceNormal(item.priceNormal);
+    setPriceVR(item.priceVR);
+    setTimeNormal(item.timeNormal);
+    setTimeVR(item.timeVR);
+    setThumbnail(item.image);
+
+    setOpenDialog(true);
+  };
+
+  // save station (Add or Update)
+  const handleSave = () => {
+    const newData = {
+      title: stationName,
+      desc: description,
+      priceNormal,
+      priceVR,
+      timeNormal,
+      timeVR,
+      image: thumbnail,
+    };
+
+    if (dialogMode === "add") {
+      setStations([...stations, newData]);
+      setAddMessage('Station Added Successful !')
+      setOpenAddSuccess(true)
+    } else {
+      const updated = [...stations];
+      updated[editIndex] = newData;
+      setStations(updated);
+      setOpenUpdateSuccess(true)
+    }
+
+    setOpenDialog(false);
+  };
+
+  const handleCancelConfirm = async () => {
+    setCancelOpen(false);
+    setOpenDialog(false)
+  }
+
+  // delete station
+  const handleRemove = (index) => {
+    setStationToRemove(index);
+    setRemoveMessage('Are you want to remove this event?')
+    setRemoveStation(true);
+  };
+
+  const removeConfirm = async () => {
+    setStations(stations.filter((_, i) => i !== stationToRemove));
+    setRemoveStation(false);
+    setStationToRemove(null);
+  }
+
+  const cancelRemove = () => {
+    setRemoveStation(false);
+    setStationToRemove(null);
+  };
 
   return (
     <div>
@@ -42,8 +153,8 @@ const AllPs5Stations = () => {
                 textTransform: "none",
                 "&:hover": { bgcolor: "#1F2937" },
               }}
-            >
-              <ArrowBackIcon sx={{ fontSize: 18 }} />
+            >          
+              <img src={backArrow} alt="back-icon" />
             </Button>
 
             {/* CATEGORY BUTTON */}
@@ -77,7 +188,7 @@ const AllPs5Stations = () => {
                 fontWeight: "600",
                 "&:hover": { background: "linear-gradient(to right, #0bbfe0, #732ed1)" },
               }}
-              onClick={() => setOpenAddStation(true)}
+              onClick={handleAdd}
             >
               + Add Stations
             </Button>
@@ -103,36 +214,36 @@ const AllPs5Stations = () => {
               alignItems: "stretch",
             }}
           >
-            {AllStations.map((item, index) => (
+            {stations.map((item, index) => (
               <Box
                 key={index}
                 sx={{
                   borderRadius: "12px",
                   overflow: "hidden",
                   height: "100%",
-                  position:'relative'
+                  position: 'relative'
                 }}
               >
                 {/* EDIT ICON BUTTON */}
-                  <Box
-                    sx={{
-                      position: "absolute",
-                      top: 10,
-                      right: 10,
-                      width: 30,
-                      height: 30,
-                      borderRadius: "50%",
-                      backgroundColor: "#C500FFCC",  
-                      display: "flex",
-                      justifyContent: "center",
-                      alignItems: "center",
-                      cursor: "pointer",
-                      zIndex: 10,
-                    }}
-                    onClick={() => console.log("Edit clicked")}
-                  >
-                    <img src={EditIcon} alt="edit-icon" style={{ width: 16 }} />
-                  </Box>
+                <Box
+                  sx={{
+                    position: "absolute",
+                    top: 10,
+                    right: 10,
+                    width: 30,
+                    height: 30,
+                    borderRadius: "50%",
+                    backgroundColor: "#C500FFCC",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    cursor: "pointer",
+                    zIndex: 10,
+                  }}
+                  onClick={() => handleEdit(item, index)}
+                >
+                  <img src={EditIcon} alt="edit-icon" style={{ width: 16 }} />
+                </Box>
 
                 <Box sx={{
                   borderRadius: "12px",
@@ -171,7 +282,10 @@ const AllPs5Stations = () => {
 
                 {/* BUTTON */}
                 <Box sx={{ py: 2 }}>
-                  <button className="card-button-red">Remove</button>
+                  <button
+                    className="card-button-red"
+                    onClick={() => handleRemove(index)}
+                  >Remove</button>
                 </Box>
               </Box>
             ))
@@ -184,8 +298,8 @@ const AllPs5Stations = () => {
       {/* ADD Station Dialog */}
       {/* Dialog */}
       <Dialog
-        open={openAddStation}
-        onClose={() => setOpenAddStation(false)}
+        open={openDialog}
+        onClose={() => setOpenDialog(false)}
         maxWidth="xs"
         fullWidth
         PaperProps={{
@@ -198,9 +312,9 @@ const AllPs5Stations = () => {
         }}
       >
         <DialogTitle sx={{ color: "white", fontWeight: "bold", fontSize: '18px' }}>
-          Add Station Details
+          {dialogMode === "add" ? "Add Station Details" : "Edit Station Details"}
           <IconButton
-            onClick={() => setOpenAddStation(false)}
+            onClick={() => setOpenDialog(false)}
             sx={{ position: "absolute", right: 8, top: 8, color: "white" }}
           >
             <CloseIcon />
@@ -232,6 +346,8 @@ const AllPs5Stations = () => {
             fullWidth
             placeholder="Enter Station Name"
             variant="outlined"
+            value={stationName}
+            onChange={(e) => setStationName(e.target.value)}
             InputProps={{
               sx: {
                 backgroundColor: "#171C2D",
@@ -255,6 +371,8 @@ const AllPs5Stations = () => {
             rows={3}
             placeholder="Enter Short Description"
             variant="outlined"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
             InputProps={{
               sx: {
                 backgroundColor: "#171C2D",
@@ -288,6 +406,8 @@ const AllPs5Stations = () => {
                   select
                   fullWidth
                   defaultValue="30 Min"
+                  value={timeNormal}
+                  onChange={(e) => setTimeNormal(e.target.value)}
                   sx={{
                     "& .MuiOutlinedInput-root fieldset": { borderColor: "#374151" },
                     "& .MuiSelect-select": { color: "#9CA3AF" },
@@ -308,6 +428,8 @@ const AllPs5Stations = () => {
                 <TextField
                   fullWidth
                   placeholder="LKR 000"
+                  value={priceNormal}
+                  onChange={(e) => setPriceNormal(e.target.value)}
                   sx={{
                     input: { color: "white" },
                     "& .MuiOutlinedInput-root fieldset": { borderColor: "#374151" },
@@ -338,6 +460,8 @@ const AllPs5Stations = () => {
                   select
                   fullWidth
                   defaultValue="30 Min"
+                  value={timeVR}
+                  onChange={(e) => setTimeVR(e.target.value)}
                   sx={{
                     "& .MuiOutlinedInput-root fieldset": { borderColor: "#374151" },
                     "& .MuiSelect-select": { color: "#9CA3AF" },
@@ -358,6 +482,8 @@ const AllPs5Stations = () => {
                 <TextField
                   fullWidth
                   placeholder="LKR 000"
+                  value={priceVR}
+                  onChange={(e) => setPriceVR(e.target.value)}
                   sx={{
                     input: { color: "white" },
                     "& .MuiOutlinedInput-root fieldset": { borderColor: "#374151" },
@@ -384,18 +510,38 @@ const AllPs5Stations = () => {
               color: "#aaa",
               cursor: "pointer",
             }}
+            onClick={() => document.getElementById("fileInput").click()}
           >
-            <img
-              src={upload}
-              alt="upload"
-              style={{ width: 30, height: 30, marginBottom: 6 }}
+            <input
+              type="file"
+              accept="image/*"
+              id="fileInput"
+              style={{ display: "none" }}
+              onChange={handleImageUpload}
             />
-            Upload thumbnail
+
+            {thumbnail ? (
+              <img
+                src={thumbnail}
+                alt="Thumbnail"
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  borderRadius: "8px",
+                  objectFit: "cover",
+                }}
+              />
+            ) : (
+              <>
+                <img src={upload} style={{ width: 30, marginBottom: 6 }} />
+                Upload thumbnail
+              </>
+            )}
           </Box>
 
           {/* Actions */}
           <Box sx={{ display: "flex", justifyContent: "space-between", mt: 4, gap: 2 }}>
-            <Button onClick={() => setOpenAddStation(false)}
+            <Button onClick={() => setCancelOpen(true)}
               sx={{
                 flex: 1,
                 borderRadius: "4px",
@@ -414,6 +560,7 @@ const AllPs5Stations = () => {
             </Button>
             <Button
               variant="contained"
+              onClick={handleSave}
               sx={{
                 fontSize: '14px',
                 fontWeight: "bold",
@@ -427,11 +574,38 @@ const AllPs5Stations = () => {
                 },
               }}
             >
-              Add
+              {dialogMode === "add" ? "Add" : "Update"}
             </Button>
           </Box>
         </DialogContent>
       </Dialog>
+
+      {/* station add success dialog */}
+      <ThumbnailUpdate
+        open={openAddSuccess}
+        onClose={() => setOpenAddSuccess(false)}
+        message={addMessage}
+      />
+
+      {/* update success dialog */}
+      <UpdateSuccessDialog
+        open={openUpdateSuccess}
+        onClose={() => setOpenUpdateSuccess(false)}
+      />
+
+      {/* cancel popup */}
+      <CancelPopup
+        open={cancelOpen}
+        handleCancelClose={() => setCancelOpen(false)}
+        handleConfirm={handleCancelConfirm}
+      />
+
+      <RemovePopup
+        open={removeStation}
+        handleRemoveClose={cancelRemove}
+        removeConfirm={removeConfirm}
+        message={removeMessage}
+      />
 
     </div>
   )
