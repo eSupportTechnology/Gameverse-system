@@ -201,7 +201,7 @@ const WebManagement = () => {
 
   return (
     <div>
-      <Box sx={{ p: 2, bgcolor: "1E1E1E", color: "#fff", minHeight: "100vh", overflowX: "hidden", ml: 0 }}>
+      <Box sx={{ p: 2, bgcolor: "1E1E1E", color: "#fff", minHeight: "100vh", overflow: "hidden", ml: 0 }}>
 
         {/* Header */}
         <Box sx={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', mb: 2 }}>
@@ -304,7 +304,19 @@ const WebManagement = () => {
         </Box>
 
         {/* Card sections */}
-        <div style={{ minHeight: "100vh", backgroundColor: '#0E111B', borderRadius: "10px", }}>
+        <Box sx={{
+          height: 510, backgroundColor: '#0E111B', borderRadius: "10px", overflowY: 'auto',
+          "&::-webkit-scrollbar": {
+            width: "8px",
+          },
+          "&::-webkit-scrollbar-track": {
+            background: "transparent",
+          },
+          "&::-webkit-scrollbar-thumb": {
+            backgroundColor: "#374151",
+            borderRadius: "10px",
+          },
+        }}>
           <Box
             sx={{
               display: "grid",
@@ -394,7 +406,7 @@ const WebManagement = () => {
                         <h3 style={{ fontSize: "16px", fontWeight: "500", color: "white" }}>
                           {item.title}
                         </h3>
-                        <p style={{ fontSize: "14px", fontWeight: "400", marginTop: "8px", color: "#FFFFFF" }}>
+                        <p style={{ fontSize: "14px", fontWeight: "300", marginTop: "8px", color: "#FFFFFF" }}>
                           {item.desc}
                         </p>
                       </Box>
@@ -402,8 +414,8 @@ const WebManagement = () => {
                   </Box>
 
                   {/* BUTTON */}
-                  <Box sx={{ py: 2 }}>
-                    <button onClick={() => navigate(routeMap[item.title])} className="card-button">{item.button}</button>
+                  <Box sx={{ py: 2, }}>
+                    <button style={{ fontWeight: 600 }} onClick={() => navigate(routeMap[item.title])} className="card-button">{item.button}</button>
                   </Box>
                 </Box>
               ))
@@ -474,7 +486,7 @@ const WebManagement = () => {
                         <h3 style={{ fontSize: "16px", fontWeight: "500", color: "white" }}>
                           {item.title}
                         </h3>
-                        <p style={{ fontSize: "14px", fontWeight: "400", marginTop: "8px", color: "#FFFFFF" }}>
+                        <p style={{ fontSize: "14px", fontWeight: "300", marginTop: "8px", color: "#FFFFFF" }}>
                           {item.desc}
                         </p>
                       </Box>
@@ -648,7 +660,7 @@ const WebManagement = () => {
             }
           </Box>
 
-        </div>
+        </Box>
       </Box>
 
       {/* Edit Station Category */}

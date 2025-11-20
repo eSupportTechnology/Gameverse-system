@@ -198,7 +198,19 @@ const AllRacingSimulators = () => {
         </Box>
 
         {/* Card sections */}
-        <div style={{ minHeight: "100vh", backgroundColor: '#0E111B', borderRadius: "10px", }}>
+        <Box sx={{
+          height: 510, backgroundColor: '#0E111B', borderRadius: "10px", overflowY: 'auto',
+          "&::-webkit-scrollbar": {
+            width: "8px",
+          },
+          "&::-webkit-scrollbar-track": {
+            background: "transparent",
+          },
+          "&::-webkit-scrollbar-thumb": {
+            backgroundColor: "#374151",
+            borderRadius: "10px",
+          },
+        }}>
           <Box
             sx={{
               display: "grid",
@@ -267,7 +279,7 @@ const AllRacingSimulators = () => {
                       <h3 style={{ fontSize: "16px", fontWeight: "500", color: "white" }}>
                         {item.title}
                       </h3>
-                      <p style={{ fontSize: "14px", fontWeight: "400", marginTop: "8px", color: "#FFFFFF" }}>
+                      <p style={{ fontSize: "14px", fontWeight: "300", marginTop: "8px", color: "#FFFFFF" }}>
                         {item.desc}
                       </p>
                     </Box>
@@ -285,7 +297,7 @@ const AllRacingSimulators = () => {
             }
 
           </Box>
-        </div>
+        </Box>
 
         {/* ADD Pool Dialog */}
         {/* Dialog */}

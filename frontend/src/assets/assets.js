@@ -706,7 +706,12 @@ export const OtherGames = [
     title: "Pool Gaming",
     desc: "Latest PS5 games with 4K graphics and immersive gameplay on premium gaming setups",
     image: poolGaming ,
-  }
+  },
+  {
+    title: "Arcade Machines",
+    desc: "Latest PS5 games with 4K graphics and immersive gameplay on premium gaming setups",
+    image: arcadeMachine,
+  },
 ];
 
 export const Event = [
