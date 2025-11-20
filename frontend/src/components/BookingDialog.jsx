@@ -202,7 +202,7 @@ const BookingDialog = ({ open, onClose, onEdit }) => {
         </Box>
 
         <DialogContent sx={{ p: 0 }}>
-          <Box sx={{ p: 3, pt: 0 }}>
+          <Box sx={{ p: 3, pt: 0,mt:1.5 }}>
             {/* Player Tabs - Fixed with corner online indicators */}
             <Box sx={{ display: "flex", gap: 1, mb: 3 }}>
               {mockPlayers.map((p, i) => (
@@ -213,10 +213,11 @@ const BookingDialog = ({ open, onClose, onEdit }) => {
                     flex: 1,
                     cursor: "pointer",
                     p: 1.2,
+                    border: "1px solid  #2c5d88dc",
                     textAlign: "center",
                     borderRadius: "8px",
                     bgcolor: activePlayer === i ? "#0097A7" : "#2A2D3E",
-                    border: "1px solid #3A3D4F",
+                    //border: "1px solid #3A3D4F",
                     transition: "0.2s ease",
                     position: "relative",
                     overflow: "visible", // This allows the dot to show outside

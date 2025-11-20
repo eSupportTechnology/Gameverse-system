@@ -239,7 +239,7 @@ const InProgressBookingDialog = ({ open, onClose, onEndSession }) => {
                 style: { 
                   textAlign: "center", 
                   fontWeight: 700,
-                  color: "#FFFFFF",
+                  color: "#070707ff",
                   padding: "12px 8px",
                   paddingTop: "20px",
                   fontSize: "16px",
@@ -254,7 +254,7 @@ const InProgressBookingDialog = ({ open, onClose, onEndSession }) => {
                   "& fieldset": { border: "none" },
                 },
                 "& .MuiInputBase-input": { 
-                  color: "#FFFFFF", 
+                  color: "#020202ff", 
                 },
               }}
             />
@@ -265,7 +265,7 @@ const InProgressBookingDialog = ({ open, onClose, onEndSession }) => {
                 left: "50%",
                 transform: "translateX(-50%)",
                 fontSize: "11px",
-                color: "#9CA3AF",
+                color: "#0b0b0bff",
                 pointerEvents: "none",
                 fontWeight: 500
               }}

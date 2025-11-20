@@ -14,8 +14,6 @@ import StarIcon from "@mui/icons-material/Star";
 import SportsEsportsIcon from "@mui/icons-material/SportsEsports";
 import CreditCardIcon from "@mui/icons-material/CreditCard";
 
-// Import the payment success popup
-
 
 import PaymentSuccessPopup from "../components/paymentsuccess";
 import successicon from "../assets/success.png";
@@ -89,7 +87,7 @@ const CompletedBookingDialog = ({ open, onClose, onCollectPayment }) => {
     {
       id: 4,
       name: "Player 04",
-      online: true,
+      online: false,
       booking: {
         id: "901234",
         customer_name: "Nimal Fernando",
@@ -138,7 +136,7 @@ const CompletedBookingDialog = ({ open, onClose, onCollectPayment }) => {
         fullWidth
         PaperProps={{
           sx: { 
-            bgcolor: "#111827", 
+            bgcolor: "##111827", 
             borderRadius: "12px", 
             color: "#fff",
             background: "linear-gradient(135deg, #0F172A 0%, #1E293B 100%)",
@@ -169,7 +167,7 @@ const CompletedBookingDialog = ({ open, onClose, onCollectPayment }) => {
 
         <DialogContent sx={{ py: 0, pb: 3, px: 3 }}>
           {/* Player Tabs - EXACT SAME as InProgressBookingDialog */}
-          <Box sx={{ display: "flex", gap: 1.5, mb: 3 }}>
+          <Box sx={{ display: "flex", gap: 1.5, mb: 3,mt:1.5 }}>
             {players.map((p, i) => (
               <Box
                 key={p.id}
@@ -177,6 +175,7 @@ const CompletedBookingDialog = ({ open, onClose, onCollectPayment }) => {
                 sx={{
                   flex: 1,
                   cursor: "pointer",
+                  border: "1px solid  #2c5d88dc",
                   py: 1.2,
                   borderRadius: "8px",
                   textAlign: "center",
@@ -220,7 +219,7 @@ const CompletedBookingDialog = ({ open, onClose, onCollectPayment }) => {
             alignItems: "flex-start",
             mb: 3,
             p: 2,
-            bgcolor: '#1F2937',
+            bgcolor: '#18212F',
             borderRadius: '8px',
             border: '1px solid #374151'
           }}>
@@ -273,7 +272,7 @@ const CompletedBookingDialog = ({ open, onClose, onCollectPayment }) => {
             {/* Session Details - Left Side */}
             <Box sx={{ 
               flex: 1,
-              bgcolor: "#1F2937", 
+              bgcolor: "#18212F", 
               p: 2, 
               borderRadius: "8px",
               border: "1px solid #374151"
@@ -294,7 +293,7 @@ const CompletedBookingDialog = ({ open, onClose, onCollectPayment }) => {
             {/* Payment Info - Right Side */}
             <Box sx={{ 
               flex: 1,
-              bgcolor: "#1F2937", 
+              bgcolor: "#18212F", 
               p: 2, 
               borderRadius: "8px",
               border: "1px solid #374151"

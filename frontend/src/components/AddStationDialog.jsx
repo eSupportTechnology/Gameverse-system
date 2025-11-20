@@ -9,9 +9,11 @@ import {
   MenuItem,
   Box,
   Typography,
+  IconButton,
   // Divider,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
+import RemoveIcon from "@mui/icons-material/Remove";
 import CancelPopup from "./CancelPopup";
 import axios from "axios";
 import { toast } from "react-toastify";
@@ -59,20 +61,43 @@ export default function AddStationDialog({
     }
   };
 
+  // Remove normal pricing
+  const handleRemoveNormalPricing = () => {
+    setFormData((prev) => ({ 
+      ...prev, 
+      time: "", 
+      price: "" 
+    }));
+  };
+
+  // Remove VR pricing
+  const handleRemoveVRPricing = () => {
+    setFormData((prev) => ({ 
+      ...prev, 
+      vrTime: "", 
+      vrPrice: "" 
+    }));
+  };
+
   const handleSubmit = async () => {
-    
     const timePattern = /^([0-1]?[0-9]|2[0-3]):([0-5][0-9])$/;
     
-    if (!timePattern.test(formData.time)) {
+    if (formData.time && !timePattern.test(formData.time)) {
       alert("Please enter valid time in HH:MM format (e.g., 00:30)");
       return;
     }
 
-    
-    const [hours, minutes] = formData.time.split(":").map(Number);
-    const totalMinutes = hours * 60 + minutes;
+    if (formData.vrTime && !timePattern.test(formData.vrTime)) {
+      alert("Please enter valid VR time in HH:MM format (e.g., 00:30)");
+      return;
+    }
 
-    
+    let totalMinutes = 0;
+    if (formData.time && timePattern.test(formData.time)) {
+      const [hours, minutes] = formData.time.split(":").map(Number);
+      totalMinutes = hours * 60 + minutes;
+    }
+
     let vrTotalMinutes = 0;
     if (formData.vrTime && timePattern.test(formData.vrTime)) {
       const [vrHours, vrMinutes] = formData.vrTime.split(":").map(Number);
@@ -81,17 +106,15 @@ export default function AddStationDialog({
 
     const payload = { 
       ...formData, 
-      time: totalMinutes,
+      time: formData.time ? totalMinutes : null,
       vrTime: formData.vrTime ? vrTotalMinutes : null,
       vrPrice: formData.vrPrice || null
     };
 
-    
     setPendingPayload({ payload, isEditing });
     setCreateSuccess(true);
   };
 
-  
   const handleSuccessOk = async () => {
     if (!pendingPayload) return;
 
@@ -194,22 +217,68 @@ export default function AddStationDialog({
             fullWidth
             displayEmpty
             sx={{
-              mb: 2,
-              py: 0,
               backgroundColor: "#1e293b4b",
               "& .MuiOutlinedInput-root": {
                 borderRadius: "10px",
-                backgroundColor: "#1e293b4b",
                 color: "white",
-                "& fieldset": { borderColor: "#809fcd4e" },
+                "& fieldset": { borderColor: "#334155" },
                 "&:hover fieldset": { borderColor: "#ffffff71" },
                 "& .MuiSelect-icon": { color: "#fff" },
               },
               "& .MuiSelect-select:empty": { color: "#94a3b8" },
             }}
+            SelectProps={{
+              displayEmpty: true,
+              MenuProps: {
+                PaperProps: {
+                  sx: {
+                    backgroundColor: "#1e293b",
+                    color: "white",
+                    maxHeight: 300,
+                    "& .MuiMenuItem-root": {
+                      backgroundColor: "#1e293b",
+                      borderBottom: "1px solid #334155",
+                      "&:hover": {
+                        backgroundColor: "#334155",
+                      },
+                      "&.Mui-selected": {
+                        backgroundColor: "#334155",
+                        "&:hover": {
+                          backgroundColor: "#475569",
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            }}
           >
+            <MenuItem value="" disabled>
+              <em style={{ color: "#94a3b8", fontStyle: "normal" }}>Select Station</em>
+            </MenuItem>
+            {/* PS5 Stations */}
             <MenuItem value="PS5 Station 1">PS5 Station 1</MenuItem>
             <MenuItem value="PS5 Station 2">PS5 Station 2</MenuItem>
+            <MenuItem value="PS5 Station 3">PS5 Station 3</MenuItem>
+            <MenuItem value="PS5 Station 4">PS5 Station 4</MenuItem>
+            <MenuItem value="PS5 Station 5">PS5 Station 5</MenuItem>
+            
+            {/* Racing Simulators */}
+            <MenuItem value="Racing Simulator 1">Racing Simulator 1</MenuItem>
+            <MenuItem value="Racing Simulator 2">Racing Simulator 2</MenuItem>
+            <MenuItem value="Racing Simulator 3">Racing Simulator 3</MenuItem>
+            <MenuItem value="Racing Simulator 4">Racing Simulator 4</MenuItem>
+            
+            {/* Supreme Billiards */}
+            <MenuItem value="Supreme Billiard 1">Supreme Billiard 1</MenuItem>
+            <MenuItem value="Supreme Billiard 2">Supreme Billiard 2</MenuItem>
+            
+            {/* Premium Billiards */}
+            <MenuItem value="Premium Billiard 1">Premium Billiard 1</MenuItem>
+            <MenuItem value="Premium Billiard 2">Premium Billiard 2</MenuItem>
+            <MenuItem value="Premium Billiard 3">Premium Billiard 3</MenuItem>
+            
+            {/* Additional options from original code */}
             <MenuItem value="PS5+VR">PS5+VR</MenuItem>
             <MenuItem value="8 Ball Pool (Supreme)">8 Ball Pool (Supreme)</MenuItem>
             <MenuItem value="8 Ball Pool (Premium)">8 Ball Pool (Premium)</MenuItem>
@@ -275,12 +344,31 @@ export default function AddStationDialog({
             }}
           />
 
-          {/* <Divider sx={{ borderColor: "#334155", mb: 3 }} /> */}
-
           {/* Pricing Details (Normal) */}
-          <Typography variant="subtitle2" sx={{ color: "#94a3b8", mb: 1 }}>
-            Pricing Details (Normal)
-          </Typography>
+          <Box sx={{ mb: 1 }}>
+  <Typography variant="subtitle2" sx={{ color: "#94a3b8" }}>
+    Pricing Details (Normal)
+  </Typography>
+</Box>
+
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
           
           <Box display="flex" gap={2} mb={3}>
             {/* Time */}
@@ -375,9 +463,26 @@ export default function AddStationDialog({
           </Box>
 
           {/* Pricing Details (+VR) */}
-          <Typography variant="subtitle2" sx={{ color: "#94a3b8", mb: 1 }}>
-            Pricing Details (+VR)
-          </Typography>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+            <Typography variant="subtitle2" sx={{ color: "#94a3b8" }}>
+              Pricing Details (+VR)
+            </Typography>
+            <IconButton
+              onClick={handleRemoveVRPricing}
+              sx={{
+
+                backgroundColor: "#374151",
+                borderRadius: "50%",
+                width: 32,
+                height: 32,
+                "&:hover": {
+                  backgroundColor: "#4B5563",
+                },
+              }}
+            >
+              <RemoveIcon sx={{ color: "#94a3b8", fontSize: 20 }} />
+            </IconButton>
+          </Box>
           
           <Box display="flex" gap={2}>
             {/* Time */}
