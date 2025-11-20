@@ -6,10 +6,116 @@ import { AllPool } from '../assets/assets';
 import CloseIcon from "@mui/icons-material/Close";
 import upload from '../assets/upload.png'
 import EditIcon from '../assets/editicon.png';
+import ThumbnailUpdate from './ThumbnailUpdate';
+import UpdateSuccessDialog from './UpdateSuccess';
+import CancelPopup from './CancelPopup';
+import RemovePopup from './RemovePopup';
+import backArrow from '../assets/back_arrow.png'
 
 const AllPoolTabels = () => {
   const navigate = useNavigate();
+  const [pools, setPools] = useState(AllPool);
   const [openAddPool, setOpenAddPool] = useState(false);
+  const [dialogMode, setDialogMode] = useState("add"); // add | edit
+  const [editIndex, setEditIndex] = useState(null);
+
+  // form fields
+  const [tableName, setTableName] = useState("");
+  const [description, setDescription] = useState("");
+  const [price, setPrice] = useState("");
+  const [time, setTime] = useState("");
+  const [thumbnail, setThumbnail] = useState(null);
+
+  const [openAddSuccess, setOpenAddSuccess] = useState(false)
+  const [addMessage, setAddMessage] = useState('')
+  const [openUpdateSuccess, setOpenUpdateSuccess] = useState(false)
+  const [cancelOpen, setCancelOpen] = useState(false)
+
+  const [removeMessage, setRemoveMessage] = useState("");
+  const [poolToRemove, setPoolToRemove] = useState(null);
+  const [removePool, setRemovePool] = useState(false)
+
+
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setThumbnail(URL.createObjectURL(file));
+    }
+  };
+
+  // open ADD dialog
+  const handleAdd = () => {
+    setDialogMode("add");
+    setTableName("");
+    setDescription("");
+    setPrice("");
+    setTime("30 Min");
+    setThumbnail("");
+    setOpenAddPool(true);
+  };
+
+  // open EDIT dialog
+  const handleEdit = (item, index) => {
+    setDialogMode("edit");
+    setEditIndex(index);
+
+    setTableName(item.title);
+    setDescription(item.desc);
+    setPrice(item.price);
+    setTime(item.time);
+    setThumbnail(item.image);
+
+    setOpenAddPool(true);
+  };
+
+
+  // save station (Add or Update)
+  const handleSave = () => {
+    const newData = {
+      title: tableName,
+      desc: description,
+      price,
+      time,
+      image: thumbnail,
+    };
+
+    if (dialogMode === "add") {
+      setPools([...pools, newData]);
+      setAddMessage('Pool Table Added Successful !')
+      setOpenAddSuccess(true)
+    } else {
+      const updated = [...pools];
+      updated[editIndex] = newData;
+      setPools(updated);
+      setOpenUpdateSuccess(true)
+    }
+
+    setOpenAddPool(false);
+  };
+
+  const handleCancelConfirm = async () => {
+    setCancelOpen(false);
+    setOpenAddPool(false)
+  }
+
+  // delete pool table
+  const handleRemove = (index) => {
+    setPoolToRemove(index);
+    setRemoveMessage('Are you want to remove this Table?')
+    setRemovePool(true);
+  };
+
+  const removeConfirm = async () => {
+    setPools(pools.filter((_, i) => i !== poolToRemove));
+    setRemovePool(false);
+    setPoolToRemove(null);
+  }
+
+  const cancelRemove = () => {
+    setRemovePool(false);
+    setPoolToRemove(null);
+  };
+
   return (
     <div>
       <Box sx={{ p: 2, bgcolor: "1E1E1E", color: "#fff", minHeight: "100vh", overflowX: "hidden", ml: 0 }}>
@@ -40,7 +146,7 @@ const AllPoolTabels = () => {
                 "&:hover": { bgcolor: "#1F2937" },
               }}
             >
-              <ArrowBackIcon sx={{ fontSize: 18 }} />
+              <img src={backArrow} alt="back-icon" />
             </Button>
 
             {/* CATEGORY BUTTON */}
@@ -74,7 +180,7 @@ const AllPoolTabels = () => {
                 fontWeight: "600",
                 "&:hover": { background: "linear-gradient(to right, #0bbfe0, #732ed1)" },
               }}
-              onClick={() => setOpenAddPool(true)}
+              onClick={handleAdd}
             >
               + Add Pool Table
             </Button>
@@ -93,36 +199,36 @@ const AllPoolTabels = () => {
               alignItems: "stretch",
             }}
           >
-            {AllPool.map((item, index) => (
+            {pools.map((item, index) => (
               <Box
                 key={index}
                 sx={{
                   borderRadius: "12px",
                   overflow: "hidden",
                   height: "100%",
-                  position:"relative"
+                  position: "relative"
                 }}
               >
                 {/* EDIT ICON BUTTON */}
-                  <Box
-                    sx={{
-                      position: "absolute",
-                      top: 10,
-                      right: 10,
-                      width: 30,
-                      height: 30,
-                      borderRadius: "50%",
-                      backgroundColor: "#C500FFCC",  
-                      display: "flex",
-                      justifyContent: "center",
-                      alignItems: "center",
-                      cursor: "pointer",
-                      zIndex: 10,
-                    }}
-                    onClick={() => console.log("Edit clicked")}
-                  >
-                    <img src={EditIcon} alt="edit-icon" style={{ width: 16 }} />
-                  </Box>
+                <Box
+                  sx={{
+                    position: "absolute",
+                    top: 10,
+                    right: 10,
+                    width: 30,
+                    height: 30,
+                    borderRadius: "50%",
+                    backgroundColor: "#C500FFCC",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    cursor: "pointer",
+                    zIndex: 10,
+                  }}
+                  onClick={() => handleEdit(item, index)}
+                >
+                  <img src={EditIcon} alt="edit-icon" style={{ width: 16 }} />
+                </Box>
 
                 <Box sx={{
                   borderRadius: "12px",
@@ -161,7 +267,9 @@ const AllPoolTabels = () => {
 
                 {/* BUTTON */}
                 <Box sx={{ py: 2 }}>
-                  <button className="card-button-red">Remove</button>
+                  <button className="card-button-red"
+                    onClick={() => handleRemove(index)}
+                  >Remove</button>
                 </Box>
               </Box>
             ))
@@ -188,7 +296,7 @@ const AllPoolTabels = () => {
           }}
         >
           <DialogTitle sx={{ color: "white", fontWeight: "bold", fontSize: '18px' }}>
-            Add Pool Table
+            {dialogMode === "add" ? "Add Pool Table Details" : "Edit Pool Table Details"}
             <IconButton
               onClick={() => setOpenAddPool(false)}
               sx={{ position: "absolute", right: 8, top: 8, color: "white" }}
@@ -222,6 +330,8 @@ const AllPoolTabels = () => {
               fullWidth
               placeholder="Enter Table Name"
               variant="outlined"
+              value={tableName}
+              onChange={(e) => setTableName(e.target.value)}
               InputProps={{
                 sx: {
                   backgroundColor: "#171C2D",
@@ -245,6 +355,8 @@ const AllPoolTabels = () => {
               rows={3}
               placeholder="Enter Short Description"
               variant="outlined"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
               InputProps={{
                 sx: {
                   backgroundColor: "#171C2D",
@@ -278,6 +390,8 @@ const AllPoolTabels = () => {
                     select
                     fullWidth
                     defaultValue="30 Min"
+                    value={time}
+                    onChange={(e) => setTime(e.target.value)}
                     sx={{
                       "& .MuiOutlinedInput-root fieldset": { borderColor: "#374151" },
                       "& .MuiSelect-select": { color: "#9CA3AF" },
@@ -298,10 +412,12 @@ const AllPoolTabels = () => {
                   <TextField
                     fullWidth
                     placeholder="LKR 000"
+                    value={price}
+                    onChange={(e) => setPrice(e.target.value)}
                     sx={{
                       input: { color: "white" },
                       "& .MuiOutlinedInput-root fieldset": { borderColor: "#374151" },
-                      "& .MuiOutlinedInput-root": { height: 45 }, 
+                      "& .MuiOutlinedInput-root": { height: 45 },
                     }}
                   />
                 </Box>
@@ -324,18 +440,38 @@ const AllPoolTabels = () => {
                 color: "#aaa",
                 cursor: "pointer",
               }}
+              onClick={() => document.getElementById("fileInput").click()}
             >
-              <img
-                src={upload}
-                alt="upload"
-                style={{ width: 30, height: 30, marginBottom: 6 }}
+              <input
+                type="file"
+                accept="image/*"
+                id="fileInput"
+                style={{ display: "none" }}
+                onChange={handleImageUpload}
               />
-              Upload thumbnail
+
+              {thumbnail ? (
+                <img
+                  src={thumbnail}
+                  alt="Thumbnail"
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    borderRadius: "8px",
+                    objectFit: "cover",
+                  }}
+                />
+              ) : (
+                <>
+                  <img src={upload} style={{ width: 30, marginBottom: 6 }} />
+                  Upload thumbnail
+                </>
+              )}
             </Box>
 
             {/* Actions */}
             <Box sx={{ display: "flex", justifyContent: "space-between", mt: 4, gap: 2 }}>
-              <Button onClick={() => setOpenAddPool(false)}
+              <Button onClick={() => setCancelOpen(true)}
                 sx={{
                   flex: 1,
                   borderRadius: "4px",
@@ -353,6 +489,7 @@ const AllPoolTabels = () => {
                 Cancel
               </Button>
               <Button
+                onClick={handleSave}
                 variant="contained"
                 sx={{
                   fontSize: '14px',
@@ -367,13 +504,40 @@ const AllPoolTabels = () => {
                   },
                 }}
               >
-                Add
+                {dialogMode === "add" ? "Add" : "Update"}
               </Button>
             </Box>
           </DialogContent>
         </Dialog>
 
       </Box>
+
+      {/* Table add success dialog */}
+      <ThumbnailUpdate
+        open={openAddSuccess}
+        onClose={() => setOpenAddSuccess(false)}
+        message={addMessage}
+      />
+
+      {/* update success dialog */}
+      <UpdateSuccessDialog
+        open={openUpdateSuccess}
+        onClose={() => setOpenUpdateSuccess(false)}
+      />
+
+      {/* cancel popup */}
+      <CancelPopup
+        open={cancelOpen}
+        handleCancelClose={() => setCancelOpen(false)}
+        handleConfirm={handleCancelConfirm}
+      />
+
+      <RemovePopup
+        open={removePool}
+        handleRemoveClose={cancelRemove}
+        removeConfirm={removeConfirm}
+        message={removeMessage}
+      />
     </div>
   )
 }
