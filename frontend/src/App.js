@@ -26,6 +26,7 @@ import { AdminContext } from "./context/AdminContext";
 import Login from "./pages/Login";
 import Reports from "./pages/Reports";
 import ResetPassword from "./pages/ResetPassword";
+import WebPortal from "./pages/WebPortal";
 
 function App() {
   const { aToken, oToken } = useContext(AdminContext);
@@ -45,6 +46,7 @@ function App() {
             <Route path="/users" element={<User />} />
             <Route path="/nfc-users" element={<NFCUsers />} />
             <Route path="/reports" element={<Reports />} />
+            <Route path="/web-portal/*" element={<WebPortal />} />
             
             {/* TV Screens Routes */}
             <Route path="/tv-screens" element={<TVScreenControl />} />

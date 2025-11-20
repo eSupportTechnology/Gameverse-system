@@ -6,6 +6,29 @@
  * for development and testing purposes.
  */
 
+import poolTable from './pool_table.jpg'
+import PS5station from './ps5_station.jpg'
+import racingSimulator from './racing_simulators.jpg'
+import poolGaming from './pool_gaming.jpg'
+import caromGaming from './carom_gaming.png'
+import archeryGaming from './archery_gaming.png'
+import arcadeMachine from './arcade_machine.png'
+import callOfDuty from './call_of_duty.jpg'
+import carGame from './car_game.png'
+import freeFire from './free_fire.png'
+import pubg from './pubg.png'
+import station2 from './station_2.jpg'
+import station3 from './station_3.jpg'
+import station4 from './station_4.jpg'
+import PremiumBilliard1 from './premium_billiard_1.jpg'
+import PremiumBilliard2 from './premium_billiard_2.jpg'
+import supermeBilliard1 from './superme_billiard_1.jpg'
+import supermeBilliard2 from './superme_billiard_2.jpg'
+import racing1 from './racing1.jpg'
+import racing2 from './racing2.jpg'
+import racing3 from './racing3.jpg'
+import racing4 from './racing4.png'
+
 // Simple booking data for quick reference and calendar views
 export const bookings = [
     { station: "PSS Station 1", time: "12:30", user: "Nithin K", status: "inprogress", date: "2025-10-03" },
@@ -635,4 +658,165 @@ export const appConstants = {
   bookingSlotDuration: 30, // minutes
   maxBookingDuration: 480 // 8 hours in minutes
 };
+
+
+/**
+ * WEB PORATAL DUMMY DATA
+ * ====================
+ */
+
+export const BookingGames = [
+  {
+    title: "PS5 Stations",
+    desc: "Latest PS5 games with 4K graphics and immersive gameplay on premium gaming setups",
+    image: PS5station,
+    button: "View Stations"
+  },
+  {
+    title: "Pool Tables",
+    desc: "Latest PS5 games with 4K graphics and immersive gameplay on premium gaming setups",
+    image: poolTable,
+    button: "View Tables"
+  },
+  {
+    title: "Racing Simulators",
+    desc: "Latest PS5 games with 4K graphics and immersive gameplay on premium gaming setups",
+    image: racingSimulator ,
+    button: "View Simulators"
+  }
+];
+
+export const OtherGames = [
+  {
+    title: "Arcade Machine",
+    desc: "Latest PS5 games with 4K graphics and immersive gameplay on premium gaming setups",
+    image: arcadeMachine,
+  },
+  {
+    title: "Archery Gaming",
+    desc: "Latest PS5 games with 4K graphics and immersive gameplay on premium gaming setups",
+    image: archeryGaming,
+  },
+  {
+    title: "Carrom Gaming",
+    desc: "Latest PS5 games with 4K graphics and immersive gameplay on premium gaming setups",
+    image: caromGaming ,
+  },
+  {
+    title: "Pool Gaming",
+    desc: "Latest PS5 games with 4K graphics and immersive gameplay on premium gaming setups",
+    image: poolGaming ,
+  }
+];
+
+export const Event = [
+  {
+    title: "Call of Duty Championship",
+    date: "AUG 25, 2025",
+    image: callOfDuty,
+  },
+  {
+    title: "PUBG Championship",
+    date: "AUG 30, 2025",
+    image: pubg,
+  },
+  {
+    title: "Car Game Championship",
+    date: "AUG 17, 2025",
+    image: carGame,
+  },
+  {
+    title: "Free Fire Championship",
+    date: "AUG 20, 2025",
+    image: freeFire,
+  },
+];
+
+export const Gallery = [
+  {
+    title: "Call of Duty Championship",
+    image: callOfDuty,
+  },
+  {
+    title: "PUBG Championship",
+    image: pubg,
+  },
+  {
+    title: "Car Game Championship",
+    image: carGame,
+  },
+  {
+    title: "Free Fire Championship",
+    image: freeFire,
+  },
+];
+
+export const AllStations = [
+  {
+    title: "PS5 Station 1",
+    desc: "Latest PS5 games with 4K graphics and immersive gameplay on premium gaming setups",
+    image: PS5station,
+  },
+  {
+    title: "PS5 Station 2",
+    desc: "Latest PS5 games with 4K graphics and immersive gameplay on premium gaming setups",
+    image: station2,
+  },
+  {
+    title: "PS5 Station 3",
+    desc: "Latest PS5 games with 4K graphics and immersive gameplay on premium gaming setups",
+    image: station3 ,
+  },
+  {
+    title: "PS5 Station 4",
+    desc: "Latest PS5 games with 4K graphics and immersive gameplay on premium gaming setups",
+    image: station4 ,
+  }
+];
+
+export const AllPool = [
+  {
+    title: "Supreme Billiard 1",
+    desc: "Latest PS5 games with 4K graphics and immersive gameplay on premium gaming setups",
+    image: supermeBilliard1,
+  },
+  {
+    title: "Supreme Billiard 1",
+    desc: "Latest PS5 games with 4K graphics and immersive gameplay on premium gaming setups",
+    image: supermeBilliard2,
+  },
+  {
+    title: "Premium Billiard 1",
+    desc: "Latest PS5 games with 4K graphics and immersive gameplay on premium gaming setups",
+    image: PremiumBilliard1 ,
+  },
+  {
+    title: "Premium Billiard 2",
+    desc: "Latest PS5 games with 4K graphics and immersive gameplay on premium gaming setups",
+    image: PremiumBilliard2 ,
+  }
+];
+
+export const AllRacing = [
+  {
+    title: "Racing Simulator 1",
+    desc: "Latest PS5 games with 4K graphics and immersive gameplay on premium gaming setups",
+    image: racing1,
+  },
+  {
+    title: "Racing Simulator 2",
+    desc: "Latest PS5 games with 4K graphics and immersive gameplay on premium gaming setups",
+    image: racing2,
+  },
+  {
+    title: "Racing Simulator 3",
+    desc: "Latest PS5 games with 4K graphics and immersive gameplay on premium gaming setups",
+    image: racing3 ,
+  },
+  {
+    title: "Racing Simulator 4",
+    desc: "Latest PS5 games with 4K graphics and immersive gameplay on premium gaming setups",
+    image: racing4 ,
+  }
+];
 
