@@ -182,7 +182,7 @@ const CompletedBookingDialog = ({ open, onClose, onCollectPayment }) => {
                   position: "relative",
                   bgcolor: activeIndex === i ? "#00B8D4" : "#1E2535",
                   transition: "0.25s",
-                  "&:hover": { bgcolor: "#263145" },
+                  "&:hover": { bgcolor: "#00B8D4" },
                 }}
               >
                 {p.online && (
