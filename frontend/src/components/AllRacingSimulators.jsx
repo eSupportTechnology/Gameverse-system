@@ -6,10 +6,124 @@ import { AllRacing } from '../assets/assets';
 import CloseIcon from "@mui/icons-material/Close";
 import upload from '../assets/upload.png'
 import EditIcon from '../assets/editicon.png';
+import ThumbnailUpdate from './ThumbnailUpdate';
+import UpdateSuccessDialog from './UpdateSuccess';
+import CancelPopup from './CancelPopup';
+import RemovePopup from './RemovePopup';
+import backArrow from '../assets/back_arrow.png'
+
 
 const AllRacingSimulators = () => {
   const navigate = useNavigate();
+  const [simulators, setSimulators] = useState(AllRacing);
   const [openAddRacing, setOpenAddRacing] = useState(false);
+  const [dialogMode, setDialogMode] = useState("add"); // add | edit
+  const [editIndex, setEditIndex] = useState(null);
+
+  // form fields
+  const [simulatorName, setSimulatorName] = useState("");
+  const [description, setDescription] = useState("");
+  const [priceNormal, setPriceNormal] = useState("");
+  const [timeNormal, setTimeNormal] = useState("");
+  const [priceVR, setPriceVR] = useState("");
+  const [timeVR, setTimeVR] = useState("");
+  const [thumbnail, setThumbnail] = useState(null);
+
+  const [openAddSuccess, setOpenAddSuccess] = useState(false)
+  const [addMessage, setAddMessage] = useState('')
+  const [openUpdateSuccess, setOpenUpdateSuccess] = useState(false)
+  const [cancelOpen, setCancelOpen] = useState(false)
+
+  const [removeMessage, setRemoveMessage] = useState("");
+  const [simulatorToRemove, setSimulatorToRemove] = useState(null);
+  const [removeSimulator, setRemoveSimulator] = useState(false)
+
+
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setThumbnail(URL.createObjectURL(file));
+    }
+  };
+
+  // open ADD dialog
+  const handleAdd = () => {
+    setDialogMode("add");
+    setSimulatorName("");
+    setDescription("");
+    setPriceNormal("");
+    setPriceVR("");
+    setTimeNormal("30 Min");
+    setTimeVR("30 Min");
+    setThumbnail("");
+    setOpenAddRacing(true);
+  };
+
+  // open EDIT dialog
+  const handleEdit = (item, index) => {
+    setDialogMode("edit");
+    setEditIndex(index);
+
+    setSimulatorName(item.title);
+    setDescription(item.desc);
+    setPriceNormal(item.priceNormal);
+    setPriceVR(item.priceVR);
+    setTimeNormal(item.timeNormal);
+    setTimeVR(item.timeVR);
+    setThumbnail(item.image);
+
+    setOpenAddRacing(true);
+  };
+
+  // save station (Add or Update)
+  const handleSave = () => {
+    const newData = {
+      title: simulatorName,
+      desc: description,
+      priceNormal,
+      priceVR,
+      timeNormal,
+      timeVR,
+      image: thumbnail,
+    };
+
+    if (dialogMode === "add") {
+      setSimulators([...simulators, newData]);
+      setAddMessage('Simulator Added Successful !')
+      setOpenAddSuccess(true)
+    } else {
+      const updated = [...simulators];
+      updated[editIndex] = newData;
+      setSimulators(updated);
+      setOpenUpdateSuccess(true)
+    }
+
+    setOpenAddRacing(false);
+  };
+
+  const handleCancelConfirm = async () => {
+    setCancelOpen(false);
+    setOpenAddRacing(false)
+  }
+
+  // delete station
+  const handleRemove = (index) => {
+    setSimulatorToRemove(index);
+    setRemoveMessage('Are you want to remove this simulator?')
+    setRemoveSimulator(true);
+  };
+
+  const removeConfirm = async () => {
+    setSimulators(simulators.filter((_, i) => i !== simulatorToRemove));
+    setRemoveSimulator(false);
+    setSimulatorToRemove(null);
+  }
+
+  const cancelRemove = () => {
+    setRemoveSimulator(false);
+    setSimulatorToRemove(null);
+  };
+
   return (
     <div>
       <Box sx={{ p: 2, bgcolor: "1E1E1E", color: "#fff", minHeight: "100vh", overflowX: "hidden", ml: 0 }}>
@@ -40,7 +154,7 @@ const AllRacingSimulators = () => {
                 "&:hover": { bgcolor: "#1F2937" },
               }}
             >
-              <ArrowBackIcon sx={{ fontSize: 18 }} />
+              <img src={backArrow} alt="back-icon" />
             </Button>
 
             {/* CATEGORY BUTTON */}
@@ -74,7 +188,7 @@ const AllRacingSimulators = () => {
                 fontWeight: "600",
                 "&:hover": { background: "linear-gradient(to right, #0bbfe0, #732ed1)" },
               }}
-              onClick={() => setOpenAddRacing(true)}
+              onClick={handleAdd}
             >
               + Add Racing Simulators
             </Button>
@@ -84,7 +198,19 @@ const AllRacingSimulators = () => {
         </Box>
 
         {/* Card sections */}
-        <div style={{ minHeight: "100vh", backgroundColor: '#0E111B', borderRadius: "10px", }}>
+        <Box sx={{
+          height: 510, backgroundColor: '#0E111B', borderRadius: "10px", overflowY: 'auto',
+          "&::-webkit-scrollbar": {
+            width: "8px",
+          },
+          "&::-webkit-scrollbar-track": {
+            background: "transparent",
+          },
+          "&::-webkit-scrollbar-thumb": {
+            backgroundColor: "#374151",
+            borderRadius: "10px",
+          },
+        }}>
           <Box
             sx={{
               display: "grid",
@@ -94,36 +220,36 @@ const AllRacingSimulators = () => {
               alignItems: "stretch",
             }}
           >
-            {AllRacing.map((item, index) => (
+            {simulators.map((item, index) => (
               <Box
                 key={index}
                 sx={{
                   borderRadius: "12px",
                   overflow: "hidden",
                   height: "100%",
-                  position:'relative'
+                  position: 'relative'
                 }}
               >
                 {/* EDIT ICON BUTTON */}
-                  <Box
-                    sx={{
-                      position: "absolute",
-                      top: 10,
-                      right: 10,
-                      width: 30,
-                      height: 30,
-                      borderRadius: "50%",
-                      backgroundColor: "#C500FFCC",  
-                      display: "flex",
-                      justifyContent: "center",
-                      alignItems: "center",
-                      cursor: "pointer",
-                      zIndex: 10,
-                    }}
-                    onClick={() => console.log("Edit clicked")}
-                  >
-                    <img src={EditIcon} alt="edit-icon" style={{ width: 16 }} />
-                  </Box>
+                <Box
+                  sx={{
+                    position: "absolute",
+                    top: 10,
+                    right: 10,
+                    width: 30,
+                    height: 30,
+                    borderRadius: "50%",
+                    backgroundColor: "#C500FFCC",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    cursor: "pointer",
+                    zIndex: 10,
+                  }}
+                  onClick={() => handleEdit(item, index)}
+                >
+                  <img src={EditIcon} alt="edit-icon" style={{ width: 16 }} />
+                </Box>
 
                 <Box sx={{
                   borderRadius: "12px",
@@ -153,7 +279,7 @@ const AllRacingSimulators = () => {
                       <h3 style={{ fontSize: "16px", fontWeight: "500", color: "white" }}>
                         {item.title}
                       </h3>
-                      <p style={{ fontSize: "14px", fontWeight: "400", marginTop: "8px", color: "#FFFFFF" }}>
+                      <p style={{ fontSize: "14px", fontWeight: "300", marginTop: "8px", color: "#FFFFFF" }}>
                         {item.desc}
                       </p>
                     </Box>
@@ -162,14 +288,16 @@ const AllRacingSimulators = () => {
 
                 {/* BUTTON */}
                 <Box sx={{ py: 2 }}>
-                  <button className="card-button-red">Remove</button>
+                  <button className="card-button-red"
+                    onClick={() => handleRemove(index)}
+                  >Remove</button>
                 </Box>
               </Box>
             ))
             }
 
           </Box>
-        </div>
+        </Box>
 
         {/* ADD Pool Dialog */}
         {/* Dialog */}
@@ -188,7 +316,7 @@ const AllRacingSimulators = () => {
           }}
         >
           <DialogTitle sx={{ color: "white", fontWeight: "bold", fontSize: '18px' }}>
-            Add Racing Simulator
+            {dialogMode === "add" ? "Add Racing Simulator" : "Edit Racing Simulator Details"}
             <IconButton
               onClick={() => setOpenAddRacing(false)}
               sx={{ position: "absolute", right: 8, top: 8, color: "white" }}
@@ -216,12 +344,14 @@ const AllRacingSimulators = () => {
             }}
           >
 
-            {/* Station Name */}
+            {/* Name */}
             <p style={{ marginBottom: 6, fontSize: '14px', fontWeight: 500 }}>Simulator Name</p>
             <TextField
               fullWidth
               placeholder="Enter Simulator Name"
               variant="outlined"
+              value={simulatorName}
+              onChange={(e) => setSimulatorName(e.target.value)}
               InputProps={{
                 sx: {
                   backgroundColor: "#171C2D",
@@ -245,6 +375,8 @@ const AllRacingSimulators = () => {
               rows={3}
               placeholder="Enter Short Description"
               variant="outlined"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
               InputProps={{
                 sx: {
                   backgroundColor: "#171C2D",
@@ -278,6 +410,8 @@ const AllRacingSimulators = () => {
                     select
                     fullWidth
                     defaultValue="30 Min"
+                    value={timeNormal}
+                    onChange={(e) => setTimeNormal(e.target.value)}
                     sx={{
                       "& .MuiOutlinedInput-root fieldset": { borderColor: "#374151" },
                       "& .MuiSelect-select": { color: "#9CA3AF" },
@@ -298,6 +432,8 @@ const AllRacingSimulators = () => {
                   <TextField
                     fullWidth
                     placeholder="LKR 000"
+                    value={priceNormal}
+                    onChange={(e) => setPriceNormal(e.target.value)}
                     sx={{
                       input: { color: "white" },
                       "& .MuiOutlinedInput-root fieldset": { borderColor: "#374151" },
@@ -328,6 +464,8 @@ const AllRacingSimulators = () => {
                     select
                     fullWidth
                     defaultValue="30 Min"
+                    value={timeVR}
+                    onChange={(e) => setTimeVR(e.target.value)}
                     sx={{
                       "& .MuiOutlinedInput-root fieldset": { borderColor: "#374151" },
                       "& .MuiSelect-select": { color: "#9CA3AF" },
@@ -348,6 +486,8 @@ const AllRacingSimulators = () => {
                   <TextField
                     fullWidth
                     placeholder="LKR 000"
+                    value={priceVR}
+                    onChange={(e) => setPriceVR(e.target.value)}
                     sx={{
                       input: { color: "white" },
                       "& .MuiOutlinedInput-root fieldset": { borderColor: "#374151" },
@@ -374,18 +514,38 @@ const AllRacingSimulators = () => {
                 color: "#aaa",
                 cursor: "pointer",
               }}
+              onClick={() => document.getElementById("fileInput").click()}
             >
-              <img
-                src={upload}
-                alt="upload"
-                style={{ width: 30, height: 30, marginBottom: 6 }}
+              <input
+                type="file"
+                accept="image/*"
+                id="fileInput"
+                style={{ display: "none" }}
+                onChange={handleImageUpload}
               />
-              Upload thumbnail
+
+              {thumbnail ? (
+                <img
+                  src={thumbnail}
+                  alt="Thumbnail"
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    borderRadius: "8px",
+                    objectFit: "cover",
+                  }}
+                />
+              ) : (
+                <>
+                  <img src={upload} style={{ width: 30, marginBottom: 6 }} />
+                  Upload thumbnail
+                </>
+              )}
             </Box>
 
             {/* Actions */}
             <Box sx={{ display: "flex", justifyContent: "space-between", mt: 4, gap: 2 }}>
-              <Button onClick={() => setOpenAddRacing(false)}
+              <Button onClick={() => setCancelOpen(true)}
                 sx={{
                   flex: 1,
                   borderRadius: "4px",
@@ -403,6 +563,7 @@ const AllRacingSimulators = () => {
                 Cancel
               </Button>
               <Button
+                onClick={handleSave}
                 variant="contained"
                 sx={{
                   fontSize: '14px',
@@ -417,13 +578,40 @@ const AllRacingSimulators = () => {
                   },
                 }}
               >
-                Add
+                {dialogMode === "add" ? "Add" : "Update"}
               </Button>
             </Box>
           </DialogContent>
         </Dialog>
 
       </Box>
+
+      {/* simulator add success dialog */}
+      <ThumbnailUpdate
+        open={openAddSuccess}
+        onClose={() => setOpenAddSuccess(false)}
+        message={addMessage}
+      />
+
+      {/* update success dialog */}
+      <UpdateSuccessDialog
+        open={openUpdateSuccess}
+        onClose={() => setOpenUpdateSuccess(false)}
+      />
+
+      {/* cancel popup */}
+      <CancelPopup
+        open={cancelOpen}
+        handleCancelClose={() => setCancelOpen(false)}
+        handleConfirm={handleCancelConfirm}
+      />
+
+      <RemovePopup
+        open={removeSimulator}
+        handleRemoveClose={cancelRemove}
+        removeConfirm={removeConfirm}
+        message={removeMessage}
+      />
 
     </div>
   )

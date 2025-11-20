@@ -22,7 +22,7 @@ const WebPortal = () => {
           <TopBar sidebarWidth={sidebarWidth} />
 
 
-          <Box sx={{ mt: 8, p: 2 }}>
+          <Box sx={{ mt: 8, p: 2,overflowY:'hidden'}}>
             <Routes>
               <Route path="/" element={<WebManagement />} />
               <Route path="/station" element={<AllPs5Stations />} />
