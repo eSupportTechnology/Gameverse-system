@@ -189,7 +189,7 @@ const InProgressBookingDialog = ({ open, onClose, onEndSession }) => {
 
   // Determine the label text based on the current minutes
   const getTimeLabel = () => {
-    return "min";
+    return "Min";
   };
 
   return (
@@ -201,7 +201,7 @@ const InProgressBookingDialog = ({ open, onClose, onEndSession }) => {
         fullWidth
         PaperProps={{
           sx: {
-            bgcolor: "#0F1721",
+            bgcolor: "#111827",
             color: "#fff",
             borderRadius: "10px",
             border: "1px solid #22303f",
@@ -230,6 +230,7 @@ const InProgressBookingDialog = ({ open, onClose, onEndSession }) => {
                   py: 1.2,
                   borderRadius: "8px",
                   textAlign: "center",
+                  border: "1px solid  #2c5d88dc",
                   position: "relative",
                   bgcolor: activeIndex === i ? "#00B8D4" : "#1E2535",
                   transition: "0.25s",
@@ -264,7 +265,7 @@ const InProgressBookingDialog = ({ open, onClose, onEndSession }) => {
           </Box>
 
           {/* Booking Card */}
-          <Box sx={{ bgcolor: "#0E1A24", p: 2, borderRadius: 2, mb: 3, border: "1px solid #152833" }}>
+          <Box sx={{ bgcolor: "#18212F", p: 2, borderRadius: 2, mb: 3, border: "1px solid #152833" }}>
             <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                 <Box sx={{ width: 10, height: 10, borderRadius: "50%", bgcolor: "#8B5CF6" }} />
@@ -308,7 +309,7 @@ const InProgressBookingDialog = ({ open, onClose, onEndSession }) => {
             {/* Session Details - Left Box */}
             <Box sx={{ 
               flex: 1,
-              bgcolor: "#0E1A24", 
+              bgcolor: "#18212F", 
               p: 2, 
               borderRadius: 2,
               border: "1px solid #152833",
@@ -327,7 +328,7 @@ const InProgressBookingDialog = ({ open, onClose, onEndSession }) => {
             {/* Payment Info - Right Box */}
             <Box sx={{ 
               flex: 1,
-              bgcolor: "#0E1A24", 
+              bgcolor: "#18212F", 
               p: 2, 
               borderRadius: 2,
               border: "1px solid #152833",
@@ -349,13 +350,13 @@ const InProgressBookingDialog = ({ open, onClose, onEndSession }) => {
             </Box>
           </Box>
 
-          {/* Time Controls */}
+          {/* Time Controls - Fixed version */}
           <Box sx={{ 
             display: "flex", 
             alignItems: "center", 
-            gap: 2, 
+            gap: 1, 
             mb: 3,
-            bgcolor: "#0E1A24",
+            bgcolor: "transparent",
             p: 2,
             borderRadius: 2,
             border: "1px solid #152833"
@@ -387,32 +388,31 @@ const InProgressBookingDialog = ({ open, onClose, onEndSession }) => {
                   style: { 
                     textAlign: "center", 
                     fontWeight: 700,
-                    color: "#9CA3AF",
-                    padding: "12px 8px",
-                    paddingTop: "20px",
+                    color: "#000000",
+                    padding: "12px 12px 12px 8px",
                   } 
                 }}
                 sx={{
                   width: "100%",
                   "& .MuiOutlinedInput-root": {
-                    bgcolor: "#15202a",
+                    bgcolor: "#374151",
                     borderRadius: 1.5,
                     border: "1px solid #22303f",
                     "& fieldset": { border: "none" },
                   },
                   "& .MuiInputBase-input": { 
-                    color: "#9CA3AF", 
+                    color: "#0000", 
                   },
                 }}
               />
               <Typography 
                 sx={{ 
                   position: "absolute",
-                  top: 8,
-                  left: "50%",
-                  transform: "translateX(-50%)",
-                  fontSize: "11px",
-                  color: "#9CA3AF",
+                  top: "50%",
+                  right: 35,
+                  transform: "translateY(-50%)",
+                  fontSize: "14px",
+                  color: "black",
                   pointerEvents: "none",
                   fontWeight: 500
                 }}

@@ -31,6 +31,32 @@ const BookingManagement = () => {
   const [inProgressDialogOpen, setInProgressDialogOpen] = useState(false);
   const [completedDialogOpen, setCompletedDialogOpen] = useState(false);
 
+  // Scrollbar styles
+  const scrollbarStyles = {
+    '&::-webkit-scrollbar': {
+      width: '8px',
+      height: '8px',
+    },
+    '&::-webkit-scrollbar-track': {
+      background: '#1F2937',
+      borderRadius: '10px',
+    },
+    '&::-webkit-scrollbar-thumb': {
+      background: 'linear-gradient(45deg, #0CD7FF, #8A38F5)',
+      borderRadius: '10px',
+      border: '1px solid rgba(255,255,255,0.2)',
+    },
+    '&::-webkit-scrollbar-thumb:hover': {
+      background: 'linear-gradient(45deg, #00E5FF, #9A60E8)',
+    },
+    '&::-webkit-scrollbar-corner': {
+      background: '#1F2937',
+    },
+    // Firefox support
+    scrollbarWidth: 'thin',
+    scrollbarColor: '#949c9da4 #1F2937',
+  };
+
   // Helper functions
   const normalizeTimeFormat = (timeString) => {
     if (!timeString) return '';
@@ -316,6 +342,9 @@ const BookingManagement = () => {
     { name: "PSS Station 3", subname: 'PSS Station 1', rate: "$12.5/hr" },
     { name: "8 Ball Pool(Suprime)", subname: 'Pool', rate: "$12.5/hr" },
     { name: "8 Ball Pool(Premium)", subname: 'Pool', rate: "$12.5/hr" },
+    { name: "PSS Station 4", subname: 'PSS Station 4', rate: "$12.5/hr" },
+  { name: "PSS Station 5", subname: 'PSS Station 5', rate: "$12.5/hr" },
+  { name: "8 Ball Pool(Suprime)", subname: 'Pool', rate: "$15/hr" },
   ];
 
   const timeSlots = [
@@ -331,7 +360,15 @@ const BookingManagement = () => {
   };
 
   return (
-    <Box sx={{ p: 2, bgcolor: "1E1E1E", color: "#fff", minHeight: "100vh", overflowX: "hidden", ml: 0 }}>
+    <Box sx={{ 
+      p: 2, 
+      bgcolor: "1E1E1E", 
+      color: "#fff", 
+      minHeight: "100vh", 
+      overflowX: "hidden", 
+      ml: 0,
+      ...scrollbarStyles 
+    }}>
       {/* Header */}
       <Box
         display="flex"
@@ -444,7 +481,14 @@ const BookingManagement = () => {
 
       {/* Booking Timeline */}
       {view === "timeline" && (
-        <Paper sx={{ p: 2, borderRadius: "12px", bgcolor: '#0E111B', height: '100vh' }}>
+        <Paper sx={{ 
+          p: 2, 
+          borderRadius: "12px", 
+          bgcolor: '#0E111B', 
+          height: '100vh',
+          overflow: 'auto',
+          ...scrollbarStyles 
+        }}>
           <Box sx={{ display: "flex", width: "100%" }}>
             {/* Left Column */}
             <Box sx={{ flex: "0 0 200px", pr: 2 }}>
@@ -461,7 +505,11 @@ const BookingManagement = () => {
             </Box>
 
             {/* Right Column */}
-            <Box sx={{ overflowX: "auto", flex: 1 }}>
+            <Box sx={{ 
+              overflowX: "auto", 
+              flex: 1,
+              ...scrollbarStyles 
+            }}>
               <Box sx={{ maxWidth: 50, mx: 2 }}>
                 <Box sx={{ display: "flex", mb: 2 }}>
                   {timeSlots.map((slot) => (
@@ -516,7 +564,9 @@ const BookingManagement = () => {
       )}
 
       {view === "grid" &&
-        <BookingGrid apiBookings={apiBookings} loading={loading} onBookingUpdated={refreshBookings} />
+        <Box sx={scrollbarStyles}>
+          <BookingGrid apiBookings={apiBookings} loading={loading} onBookingUpdated={refreshBookings} />
+        </Box>
       }
       
       {loading && (
