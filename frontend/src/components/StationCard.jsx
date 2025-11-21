@@ -146,7 +146,7 @@ const StationCard = ({ station, onEdit, onToggleStatus }) => {
             </Typography>
             <Typography
               sx={{
-                color: "#b3b6b8ff",
+                color: "#00d7ec",
                 fontWeight: 700,
                 fontSize: "0.8rem",
               }}

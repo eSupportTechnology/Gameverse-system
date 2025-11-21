@@ -496,10 +496,10 @@ export default function AddStationDialog({
             <IconButton
               onClick={toggleVRPricing}
               sx={{
-                backgroundColor: "#374151",
+                backgroundColor: "#ffffff71",
                 borderRadius: "50%",
-                width: 28,
-                height: 28,
+                width: 20,
+                height: 20,
                 "&:hover": {
                   backgroundColor: "#4B5563",
                 },
@@ -507,9 +507,9 @@ export default function AddStationDialog({
             >
               {/* Toggle between PLUS and MINUS icons */}
               {showVRPricing ? (
-                <RemoveIcon sx={{ color: "#94a3b8", fontSize: 18 }} />
+                <RemoveIcon sx={{ color: "#1e293b", fontSize: 18 }} />
               ) : (
-                <AddIcon sx={{ color: "#94a3b8", fontSize: 18 }} />
+                <AddIcon sx={{ color: "#1e293b", fontSize: 18 }} />
               )}
             </IconButton>
           </Box>
