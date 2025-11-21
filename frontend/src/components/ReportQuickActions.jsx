@@ -6,7 +6,10 @@ const ReportQuickActions = ({ onActionClick }) => {
     { label: "Booking Sales", icon: "/images/report Icon/group.png" },
     { label: "Product Sales", icon: "/images/report Icon/vector.png" },
     { label: "Other Games Sales", icon: "/images/report Icon/otherGames.png" },
-    { label: "NFC Customers", icon: "/images/report Icon/newCostumersIcon.png" },
+    {
+      label: "NFC Customers",
+      icon: "/images/report Icon/newCostumersIcon.png",
+    },
   ];
 
   return (
@@ -25,7 +28,7 @@ const ReportQuickActions = ({ onActionClick }) => {
           color: "#fff",
           fontSize: "20px",
           fontWeight: "600",
-          fontFamily: "Inter, sans-serif", 
+          fontFamily: "Inter, sans-serif",
           lineHeight: "32px",
           mb: 3,
         }}
@@ -39,21 +42,36 @@ const ReportQuickActions = ({ onActionClick }) => {
             key={i}
             onClick={() => onActionClick(item.label)}
             variant="contained"
-            startIcon={<img src={item.icon} width={22} />}
             sx={{
               backgroundColor: "#2C5D88",
               textTransform: "none",
               fontWeight: 500,
-              fontFamily: "Inter, sans-serif", 
+              fontFamily: "Inter, sans-serif",
               py: 1.2,
               fontSize: "16px",
               borderRadius: "16px",
               "&:hover": {
-                background: "linear-gradient(90deg, rgba(12, 215, 255, 0.1) 0%, rgba(197, 0, 255, 0.2) 69%)",
+                background:
+                  "linear-gradient(90deg, rgba(12, 215, 255, 0.1) 0%, rgba(197, 0, 255, 0.2) 69%)",
               },
             }}
           >
-            {item.label}
+            {/* Icon fixed to left corner */}
+            <img
+              src={item.icon}
+              width={22}
+              style={{
+                position: "absolute",
+                left: 30, // same padding as Figma
+                top: "50%",
+                transform: "translateY(-50%)",
+              }}
+            />
+
+            {/* Text stays perfectly centered */}
+            <span style={{ width: "100%", textAlign: "center" }}>
+              {item.label}
+            </span>
           </Button>
         ))}
       </Box>

@@ -13,11 +13,11 @@ import ReportCards from "./ReportCards";
 import SalesChart from "./ReportSalesChart";
 import QuickActions from "./ReportQuickActions";
 import ReportBookingSalesTable from "./ReportBookingSalesTable";
-import ReportProductSalesTable from "./ReportProductSalesTable";
 
 const ReportsManagement = () => {
   const [dateFilter, setDateFilter] = useState("today");
   const [viewMode, setViewMode] = useState("overview");
+  const [openTab, setOpenTab] = useState(1);
 
   // Handle date filter changes
   const handleDateFilterChange = (newFilter) => {
@@ -58,7 +58,8 @@ const ReportsManagement = () => {
       id: 1,
       label: "Total Sales",
       icon: <img src="/images/report Icon/salesIcon.png" width={28} />,
-      value: `LKR ${currentData.totalRevenue.toLocaleString()}`,
+      value: "LKR 15,800",
+      // value: `LKR ${currentData.totalRevenue.toLocaleString()}`,
       changePositive: true,
       iconBgColor: "#ff6b81", // Pink
     },
@@ -66,7 +67,8 @@ const ReportsManagement = () => {
       id: 2,
       label: "Total Booking",
       icon: <img src="/images/report Icon/group.png" width={28} />,
-      value: currentData.totalBookings.toString(),
+      value: "45",
+      // value: currentData.totalBookings.toString(),
       changePositive: true,
       iconBgColor: "#ffa86b", // Orange
     },
@@ -74,7 +76,8 @@ const ReportsManagement = () => {
       id: 3,
       label: "Products Sold",
       icon: <img src="/images/report Icon/vector.png" width={28} />,
-      value: currentData.totalSales.toString(),
+      value: "60",
+      // value: currentData.totalSales.toString(),
       changePositive: true,
       iconBgColor: "#2bdc65", // Green
     },
@@ -82,18 +85,27 @@ const ReportsManagement = () => {
       id: 4,
       label: "New Customers",
       icon: <img src="/images/report Icon/newCostumersIcon.png" width={28} />,
-      value: currentData.rejectedBookings.toString().padStart(2, "0"),
+      value: "10",
+      // value: currentData.rejectedBookings.toString().padStart(2, "0"),
       changePositive: false,
       iconBgColor: "#b28bff", // Purple
     },
   ];
 
-  // ← Updated: handle quick action click
+  // Quick Action Handler
   const handleActionClick = (action) => {
     if (action === "Booking Sales") {
-      setViewMode("booking");
+      setViewMode("table");
+      setOpenTab(1);
     } else if (action === "Product Sales") {
-      setViewMode("product");
+      setViewMode("table");
+      setOpenTab(2);
+    } else if (action === "Other Games Sales") {
+      setViewMode("table");
+      setOpenTab(3);
+    } else if (action === "NFC Customers") {
+      setViewMode("table");
+      setOpenTab(4);
     } else {
       toast.info(`${action} coming soon`);
     }
@@ -106,7 +118,7 @@ const ReportsManagement = () => {
           sx={{
             borderRadius: "12px",
             pt: { xs: 12, sm: 13, md: 10 },
-            padding: { xs: 2, sm: 3 },
+            padding: { xs: 1, sm: 2 },
           }}
         >
           {/* Header Section */}
@@ -277,10 +289,11 @@ const ReportsManagement = () => {
               minHeight: "100vh",
               backgroundColor: "#0a0e1a",
               color: "#fff",
-              p: { xs: 1.5, sm: 2, md: 3 },
-              pt: { xs: 1, sm: 2, md: 3 }, // Increased top padding to avoid navbar overlap
+              p: { xs: 1.5, sm: 2, md: 2 },
+              mt: { xs: 1, sm: 2, md: 3 }, 
               width: "100%",
               maxWidth: "100vw",
+              borderRadius: "8px",
               overflow: "auto",
               boxSizing: "border-box",
               position: "relative",
@@ -302,23 +315,12 @@ const ReportsManagement = () => {
         </Box>
       )}
 
-      {viewMode === "booking" && (
-        <Box
-          sx={{
-            p: 5,
-            minHeight: "100vh",
-            color: "#fff",
-          }}
-        >
+      {viewMode === "table" && (
+        <Box sx={{ p: 5, minHeight: "100vh", color: "#fff" }}>
           <ReportBookingSalesTable
+            activeTabFromParent={openTab}
             onReturnToOverview={() => setViewMode("overview")}
           />
-        </Box>
-      )}
-      
-      {viewMode === "product" && (
-        <Box sx={{ p: 5, minHeight: "100vh", color: "#fff" }}>
-          <ReportProductSalesTable />
         </Box>
       )}
     </>
