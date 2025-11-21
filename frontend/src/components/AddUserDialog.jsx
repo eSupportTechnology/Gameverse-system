@@ -20,7 +20,6 @@ import { toast } from "react-toastify";
 import axios from "axios";
 
 export default function AddUserDialog({
-
   open,
   onClose,
   onCreate,
@@ -29,7 +28,6 @@ export default function AddUserDialog({
   isEditing,
 }) {
   const handleChange = (e) => {
-
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
@@ -64,13 +62,18 @@ export default function AddUserDialog({
     }
   };
 
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setMessage("");
 
-    if (!formData.fullname || !formData.username || !formData.email || (!isEditing && !formData.password)) {
+    if (
+      !formData.fullname ||
+      !formData.contactNo ||
+      !formData.username ||
+      !formData.email ||
+      (!isEditing && !formData.password)
+    ) {
       toast.error("Please fill all required fields.");
       setLoading(false);
       return;
@@ -85,8 +88,9 @@ export default function AddUserDialog({
 
       const data = new FormData();
       data.append("fullname", formData.fullname);
+      data.append("contactNo", formData.contactNo);
       data.append("username", formData.username);
-      data.append("email", formData.email);
+      //data.append("email", formData.email);
       data.append("role", formData.role);
 
       // active_status always integer
@@ -118,18 +122,24 @@ export default function AddUserDialog({
       } else {
         // Add user
         console.table(Object.fromEntries(data.entries()));
-        response = await axios.post("http://localhost:8000/api/add-user", data, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        response = await axios.post(
+          "http://localhost:8000/api/add-user",
+          data,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
       }
       setLoading(false);
       setMessage(response.data.message || "User saved");
       console.log("Temp password from backend:", response.data.temp_password);
       if (response.data.hasOwnProperty("temp_password")) {
-        toast.info(`Temporary password (dev only): ${response.data.temp_password}`);
+        toast.info(
+          `Temporary password (dev only): ${response.data.temp_password}`
+        );
       } else {
         toast.success("User created and (if configured) email sent to user.");
       }
@@ -139,8 +149,9 @@ export default function AddUserDialog({
       // Reset form
       setFormData({
         fullname: "",
+        contactNo: "",
         username: "",
-        email: "",
+        //email: "",
         password: "",
         role: "operator",
         active_status: false,
@@ -154,23 +165,23 @@ export default function AddUserDialog({
     }
   };
 
-
   return (
     <Dialog
       open={open}
-      onClose={() => { }}
+      onClose={() => {}}
       maxWidth="sm"
       fullWidth
+      scroll="body"
       PaperProps={{
         sx: {
           backgroundColor: "#111827",
           color: "#fff",
-          borderRadius: "16px",
-          p: 2,
+          borderRadius: "8px",
+          width: "480px",
+          border: "1px solid #374151",
         },
       }}
     >
-
       <DialogTitle
         sx={{
           fontWeight: 600,
@@ -185,51 +196,39 @@ export default function AddUserDialog({
           <CloseIcon />
         </IconButton>
       </DialogTitle>
+
       {/* image to can be upload here */}
-
-
-      <Box display="flex" flexDirection="column" alignItems="center" my={2}>
+      <Box display="flex" alignItems="center" justifyContent="center">
         <label htmlFor="avatar-upload">
           <input
-            accept="image/*"
-            id="avatar-upload"
             type="file"
+            id="avatar-upload"
+            accept="image/*"
             style={{ display: "none" }}
             onChange={handleImageUpload}
           />
           {formData.profile_img ? (
             <Avatar
               src={formData.profile_img}
-              alt="User Avatar"
               sx={{ width: 80, height: 80, cursor: "pointer" }}
             />
           ) : (
             <Box
               sx={{
-                width: 80,
-                height: 80,
-                borderRadius: "50%",
-                backgroundColor: "#1e293b",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 cursor: "pointer",
               }}
             >
-              <AccountCircleIcon sx={{ fontSize: 80, color: "#94a3b8" }} />
+              <AccountCircleIcon sx={{ fontSize: 80, color: "#9CA3AF" }} />
             </Box>
           )}
         </label>
-        <Typography variant="body2" sx={{ color: "#94a3b8", mt: 1 }}>
-          Click to {formData.profile_img ? "change" : "upload"} image
-        </Typography>
       </Box>
 
       <DialogContent>
-
-        <Typography variant="subtitle2" sx={{ color: "#94a3b8", mb: 0.5 }}>
-          Full Name
-        </Typography>
+        <Typography variant="subtitle2">Full Name</Typography>
         <TextField
           margin="dense"
           name="fullname"
@@ -239,19 +238,35 @@ export default function AddUserDialog({
           placeholder="Enter Full Name"
           sx={{
             mb: 2,
-            backgroundColor: "#1e293b4b",
+            backgroundColor: "#171C2D",
             "& .MuiOutlinedInput-root": {
-              borderRadius: "10px",
+              borderRadius: "4px",
               color: "white",
-              "& fieldset": { borderColor: "#334155" },
+              "& fieldset": { borderColor: "#374151" },
             },
           }}
         />
 
+        <Typography variant="subtitle2">Contact Number</Typography>
+        <TextField
+          margin="dense"
+          name="contactNo"
+          value={formData.contactNo || ""}
+          onChange={handleChange}
+          fullWidth
+          placeholder="Enter Contact Number"
+          sx={{
+            mb: 2,
+            backgroundColor: "#171C2D",
+            "& .MuiOutlinedInput-root": {
+              borderRadius: "10px",
+              color: "white",
+              "& fieldset": { borderColor: "#374151" },
+            },
+          }}
+        />
 
-        <Typography variant="subtitle2" sx={{ color: "#94a3b8", mb: 0.5 }}>
-          User Role
-        </Typography>
+        <Typography variant="subtitle2">User Role</Typography>
         <TextField
           select
           margin="dense"
@@ -260,37 +275,44 @@ export default function AddUserDialog({
           onChange={handleChange}
           fullWidth
           displayEmpty
-          placeholder="Select user role"
+          SelectProps={{
+            MenuProps: {
+              PaperProps: {
+                sx: {
+                  backgroundColor: "#171C2D",
+                  border: "1px solid #374151",
+                  borderRadius: "8px",
+                  color: "white",
+                  mt: 1,
+                },
+              },
+            },
+          }}
           sx={{
             mb: 2,
-            backgroundColor: "#1e293b4b",
+            backgroundColor: "#171C2D",
             "& .MuiOutlinedInput-root": {
-              borderRadius: "10px",
+              borderRadius: "8px",
               color: "white",
-              "& fieldset": { borderColor: "#334155" },
-              "& .MuiSelect-icon": { color: "#1b1e6fff" },
+              "& fieldset": { borderColor: "#374151" },
+              "& .MuiSelect-icon": { color: "white" },
             },
             "& .MuiSelect-select:empty": { color: "#0008130c" },
           }}
         >
           <MenuItem
             value="admin"
-            sx={{ background: "#171C2D", border: "0.3px solid #c9c0c096" }}
           >
             Admin
           </MenuItem>
           <MenuItem
             value="operator"
-            sx={{ background: "#171C2D", border: "0.3px solid #c9c0c096" }}
           >
             Operator
           </MenuItem>
         </TextField>
 
-
-        <Typography variant="subtitle2" sx={{ color: "#94a3b8", mb: 0.5 }}>
-          User Name
-        </Typography>
+        <Typography variant="subtitle2">User Name</Typography>
         <TextField
           margin="dense"
           name="username"
@@ -300,16 +322,16 @@ export default function AddUserDialog({
           placeholder="Enter user name"
           sx={{
             mb: 2,
-            backgroundColor: "#1e293b4b",
+            backgroundColor: "##171C2D",
             "& .MuiOutlinedInput-root": {
               borderRadius: "10px",
               color: "white",
-              "& fieldset": { borderColor: "#334155" },
+              "& fieldset": { borderColor: "#374151" },
             },
           }}
         />
 
-        <Typography variant="subtitle2" sx={{ color: "#94a3b8", mb: 0.5 }}>
+        {/* <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
           email
         </Typography>
         <TextField
@@ -328,45 +350,44 @@ export default function AddUserDialog({
               "& fieldset": { borderColor: "#334155" },
             },
           }}
-        />
+        /> */}
 
-        <Typography variant="subtitle2" sx={{ color: "#94a3b8", mb: 0.5 }}>
-          password
-        </Typography>
+        <Typography variant="subtitle2">password</Typography>
         <TextField
           margin="dense"
           name="password"
           value={formData.password || ""}
           onChange={handleChange}
           fullWidth
-          placeholder="Enter password"
+          placeholder="*********"
           required
           sx={{
             mb: 2,
-            backgroundColor: "#1e293b4b",
+            backgroundColor: "#171C2D",
             "& .MuiOutlinedInput-root": {
               borderRadius: "10px",
               color: "white",
-              "& fieldset": { borderColor: "#334155" },
+              "& fieldset": { borderColor: "#374151" },
             },
           }}
         />
 
-        <Box display="flex" alignItems="center" gap={1} mt={2}>
+        <Box display="flex" alignItems="center" gap={1}>
           <Typography variant="subtitle2" sx={{ color: "#94a3b8" }}>
             Active User
           </Typography>
           <Switch
-            checked={formData.active_status || false}
+            checked={formData.active_status}
             onChange={handleToggle}
             sx={{
               "& .MuiSwitch-thumb": { backgroundColor: "#33B2F7" },
-              "& .Mui-checked + .MuiSwitch-track": { backgroundColor: "#33B2F7" },
+              "& .Mui-checked + .MuiSwitch-track": {
+                backgroundColor: "#33B2F7",
+              },
             }}
           />
         </Box>
       </DialogContent>
-
 
       <DialogActions
         sx={{
@@ -383,11 +404,12 @@ export default function AddUserDialog({
             color: "white",
             px: 3,
             py: 1,
-            borderRadius: "8px",
+            borderRadius: "4px",
             border: "0.3px solid #809fcd4e",
-            fontWeight: 500,
-            fontSize: "20px",
-            width: "270px",
+            textTransform: "none",
+            fontSize: "16px",
+            width: "214px",
+            height: "40px",
             "&:hover": { background: "#334155" },
           }}
         >
@@ -400,11 +422,11 @@ export default function AddUserDialog({
             color: "#fff",
             px: 3,
             py: 1,
-            borderRadius: "8px",
-            fontSize: "20px",
-            border: "0.3px solid #809fcd4e",
-            width: "270px",
-            fontWeight: "600",
+            borderRadius: "4px",
+            fontSize: "16px",
+            width: "218px",
+            height: "40px",
+            textTransform: "none",
             "&:hover": { opacity: 0.9 },
           }}
         >
@@ -419,5 +441,3 @@ export default function AddUserDialog({
     </Dialog>
   );
 }
-
-
