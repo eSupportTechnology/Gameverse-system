@@ -26,7 +26,7 @@ const ReportProductSalesTable = () => {
       name: "Vanila Ice-Cream",
       category: "Ice-Cream",
       qty: 85,
-      revenue: "LKR 400",
+      revenue: "LKR 400"
     },
     { name: "Orange Juice", category: "Drink", qty: 45, revenue: "LKR 600" },
     { name: "Donut", category: "Snack", qty: 60, revenue: "LKR 1450" },
@@ -35,7 +35,7 @@ const ReportProductSalesTable = () => {
       name: "Vanila Ice-Cream",
       category: "Ice-Cream",
       qty: 85,
-      revenue: "LKR 400",
+      revenue: "LKR 400"
     },
     { name: "Orange Juice", category: "Drink", qty: 45, revenue: "LKR 600" },
   ];
@@ -69,8 +69,6 @@ const ReportProductSalesTable = () => {
             display: "grid",
             gridTemplateColumns: "2fr 2fr 1fr 1fr",
             borderBottom: "1px solid #1F2937",
-
-            // Column borders
             "& > div": {
               borderRight: "1px solid #1F2937",
               "&:last-child": { borderRight: "none" },
@@ -91,10 +89,7 @@ const ReportProductSalesTable = () => {
               display: "grid",
               gridTemplateColumns: "2fr 2fr 1fr 1fr",
               borderBottom: "1px solid #1F2937",
-
               "&:hover": { backgroundColor: "#1a2433" },
-
-              // Column borders inside rows
               "& > div": {
                 borderRight: "1px solid #1F2937",
                 "&:last-child": { borderRight: "none" },

@@ -21,7 +21,7 @@ const data = [
   { day: "Sunday", bookings: 14000, products: 9000, games: 7000 },
 ];
 
-// Custom Legend (exact circles like screenshot)
+// Custom Legend 
 const CustomLegend = () => {
   const items = [
     { color: "#A855F7", label: "Bookings" },
