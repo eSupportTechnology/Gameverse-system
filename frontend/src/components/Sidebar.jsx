@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import {
   Drawer,
@@ -14,9 +13,13 @@ import { useNavigate, useLocation } from "react-router-dom";
 import Stations from "../pages/Station";
 
 // Dummy Components
-const UsersRoles = () => <h2 style={{ color: "#fff" }}>Users & Roles Component</h2>;
+const UsersRoles = () => (
+  <h2 style={{ color: "#fff" }}>Users & Roles Component</h2>
+);
 const Reports = () => <h2 style={{ color: "#fff" }}>Reports Component</h2>;
-const SettingsPage = () => <h2 style={{ color: "#fff" }}>Settings Component</h2>;
+const SettingsPage = () => (
+  <h2 style={{ color: "#fff" }}>Settings Component</h2>
+);
 
 const expandedWidth = 230;
 const collapsedWidth = 70;
@@ -25,50 +28,104 @@ const menuItems = [
   {
     text: "Bookings",
     path: "/bookings",
-    icon: <img src="../images/b.png" alt="Bookings" style={{ width: 20, height: 20 }} />,
+    icon: (
+      <img
+        src="../images/b.png"
+        alt="Bookings"
+        style={{ width: 20, height: 20 }}
+      />
+    ),
   },
   {
     text: "Stations",
     path: "/stations",
-    icon: <img src="../images/huge.png" alt="Stations" style={{ width: 20, height: 20 }} />,
+    icon: (
+      <img
+        src="../images/huge.png"
+        alt="Stations"
+        style={{ width: 20, height: 20 }}
+      />
+    ),
     component: <Stations />,
   },
   {
     text: "POS System",
     path: "/pos",
-    icon: <img src="../images/card.png" alt="POS System" style={{ width: 20, height: 20 }} />,
+    icon: (
+      <img
+        src="../images/card.png"
+        alt="POS System"
+        style={{ width: 20, height: 20 }}
+      />
+    ),
   },
   {
     text: "Other Games",
     path: "/games",
-    icon: <img src="../images/ic.png" alt="Other Games" style={{ width: 20, height: 20 }} />,
+    icon: (
+      <img
+        src="../images/ic.png"
+        alt="Other Games"
+        style={{ width: 20, height: 20 }}
+      />
+    ),
   },
   {
-    text: "Users& Roles",
+    text: "Users & Roles",
     path: "/users",
-    icon: <img src="../images/user.png" alt="Users & Roles" style={{ width: 20, height: 20 }} />,
+    icon: (
+      <img
+        src="../images/user.png"
+        alt="Users & Roles"
+        style={{ width: 20, height: 20 }}
+      />
+    ),
     component: <UsersRoles />,
   },
   {
     text: "NFC Customers",
     path: "/nfc-users",
-    icon: <img src="../images/nfcuser.png" alt="NFC User" style={{ width: 20, height: 20 }} />,
+    icon: (
+      <img
+        src="../images/nfcuser.png"
+        alt="NFC User"
+        style={{ width: 20, height: 20 }}
+      />
+    ),
   },
   {
     text: "Reports",
     path: "/reports",
-    icon: <img src="../images/report.png" alt="Reports" style={{ width: 20, height: 20 }} />,
+    icon: (
+      <img
+        src="../images/report.png"
+        alt="Reports"
+        style={{ width: 20, height: 20 }}
+      />
+    ),
     component: <Reports />,
   },
   {
     text: "TV Screens",
     path: "/tv-screens",
-    icon: <img src="../images/tv_screens.png" alt="TV Screens" style={{ width: 20, height: 20 }} />,
+    icon: (
+      <img
+        src="../images/tv_screens.png"
+        alt="TV Screens"
+        style={{ width: 20, height: 20 }}
+      />
+    ),
   },
   {
     text: "Web Portal",
     path: "/web-portal",
-    icon: <img src="../images/webportal.png" alt="TV Screens" style={{ width: 20, height: 20 }} />,
+    icon: (
+      <img
+        src="../images/webportal.png"
+        alt="TV Screens"
+        style={{ width: 20, height: 20 }}
+      />
+    ),
   },
   // {
   //   text: "Settings",
@@ -95,7 +152,7 @@ export default function SidebarLayout() {
             transition: "width 0.s",
             overflowX: "hidden",
             backgroundColor: "#000000ff",
-            color: "#fff",
+            color: "#9CA3AF",
             borderRight: "1px solid rgba(255,255,255,0.1)",
           },
         }}
@@ -109,7 +166,9 @@ export default function SidebarLayout() {
             p: 2,
           }}
         >
-          {open && <img src="../images/logo.png" alt="Logo" style={{ height: 40 }} />}
+          {open && (
+            <img src="../images/logo.png" alt="Logo" style={{ height: 40 }} />
+          )}
           <img
             src="../images/toggle.png"
             alt="Toggle"
@@ -125,7 +184,11 @@ export default function SidebarLayout() {
           {menuItems.map((item) => {
             const isActive = location.pathname === item.path;
             return (
-              <Tooltip key={item.text} title={!open ? item.text : ""} placement="right">
+              <Tooltip
+                key={item.text}
+                title={!open ? item.text : ""}
+                placement="right"
+              >
                 <ListItemButton
                   onClick={() => navigate(item.path)}
                   sx={{
@@ -148,7 +211,7 @@ export default function SidebarLayout() {
                     sx={{
                       color: "#fff",
                       minWidth: 0,
-                      fontSize: "16px",
+                      fontSize: "26px",
                       paddingLeft: 0.75,
                       mr: open ? 2 : "auto",
                       justifyContent: "center",
