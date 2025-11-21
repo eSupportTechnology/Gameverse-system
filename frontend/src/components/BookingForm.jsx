@@ -17,12 +17,21 @@ import CloseIcon from "@mui/icons-material/Close";
 import AddIcon from "@mui/icons-material/Add";
 import axios from "axios";
 
-import CreateSuccessDialog from "./CreateSuccessDialog"; // ✅ ADDED
+import CreateSuccessDialog from "./CreateSuccessDialog";
+import AddNFCUserDialog from "./AddNFCUserDialog"; // Import the NFC dialog
 
 const BookingForm = ({ open, handleClose, onBookingCreated }) => {
   const [createSuccess, setcreateSuccess] = useState(false);
   const [cancelConfirm, setCancelConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [nfcDialogOpen, setNfcDialogOpen] = useState(false); // State for NFC dialog
+  const [nfcFormData, setNfcFormData] = useState({
+    nfcCardNumber: "",
+    fullName: "",
+    phoneNo: "",
+    nicNumber: "",
+    activeUser: true,
+  });
 
   const [formData, setFormData] = useState({
     nfcCardNumber: "",
@@ -34,6 +43,32 @@ const BookingForm = ({ open, handleClose, onBookingCreated }) => {
     duration: "",
     amount: 400,
   });
+
+  // Open NFC dialog when + icon is clicked
+  const handleOpenNfcDialog = () => {
+    setNfcDialogOpen(true);
+  };
+
+  // Close NFC dialog
+  const handleCloseNfcDialog = () => {
+    setNfcDialogOpen(false);
+  };
+
+  // Handle NFC user creation - auto-fill booking form
+  const handleCreateNFCUser = (nfcData) => {
+    // Auto-fill the booking form with NFC user data
+    setFormData(prev => ({
+      ...prev,
+      nfcCardNumber: nfcData.nfcCardNumber,
+      customerName: nfcData.fullName,
+      phoneNumber: nfcData.phoneNo.replace(/\s/g, ""), // Remove spaces for phone number
+    }));
+    
+    // Close NFC dialog
+    setNfcDialogOpen(false);
+    
+    console.log("NFC User created:", nfcData);
+  };
 
   const handleInputChange = (field, value) => {
     if (field === "phoneNumber") {
@@ -138,433 +173,417 @@ const BookingForm = ({ open, handleClose, onBookingCreated }) => {
   ];
 
   return (
-    <Dialog
-      open={open}
-      onClose={handleClose}
-      fullWidth
-      maxWidth="sm"
-      PaperProps={{
-        sx: {
-          borderRadius: "12px",
-          backgroundColor: "#111827",
-          color: "white",
-          py: 2,
-        },
-      }}
-    >
-      {/* Header */}
-      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", px: 1 }}>
-        <DialogTitle sx={{ color: "#FFFFFF", fontSize: 18, fontWeight: "bold" }}>
-          Create New Booking
-        </DialogTitle>
-        <IconButton onClick={handleClose} sx={{ color: "#FFFFFF" }}>
-          <CloseIcon />
-        </IconButton>
-      </Box>
-
-      <DialogContent dividers sx={{ py: 0, pb: 2 }}>
-        {/* NFC */}
-        <Box display="flex" flexDirection="column" gap={1} mt={1}>
-          <Typography variant="body2" sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF" }}>
-            NFC Card Number
-          </Typography>
-
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <TextField
-              variant="outlined"
-              fullWidth
-              size="small"
-              placeholder="Enter NFC Card Number"
-              value={formData.nfcCardNumber}
-              onChange={(e) => handleInputChange("nfcCardNumber", e.target.value)}
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <Box
-                      component="img"
-                      src="/images/nfc.png"
-                      alt="NFC"
-                      sx={{ width: 22, height: 22, cursor: "pointer" }}
-                      onClick={() => console.log("NFC icon clicked")}
-                    />
-                  </InputAdornment>
-                ),
-                sx: {
-                  backgroundColor: "#1F2937",
-                  borderRadius: "6px",
-                  "& input::placeholder": { color: "#9CA3AF", fontSize: "14px" },
-                  color: "white",
-                  fontWeight: 500,
-                },
-              }}
-            />
-
-            <Box
-              sx={{
-                width: 38,
-                height: 38,
-                backgroundColor: "#1F2937",
-                borderRadius: "8px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                cursor: "pointer",
-                "&:hover": { backgroundColor: "#374151" },
-              }}
-              onClick={() => console.log("Add NFC clicked")}
-            >
-              <AddIcon sx={{ color: "white", fontSize: 22 }} />
-            </Box>
-          </Box>
-        </Box>
-
-        {/* GRID */}
-        <Box display="grid" gridTemplateColumns={{ xs: "1fr", md: "1fr 1fr" }} gap={2} mt={2}>
-          {/* Customer Name */}
-          <Box display="flex" flexDirection="column" gap={1}>
-            <Typography variant="body2" sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF" }}>
-              Customer Name
-            </Typography>
-            <TextField
-              variant="outlined"
-              fullWidth
-              size="small"
-              placeholder="Enter customer name"
-              value={formData.customerName}
-              onChange={(e) => handleInputChange("customerName", e.target.value)}
-              InputProps={{
-                sx: {
-                  backgroundColor: "#1F2937",
-                  borderRadius: "6px",
-                  "& input::placeholder": { color: "#9CA3AF", fontSize: "14px" },
-                  color: "white",
-                  fontWeight: 500,
-                },
-              }}
-            />
-          </Box>
-
-          {/* Phone */}
-          <Box display="flex" flexDirection="column" gap={1}>
-            <Typography variant="body2" sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF" }}>
-              Phone Number
-            </Typography>
-            <TextField
-              variant="outlined"
-              fullWidth
-              size="small"
-              placeholder="Enter Phone number (numbers only)"
-              value={formData.phoneNumber}
-              onChange={(e) => handleInputChange("phoneNumber", e.target.value)}
-              inputProps={{ inputMode: "numeric", pattern: "[0-9]*", maxLength: 15 }}
-              InputProps={{
-                sx: {
-                  backgroundColor: "#1F2937",
-                  borderRadius: "6px",
-                  "& input::placeholder": { color: "#9CA3AF", fontSize: "14px" },
-                  color: "white",
-                  fontWeight: 500,
-                },
-              }}
-            />
-          </Box>
-
-          {/* Station */}
-          <Box display="flex" flexDirection="column" gap={1}>
-            <Typography variant="body2" sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF" }}>
-              Station
-            </Typography>
-            <Select
-              displayEmpty
-              value={formData.station}
-              onChange={(e) => handleInputChange("station", e.target.value)}
-              fullWidth
-              sx={{
-                backgroundColor: "#1F2937",
-                borderRadius: "6px",
-                color: "white",
-                "& .MuiSelect-select": { padding: "8px 14px" },
-              }}
-              MenuProps={{
-                PaperProps: {
-                  sx: {
-                    backgroundColor: "#1F2937",
-                    color: "white",
-                    border: "1px solid #374151",
-                    "& .MuiMenuItem-root": {
-                      backgroundColor: "#1F2937",
-                      borderBottom: "1px solid #374151",
-                      fontSize: 12,
-                      "&:hover": { backgroundColor: "#374151" },
-                    },
-                  },
-                },
-              }}
-            >
-              <MenuItem value="">
-                <em style={{ fontSize: 14, color: "#9CA3AF", fontStyle: "normal" }}>
-                  Select station
-                </em>
-              </MenuItem>
-              {stationOptions.map((station, index) => (
-                <MenuItem key={index} value={station}>
-                  {station}
-                </MenuItem>
-              ))}
-            </Select>
-          </Box>
-
-          {/* Date */}
-          <Box display="flex" flexDirection="column" gap={1}>
-            <Typography variant="body2" sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF" }}>
-              Date
-            </Typography>
-            <TextField
-              type="date"
-              variant="outlined"
-              fullWidth
-              size="small"
-              value={formData.bookingDate}
-              onChange={(e) => handleInputChange("bookingDate", e.target.value)}
-              InputProps={{
-                sx: {
-                  backgroundColor: "#1F2937",
-                  borderRadius: "6px",
-                  color: "white",
-                  "&::-webkit-calendar-picker-indicator": { filter: "invert(1)" },
-                },
-              }}
-            />
-          </Box>
-
-          {/* Start Time */}
-          <Box display="flex" flexDirection="column" gap={1}>
-            <Typography variant="body2" sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF" }}>
-              Start Time
-            </Typography>
-            <Select
-              displayEmpty
-              value={formData.startTime}
-              onChange={(e) => handleInputChange("startTime", e.target.value)}
-              fullWidth
-              sx={{
-                backgroundColor: "#1F2937",
-                borderRadius: "6px",
-                color: "white",
-                "& .MuiSelect-select": { padding: "8px 14px" },
-              }}
-              MenuProps={{
-                PaperProps: {
-                  sx: {
-                    backgroundColor: "#1F2937",
-                    color: "white",
-                    border: "1px solid #374151",
-                  },
-                },
-              }}
-            >
-              <MenuItem value="">
-                <em style={{ fontSize: 14, color: "#9CA3AF", fontStyle: "normal" }}>
-                  Select time
-                </em>
-              </MenuItem>
-              <MenuItem value="12:00">12:00</MenuItem>
-              <MenuItem value="01:00">01:00</MenuItem>
-              <MenuItem value="01:30">01:30</MenuItem>
-              <MenuItem value="02:00">02:00</MenuItem>
-            </Select>
-          </Box>
-
-          {/* Duration */}
-          <Box display="flex" flexDirection="column" gap={1}>
-            <Typography variant="body2" sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF" }}>
-              Duration
-            </Typography>
-            <Select
-              displayEmpty
-              value={formData.duration}
-              onChange={(e) => handleInputChange("duration", e.target.value)}
-              fullWidth
-              sx={{
-                backgroundColor: "#1F2937",
-                borderRadius: "6px",
-                color: "white",
-                "& .MuiSelect-select": { padding: "8px 14px" },
-              }}
-              MenuProps={{
-                PaperProps: {
-                  sx: {
-                    backgroundColor: "#1F2937",
-                    color: "white",
-                    border: "1px solid #374151",
-                  },
-                },
-              }}
-            >
-              <MenuItem value="">
-                <em style={{ fontSize: 14, color: "#9CA3AF", fontStyle: "normal" }}>
-                  Select duration
-                </em>
-              </MenuItem>
-              <MenuItem value="30m">30 min</MenuItem>
-              <MenuItem value="1h 30m">1 hour 30 min</MenuItem>
-              <MenuItem value="2h">2 hour</MenuItem>
-              <MenuItem value="2h 30m">2 hour 30 min</MenuItem>
-            </Select>
-          </Box>
-        </Box>
-
-        {/* Booking Fee */}
-        <Box display="flex" mt={2} flexDirection="column" gap={1}>
-          <Typography variant="body2" sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF" }}>
-            Booking Fee
-          </Typography>
-          <Select
-            displayEmpty
-            defaultValue=""
-            fullWidth
-            sx={{
-              backgroundColor: "#1F2937",
-              borderRadius: "6px",
-              color: "white",
-              "& .MuiSelect-select": { padding: "8px 14px" },
-            }}
-          >
-            <MenuItem value="">
-              <em style={{ fontSize: 14, color: "#9CA3AF", fontStyle: "normal" }}>
-                Select payment method
-              </em>
-            </MenuItem>
-            <MenuItem value="cash">Cash</MenuItem>
-            <MenuItem value="card">Card</MenuItem>
-            <MenuItem value="transfer">Online Transfer</MenuItem>
-          </Select>
-        </Box>
-
-        {/* Amount */}
-        <Box mt={3} sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <Typography variant="h6" color="cyan">
-            Amount
-          </Typography>
-          <Typography variant="h6" color="cyan">
-            LKR 400
-          </Typography>
-        </Box>
-      </DialogContent>
-
-      {/* Buttons */}
-      <DialogActions sx={{ px: 2 }}>
-        <Button
-          onClick={handleCancelClick}
-          variant="contained"
-          sx={{
-            backgroundColor: "#1F2937",
-            width: "50%",
-            py: 1,
-            textTransform: "capitalize",
-            "&:hover": { bgcolor: "#374151" },
-          }}
-        >
-          Cancel
-        </Button>
-
-        <Button
-          onClick={handleCreateBooking}
-          disabled={loading}
-          variant="contained"
-          sx={{
-            width: "50%",
-            py: 1,
-            textTransform: "capitalize",
-            background: loading
-              ? "#374151"
-              : "linear-gradient(to right, #0CD7FF, #8A38F5)",
-            "&:hover": {
-              background: loading
-                ? "#374151"
-                : "linear-gradient(to right, #0bbfe0, #732ed1)",
-            },
-          }}
-        >
-          {loading ? "Creating..." : "Create Booking"}
-        </Button>
-      </DialogActions>
-
-      {/* Cancel Confirmation Dialog */}
+    <>
       <Dialog
-        open={cancelConfirm}
+        open={open}
+        onClose={handleClose}
+        fullWidth
+        maxWidth="sm"
         PaperProps={{
           sx: {
-            bgcolor: "#0A192F",
-            borderRadius: "16px",
-            py: 2,
-            px: 4,
-            textAlign: "center",
+            borderRadius: "12px",
+            backgroundColor: "#111827",
             color: "white",
-            border: "1px solid #3B4859",
+            py: 2,
           },
         }}
       >
-        <DialogContent>
-          <Box sx={{ mb: 1, display: "flex", justifyContent: "center" }}>
-            <img src="/images/cancel.png" alt="Cancel" width={80} />
+        {/* Header */}
+        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", px: 1 }}>
+          <DialogTitle sx={{ color: "#FFFFFF", fontSize: 18, fontWeight: "bold" }}>
+            Create New Booking
+          </DialogTitle>
+          <IconButton onClick={handleClose} sx={{ color: "#FFFFFF" }}>
+            <CloseIcon />
+          </IconButton>
+        </Box>
+
+        <DialogContent dividers sx={{ py: 0, pb: 2 }}>
+          {/* NFC */}
+          <Box display="flex" flexDirection="column" gap={1} mt={1}>
+            <Typography variant="body2" sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF" }}>
+              NFC Card Number
+            </Typography>
+
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <TextField
+                variant="outlined"
+                fullWidth
+                size="small"
+                placeholder="Enter NFC Card Number"
+                value={formData.nfcCardNumber}
+                onChange={(e) => handleInputChange("nfcCardNumber", e.target.value)}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <Box
+                        component="img"
+                        src="/images/nfc.png"
+                        alt="NFC"
+                        sx={{ width: 22, height: 22, cursor: "pointer" }}
+                        onClick={() => console.log("NFC icon clicked")}
+                      />
+                    </InputAdornment>
+                  ),
+                  sx: {
+                    backgroundColor: "#1F2937",
+                    borderRadius: "6px",
+                    "& input::placeholder": { color: "#9CA3AF", fontSize: "14px" },
+                    color: "white",
+                    fontWeight: 500,
+                  },
+                }}
+              />
+
+              {/* This is the + icon that opens the NFC dialog */}
+              <Box
+                sx={{
+                  width: 38,
+                  height: 38,
+                  backgroundColor: "#1F2937",
+                  borderRadius: "8px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "pointer",
+                  "&:hover": { backgroundColor: "#374151" },
+                }}
+                onClick={handleOpenNfcDialog} // This opens the NFC dialog
+              >
+                <AddIcon sx={{ color: "white", fontSize: 22 }} />
+              </Box>
+            </Box>
           </Box>
 
-          <Typography
-            variant="h6"
-            sx={{
-              background: "linear-gradient(90deg, #00C6FF, #FF00CC)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              fontSize: 20,
-              fontWeight: 600,
-              mb: 3,
-            }}
-          >
-            Are you want to cancel this?
-          </Typography>
+          {/* Rest of your form content remains the same */}
+          <Box display="grid" gridTemplateColumns={{ xs: "1fr", md: "1fr 1fr" }} gap={2} mt={2}>
+            {/* Customer Name */}
+            <Box display="flex" flexDirection="column" gap={1}>
+              <Typography variant="body2" sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF" }}>
+                Customer Name
+              </Typography>
+              <TextField
+                variant="outlined"
+                fullWidth
+                size="small"
+                placeholder="Enter customer name"
+                value={formData.customerName}
+                onChange={(e) => handleInputChange("customerName", e.target.value)}
+                InputProps={{
+                  sx: {
+                    backgroundColor: "#1F2937",
+                    borderRadius: "6px",
+                    "& input::placeholder": { color: "#9CA3AF", fontSize: "14px" },
+                    color: "white",
+                    fontWeight: 500,
+                  },
+                }}
+              />
+            </Box>
 
-          <Box sx={{ display: "flex", gap: 2, justifyContent: "center" }}>
-            <Button
-              onClick={handleConfirmCancel}
-              sx={{
-                px: 6,
-                fontSize: 14,
-                textTransform: "capitalize",
-                borderRadius: "8px",
-                background:
-                  "linear-gradient(90deg, rgba(12, 215, 255, 0.4) 0%, rgba(138, 56, 245, 0.4) 73%)",
-                color: "white",
-                "&:hover": {
-                  background: "linear-gradient(90deg, #0CD7FF 0%, #8A38F5 73%)",
-                },
-              }}
-            >
-              Yes
-            </Button>
+            {/* Phone */}
+            <Box display="flex" flexDirection="column" gap={1}>
+              <Typography variant="body2" sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF" }}>
+                Phone Number
+              </Typography>
+              <TextField
+                variant="outlined"
+                fullWidth
+                size="small"
+                placeholder="Enter Phone number (numbers only)"
+                value={formData.phoneNumber}
+                onChange={(e) => handleInputChange("phoneNumber", e.target.value)}
+                inputProps={{ inputMode: "numeric", pattern: "[0-9]*", maxLength: 15 }}
+                InputProps={{
+                  sx: {
+                    backgroundColor: "#1F2937",
+                    borderRadius: "6px",
+                    "& input::placeholder": { color: "#9CA3AF", fontSize: "14px" },
+                    color: "white",
+                    fontWeight: 500,
+                  },
+                }}
+              />
+            </Box>
 
-            <Button
-              onClick={() => setCancelConfirm(false)}
-              sx={{
-                px: 6,
-                fontSize: 14,
-                textTransform: "capitalize",
-                borderRadius: "8px",
-                background: "#1F2937",
-                color: "white",
-                "&:hover": { background: "#374151" },
-              }}
-            >
-              No
-            </Button>
+            {/* Station */}
+            <Box display="flex" flexDirection="column" gap={1}>
+              <Typography variant="body2" sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF" }}>
+                Station
+              </Typography>
+              <Select
+                displayEmpty
+                value={formData.station}
+                onChange={(e) => handleInputChange("station", e.target.value)}
+                fullWidth
+                sx={{
+                  backgroundColor: "#1F2937",
+                  borderRadius: "6px",
+                  color: "white",
+                  "& .MuiSelect-select": { padding: "8px 14px" },
+                }}
+                MenuProps={{
+                  PaperProps: {
+                    sx: {
+                      backgroundColor: "#1F2937",
+                      color: "white",
+                      border: "1px solid #374151",
+                      "& .MuiMenuItem-root": {
+                        backgroundColor: "#1F2937",
+                        borderBottom: "1px solid #374151",
+                        fontSize: 12,
+                        "&:hover": { backgroundColor: "#374151" },
+                      },
+                    },
+                  },
+                }}
+              >
+                <MenuItem value="">
+                  <em style={{ fontSize: 14, color: "#9CA3AF", fontStyle: "normal" }}>
+                    Select station
+                  </em>
+                </MenuItem>
+                {stationOptions.map((station, index) => (
+                  <MenuItem key={index} value={station}>
+                    {station}
+                  </MenuItem>
+                ))}
+              </Select>
+            </Box>
+
+            {/* Date */}
+            <Box display="flex" flexDirection="column" gap={1}>
+              <Typography variant="body2" sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF" }}>
+                Date
+              </Typography>
+              <TextField
+                type="date"
+                variant="outlined"
+                fullWidth
+                size="small"
+                value={formData.bookingDate}
+                onChange={(e) => handleInputChange("bookingDate", e.target.value)}
+                InputProps={{
+                  sx: {
+                    backgroundColor: "#1F2937",
+                    borderRadius: "6px",
+                    color: "white",
+                    "&::-webkit-calendar-picker-indicator": { filter: "invert(1)" },
+                  },
+                }}
+              />
+            </Box>
+
+            {/* Start Time */}
+            <Box display="flex" flexDirection="column" gap={1}>
+              <Typography variant="body2" sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF" }}>
+                Start Time
+              </Typography>
+              <Select
+                displayEmpty
+                value={formData.startTime}
+                onChange={(e) => handleInputChange("startTime", e.target.value)}
+                fullWidth
+                sx={{
+                  backgroundColor: "#1F2937",
+                  borderRadius: "6px",
+                  color: "white",
+                  "& .MuiSelect-select": { padding: "8px 14px" },
+                }}
+                MenuProps={{
+                  PaperProps: {
+                    sx: {
+                      backgroundColor: "#1F2937",
+                      color: "white",
+                      border: "1px solid #374151",
+                    },
+                  },
+                }}
+              >
+                <MenuItem value="">
+                  <em style={{ fontSize: 14, color: "#9CA3AF", fontStyle: "normal" }}>
+                    Select time
+                  </em>
+                </MenuItem>
+                <MenuItem value="12:00">12:00</MenuItem>
+                <MenuItem value="01:00">01:00</MenuItem>
+                <MenuItem value="01:30">01:30</MenuItem>
+                <MenuItem value="02:00">02:00</MenuItem>
+              </Select>
+            </Box>
+
+            {/* Duration */}
+            <Box display="flex" flexDirection="column" gap={1}>
+              <Typography variant="body2" sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF" }}>
+                Duration
+              </Typography>
+              <Select
+                displayEmpty
+                value={formData.duration}
+                onChange={(e) => handleInputChange("duration", e.target.value)}
+                fullWidth
+                sx={{
+                  backgroundColor: "#1F2937",
+                  borderRadius: "6px",
+                  color: "white",
+                  "& .MuiSelect-select": { padding: "8px 14px" },
+                }}
+                MenuProps={{
+                  PaperProps: {
+                    sx: {
+                      backgroundColor: "#1F2937",
+                      color: "white",
+                      border: "1px solid #374151",
+                    },
+                  },
+                }}
+              >
+                <MenuItem value="">
+                  <em style={{ fontSize: 14, color: "#9CA3AF", fontStyle: "normal" }}>
+                    Select duration
+                  </em>
+                </MenuItem>
+                <MenuItem value="30m">30 min</MenuItem>
+                <MenuItem value="1h 30m">1 hour 30 min</MenuItem>
+                <MenuItem value="2h">2 hour</MenuItem>
+                <MenuItem value="2h 30m">2 hour 30 min</MenuItem>
+              </Select>
+            </Box>
+          </Box>
+
+          {/* Amount */}
+          <Box mt={3} sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <Typography variant="h6" color="cyan">
+              Amount
+            </Typography>
+            <Typography variant="h6" color="cyan">
+              LKR 400
+            </Typography>
           </Box>
         </DialogContent>
+
+        {/* Buttons */}
+        <DialogActions sx={{ px: 2 }}>
+          <Button
+            onClick={handleCancelClick}
+            variant="contained"
+            sx={{
+              backgroundColor: "#1F2937",
+              width: "50%",
+              py: 1,
+              textTransform: "capitalize",
+              "&:hover": { bgcolor: "#374151" },
+            }}
+          >
+            Cancel
+          </Button>
+
+          <Button
+            onClick={handleCreateBooking}
+            disabled={loading}
+            variant="contained"
+            sx={{
+              width: "50%",
+              py: 1,
+              textTransform: "capitalize",
+              background: loading
+                ? "#374151"
+                : "linear-gradient(to right, #0CD7FF, #8A38F5)",
+              "&:hover": {
+                background: loading
+                  ? "#374151"
+                  : "linear-gradient(to right, #0bbfe0, #732ed1)",
+              },
+            }}
+          >
+            {loading ? "Creating..." : "Create Booking"}
+          </Button>
+        </DialogActions>
+
+        {/* Cancel Confirmation Dialog */}
+        <Dialog
+          open={cancelConfirm}
+          PaperProps={{
+            sx: {
+              bgcolor: "#0A192F",
+              borderRadius: "16px",
+              py: 2,
+              px: 4,
+              textAlign: "center",
+              color: "white",
+              border: "1px solid #3B4859",
+            },
+          }}
+        >
+          <DialogContent>
+            <Box sx={{ mb: 1, display: "flex", justifyContent: "center" }}>
+              <img src="/images/cancel.png" alt="Cancel" width={80} />
+            </Box>
+
+            <Typography
+              variant="h6"
+              sx={{
+                background: "linear-gradient(90deg, #00C6FF, #FF00CC)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                fontSize: 20,
+                fontWeight: 600,
+                mb: 3,
+              }}
+            >
+              Are you want to cancel this?
+            </Typography>
+
+            <Box sx={{ display: "flex", gap: 2, justifyContent: "center" }}>
+              <Button
+                onClick={handleConfirmCancel}
+                sx={{
+                  px: 6,
+                  fontSize: 14,
+                  textTransform: "capitalize",
+                  borderRadius: "8px",
+                  background:
+                    "linear-gradient(90deg, rgba(12, 215, 255, 0.4) 0%, rgba(138, 56, 245, 0.4) 73%)",
+                  color: "white",
+                  "&:hover": {
+                    background: "linear-gradient(90deg, #0CD7FF 0%, #8A38F5 73%)",
+                  },
+                }}
+              >
+                Yes
+              </Button>
+
+              <Button
+                onClick={() => setCancelConfirm(false)}
+                sx={{
+                  px: 6,
+                  fontSize: 14,
+                  textTransform: "capitalize",
+                  borderRadius: "8px",
+                  background: "#1F2937",
+                  color: "white",
+                  "&:hover": { background: "#374151" },
+                }}
+              >
+                No
+              </Button>
+            </Box>
+          </DialogContent>
+        </Dialog>
+
+        {/* SUCCESS DIALOG */}
+        <CreateSuccessDialog open={createSuccess} onClose={handleSuccessOk} />
       </Dialog>
 
-      {/* SUCCESS DIALOG — replaced with your reusable dialog */}
-      <CreateSuccessDialog open={createSuccess} onClose={handleSuccessOk} />
-
-    </Dialog>
+      {/* Add NFC User Dialog - This will open when + icon is clicked */}
+      <AddNFCUserDialog
+        open={nfcDialogOpen}
+        onClose={handleCloseNfcDialog}
+        onCreate={handleCreateNFCUser}
+        formData={nfcFormData}
+        setFormData={setNfcFormData}
+      />
+    </>
   );
 };
 

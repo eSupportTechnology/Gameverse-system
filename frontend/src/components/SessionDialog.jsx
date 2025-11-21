@@ -20,6 +20,9 @@ import EndSessionPopup from "../components/Endsession";
 import UpdateSuccessDialog from "../components/UpdateSuccess";
 import endSessionIcon from "../assets/q.png";
 
+// Import your arrow icon
+import arrowIcon from "../assets/end.png"; // Make sure to update the path to your PNG file
+
 // --- mock players with dummy data for all players ---
 const initialPlayers = [
   {
@@ -234,7 +237,7 @@ const InProgressBookingDialog = ({ open, onClose, onEndSession }) => {
                   position: "relative",
                   bgcolor: activeIndex === i ? "#00B8D4" : "#1E2535",
                   transition: "0.25s",
-                  "&:hover": { bgcolor: "#263145" },
+                  "&:hover": { bgcolor: "#00B8D4" },
                 }}
               >
                 {p.online && (
@@ -443,7 +446,7 @@ const InProgressBookingDialog = ({ open, onClose, onEndSession }) => {
             <Button
               onClick={handleUpdateTime}
               sx={{
-                minWidth: 200,
+                minWidth: 250,
                 height: 44,
                 borderRadius: 2,
                 background: "linear-gradient(90deg, #00A3FF 0%, #A044FF 100%)",
@@ -460,7 +463,7 @@ const InProgressBookingDialog = ({ open, onClose, onEndSession }) => {
             </Button>
           </Box>
 
-          {/* End Session button */}
+          {/* End Session button with PNG icon */}
           <Box sx={{ display: "flex", justifyContent: "center" }}>
             <Button
               onClick={handleEndSessionClick}
@@ -475,9 +478,22 @@ const InProgressBookingDialog = ({ open, onClose, onEndSession }) => {
                 textTransform: "none",
                 boxShadow: "0 6px 16px rgba(138,56,245,0.18)",
                 "&:hover": { opacity: 0.95 },
+                display: "flex",
+                alignItems: "center",
+                gap: 1,
               }}
             >
-              ▶︎ End Session
+              <Box
+                component="img"
+                src={arrowIcon}
+                alt="End Session"
+                sx={{
+                  width: 30,
+                  height: 30,
+                  filter: "brightness(0) invert(1)", // Makes the icon white
+                }}
+              />
+              End Session
             </Button>
           </Box>
         </DialogContent>

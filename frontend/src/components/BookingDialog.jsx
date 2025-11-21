@@ -221,7 +221,7 @@ const BookingDialog = ({ open, onClose, onEdit }) => {
                     transition: "0.2s ease",
                     position: "relative",
                     overflow: "visible", // This allows the dot to show outside
-                    "&:hover": { bgcolor: "#374151" },
+                    "&:hover": { bgcolor: "#00B8D4" },
                   }}
                 >
                   {/* Online indicator - Positioned at corner with reduced size and no border */}
@@ -388,17 +388,17 @@ const BookingDialog = ({ open, onClose, onEdit }) => {
             startIcon={<EditIcon />}
             onClick={handleEdit}
             sx={{
-              borderColor: "#0CD7FF",
-              color: "#0CD7FF",
+              borderColor: "#323e4fff",
+              color: "#eef3f4ff",
               textTransform: "none",
               borderRadius: "8px",
               fontWeight: "bold",
-              bgcolor: "#0CD7FF10",
+              bgcolor: "#1F2937",
               fontSize: "0.875rem",
               py: 1.5,
               "&:hover": {
-                borderColor: "#0CD7FF",
-                bgcolor: "#0CD7FF20",
+                borderColor: "#1F2937",
+                bgcolor: "#1F293720",
               },
             }}
           >
