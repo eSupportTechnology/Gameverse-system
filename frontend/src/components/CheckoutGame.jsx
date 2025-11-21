@@ -3,6 +3,7 @@ import { Box, Dialog, DialogTitle, DialogContent, DialogActions, Button, Typogra
 import CloseIcon from "@mui/icons-material/Close";
 import PaymentSuccess from '../assets/PaymentSuccess.png';
 import CancelPopup from './CancelPopup';
+import axios from 'axios';
 
 // unit price by method
 const methodUnitPrice = {
@@ -50,8 +51,10 @@ const CheckoutGame = ({ game, handleClose }) => {
   const discountNumber = Number(discount) || 0;
   const balance = fullAmount - discountNumber;
 
+  const token = localStorage.getItem('aToken');
+
   // handle checkout
-  const handlePay = () => {
+  const handlePay = async (gameId) => {
     const paymentData = {
       unitPrice: unitPrice,
       units: unitsNumber,
@@ -60,11 +63,20 @@ const CheckoutGame = ({ game, handleClose }) => {
       discount: discountNumber,
       balance: balance,
     };
-
-    console.log("Payment Data:", paymentData);
-
-    // Show success popup
-    setPaymentSuccess(true);
+    try {
+      await axios.post(
+        `http://127.0.0.1:8000/api/games/${gameId}/balance`,
+        { balance },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      setPaymentSuccess(true);
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   return (
@@ -185,7 +197,7 @@ const CheckoutGame = ({ game, handleClose }) => {
                 },
               }}
             />
-        </Box>
+          </Box>
 
           {/* Units */}
           <Box display="flex" justifyContent="space-between" mb={1.5}>
@@ -306,7 +318,7 @@ const CheckoutGame = ({ game, handleClose }) => {
 
         <DialogActions sx={{ px: 2 }}>
           <Button onClick={handleCancelOpen} variant="contained" sx={{ fontSize: 16, fontWeight: 'bold', backgroundColor: "#1F2937", width: '50%', py: 0.5 }}>Cancel</Button>
-          <Button onClick={handlePay} variant="contained" sx={{ fontSize: 16, fontWeight: 'bold', width: '50%', py: 0.5, background: "linear-gradient(to right, #0CD7FF, #8A38F5)" }}>Pay Now</Button>
+          <Button onClick={() => handlePay(game.id)} variant="contained" sx={{ fontSize: 16, fontWeight: 'bold', width: '50%', py: 0.5, background: "linear-gradient(to right, #0CD7FF, #8A38F5)" }}>Pay Now</Button>
         </DialogActions>
 
         {/* Payment Success */}

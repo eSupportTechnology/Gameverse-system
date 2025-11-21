@@ -84,4 +84,21 @@ class GameController extends Controller
         $game->delete();
         return response()->json(['message' => 'Game deleted successfully']);
     }
+
+    public function checkout(Request $request, $id)
+    {
+        $request->validate([
+            'balance' => 'required|integer|min:0',
+        ]);
+
+        $game = Game::findOrFail($id);
+
+        $game->balance = $request->balance;
+        $game->save();
+
+        return response()->json([
+            'message' => 'Balance updated successfully',
+            'data' => $game
+        ]);
+    }
 }
