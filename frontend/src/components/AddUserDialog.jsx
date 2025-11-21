@@ -90,7 +90,7 @@ export default function AddUserDialog({
       data.append("fullname", formData.fullname);
       data.append("contactNo", formData.contactNo);
       data.append("username", formData.username);
-      //data.append("email", formData.email);
+      data.append("email", formData.email);
       data.append("role", formData.role);
 
       // active_status always integer
@@ -151,7 +151,7 @@ export default function AddUserDialog({
         fullname: "",
         contactNo: "",
         username: "",
-        //email: "",
+        email: "",
         password: "",
         role: "operator",
         active_status: false,
@@ -331,8 +331,8 @@ export default function AddUserDialog({
           }}
         />
 
-        {/* <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-          email
+        <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+          Email
         </Typography>
         <TextField
           margin="dense"
@@ -350,7 +350,7 @@ export default function AddUserDialog({
               "& fieldset": { borderColor: "#334155" },
             },
           }}
-        /> */}
+        />
 
         <Typography variant="subtitle2">password</Typography>
         <TextField
