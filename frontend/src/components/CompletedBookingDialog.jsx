@@ -164,9 +164,9 @@ const CompletedBookingDialog = ({ open, onClose, onCollectPayment }) => {
             <CloseIcon />
           </IconButton>
         </Box>
-
+{/*
         <DialogContent sx={{ py: 0, pb: 3, px: 3 }}>
-          {/* Player Tabs - EXACT SAME as InProgressBookingDialog */}
+          
           <Box sx={{ display: "flex", gap: 1.5, mb: 3,mt:1.5 }}>
             {players.map((p, i) => (
               <Box
@@ -180,9 +180,9 @@ const CompletedBookingDialog = ({ open, onClose, onCollectPayment }) => {
                   borderRadius: "8px",
                   textAlign: "center",
                   position: "relative",
-                  bgcolor: activeIndex === i ? "#00B8D4" : "#1E2535",
+                  bgcolor: activeIndex === i ? "#00B8D4" : "transparent",
                   transition: "0.25s",
-                  "&:hover": { bgcolor: "#00B8D4" },
+                  "&:hover": { bgcolor: "transparent" },
                 }}
               >
                 {p.online && (
@@ -211,6 +211,54 @@ const CompletedBookingDialog = ({ open, onClose, onCollectPayment }) => {
               </Box>
             ))}
           </Box>
+*/}
+<DialogContent sx={{ py: 0, pb: 3, px: 3 }}>
+  
+  <Box sx={{ display: "flex", gap: 1.5, mb: 3, mt: 1.5 }}>
+    {players.map((p, i) => (
+      <Box
+        key={p.id}
+        onClick={() => setActiveIndex(i)}
+        sx={{
+          flex: 1,
+          cursor: "pointer",
+          border: "1px solid #2c5d88dc",
+          py: 1.2,
+          borderRadius: "8px",
+          textAlign: "center",
+          position: "relative",
+          bgcolor: activeIndex === i ? "#00B8D4" : "transparent",
+          transition: "0.25s",
+        }}
+      >
+        {p.online && (
+          <Box
+            sx={{
+              position: "absolute",
+              top: -3,
+              right: -3,
+              width: 10,
+              height: 10,
+              borderRadius: "50%",
+              bgcolor: "#00FF00",
+              boxShadow: "0 0 10px 3px rgba(0,255,0,0.6)",
+            }}
+          />
+        )}
+        <Typography
+          sx={{
+            color: "#fff",
+            fontWeight: activeIndex === i ? "bold" : "normal",
+            fontSize: "0.875rem",
+          }}
+        >
+          {p.name}
+        </Typography>
+      </Box>
+    ))}
+  </Box>
+
+
 
           {/* Status & Customer Info */}
           <Box sx={{ 

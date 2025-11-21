@@ -233,11 +233,10 @@ const InProgressBookingDialog = ({ open, onClose, onEndSession }) => {
                   py: 1.2,
                   borderRadius: "8px",
                   textAlign: "center",
-                  border: "1px solid  #2c5d88dc",
+                  border: "1px solid #2c5d88dc",
                   position: "relative",
                   bgcolor: activeIndex === i ? "#00B8D4" : "#1E2535",
                   transition: "0.25s",
-                  "&:hover": { bgcolor: "#00B8D4" },
                 }}
               >
                 {p.online && (
