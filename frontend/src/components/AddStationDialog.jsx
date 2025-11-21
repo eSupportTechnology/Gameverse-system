@@ -10,10 +10,10 @@ import {
   Box,
   Typography,
   IconButton,
-  // Divider,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import RemoveIcon from "@mui/icons-material/Remove";
+import AddIcon from "@mui/icons-material/Add";
 import CancelPopup from "./CancelPopup";
 import axios from "axios";
 import { toast } from "react-toastify";
@@ -29,6 +29,7 @@ export default function AddStationDialog({
   const [openCancelPopup, setOpenCancelPopup] = useState(false);
   const [createSuccess, setCreateSuccess] = useState(false);
   const [pendingPayload, setPendingPayload] = useState(null);
+  const [showVRPricing, setShowVRPricing] = useState(true);
 
   const handleOpenCancelPopup = () => setOpenCancelPopup(true);
   const handleCloseCancelPopup = () => setOpenCancelPopup(false);
@@ -36,6 +37,11 @@ export default function AddStationDialog({
   const handleConfirmCancel = () => {
     setOpenCancelPopup(false);
     onClose(); 
+  };
+
+  // Direct close without popup for close icon
+  const handleDirectClose = () => {
+    onClose();
   };
 
   const handleChange = (e) => {
@@ -61,22 +67,17 @@ export default function AddStationDialog({
     }
   };
 
-  // Remove normal pricing
-  const handleRemoveNormalPricing = () => {
-    setFormData((prev) => ({ 
-      ...prev, 
-      time: "", 
-      price: "" 
-    }));
-  };
-
-  // Remove VR pricing
-  const handleRemoveVRPricing = () => {
-    setFormData((prev) => ({ 
-      ...prev, 
-      vrTime: "", 
-      vrPrice: "" 
-    }));
+  // Toggle VR pricing visibility
+  const toggleVRPricing = () => {
+    if (showVRPricing) {
+      // Clear VR fields when hiding
+      setFormData((prev) => ({ 
+        ...prev, 
+        vrTime: "", 
+        vrPrice: "" 
+      }));
+    }
+    setShowVRPricing(!showVRPricing);
   };
 
   const handleSubmit = async () => {
@@ -160,6 +161,7 @@ export default function AddStationDialog({
       
       setCreateSuccess(false);
       setPendingPayload(null);
+      setShowVRPricing(true);
       onClose();
     } catch (err) {
       console.log(err);
@@ -175,7 +177,7 @@ export default function AddStationDialog({
     <>
       <Dialog
         open={open}
-        onClose={() => {}}
+        onClose={handleDirectClose} // Direct close without popup
         maxWidth="sm"
         fullWidth
         PaperProps={{
@@ -194,186 +196,205 @@ export default function AddStationDialog({
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
+            py: 1.5,
           }}
         >
           {isEditing ? "Edit Station" : "Add New Station"}
           <CloseIcon 
-            onClick={handleOpenCancelPopup} 
+            onClick={handleDirectClose} // Direct close without popup
             sx={{ color: "#94a3b8", cursor: "pointer" }} 
           />
         </DialogTitle>
 
-        <DialogContent>
+        <DialogContent sx={{ py: 1 }}>
           {/* Station Name */}
-          <Typography variant="subtitle2" sx={{ color: "#94a3b8", mb: 0.5 }}>
-            Station name
-          </Typography>
-          <TextField
-            select
-            margin="dense"
-            name="name"
-            value={formData.name || ""}
-            onChange={handleChange}
-            fullWidth
-            displayEmpty
-            sx={{
-              backgroundColor: "#1e293b4b",
-              "& .MuiOutlinedInput-root": {
-                borderRadius: "10px",
-                color: "white",
-                "& fieldset": { borderColor: "#334155" },
-                "&:hover fieldset": { borderColor: "#ffffff71" },
-                "& .MuiSelect-icon": { color: "#fff" },
-              },
-              "& .MuiSelect-select:empty": { color: "#94a3b8" },
-            }}
-            SelectProps={{
-              displayEmpty: true,
-              MenuProps: {
-                PaperProps: {
-                  sx: {
-                    backgroundColor: "#1e293b",
-                    color: "white",
-                    maxHeight: 300,
-                    "& .MuiMenuItem-root": {
+          <Box sx={{ mb: 1.5 }}>
+            <Typography variant="subtitle2" sx={{ color: "#94a3b8", mb: 0.5, fontSize: "0.8rem" }}>
+              Station name
+            </Typography>
+            <TextField
+              select
+              margin="dense"
+              name="name"
+              value={formData.name || ""}
+              onChange={handleChange}
+              fullWidth
+              displayEmpty
+              size="small"
+              sx={{
+                backgroundColor: "#1e293b4b",
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: "8px",
+                  color: "white",
+                  "& fieldset": { borderColor: "#334155" },
+                  "&:hover fieldset": { borderColor: "#ffffff71" },
+                  "& .MuiSelect-icon": { color: "#fff" },
+                },
+                "& .MuiSelect-select:empty": { color: "#94a3b8" },
+              }}
+              SelectProps={{
+                displayEmpty: true,
+                MenuProps: {
+                  PaperProps: {
+                    sx: {
                       backgroundColor: "#1e293b",
-                      borderBottom: "1px solid #334155",
-                      "&:hover": {
-                        backgroundColor: "#334155",
-                      },
-                      "&.Mui-selected": {
-                        backgroundColor: "#334155",
+                      color: "white",
+                      maxHeight: 300,
+                      "& .MuiMenuItem-root": {
+                        backgroundColor: "#1e293b",
+                        borderBottom: "1px solid #334155",
                         "&:hover": {
-                          backgroundColor: "#475569",
+                          backgroundColor: "#334155",
+                        },
+                        "&.Mui-selected": {
+                          backgroundColor: "#334155",
+                          "&:hover": {
+                            backgroundColor: "#475569",
+                          },
                         },
                       },
                     },
                   },
                 },
-              },
-            }}
-          >
-            <MenuItem value="" disabled>
-              <em style={{ color: "#94a3b8", fontStyle: "normal" }}>Select Station</em>
-            </MenuItem>
-            {/* PS5 Stations */}
-            <MenuItem value="PS5 Station 1">PS5 Station 1</MenuItem>
-            <MenuItem value="PS5 Station 2">PS5 Station 2</MenuItem>
-            <MenuItem value="PS5 Station 3">PS5 Station 3</MenuItem>
-            <MenuItem value="PS5 Station 4">PS5 Station 4</MenuItem>
-            <MenuItem value="PS5 Station 5">PS5 Station 5</MenuItem>
-            
-            {/* Racing Simulators */}
-            <MenuItem value="Racing Simulator 1">Racing Simulator 1</MenuItem>
-            <MenuItem value="Racing Simulator 2">Racing Simulator 2</MenuItem>
-            <MenuItem value="Racing Simulator 3">Racing Simulator 3</MenuItem>
-            <MenuItem value="Racing Simulator 4">Racing Simulator 4</MenuItem>
-            
-            {/* Supreme Billiards */}
-            <MenuItem value="Supreme Billiard 1">Supreme Billiard 1</MenuItem>
-            <MenuItem value="Supreme Billiard 2">Supreme Billiard 2</MenuItem>
-            
-            {/* Premium Billiards */}
-            <MenuItem value="Premium Billiard 1">Premium Billiard 1</MenuItem>
-            <MenuItem value="Premium Billiard 2">Premium Billiard 2</MenuItem>
-            <MenuItem value="Premium Billiard 3">Premium Billiard 3</MenuItem>
-            
-            {/* Additional options from original code */}
-            <MenuItem value="PS5+VR">PS5+VR</MenuItem>
-            <MenuItem value="8 Ball Pool (Supreme)">8 Ball Pool (Supreme)</MenuItem>
-            <MenuItem value="8 Ball Pool (Premium)">8 Ball Pool (Premium)</MenuItem>
-            <MenuItem value="CRS+VR (PS V R2)">CRS+VR (PS V R2)</MenuItem>
-            <MenuItem value="Car Racing Simulator">Car Racing Simulator</MenuItem>
-          </TextField>
+              }}
+            >
+              <MenuItem value="" disabled>
+                <em style={{ color: "#94a3b8", fontStyle: "normal" }}>Select Station</em>
+              </MenuItem>
+              {/* PS5 Stations */}
+              <MenuItem value="PS5 Station 1">PS5 Station 1</MenuItem>
+              <MenuItem value="PS5 Station 2">PS5 Station 2</MenuItem>
+              <MenuItem value="PS5 Station 3">PS5 Station 3</MenuItem>
+              <MenuItem value="PS5 Station 4">PS5 Station 4</MenuItem>
+              <MenuItem value="PS5 Station 5">PS5 Station 5</MenuItem>
+              
+              {/* Racing Simulators */}
+              <MenuItem value="Racing Simulator 1">Racing Simulator 1</MenuItem>
+              <MenuItem value="Racing Simulator 2">Racing Simulator 2</MenuItem>
+              <MenuItem value="Racing Simulator 3">Racing Simulator 3</MenuItem>
+              <MenuItem value="Racing Simulator 4">Racing Simulator 4</MenuItem>
+              
+              {/* Supreme Billiards */}
+              <MenuItem value="Supreme Billiard 1">Supreme Billiard 1</MenuItem>
+              <MenuItem value="Supreme Billiard 2">Supreme Billiard 2</MenuItem>
+              
+              {/* Premium Billiards */}
+              <MenuItem value="Premium Billiard 1">Premium Billiard 1</MenuItem>
+              <MenuItem value="Premium Billiard 2">Premium Billiard 2</MenuItem>
+              <MenuItem value="Premium Billiard 3">Premium Billiard 3</MenuItem>
+              
+              {/* Additional options from original code */}
+              <MenuItem value="PS5+VR">PS5+VR</MenuItem>
+              <MenuItem value="8 Ball Pool (Supreme)">8 Ball Pool (Supreme)</MenuItem>
+              <MenuItem value="8 Ball Pool (Premium)">8 Ball Pool (Premium)</MenuItem>
+              <MenuItem value="CRS+VR (PS V R2)">CRS+VR (PS V R2)</MenuItem>
+              <MenuItem value="Car Racing Simulator">Car Racing Simulator</MenuItem>
+            </TextField>
+          </Box>
 
-          {/* Category */}
-          <Typography variant="subtitle2" sx={{ color: "#94a3b8", mb: 0.5 }}>
-            Category
-          </Typography>
-          <TextField
-            select
-            margin="dense"
-            name="type"
-            value={formData.type || ""}
-            onChange={handleChange}
-            fullWidth
-            displayEmpty
-            sx={{
-              mb: 2,
-              backgroundColor: "#1e293b4b",
-              "& .MuiOutlinedInput-root": {
-                borderRadius: "10px",
+          {/* Category - Updated to be like Station Name */}
+          <Box sx={{ mb: 1.5 }}>
+            <Typography variant="subtitle2" sx={{ color: "#94a3b8", mb: 0.5, fontSize: "0.8rem" }}>
+              Category
+            </Typography>
+            <TextField
+              select
+              margin="dense"
+              name="type"
+              value={formData.type || ""}
+              onChange={handleChange}
+              fullWidth
+              displayEmpty
+              size="small"
+              sx={{
                 backgroundColor: "#1e293b4b",
-                color: "white",
-                "& fieldset": { borderColor: "#809fcd4e" },
-                "&:hover fieldset": { borderColor: "#ffffff71", background: "#172336ff" },
-                "& .MuiSelect-icon": { color: "#fff" },
-              },
-              "& .MuiSelect-select:empty": { color: "#94a3b8" },
-            }}
-          >
-            <MenuItem value="PlayStation">PlayStation</MenuItem>
-            <MenuItem value="Pool">Pool</MenuItem>
-            <MenuItem value="Simulator">Simulator</MenuItem>
-          </TextField>
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: "8px",
+                  color: "white",
+                  "& fieldset": { borderColor: "#334155" },
+                  "&:hover fieldset": { borderColor: "#ffffff71" },
+                  "& .MuiSelect-icon": { color: "#fff" },
+                },
+                "& .MuiSelect-select:empty": { color: "#94a3b8" },
+              }}
+              SelectProps={{
+                displayEmpty: true,
+                MenuProps: {
+                  PaperProps: {
+                    sx: {
+                      backgroundColor: "#1e293b",
+                      color: "white",
+                      maxHeight: 300,
+                      "& .MuiMenuItem-root": {
+                        backgroundColor: "#1e293b",
+                        borderBottom: "1px solid #334155",
+                        "&:hover": {
+                          backgroundColor: "#334155",
+                        },
+                        "&.Mui-selected": {
+                          backgroundColor: "#334155",
+                          "&:hover": {
+                            backgroundColor: "#475569",
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              }}
+            >
+              <MenuItem value="" disabled>
+                <em style={{ color: "#94a3b8", fontStyle: "normal" }}>Select Category</em>
+              </MenuItem>
+              <MenuItem value="PlayStation">PlayStation</MenuItem>
+              <MenuItem value="Pool">Pool</MenuItem>
+              <MenuItem value="Simulator">Simulator</MenuItem>
+            </TextField>
+          </Box>
 
-          {/* Location */}
-          <Typography variant="subtitle2" sx={{ color: "#94a3b8", mb: 0.5 }}>
-            Location
-          </Typography>
-          <TextField
-            margin="dense"
-            name="location"
-            value={formData.location}
-            onChange={handleChange}
-            fullWidth
-            placeholder="Zone A, Zone B, ...etc"
-            sx={{
-              mb: 3,
-              backgroundColor: "#1e293b4b",
-              "& .MuiOutlinedInput-root": {
-                borderRadius: "10px",
-                color: "white",
-                "& fieldset": { borderColor: "#334155" },
-                "&:hover fieldset": { borderColor: "#ffffff71" },
-              },
-              "& .MuiInputBase-input::placeholder": {
-                color: "#94a3b8",
-                opacity: 1,
-              },
-            }}
-          />
+          {/* Location - Fixed placeholder visibility */}
+          <Box sx={{ mb: 2 }}>
+            <Typography variant="subtitle2" sx={{ color: "#94a3b8", mb: 0.5, fontSize: "0.8rem" }}>
+              Location
+            </Typography>
+            <TextField
+              margin="dense"
+              name="location"
+              value={formData.location}
+              onChange={handleChange}
+              fullWidth
+              size="small"
+              placeholder="Zone A, Zone B, ...etc"
+              sx={{
+                backgroundColor: "#1e293b4b",
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: "8px",
+                  color: "white",
+                  "& fieldset": { borderColor: "#334155" },
+                  "&:hover fieldset": { borderColor: "#ffffff71" },
+                },
+                "& .MuiInputBase-input::placeholder": {
+                  color: "#94a3b8",
+                  opacity: 1,
+                },
+              }}
+              inputProps={{
+                style: { color: 'white' },
+              }}
+            />
+          </Box>
 
           {/* Pricing Details (Normal) */}
-          <Box sx={{ mb: 1 }}>
-  <Typography variant="subtitle2" sx={{ color: "#94a3b8" }}>
-    Pricing Details (Normal)
-  </Typography>
-</Box>
+          <Box sx={{ mb: 1.5 }}>
+            <Typography variant="subtitle2" sx={{ color: "#94a3b8", fontSize: "0.8rem" }}>
+              Pricing Details (Normal)
+            </Typography>
+          </Box>
 
-          
-          
-          
-          
-          
-          
-          
-          
-          
-          
-          
-          
-          
-          
-          
-          
-          
-          
-          
-          <Box display="flex" gap={2} mb={3}>
+          <Box display="flex" gap={1.5} mb={2.5}>
             {/* Time */}
             <Box flex={1}>
-              <Typography variant="subtitle2" sx={{ color: "#f3f4f5ff", mb: 0.5 }}>
+              <Typography variant="subtitle2" sx={{ color: "#f3f4f5ff", mb: 0.5, fontSize: "0.8rem" }}>
                 Time
               </Typography>
               <TextField
@@ -384,10 +405,11 @@ export default function AddStationDialog({
                 onChange={handleTimeChange}
                 fullWidth
                 displayEmpty
+                size="small"
                 sx={{
                   backgroundColor: "#1e293b4b",
                   "& .MuiOutlinedInput-root": {
-                    borderRadius: "10px",
+                    borderRadius: "8px",
                     backgroundColor: "#1e293b4b",
                     color: "white",
                     "& fieldset": { borderColor: "#809fcd4e" },
@@ -432,9 +454,9 @@ export default function AddStationDialog({
               </TextField>
             </Box>
 
-            {/* Price */}
+            {/* Price - Fixed placeholder visibility */}
             <Box flex={1}>
-              <Typography variant="subtitle2" sx={{ color: "#f3f4f5ff", mb: 0.5 }}>
+              <Typography variant="subtitle2" sx={{ color: "#f3f4f5ff", mb: 0.5, fontSize: "0.8rem" }}>
                 Price
               </Typography>
               <TextField
@@ -444,11 +466,12 @@ export default function AddStationDialog({
                 value={formData.price}
                 onChange={handlePriceChange}
                 fullWidth
+                size="small"
                 placeholder="LKR 000"
                 sx={{
                   backgroundColor: "#1e293b4b",
                   "& .MuiOutlinedInput-root": {
-                    borderRadius: "10px",
+                    borderRadius: "8px",
                     color: "white",
                     "& fieldset": { borderColor: "#334155" },
                     "&:hover fieldset": { borderColor: "#ffffff71" },
@@ -458,123 +481,138 @@ export default function AddStationDialog({
                     opacity: 1,
                   },
                 }}
+                inputProps={{
+                  style: { color: 'white' },
+                }}
               />
             </Box>
           </Box>
 
-          {/* Pricing Details (+VR) */}
+          {/* VR Pricing Section */}
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-            <Typography variant="subtitle2" sx={{ color: "#94a3b8" }}>
+            <Typography variant="subtitle2" sx={{ color: "#94a3b8", fontSize: "0.8rem" }}>
               Pricing Details (+VR)
             </Typography>
             <IconButton
-              onClick={handleRemoveVRPricing}
+              onClick={toggleVRPricing}
               sx={{
-
                 backgroundColor: "#374151",
                 borderRadius: "50%",
-                width: 32,
-                height: 32,
+                width: 28,
+                height: 28,
                 "&:hover": {
                   backgroundColor: "#4B5563",
                 },
               }}
             >
-              <RemoveIcon sx={{ color: "#94a3b8", fontSize: 20 }} />
+              {/* Toggle between PLUS and MINUS icons */}
+              {showVRPricing ? (
+                <RemoveIcon sx={{ color: "#94a3b8", fontSize: 18 }} />
+              ) : (
+                <AddIcon sx={{ color: "#94a3b8", fontSize: 18 }} />
+              )}
             </IconButton>
           </Box>
-          
-          <Box display="flex" gap={2}>
-            {/* Time */}
-            <Box flex={1}>
-              <Typography variant="subtitle2" sx={{ color: "#f3f4f5ff", mb: 0.5 }}>
-                Time
-              </Typography>
-              <TextField
-                select
-                margin="dense"
-                name="vrTime"
-                value={formData.vrTime || ""}
-                onChange={(e) => handleTimeChange(e, "vr")}
-                fullWidth
-                displayEmpty
-                sx={{
-                  backgroundColor: "#1e293b4b",
-                  "& .MuiOutlinedInput-root": {
-                    borderRadius: "10px",
+
+          {/* Show VR Pricing fields only when visible */}
+          {showVRPricing && (
+            <Box display="flex" gap={1.5} mb={1}>
+              {/* VR Time */}
+              <Box flex={1}>
+                <Typography variant="subtitle2" sx={{ color: "#f3f4f5ff", mb: 0.5, fontSize: "0.8rem" }}>
+                  Time
+                </Typography>
+                <TextField
+                  select
+                  margin="dense"
+                  name="vrTime"
+                  value={formData.vrTime || ""}
+                  onChange={(e) => handleTimeChange(e, "vr")}
+                  fullWidth
+                  displayEmpty
+                  size="small"
+                  sx={{
                     backgroundColor: "#1e293b4b",
-                    color: "white",
-                    "& fieldset": { borderColor: "#809fcd4e" },
-                    "&:hover fieldset": { borderColor: "#ffffff71" },
-                    "& .MuiSelect-icon": { color: "#fff" },
-                  },
-                  "& .MuiSelect-select:empty": { color: "#94a3b8" },
-                }}
-                SelectProps={{
-                  displayEmpty: true,
-                  MenuProps: {
-                    PaperProps: {
-                      sx: {
-                        backgroundColor: "#1e293b",
-                        color: "white",
-                        maxHeight: 300,
-                        "& .MuiMenuItem-root": {
+                    "& .MuiOutlinedInput-root": {
+                      borderRadius: "8px",
+                      backgroundColor: "#1e293b4b",
+                      color: "white",
+                      "& fieldset": { borderColor: "#809fcd4e" },
+                      "&:hover fieldset": { borderColor: "#ffffff71" },
+                      "& .MuiSelect-icon": { color: "#fff" },
+                    },
+                    "& .MuiSelect-select:empty": { color: "#94a3b8" },
+                  }}
+                  SelectProps={{
+                    displayEmpty: true,
+                    MenuProps: {
+                      PaperProps: {
+                        sx: {
                           backgroundColor: "#1e293b",
-                          borderBottom: "1px solid #334155",
-                          "&:hover": {
-                            backgroundColor: "#334155",
-                          },
-                          "&.Mui-selected": {
-                            backgroundColor: "#334155",
+                          color: "white",
+                          maxHeight: 300,
+                          "& .MuiMenuItem-root": {
+                            backgroundColor: "#1e293b",
+                            borderBottom: "1px solid #334155",
                             "&:hover": {
-                              backgroundColor: "#475569",
+                              backgroundColor: "#334155",
+                            },
+                            "&.Mui-selected": {
+                              backgroundColor: "#334155",
+                              "&:hover": {
+                                backgroundColor: "#475569",
+                              },
                             },
                           },
                         },
                       },
                     },
-                  },
-                }}
-              >
-                <MenuItem value="" disabled>
-                  <em style={{ color: "#94a3b8", fontStyle: "normal" }}>30 Min</em>
-                </MenuItem>
-                <MenuItem value="00:30">30 Min</MenuItem>
-                <MenuItem value="01:00">1 Hour</MenuItem>
-                <MenuItem value="01:30">1 Hour 30 Min</MenuItem>
-                <MenuItem value="02:00">2 Hours</MenuItem>
-              </TextField>
-            </Box>
+                  }}
+                >
+                  <MenuItem value="" disabled>
+                    <em style={{ color: "#94a3b8", fontStyle: "normal" }}>30 Min</em>
+                  </MenuItem>
+                  <MenuItem value="00:30">30 Min</MenuItem>
+                  <MenuItem value="01:00">1 Hour</MenuItem>
+                  <MenuItem value="01:30">1 Hour 30 Min</MenuItem>
+                  <MenuItem value="02:00">2 Hours</MenuItem>
+                </TextField>
+              </Box>
 
-            {/* Price */}
-            <Box flex={1}>
-              <Typography variant="subtitle2" sx={{ color: "#f3f4f5ff", mb: 0.5 }}>
-                Price
-              </Typography>
-              <TextField
-                margin="dense"
-                name="vrPrice"
-                type="number"
-                value={formData.vrPrice}
-                onChange={(e) => handlePriceChange(e, "vr")}
-                fullWidth
-                placeholder="LKR 000"
-                sx={{
-                  backgroundColor: "#1e293b4b",
-                  "& .MuiOutlinedInput-root": {
-                    borderRadius: "10px",
-                    color: "white",
-                    "& fieldset": { borderColor: "#334155" },
-                    "&:hover fieldset": { borderColor: "#ffffff71" },
-                  },
-                  "& .MuiInputBase-input::placeholder": {
-                    color: "#94a3b8",
-                    opacity: 1,
-                  },
-                }}
-              />
+              {/* VR Price - Fixed placeholder visibility */}
+              <Box flex={1}>
+                <Typography variant="subtitle2" sx={{ color: "#f3f4f5ff", mb: 0.5, fontSize: "0.8rem" }}>
+                  Price
+                </Typography>
+                <TextField
+                  margin="dense"
+                  name="vrPrice"
+                  type="number"
+                  value={formData.vrPrice}
+                  onChange={(e) => handlePriceChange(e, "vr")}
+                  fullWidth
+                  size="small"
+                  placeholder="LKR 000"
+                  sx={{
+                    backgroundColor: "#1e293b4b",
+                    "& .MuiOutlinedInput-root": {
+                      borderRadius: "8px",
+                      color: "white",
+                      "& fieldset": { borderColor: "#334155" },
+                      "&:hover fieldset": { borderColor: "#ffffff71" },
+                    },
+                    "& .MuiInputBase-input::placeholder": {
+                      color: "#94a3b8",
+                      opacity: 1,
+                    },
+                  }}
+                  inputProps={{
+                    style: { color: 'white' },
+                  }}
+                />
+              </Box>
             </Box>
-          </Box>
+          )}
         </DialogContent>
 
         <DialogActions
@@ -586,12 +624,12 @@ export default function AddStationDialog({
               background: "#1e293b",
               color: "white",
               px: 3,
-              py: 1,
+              py: 0.8,
               borderRadius: "8px",
               border: "0.3px solid #809fcd4e",
               fontWeight: 500,
-              fontSize: "20px",
-              width: "270px",
+              fontSize: "16px",
+              width: "48%",
               "&:hover": { background: "#334155" },
             }}
           >
@@ -603,11 +641,11 @@ export default function AddStationDialog({
               background: "linear-gradient(90deg,#33B2F7,#CF36E1)",
               color: "#fff",
               px: 3,
-              py: 1,
+              py: 0.8,
               borderRadius: "8px",
-              fontSize: "20px",
+              fontSize: "16px",
               border: "0.3px solid #809fcd4e",
-              width: "270px",
+              width: "48%",
               fontWeight: "600",
               "&:hover": { opacity: 0.9 },
             }}

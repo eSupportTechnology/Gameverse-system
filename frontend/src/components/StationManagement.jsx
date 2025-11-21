@@ -97,7 +97,7 @@ export default function StationManagement() {
     setStations((prev) =>
       prev.map((s) =>
         s.id === id
-          ? { ...s, status: s.status === "Available" ? "Playing" : "Available" }
+          ? { ...s, status: s.status === "Available" ? "Offline" : "Available" }
           : s
       )
     );
@@ -182,7 +182,7 @@ export default function StationManagement() {
               <Typography variant="body2">Available</Typography>
             </Box>
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              <Box sx={{ width: 10, height: 10, borderRadius: "50%", backgroundColor: "#B26DFF" }} />
+              <Box sx={{ width: 10, height: 10, borderRadius: "50%", backgroundColor: "#9A60E8BF" }} />
               <Typography variant="body2">Playing</Typography>
             </Box>
 
