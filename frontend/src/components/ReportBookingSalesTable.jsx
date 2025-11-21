@@ -1,5 +1,17 @@
-import React, { useState, useEffect } from "react";
-import { Box, Typography, Tabs, Tab, Button, IconButton } from "@mui/material";
+import React, { useState, useEffect, useRef } from "react";
+import {
+  Box,
+  Typography,
+  Tabs,
+  Tab,
+  Button,
+  IconButton,
+  Menu,
+  MenuItem,
+  Popper,
+  Paper,
+  ClickAwayListener,
+} from "@mui/material";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import ReportProductSalesTable from "./ReportProductSalesTable";
@@ -13,7 +25,6 @@ const ReportBookingSalesTable = ({
 }) => {
   const [activeTab, setActiveTab] = useState(activeTabFromParent);
 
-  // When parent changes tab (via quick actions), update it
   useEffect(() => {
     setActiveTab(activeTabFromParent);
   }, [activeTabFromParent]);
@@ -26,6 +37,37 @@ const ReportBookingSalesTable = ({
     "NFC Customers",
   ];
 
+  const [anchorEl, setAnchorEl] = useState(null);
+  const anchorRef = useRef(null);
+  const [selectedStation, setSelectedStation] = useState("PS5 Station 1");
+
+  const stations = [
+    "PS5 Station 1",
+    "PS5 Station 2",
+    "PS5 Station 3",
+    "PS5 Station 4",
+    "PS5 Station 5",
+    "Racing Simulator 1",
+    "Racing Simulator 2",
+    "Racing Simulator 3",
+    "Racing Simulator 4",
+    "Supreme Billiard 1",
+    "Supreme Billiard 2",
+    "Premium Billiard 1",
+    "Premium Billiard 2",
+    "Premium Billiard 3",
+  ];
+
+  const handleDropdownClick = (event) => {
+    setAnchorEl(anchorEl ? null : event.currentTarget);
+  };
+
+  const handleDropdownClose = () => setAnchorEl(null);
+
+  const handleDropdownSelect = (item) => {
+    setSelectedStation(item);
+    setAnchorEl(null);
+  };
   const tableHeaderStyle = {
     backgroundColor: "#0E4450",
     color: "#fff",
@@ -111,7 +153,7 @@ const ReportBookingSalesTable = ({
   // Handle export functionality
   const handleExport = () => {
     toast.info("Exporting report data...");
-    // Export logic would go here
+    // Export logic 
     setTimeout(() => {
       toast.success("Report exported successfully!");
     }, 1000);
@@ -157,7 +199,7 @@ const ReportBookingSalesTable = ({
           </Typography>
         </Box>
 
-        {/* Right Buttons — Export Only */}
+        {/* Right Buttons */}
         <Box
           sx={{
             display: "flex",
@@ -292,20 +334,104 @@ const ReportBookingSalesTable = ({
           </Box>
 
           {/* Station Dropdown */}
-          <Box
-            sx={{
-              px: 2,
-              py: 1,
-              borderRadius: "8px",
-              backgroundColor: "#0F172A",
-              border: "1px solid #1e293b",
-              display: "flex",
-              alignItems: "center",
-              gap: 1,
-              color: "#fff",
-            }}
-          >
-            PS5 Station 1 <ArrowDropDownIcon />
+          <Box sx={{ position: "relative" }}>
+            <Box
+              ref={anchorRef}
+              onClick={handleDropdownClick}
+              sx={{
+                px: 2,
+                py: 1,
+                borderRadius: "8px",
+                backgroundColor: "#1F2937",
+                border: "1px solid #1e293b",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                color: "#fff",
+                cursor: "pointer",
+                minWidth: "120px",
+                fontSize: "14px",
+                boxShadow: "0px 2px 6px rgba(0,0,0,0.35)",
+              }}
+            >
+              {selectedStation}
+              <ArrowDropDownIcon />
+            </Box>
+
+            {/* POPPER DROPDOWN */}
+            <Popper
+              open={Boolean(anchorEl)}
+              anchorEl={anchorEl}
+              placement="bottom"
+              modifiers={[
+                {
+                  name: "offset",
+                  options: { offset: [0, 5] },
+                },
+              ]}
+              sx={{ zIndex: 9999 }}
+            >
+              <ClickAwayListener onClickAway={handleDropdownClose}>
+                <Box sx={{ position: "relative" }}>
+                  {/* ARROW (TRIANGLE) */}
+                  <Box
+                    sx={{
+                      position: "absolute",
+                      top: "-10px",
+                      right: "15px",  
+                      width: 0,
+                      height: 0,
+                      borderLeft: "8px solid transparent",
+                      borderRight: "8px solid transparent",
+                      borderBottom: "10px solid #0F172A", 
+                      filter: "drop-shadow(0px -2px 2px rgba(0,0,0,0.4))",
+                    }}
+                  />
+
+                  {/* DROPDOWN PANEL */}
+                  <Paper
+                    sx={{
+                      mt: 1,
+                      backgroundColor: "#0F172A",
+                      color: "#fff",
+                      width: "158px",
+                      maxHeight: "450px",
+                      overflowY: "auto",
+                      borderRadius: "4px",
+                      boxShadow:
+                        "0px 4px 12px rgba(0,0,0,0.45), inset 0px 0px 0px 0px #1e293b",
+                      "&::-webkit-scrollbar": {
+                        width: "6px",
+                      },
+                      "&::-webkit-scrollbar-thumb": {
+                        background: "#334155",
+                        borderRadius: "4px",
+                      },
+                    }}
+                  >
+                    {stations.map((item, index) => (
+                      <Box
+                        key={index}
+                        onClick={() => handleDropdownSelect(item)}
+                        sx={{
+                          padding: "10px 14px",
+                          borderBottom: "1px solid #1e293b",
+                          fontSize: "14px",
+                          fontFamily: "Inter",
+                          fontWeight: "500px",
+                          cursor: "pointer",
+                          "&:hover": {
+                            backgroundColor: "#1e293b",
+                          },
+                        }}
+                      >
+                        {item}
+                      </Box>
+                    ))}
+                  </Paper>
+                </Box>
+              </ClickAwayListener>
+            </Popper>
           </Box>
         </Box>
       </Box>
@@ -341,8 +467,6 @@ const ReportBookingSalesTable = ({
                   display: "grid",
                   gridTemplateColumns: "2fr 2fr 1fr 1fr 1fr",
                   borderBottom: "1px solid #1F2937",
-
-                  // Column borders
                   "& > div": {
                     borderRight: "1px solid #1F2937",
                     "&:last-child": { borderRight: "none" },
@@ -365,8 +489,6 @@ const ReportBookingSalesTable = ({
                     borderBottom: "1px solid #1F2937",
 
                     "&:hover": { backgroundColor: "#1a2433" },
-
-                    // Column borders inside rows
                     "& > div": {
                       borderRight: "1px solid #1F2937",
                       "&:last-child": { borderRight: "none" },

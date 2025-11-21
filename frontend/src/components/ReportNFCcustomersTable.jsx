@@ -104,8 +104,6 @@ const ReportNFCcustomersTable = () => {
             display: "grid",
             gridTemplateColumns: "1fr 1fr 1fr 1fr",
             borderBottom: "1px solid #1F2937",
-
-            // Column borders
             "& > div": {
               borderRight: "1px solid #1F2937",
               "&:last-child": { borderRight: "none" },
@@ -128,8 +126,6 @@ const ReportNFCcustomersTable = () => {
               borderBottom: "1px solid #1F2937",
 
               "&:hover": { backgroundColor: "#1a2433" },
-
-              // Column borders inside rows
               "& > div": {
                 borderRight: "1px solid #1F2937",
                 "&:last-child": { borderRight: "none" },

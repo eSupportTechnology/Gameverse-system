@@ -6,10 +6,7 @@ const ReportQuickActions = ({ onActionClick }) => {
     { label: "Booking Sales", icon: "/images/report Icon/group.png" },
     { label: "Product Sales", icon: "/images/report Icon/vector.png" },
     { label: "Other Games Sales", icon: "/images/report Icon/otherGames.png" },
-    {
-      label: "NFC Customers",
-      icon: "/images/report Icon/newCostumersIcon.png",
-    },
+    { label: "NFC Customers", icon: "/images/report Icon/newCostumersIcon.png" },
   ];
 
   return (
@@ -56,19 +53,19 @@ const ReportQuickActions = ({ onActionClick }) => {
               },
             }}
           >
-            {/* Icon fixed to left corner */}
+            {/* Icon-left corner */}
             <img
               src={item.icon}
               width={22}
               style={{
                 position: "absolute",
-                left: 30, // same padding as Figma
+                left: 30,
                 top: "50%",
                 transform: "translateY(-50%)",
               }}
             />
 
-            {/* Text stays perfectly centered */}
+            {/* Text */}
             <span style={{ width: "100%", textAlign: "center" }}>
               {item.label}
             </span>

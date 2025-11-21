@@ -28,7 +28,7 @@ const ReportsManagement = () => {
   // Handle export functionality
   const handleExport = () => {
     toast.info("Exporting report data...");
-    // Export logic would go here
+    // Export logic 
     setTimeout(() => {
       toast.success("Report exported successfully!");
     }, 1000);
@@ -52,7 +52,7 @@ const ReportsManagement = () => {
 
   const currentData = getCurrentData();
 
-  // Metric cards data - now using data from assets.js
+  // Metric cards data 
   const metrics = [
     {
       id: 1,
@@ -61,7 +61,7 @@ const ReportsManagement = () => {
       value: "LKR 15,800",
       // value: `LKR ${currentData.totalRevenue.toLocaleString()}`,
       changePositive: true,
-      iconBgColor: "#ff6b81", // Pink
+      iconBgColor: "#ff6b81", 
     },
     {
       id: 2,
@@ -70,7 +70,7 @@ const ReportsManagement = () => {
       value: "45",
       // value: currentData.totalBookings.toString(),
       changePositive: true,
-      iconBgColor: "#ffa86b", // Orange
+      iconBgColor: "#ffa86b", 
     },
     {
       id: 3,
@@ -79,7 +79,7 @@ const ReportsManagement = () => {
       value: "60",
       // value: currentData.totalSales.toString(),
       changePositive: true,
-      iconBgColor: "#2bdc65", // Green
+      iconBgColor: "#2bdc65", 
     },
     {
       id: 4,
@@ -88,7 +88,7 @@ const ReportsManagement = () => {
       value: "10",
       // value: currentData.rejectedBookings.toString().padStart(2, "0"),
       changePositive: false,
-      iconBgColor: "#b28bff", // Purple
+      iconBgColor: "#b28bff", 
     },
   ];
 
