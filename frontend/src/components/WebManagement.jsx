@@ -269,7 +269,7 @@ const WebManagement = () => {
                 fontWeight: "600",
                 fontSize: 12,
                 "&.Mui-selected": {
-                  bgcolor: "#10374b",
+                  bgcolor: "#1aa6bc58",
                   borderRadius: "5px",
                   minWidth: 90,
                   height: 45,
