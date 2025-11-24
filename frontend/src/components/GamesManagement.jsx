@@ -94,10 +94,10 @@ const GamesManagement = () => {
       >
         <Box>
           <Typography variant="h5" fontWeight="bold" fontSize={24}>
-            Admin Games Management
+            Other Games Management
           </Typography>
           <Typography variant="body2" color="#fff" fontSize={13}>
-            Manage all available game stations
+            Monitor and control gaming stations
           </Typography>
         </Box>
 
@@ -166,7 +166,7 @@ const GamesManagement = () => {
               minWidth: 90,
               height: 40,
               "&.Mui-selected": {
-                bgcolor: "rgba(12, 215, 255, 0.3)",
+                bgcolor: "#1aa6bc58",
                 border: "1px solid #0CD7FF",
                 color: "#0CD7FF",
               },

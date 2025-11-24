@@ -440,7 +440,7 @@ const BookingManagement = () => {
             Booking Management
           </Typography>
           <Typography color="#fff" fontSize={13}>
-            Manage reservations and station schedules
+            Manage bookings and station schedules
           </Typography>
         </Box>
 

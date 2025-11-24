@@ -150,7 +150,7 @@ const ReportsManagement = () => {
                   fontSize: 13,
                 }}
               >
-                Business performance insights and data analysis
+                Business performance insights and data analytics
               </Typography>
             </Box>
 
