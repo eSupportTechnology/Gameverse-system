@@ -510,13 +510,14 @@ const PosSystem = () => {
                 variant="contained"
                 onClick={() => setActiveCategory(cat)}
                 sx={{
-                  bgcolor: activeCategory === cat ? "#0B3C49" : "#1F2937",
-                  color: "white",
+                  bgcolor: activeCategory === cat ? "#1aa6bc58" : "#1F2937",
+                  border: activeCategory === cat ? "1px solid #0CD7FF" : "none",
+                  color: activeCategory === cat ? "#0CD7FF" : "#A1A1A1",
                   textTransform: "none",
                   "&:hover": { bgcolor: "#374151" },
-                  minWidth: 80,
-                  height: 38,
-                  borderRadius: "8px",
+                  minWidth: 90,
+                  height: 40,
+                  borderRadius: "5px",
                   px: 3,
                 }}
               >
@@ -536,7 +537,7 @@ const PosSystem = () => {
               width: 487,
               bgcolor: "#1E293B",
               borderRadius: "8px",
-              "& input": { color: "white", paddingLeft: "8px" },
+              "& input": { color: "A1A1A1", paddingLeft: "8px" },
               "& fieldset": { borderColor: "#374151" },
             }}
             InputProps={{
@@ -806,7 +807,7 @@ const PosSystem = () => {
                     {totalPrice.toFixed(2)}
                   </Typography>
                 </Box>
-             </Box>
+              </Box>
               {cart.length === 0 ? (
                 <Typography color="gray" fontSize={14}>
                   Cart is empty
@@ -1768,7 +1769,7 @@ const PosSystem = () => {
         >
           <Box sx={{ mb: 2 }}>
             <img
-              src= {sucessIcon}
+              src={sucessIcon}
               alt="cancel"
               style={{ width: 60, height: 60, margin: "0 auto" }}
             />

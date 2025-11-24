@@ -205,7 +205,7 @@ export default function StationManagement() {
                   // BACKGROUND
                   backgroundColor: tab === index ? "#1aa6bc58" : "#1F2937",
                   // HOVER
-                  "&:hover": { opacity: 0.8 },
+                  "&:hover": { bgcolor: "#374151" },
                 }}
               />
             ))}

@@ -1,26 +1,37 @@
-import { Box, Button, ToggleButton, ToggleButtonGroup, Typography, Dialog, DialogTitle, DialogContent, DialogActions, IconButton, TextField, } from '@mui/material'
+import {
+  Box,
+  Button,
+  ToggleButton,
+  ToggleButtonGroup,
+  Typography,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  IconButton,
+  TextField,
+} from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import AddGameDialog from './AddGameDialog';
-import AddEventDialog from './AddEventDialog';
-import { BookingGames, OtherGames, Event, Gallery } from '../assets/assets';
-import AddGalleyDialog from './AddGalleyDialog';
-import EditIcon from '../assets/editicon.png';
+import AddGameDialog from "./AddGameDialog";
+import AddEventDialog from "./AddEventDialog";
+import { BookingGames, OtherGames, Event, Gallery } from "../assets/assets";
+import AddGalleyDialog from "./AddGalleyDialog";
+import EditIcon from "../assets/editicon.png";
 import CloseIcon from "@mui/icons-material/Close";
-import upload from '../assets/upload.png'
-import CancelPopup from './CancelPopup';
-import UpdateSuccessDialog from './UpdateSuccess';
-import ThumbnailUpdate from './ThumbnailUpdate';
-import RemovePopup from './RemovePopup';
-
+import upload from "../assets/upload.png";
+import CancelPopup from "./CancelPopup";
+import UpdateSuccessDialog from "./UpdateSuccess";
+import ThumbnailUpdate from "./ThumbnailUpdate";
+import RemovePopup from "./RemovePopup";
 
 const categories = [
-  { label: 'Booking Games' },
-  { label: 'Other Games' },
-  { label: 'Event & Tournaments' },
-  { label: "Gallery" }
-]
+  { label: "Booking Games" },
+  { label: "Other Games" },
+  { label: "Event & Tournaments" },
+  { label: "Gallery" },
+];
 
 const routeMap = {
   "PS5 Stations": "/web-portal/station",
@@ -28,58 +39,51 @@ const routeMap = {
   "Racing Simulators": "/web-portal/simulator",
 };
 
-
 const WebManagement = () => {
   const navigate = useNavigate();
 
   const [bookingGames, setBookingGames] = useState(BookingGames);
   const [games, setGames] = useState(OtherGames);
-  const [event, setEvent] = useState(Event)
-  const [gallery, setGallery] = useState(Gallery)
-  const [activeCategory, setActiveCategory] = useState('Booking Games');
+  const [event, setEvent] = useState(Event);
+  const [gallery, setGallery] = useState(Gallery);
+  const [activeCategory, setActiveCategory] = useState("Booking Games");
 
   const [openAddGame, setOpenAddGame] = useState(false);
   const [openEditGame, setOpenEditGame] = useState(false);
   const [editData, setEditData] = useState(null);
   const [gameRemoveMessage, setGameRemoveMessage] = useState("");
   const [gameToRemove, setGameToRemove] = useState(null);
-  const [removeGame, setRemoveGame] = useState(false)
+  const [removeGame, setRemoveGame] = useState(false);
 
   const [openAddEvent, setOpenAddEvent] = useState(false);
   const [openEditEvent, setOpenEditEvent] = useState(false);
   const [editEvent, setEditEvent] = useState(null);
   const [eventRemoveMessage, setEventRemoveMessage] = useState("");
   const [eventToRemove, setEventToRemove] = useState(null);
-  const [removeEvent, setRemoveEvent] = useState(false)
+  const [removeEvent, setRemoveEvent] = useState(false);
 
-  const [openAddPhoto, setOpenAddPhoto] = useState(false)
+  const [openAddPhoto, setOpenAddPhoto] = useState(false);
   const [photoRemoveMessage, setPhotoRemoveMessage] = useState("");
   const [photoToRemove, setPhotoToRemove] = useState(null);
-  const [removePhoto, setRemovePhoto] = useState(false)
-
+  const [removePhoto, setRemovePhoto] = useState(false);
 
   const [selectedCategory, setSelectedCategory] = useState(null);
-  const [editStationCategory, setEditStationCategory] = useState(false)
+  const [editStationCategory, setEditStationCategory] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
   const [cancelOpen, setCancelOpen] = useState(false);
-  const [openCategoryUpdate, setOpenCategoryUpdate] = useState(false)
+  const [openCategoryUpdate, setOpenCategoryUpdate] = useState(false);
   const [thumbUpdateSuccess, setThumbUpdateSuccess] = useState(false);
-
-
-
 
   const handleUpdate = () => {
     const updatedList = bookingGames.map((game) =>
-      game.title === selectedCategory.titleBeforeEdit
-        ? selectedCategory
-        : game
+      game.title === selectedCategory.titleBeforeEdit ? selectedCategory : game
     );
 
     setBookingGames(updatedList);
     console.log(updatedList);
 
     setEditStationCategory(false);
-    setOpenCategoryUpdate(true)
+    setOpenCategoryUpdate(true);
   };
 
   const handleImageUpload = (e) => {
@@ -91,7 +95,7 @@ const WebManagement = () => {
       setSelectedImage(reader.result);
       setSelectedCategory({
         ...selectedCategory,
-        image: reader.result
+        image: reader.result,
       });
       setThumbUpdateSuccess(true);
     };
@@ -100,27 +104,24 @@ const WebManagement = () => {
 
   const handleConfirm = async () => {
     setCancelOpen(false);
-    setEditStationCategory(false)
-  }
+    setEditStationCategory(false);
+  };
 
   // other game section
   const handleAddGame = (newGame) => {
     setGames([...games, newGame]);
     console.log(newGame);
-
   };
 
   const handleUpdateGame = (updatedGame) => {
     setGames((prev) =>
-      prev.map((g) =>
-        g.title === editData.title ? updatedGame : g
-      )
+      prev.map((g) => (g.title === editData.title ? updatedGame : g))
     );
   };
 
   const handleRemoveGame = (title) => {
     setGameToRemove(title);
-    setGameRemoveMessage("Are you want to remove this game?")
+    setGameRemoveMessage("Are you want to remove this game?");
     setRemoveGame(true);
   };
 
@@ -128,7 +129,7 @@ const WebManagement = () => {
     setGames(games.filter((game) => game.title !== gameToRemove));
     setRemoveGame(false);
     setGameToRemove(null);
-  }
+  };
 
   const cancelRemoveGame = () => {
     setRemoveGame(false);
@@ -139,7 +140,6 @@ const WebManagement = () => {
   const handleAddEvent = (newEvent) => {
     setEvent([...event, newEvent]);
     console.log(newEvent);
-
   };
 
   const handleUpdateEvent = (updatedEvent) => {
@@ -152,7 +152,7 @@ const WebManagement = () => {
 
   const handleRemoveEvent = (title) => {
     setEventToRemove(title);
-    setEventRemoveMessage('Are you want to remove this event?')
+    setEventRemoveMessage("Are you want to remove this event?");
     setRemoveEvent(true);
   };
 
@@ -160,13 +160,12 @@ const WebManagement = () => {
     setEvent(event.filter((event) => event.title !== eventToRemove));
     setRemoveEvent(false);
     setEventToRemove(null);
-  }
+  };
 
   const cancelRemoveEvent = () => {
     setRemoveEvent(false);
     setEventToRemove(null);
   };
-
 
   // Gallery section
   const handleAddPhoto = (newPhoto) => {
@@ -176,7 +175,7 @@ const WebManagement = () => {
 
   const handleRemovePhoto = (index) => {
     setPhotoToRemove(index);
-    setPhotoRemoveMessage('Are you want to remove this event?')
+    setPhotoRemoveMessage("Are you want to remove this event?");
     setRemovePhoto(true);
   };
 
@@ -184,13 +183,12 @@ const WebManagement = () => {
     setGallery(gallery.filter((_, i) => i !== photoToRemove));
     setRemovePhoto(false);
     setPhotoToRemove(null);
-  }
+  };
 
   const cancelRemovePhoto = () => {
     setRemovePhoto(false);
     setPhotoToRemove(null);
   };
-
 
   useEffect(() => {
     if (selectedCategory?.image) {
@@ -198,43 +196,86 @@ const WebManagement = () => {
     }
   }, [selectedCategory]);
 
-
   return (
     <div>
-      <Box sx={{ p: 2, bgcolor: "1E1E1E", color: "#fff", minHeight: "100vh", overflow: "hidden", ml: 0 }}>
-
+      <Box
+        sx={{
+          p: 2,
+          bgcolor: "10374b",
+          color: "#fff",
+          minHeight: "100vh",
+          overflow: "hidden",
+          ml: 0,
+        }}
+      >
         {/* Header */}
-        <Box sx={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', mb: 2 }}>
-          <Box sx={{ display: "flex", flexDirection: "column", alignItems: "flex-start", justifyContent: "flex-start" }}>
-            <Typography variant="h5" fontWeight="bold" fontSize={24}>Website Management </Typography>
-            <Typography variant="body2" color="gray" fontSize={16}>Manage Website</Typography>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "flex-start",
+            alignItems: "center",
+            mb: 2,
+          }}
+        >
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "flex-start",
+              justifyContent: "flex-start",
+            }}
+          >
+            <Typography variant="h5" fontWeight="bold" fontSize={24}>
+              Website Management{" "}
+            </Typography>
+            <Typography variant="body2" color="gray" fontSize={16}>
+              Manage Website
+            </Typography>
           </Box>
         </Box>
 
         {/* Toolbar */}
-        <Box display="flex" flexDirection={{ xs: "column", sm: "column", md: "row" }}
-          justifyContent={{ xs: "flex-start", sm: "flex-start", md: "space-between" }} px={1.5} py={1.5} borderRadius='10px' bgcolor='#0E111B' alignItems={{ xs: "flex-start", sm: "flex-start", md: "center" }} mb={2}>
-
+        <Box
+          display="flex"
+          flexDirection={{ xs: "column", sm: "column", md: "row" }}
+          justifyContent={{
+            xs: "flex-start",
+            sm: "flex-start",
+            md: "space-between",
+          }}
+          px={1.5}
+          py={1.5}
+          borderRadius="10px"
+          bgcolor="#0E111B"
+          alignItems={{ xs: "flex-start", sm: "flex-start", md: "center" }}
+          mb={2}
+        >
           {/* Category */}
           <ToggleButtonGroup
             value={activeCategory}
             exclusive
-            onChange={(e, newCategory) => newCategory && setActiveCategory(newCategory)}
+            onChange={(e, newCategory) =>
+              newCategory && setActiveCategory(newCategory)
+            }
             sx={{
               gap: 1,
-              flexWrap: 'wrap',
-              '& .MuiToggleButton-root': {
-                bgcolor: '#1F2937',
-                color: '#9CA3AF',
-                border: 'none',
-                padding: '8px 27px',
-                textTransform: 'none',
-                fontWeight: '600',
+              flexWrap: "wrap",
+              "& .MuiToggleButton-root": {
+                bgcolor: "#1F2937",
+                color: "#9CA3AF",
+                border: "none",
+                padding: "8px 27px",
+                textTransform: "none",
+                fontWeight: "600",
                 fontSize: 12,
-                '&.Mui-selected': {
-                  bgcolor: 'rgba(12, 215, 255, 0.3)',
-                  border: '1px solid #0CD7FF',
-                  color: '#0CD7FF',
+                "&.Mui-selected": {
+                  bgcolor: "#10374b",
+                  borderRadius: "5px",
+                  minWidth: 90,
+                  height: 45,
+                  border: "1px solid #0CD7FF",
+                  color: "#0CD7FF",
+                  "&:hover": { bgcolor: "#374151" },
                 },
               },
             }}
@@ -257,7 +298,9 @@ const WebManagement = () => {
                   py: 1,
                   textTransform: "none",
                   fontWeight: "600",
-                  "&:hover": { background: "linear-gradient(to right, #0bbfe0, #732ed1)" },
+                  "&:hover": {
+                    background: "linear-gradient(to right, #0bbfe0, #732ed1)",
+                  },
                 }}
                 onClick={() => setOpenAddGame(true)}
               >
@@ -275,7 +318,9 @@ const WebManagement = () => {
                   py: 1,
                   textTransform: "none",
                   fontWeight: "600",
-                  "&:hover": { background: "linear-gradient(to right, #0bbfe0, #732ed1)" },
+                  "&:hover": {
+                    background: "linear-gradient(to right, #0bbfe0, #732ed1)",
+                  },
                 }}
                 onClick={() => setOpenAddEvent(true)}
               >
@@ -292,7 +337,9 @@ const WebManagement = () => {
                   py: 1,
                   textTransform: "none",
                   fontWeight: "600",
-                  "&:hover": { background: "linear-gradient(to right, #0bbfe0, #732ed1)" },
+                  "&:hover": {
+                    background: "linear-gradient(to right, #0bbfe0, #732ed1)",
+                  },
                 }}
                 onClick={() => setOpenAddPhoto(true)}
               >
@@ -300,23 +347,27 @@ const WebManagement = () => {
               </Button>
             )}
           </Box>
-
         </Box>
 
         {/* Card sections */}
-        <Box sx={{
-          height: 510, backgroundColor: '#0E111B', borderRadius: "10px", overflowY: 'auto',
-          "&::-webkit-scrollbar": {
-            width: "8px",
-          },
-          "&::-webkit-scrollbar-track": {
-            background: "transparent",
-          },
-          "&::-webkit-scrollbar-thumb": {
-            backgroundColor: "#374151",
+        <Box
+          sx={{
+            height: 510,
+            backgroundColor: "#0E111B",
             borderRadius: "10px",
-          },
-        }}>
+            overflowY: "auto",
+            "&::-webkit-scrollbar": {
+              width: "8px",
+            },
+            "&::-webkit-scrollbar-track": {
+              background: "transparent",
+            },
+            "&::-webkit-scrollbar-thumb": {
+              backgroundColor: "#374151",
+              borderRadius: "10px",
+            },
+          }}
+        >
           <Box
             sx={{
               display: "grid",
@@ -355,25 +406,39 @@ const WebManagement = () => {
                       zIndex: 10,
                     }}
                     onClick={() => {
-                      setSelectedCategory({ ...item, titleBeforeEdit: item.title });
+                      setSelectedCategory({
+                        ...item,
+                        titleBeforeEdit: item.title,
+                      });
                       setEditStationCategory(true);
                     }}
                   >
                     <img src={EditIcon} alt="edit-icon" style={{ width: 16 }} />
                   </Box>
 
-                  <Box sx={{
-                    backgroundColor: "#000000",
-                    borderRadius: "12px",
-                    display: "flex",
-                    flexDirection: "column",
-                    height: 400,
-                    border: "1px solid transparent",
-                    backgroundImage: "linear-gradient(#0E111B, #0E111B), linear-gradient(180deg, #CF36E1, #15A2EF)",
-                    backgroundOrigin: "border-box",
-                    backgroundClip: "content-box, border-box",
-                  }}>
-                    <Box sx={{ backgroundColor: "#000000", flexGrow: 1, display: "flex", flexDirection: "column", borderRadius: "12px" }}>
+                  <Box
+                    sx={{
+                      backgroundColor: "#000000",
+                      borderRadius: "12px",
+                      display: "flex",
+                      flexDirection: "column",
+                      height: 400,
+                      border: "1px solid transparent",
+                      backgroundImage:
+                        "linear-gradient(#0E111B, #0E111B), linear-gradient(180deg, #CF36E1, #15A2EF)",
+                      backgroundOrigin: "border-box",
+                      backgroundClip: "content-box, border-box",
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        backgroundColor: "#000000",
+                        flexGrow: 1,
+                        display: "flex",
+                        flexDirection: "column",
+                        borderRadius: "12px",
+                      }}
+                    >
                       {/* IMAGE */}
                       {item.image ? (
                         <img
@@ -386,27 +451,44 @@ const WebManagement = () => {
                           }}
                         />
                       ) : (
-                        <Box sx={{
-                          display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          height: "240px",
-                          backgroundColor: '#0E111B'
-
-                        }}>
-                          <img src={upload} alt="upload" style={{ width: 30, height: 30, marginBottom: 6 }} />
+                        <Box
+                          sx={{
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            height: "240px",
+                            backgroundColor: "#0E111B",
+                          }}
+                        >
+                          <img
+                            src={upload}
+                            alt="upload"
+                            style={{ width: 30, height: 30, marginBottom: 6 }}
+                          />
                           Upload thumbnail
                         </Box>
                       )}
 
-
                       {/* TEXT CONTENT */}
                       <Box sx={{ p: 2, textAlign: "center", flexGrow: 1 }}>
-                        <h3 style={{ fontSize: "16px", fontWeight: "500", color: "white" }}>
+                        <h3
+                          style={{
+                            fontSize: "16px",
+                            fontWeight: "500",
+                            color: "white",
+                          }}
+                        >
                           {item.title}
                         </h3>
-                        <p style={{ fontSize: "14px", fontWeight: "300", marginTop: "8px", color: "#FFFFFF" }}>
+                        <p
+                          style={{
+                            fontSize: "14px",
+                            fontWeight: "300",
+                            marginTop: "8px",
+                            color: "#FFFFFF",
+                          }}
+                        >
                           {item.desc}
                         </p>
                       </Box>
@@ -414,13 +496,17 @@ const WebManagement = () => {
                   </Box>
 
                   {/* BUTTON */}
-                  <Box sx={{ py: 2, }}>
-                    <button style={{ fontWeight: 600 }} onClick={() => navigate(routeMap[item.title])} className="card-button">{item.button}</button>
+                  <Box sx={{ py: 2 }}>
+                    <button
+                      style={{ fontWeight: 600 }}
+                      onClick={() => navigate(routeMap[item.title])}
+                      className="card-button"
+                    >
+                      {item.button}
+                    </button>
                   </Box>
                 </Box>
-              ))
-            }
-
+              ))}
 
             {activeCategory === "Other Games" &&
               games.map((item, index) => (
@@ -430,7 +516,7 @@ const WebManagement = () => {
                     borderRadius: "12px",
                     overflow: "hidden",
                     height: "100%",
-                    position: 'relative'
+                    position: "relative",
                   }}
                 >
                   {/* EDIT ICON BUTTON */}
@@ -453,23 +539,32 @@ const WebManagement = () => {
                       setEditData(item);
                       setOpenEditGame(true);
                     }}
-
                   >
                     <img src={EditIcon} alt="edit-icon" style={{ width: 16 }} />
                   </Box>
 
-                  <Box sx={{
-                    borderRadius: "12px",
-                    display: "flex",
-                    flexDirection: "column",
-                    height: 360,
-                    border: "1px solid transparent",
-                    backgroundImage: "linear-gradient(#0E111B, #0E111B), linear-gradient(180deg, #CF36E1, #15A2EF)",
-                    backgroundOrigin: "border-box",
-                    backgroundClip: "content-box, border-box",
-
-                  }}>
-                    <Box sx={{ backgroundColor: "#000000", flexGrow: 1, display: "flex", flexDirection: "column", borderRadius: "12px" }}>
+                  <Box
+                    sx={{
+                      borderRadius: "12px",
+                      display: "flex",
+                      flexDirection: "column",
+                      height: 360,
+                      border: "1px solid transparent",
+                      backgroundImage:
+                        "linear-gradient(#0E111B, #0E111B), linear-gradient(180deg, #CF36E1, #15A2EF)",
+                      backgroundOrigin: "border-box",
+                      backgroundClip: "content-box, border-box",
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        backgroundColor: "#000000",
+                        flexGrow: 1,
+                        display: "flex",
+                        flexDirection: "column",
+                        borderRadius: "12px",
+                      }}
+                    >
                       {/* IMAGE */}
                       <img
                         src={item.image}
@@ -482,11 +577,24 @@ const WebManagement = () => {
                       />
 
                       {/* TEXT CONTENT */}
-                      <Box sx={{ p: 2, textAlign: "center", flexGrow: 1, }}>
-                        <h3 style={{ fontSize: "16px", fontWeight: "500", color: "white" }}>
+                      <Box sx={{ p: 2, textAlign: "center", flexGrow: 1 }}>
+                        <h3
+                          style={{
+                            fontSize: "16px",
+                            fontWeight: "500",
+                            color: "white",
+                          }}
+                        >
                           {item.title}
                         </h3>
-                        <p style={{ fontSize: "14px", fontWeight: "300", marginTop: "8px", color: "#FFFFFF" }}>
+                        <p
+                          style={{
+                            fontSize: "14px",
+                            fontWeight: "300",
+                            marginTop: "8px",
+                            color: "#FFFFFF",
+                          }}
+                        >
                           {item.desc}
                         </p>
                       </Box>
@@ -498,11 +606,12 @@ const WebManagement = () => {
                     <button
                       className="card-button-red"
                       onClick={() => handleRemoveGame(item.title)}
-                    >Remove</button>
+                    >
+                      Remove
+                    </button>
                   </Box>
                 </Box>
-              ))
-            }
+              ))}
 
             {activeCategory === "Event & Tournaments" &&
               event.map((item, index) => (
@@ -512,7 +621,7 @@ const WebManagement = () => {
                     borderRadius: "12px",
                     overflow: "hidden",
                     height: "100%",
-                    position: "relative"
+                    position: "relative",
                   }}
                 >
                   {/* EDIT ICON BUTTON */}
@@ -539,17 +648,28 @@ const WebManagement = () => {
                     <img src={EditIcon} alt="edit-icon" style={{ width: 16 }} />
                   </Box>
 
-                  <Box sx={{
-                    borderRadius: "12px",
-                    display: "flex",
-                    flexDirection: "column",
-                    border: "1px solid transparent",
-                    backgroundImage: "linear-gradient(#0E111B, #0E111B), linear-gradient(180deg, #CF36E1, #15A2EF)",
-                    backgroundOrigin: "border-box",
-                    backgroundClip: "content-box, border-box",
-
-                  }}>
-                    <Box sx={{ backgroundColor: "#000000", flexGrow: 1, display: "flex", flexDirection: "column", borderRadius: "12px", height: 295 }}>
+                  <Box
+                    sx={{
+                      borderRadius: "12px",
+                      display: "flex",
+                      flexDirection: "column",
+                      border: "1px solid transparent",
+                      backgroundImage:
+                        "linear-gradient(#0E111B, #0E111B), linear-gradient(180deg, #CF36E1, #15A2EF)",
+                      backgroundOrigin: "border-box",
+                      backgroundClip: "content-box, border-box",
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        backgroundColor: "#000000",
+                        flexGrow: 1,
+                        display: "flex",
+                        flexDirection: "column",
+                        borderRadius: "12px",
+                        height: 295,
+                      }}
+                    >
                       {/* IMAGE */}
                       <img
                         src={item.image}
@@ -562,8 +682,14 @@ const WebManagement = () => {
                       />
 
                       {/* TEXT CONTENT */}
-                      <Box sx={{ p: 2, textAlign: "center", flexGrow: 1, }}>
-                        <h3 style={{ fontSize: "16px", fontWeight: "500", color: "white" }}>
+                      <Box sx={{ p: 2, textAlign: "center", flexGrow: 1 }}>
+                        <h3
+                          style={{
+                            fontSize: "16px",
+                            fontWeight: "500",
+                            color: "white",
+                          }}
+                        >
                           {item.title}
                         </h3>
                         <p
@@ -571,7 +697,8 @@ const WebManagement = () => {
                             fontSize: "14px",
                             fontWeight: "400",
                             marginTop: "8px",
-                            background: "linear-gradient(180deg, #CF36E1, #15A2EF)",
+                            background:
+                              "linear-gradient(180deg, #CF36E1, #15A2EF)",
                             WebkitBackgroundClip: "text",
                             WebkitTextFillColor: "transparent",
                           }}
@@ -582,7 +709,6 @@ const WebManagement = () => {
                             year: "numeric",
                           })}
                         </p>
-
                       </Box>
                     </Box>
                   </Box>
@@ -592,11 +718,12 @@ const WebManagement = () => {
                     <button
                       className="card-button-red"
                       onClick={() => handleRemoveEvent(item.title)}
-                    >Remove</button>
+                    >
+                      Remove
+                    </button>
                   </Box>
                 </Box>
-              ))
-            }
+              ))}
 
             {activeCategory === "Gallery" &&
               gallery.map((item, index) => (
@@ -606,7 +733,7 @@ const WebManagement = () => {
                     borderRadius: "12px",
                     overflow: "hidden",
                     height: "100%",
-                    position: 'relative'
+                    position: "relative",
                   }}
                 >
                   {/* EDIT ICON BUTTON */}
@@ -628,20 +755,29 @@ const WebManagement = () => {
                     onClick={() => handleRemovePhoto(index)}
                   >
                     <DeleteIcon style={{ fontSize: 16, color: "white" }} />
-
                   </Box>
 
-                  <Box sx={{
-                    borderRadius: "12px",
-                    display: "flex",
-                    flexDirection: "column",
-                    border: "1px solid transparent",
-                    backgroundImage: "linear-gradient(#0E111B, #0E111B), linear-gradient(180deg, #CF36E1, #15A2EF)",
-                    backgroundOrigin: "border-box",
-                    backgroundClip: "content-box, border-box",
-
-                  }}>
-                    <Box sx={{ flexGrow: 1, display: "flex", flexDirection: "column", borderRadius: "12px", height: 248 }}>
+                  <Box
+                    sx={{
+                      borderRadius: "12px",
+                      display: "flex",
+                      flexDirection: "column",
+                      border: "1px solid transparent",
+                      backgroundImage:
+                        "linear-gradient(#0E111B, #0E111B), linear-gradient(180deg, #CF36E1, #15A2EF)",
+                      backgroundOrigin: "border-box",
+                      backgroundClip: "content-box, border-box",
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        flexGrow: 1,
+                        display: "flex",
+                        flexDirection: "column",
+                        borderRadius: "12px",
+                        height: 248,
+                      }}
+                    >
                       {/* IMAGE */}
                       <img
                         src={item.image}
@@ -656,10 +792,8 @@ const WebManagement = () => {
                     </Box>
                   </Box>
                 </Box>
-              ))
-            }
+              ))}
           </Box>
-
         </Box>
       </Box>
 
@@ -678,46 +812,55 @@ const WebManagement = () => {
           },
         }}
       >
-
         {/* FORM BODY */}
-        <DialogContent sx={{
-          /* Scrollbar styling */
-          "&::-webkit-scrollbar": {
-            width: "6px",
-          },
-          "&::-webkit-scrollbar-track": {
-            background: "transparent",
-          },
-          "&::-webkit-scrollbar-thumb": {
-            backgroundColor: "#4B5563",
-            borderRadius: "10px",
-          },
-
-        }}>
-          <Box sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            fontWeight: "700",
-            fontSize: "18px",
-            py: 0,
-          }}>
+        <DialogContent
+          sx={{
+            /* Scrollbar styling */
+            "&::-webkit-scrollbar": {
+              width: "6px",
+            },
+            "&::-webkit-scrollbar-track": {
+              background: "transparent",
+            },
+            "&::-webkit-scrollbar-thumb": {
+              backgroundColor: "#4B5563",
+              borderRadius: "10px",
+            },
+          }}
+        >
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              fontWeight: "700",
+              fontSize: "18px",
+              py: 0,
+            }}
+          >
             Edit Station Category Details
-            <IconButton onClick={() => setEditStationCategory(false)} sx={{ color: "#9CA3AF" }}>
+            <IconButton
+              onClick={() => setEditStationCategory(false)}
+              sx={{ color: "#9CA3AF" }}
+            >
               <CloseIcon />
             </IconButton>
-
           </Box>
 
           {/* Game Name */}
-          <p style={{ marginBottom: 6, fontSize: '14px', fontWeight: 500 }}>Category Name</p>
+          <p style={{ marginBottom: 6, fontSize: "14px", fontWeight: 500 }}>
+            Category Name
+          </p>
           <TextField
             fullWidth
             placeholder="Enter Category Name"
             variant="outlined"
             value={selectedCategory?.title || ""}
             onChange={(e) =>
-              setSelectedCategory({ ...selectedCategory, title: e.target.value })
+              setSelectedCategory({
+                ...selectedCategory,
+                title: e.target.value,
+              })
             }
             InputProps={{
               sx: {
@@ -734,9 +877,17 @@ const WebManagement = () => {
             }}
           />
 
-
           {/* Description */}
-          <p style={{ marginTop: 15, marginBottom: 6, fontSize: '14px', fontWeight: 500 }}>Description</p>
+          <p
+            style={{
+              marginTop: 15,
+              marginBottom: 6,
+              fontSize: "14px",
+              fontWeight: 500,
+            }}
+          >
+            Description
+          </p>
           <TextField
             fullWidth
             multiline
@@ -762,7 +913,16 @@ const WebManagement = () => {
           />
 
           {/* Thumbnail Upload */}
-          <p style={{ marginTop: 15, marginBottom: 6, fontSize: '14px', fontWeight: 500 }}>Thumbnail</p>
+          <p
+            style={{
+              marginTop: 15,
+              marginBottom: 6,
+              fontSize: "14px",
+              fontWeight: 500,
+            }}
+          >
+            Thumbnail
+          </p>
           <Box
             sx={{
               backgroundColor: "#171C2D",
@@ -770,7 +930,7 @@ const WebManagement = () => {
               height: 190,
               border: "0.5px solid #374151",
               display: "flex",
-              flexDirection: 'column',
+              flexDirection: "column",
               justifyContent: "center",
               alignItems: "center",
               color: "#aaa",
@@ -794,16 +954,19 @@ const WebManagement = () => {
                   width: "100%",
                   height: "100%",
                   objectFit: "cover",
-                  borderRadius: "8px"
+                  borderRadius: "8px",
                 }}
               />
             ) : (
               <>
-                <img src={upload} alt="upload" style={{ width: 30, height: 30, marginBottom: 6 }} />
+                <img
+                  src={upload}
+                  alt="upload"
+                  style={{ width: 30, height: 30, marginBottom: 6 }}
+                />
                 Upload thumbnail
               </>
             )}
-
           </Box>
         </DialogContent>
 
@@ -816,7 +979,7 @@ const WebManagement = () => {
               borderRadius: "8px",
               backgroundColor: "#1A1D2A",
               color: "white",
-              fontSize: '14px',
+              fontSize: "14px",
               fontWeight: "bold",
               textTransform: "none",
               boxShadow: "0 2px 6px rgba(0,0,0,0.3)",
@@ -832,7 +995,7 @@ const WebManagement = () => {
             variant="contained"
             onClick={handleUpdate}
             sx={{
-              fontSize: '14px',
+              fontSize: "14px",
               fontWeight: "bold",
               flex: 1,
               textTransform: "none",
@@ -868,7 +1031,6 @@ const WebManagement = () => {
         onClose={() => setThumbUpdateSuccess(false)}
       />
 
-
       {/* Add & update other game section */}
       <AddGameDialog
         open={openAddGame}
@@ -891,7 +1053,6 @@ const WebManagement = () => {
         message={gameRemoveMessage}
       />
 
-
       {/* Add & update other Event section */}
       <AddEventDialog
         open={openAddEvent}
@@ -913,7 +1074,6 @@ const WebManagement = () => {
         message={eventRemoveMessage}
       />
 
-
       {/* Add photo in Gallery section */}
       <AddGalleyDialog
         open={openAddPhoto}
@@ -927,9 +1087,8 @@ const WebManagement = () => {
         removeConfirm={removePhotoConfirm}
         message={photoRemoveMessage}
       />
-
     </div>
-  )
-}
+  );
+};
 
-export default WebManagement
+export default WebManagement;

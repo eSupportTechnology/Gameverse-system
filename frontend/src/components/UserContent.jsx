@@ -219,11 +219,12 @@ export default function UserManagement() {
           <Button
             sx={{
               backgroundColor: "#0d2a38",
-              color: "#fff",
+              color: "#0CD7FF",
               border: "1px solid #00b8ff",
               textTransform: "none",
-              fontWeight: "bold",
-              px: 5,
+              minWidth: 90,
+              height: 40,
+              padding: "6px 27px",
               borderRadius: "5px",
               "&:hover": {
                 backgroundColor: "#10374b",
