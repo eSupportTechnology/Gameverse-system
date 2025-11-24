@@ -9,8 +9,8 @@ import {
   IconButton,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
+import editIcon from "../assets/editicon.png";
+import deleteIcon from "../assets/deleteicon.png";
 import AddUserDialog from "./AddUserDialog";
 import DeleteConfirmDialog from "./DeleteConfirmDialog";
 import DeleteSuccessDialog from "./DeleteSuccessDialog";
@@ -158,13 +158,30 @@ export default function UserManagement() {
   };
 
   return (
-    <Box sx={{ backgroundColor: "#000", minHeight: "500vh", color: "#fff", pt: "70px", px: 3 }}>
+    <Box
+      sx={{
+        backgroundColor: "#000",
+        minHeight: "500vh",
+        color: "#fff",
+        pt: "70px",
+        px: 3,
+      }}
+    >
       {/* HEADER & SEARCH */}
       <Box sx={{ mb: 3 }}>
         {/* Top header */}
-        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            mb: 2,
+          }}
+        >
           <Box>
-            <Typography variant="h6" fontWeight={600}>User Management</Typography>
+            <Typography variant="h6" fontWeight={600}>
+              User Management
+            </Typography>
             <Typography variant="body2" color="gray">
               Manage users, roles, and permissions
             </Typography>
@@ -200,7 +217,6 @@ export default function UserManagement() {
           }}
         >
           <Button
-
             sx={{
               backgroundColor: "#0d2a38",
               color: "#fff",
@@ -242,7 +258,15 @@ export default function UserManagement() {
       </Box>
 
       {/* OUTER CONTAINER */}
-      <Box sx={{ backgroundColor: "#0E111B", p: 2, borderRadius: 2, overflowX: "auto", paddingBottom: "100px" }}>
+      <Box
+        sx={{
+          backgroundColor: "#0E111B",
+          p: 2,
+          borderRadius: 2,
+          overflowX: "auto",
+          paddingBottom: "100px",
+        }}
+      >
         <Box sx={{ backgroundColor: "#37415174", borderRadius: 1, p: 2 }}>
           {/* Table Header */}
           <Box
@@ -266,7 +290,9 @@ export default function UserManagement() {
 
           {/* Table Rows */}
           {users
-            .filter((user) => user.fullName.toLowerCase().includes(searchQuery.toLowerCase()))
+            .filter((user) =>
+              user.fullName.toLowerCase().includes(searchQuery.toLowerCase())
+            )
             .map((user, idx) => (
               <Box
                 key={idx}
@@ -286,7 +312,8 @@ export default function UserManagement() {
                 <Typography color="white">{user.role}</Typography>
                 <Box
                   sx={{
-                    backgroundColor: user.status === "Active" ? "#065f4674" : "#7f1d1d6d",
+                    backgroundColor:
+                      user.status === "Active" ? "#065f4674" : "#7f1d1d6d",
                     px: 1.8,
                     py: 0.7,
                     borderRadius: "8px",
@@ -303,30 +330,47 @@ export default function UserManagement() {
                 <Typography color="white">{user.lastLogin}</Typography>
 
                 {/* Action Buttons */}
-                <Box sx={{ display: "flex", gap: 1, justifyContent: "center", alignItems: "center" }}>
-                  <IconButton
+                <Box
+                  sx={{
+                    display: "flex",
+                    gap: 6, // space between icons
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}
+                >
+                  {/* Edit Box */}
+                  <Box
                     onClick={() => handleEditClick(user, idx)}
                     sx={{
-                      color: "#9CA3AF",
                       background: "#ffffff1a",
-                      p: 1,
-                      "&:hover": { color: "#fff", background: "#ffffff2d" },
+                      p: 1.2,
+                      borderRadius: "4px", // square box with rounded corners
+                      cursor: "pointer",
+                      "&:hover": { background: "#ffffff2d" },
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
                     }}
                   >
-                    <EditIcon fontSize="small" />
-                  </IconButton>
+                    <img src={editIcon} style={{ width: 18, height: 18 }} />
+                  </Box>
 
-                  <IconButton
+                  {/* Delete Box */}
+                  <Box
                     onClick={() => handleDeleteClick(idx)}
                     sx={{
-                      color: "#f87171",
                       background: "#ffffff1a",
-                      p: 1,
-                      "&:hover": { color: "#fff", background: "#dc2626" },
+                      p: 1.2,
+                      borderRadius: "4px",
+                      cursor: "pointer",
+                      "&:hover": { background: "#ffffff2d" },
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
                     }}
                   >
-                    <DeleteIcon fontSize="small" />
-                  </IconButton>
+                    <img src={deleteIcon} style={{ width: 18, height: 18 }} />
+                  </Box>
                 </Box>
               </Box>
             ))}
@@ -342,7 +386,6 @@ export default function UserManagement() {
         setFormData={setFormData}
         isEditing={isEditing}
       />
-      
 
       <DeleteConfirmDialog
         open={deleteDialogOpen}
