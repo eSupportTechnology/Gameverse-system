@@ -217,15 +217,7 @@ export default function TVOffer() {
 */
 
 import React, { useState } from "react";
-import {
-  Box,
-  Typography,
-  Card,
-  Grid,
-  Tabs,
-  Tab,
-  Button,
-} from "@mui/material";
+import { Box, Typography, Card, Grid, Tabs, Tab, Button } from "@mui/material";
 import { CloudUploadOutlined } from "@mui/icons-material";
 
 export default function TVOffer() {
@@ -246,7 +238,11 @@ export default function TVOffer() {
     setPosts((prev) =>
       prev.map((post) =>
         post.id === id
-          ? { ...post, file, fileType: file.type.startsWith("video") ? "video" : "image" }
+          ? {
+              ...post,
+              file,
+              fileType: file.type.startsWith("video") ? "video" : "image",
+            }
           : post
       )
     );
@@ -254,16 +250,22 @@ export default function TVOffer() {
 
   const handlePost = (id) => {
     setPosts((prev) =>
-      prev.map((post) =>
-        post.id === id ? { ...post, posted: true } : post
-      )
+      prev.map((post) => (post.id === id ? { ...post, posted: true } : post))
     );
   };
 
   const handleDelete = (id) => {
     setPosts((prev) =>
       prev.map((post) =>
-        post.id === id ? { ...post, file: null, fileType: null, posted: false, isHeld: false } : post
+        post.id === id
+          ? {
+              ...post,
+              file: null,
+              fileType: null,
+              posted: false,
+              isHeld: false,
+            }
+          : post
       )
     );
   };
@@ -279,7 +281,10 @@ export default function TVOffer() {
   return (
     <Box sx={{ p: 2, bgcolor: "#000", minHeight: "100vh" }}>
       <Box sx={{ mb: 3, mt: 2 }}>
-        <Typography variant="h4" sx={{ color: "#fff", fontWeight: "bold", fontSize: "26px", mb: 0.5 }}>
+        <Typography
+          variant="h4"
+          sx={{ color: "#fff", fontWeight: "bold", fontSize: "26px", mb: 0.5 }}
+        >
           TV Screen Management
         </Typography>
         <Typography variant="h6" sx={{ color: "#888", fontSize: "15px" }}>
@@ -287,7 +292,14 @@ export default function TVOffer() {
         </Typography>
       </Box>
 
-      <Box sx={{ mb: 3, backgroundColor: "#0b0e17", borderRadius: "8px", p: "4px 8px" }}>
+      <Box
+        sx={{
+          mb: 3,
+          backgroundColor: "#0b0e17",
+          borderRadius: "8px",
+          p: "8px 12px",
+        }}
+      >
         <Tabs
           value={0}
           sx={{
@@ -295,18 +307,17 @@ export default function TVOffer() {
             "& .MuiTab-root": {
               color: "#00bcd4",
               textTransform: "none",
-              fontWeight: 600,
               fontSize: "14px",
               backgroundColor: "rgba(0,188,212,0.1)",
               border: "1px solid rgba(0,188,212,0.5)",
-              borderRadius: "6px",
+              borderRadius: "5px",
               px: 2,
               mx: 0.5,
-              minHeight: "32px",
+              minWidth: 120,
               "&.Mui-selected": {
-                backgroundColor: "#015b6b",
-                color: "#00e5ff",
-                borderColor: "#00e5ff",
+                backgroundColor: "#10374b",
+                color: "#0CD7FF",
+                borderColor: "#0CD7FF",
               },
             },
             "& .MuiTabs-indicator": { display: "none" },
@@ -316,7 +327,15 @@ export default function TVOffer() {
         </Tabs>
       </Box>
 
-      <Box sx={{ backgroundColor: "rgba(11, 14, 23, 1)", borderRadius: "10px", px: 0, p: 1, border: "1px solid #1c1f27" }}>
+      <Box
+        sx={{
+          backgroundColor: "rgba(11, 14, 23, 1)",
+          borderRadius: "10px",
+          px: 0,
+          p: 1,
+          border: "1px solid #1c1f27",
+        }}
+      >
         <Grid container spacing={2} justifyContent="center">
           {posts.map((post) => (
             <Grid item xs={12} sm={6} md={3} key={post.id}>
@@ -332,10 +351,14 @@ export default function TVOffer() {
                   p: 1.5,
                   height: 170,
                   transition: "all 0.3s ease",
-                  "&:hover": { borderColor: "#00d4ff", transform: "translateY(-2px)" },
+                  "&:hover": {
+                    borderColor: "#00d4ff",
+                    transform: "translateY(-2px)",
+                  },
                 }}
                 onClick={() =>
-                  !post.posted && document.getElementById(`fileInput-${post.id}`).click()
+                  !post.posted &&
+                  document.getElementById(`fileInput-${post.id}`).click()
                 }
               >
                 <Box
@@ -355,19 +378,33 @@ export default function TVOffer() {
                       <video
                         src={URL.createObjectURL(post.file)}
                         controls
-                        style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "10px" }}
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
+                          borderRadius: "10px",
+                        }}
                       />
                     ) : (
                       <img
                         src={URL.createObjectURL(post.file)}
                         alt="Uploaded"
-                        style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "10px" }}
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
+                          borderRadius: "10px",
+                        }}
                       />
                     )
                   ) : (
                     <Box sx={{ textAlign: "center", color: "#aaa" }}>
-                      <CloudUploadOutlined sx={{ fontSize: 38, color: "#818586ff" }} />
-                      <Typography sx={{ fontSize: "13px", color: "#bbb", mt: 1 }}>
+                      <CloudUploadOutlined
+                        sx={{ fontSize: 38, color: "#818586ff" }}
+                      />
+                      <Typography
+                        sx={{ fontSize: "13px", color: "#bbb", mt: 1 }}
+                      >
                         Upload your post or video
                       </Typography>
                     </Box>
@@ -412,7 +449,9 @@ export default function TVOffer() {
                       textTransform: "none",
                       borderRadius: "8px",
                       py: 1,
-                      "&:hover": { backgroundColor: post.isHeld ? "#27ae60" : "#9b59b6" },
+                      "&:hover": {
+                        backgroundColor: post.isHeld ? "#27ae60" : "#9b59b6",
+                      },
                     }}
                   >
                     {post.isHeld ? "Play" : "Hold"}
