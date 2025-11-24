@@ -1,6 +1,14 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { Box, Typography, Button, Tabs, Tab, Menu, MenuItem } from "@mui/material";
+import {
+  Box,
+  Typography,
+  Button,
+  Tabs,
+  Tab,
+  Menu,
+  MenuItem,
+} from "@mui/material";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import AddStationDialog from "./AddStationDialog";
 import StationsGrid from "./StationsGrid";
@@ -23,7 +31,10 @@ export default function StationManagement() {
   });
 
   // Extract unique station types dynamically
-  const stationTypes = ["All Stations", ...Array.from(new Set(stations.map(s => s.type)))];
+  const stationTypes = [
+    "All Stations",
+    ...Array.from(new Set(stations.map((s) => s.type))),
+  ];
 
   useEffect(() => {
     fetchStations();
@@ -62,7 +73,10 @@ export default function StationManagement() {
       if (!minutes) return "";
       const hours = Math.floor(minutes / 60);
       const mins = minutes % 60;
-      return `${String(hours).padStart(2, "0")}:${String(mins).padStart(2, "0")}`;
+      return `${String(hours).padStart(2, "0")}:${String(mins).padStart(
+        2,
+        "0"
+      )}`;
     };
 
     setFormData({
@@ -76,7 +90,9 @@ export default function StationManagement() {
 
   const handleStationCreatedOrUpdated = (station, updated) => {
     if (updated) {
-      setStations((prev) => prev.map((s) => (s.id === station.id ? station : s)));
+      setStations((prev) =>
+        prev.map((s) => (s.id === station.id ? station : s))
+      );
     } else {
       setStations((prev) => [...prev, station]);
     }
@@ -106,12 +122,20 @@ export default function StationManagement() {
   // Filter stations based on selected tab and status
   const filteredStations = stations.filter((s) => {
     const typeMatch = tab === 0 ? true : s.type === stationTypes[tab];
-    const statusMatch = statusFilter === "All" ? true : s.status === statusFilter;
+    const statusMatch =
+      statusFilter === "All" ? true : s.status === statusFilter;
     return typeMatch && statusMatch;
   });
 
   return (
-    <Box sx={{ backgroundColor: "#000", minHeight: "100vh", color: "#fff", pt: "70px" }}>
+    <Box
+      sx={{
+        backgroundColor: "#000",
+        minHeight: "100vh",
+        color: "#fff",
+        pt: "70px",
+      }}
+    >
       <Box sx={{ backgroundColor: "#0E111B", p: 3, borderRadius: 2 }}>
         {/* Header */}
         <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
@@ -164,12 +188,24 @@ export default function StationManagement() {
                 label={label}
                 sx={{
                   mx: 1,
-                  borderRadius: 1,
+                  borderRadius: "5px",
                   minWidth: "120px",
                   textTransform: "none",
-                  color: tab === index ? "#fff" : "gray",
-                  background: tab === index ? "#1aa6bc58" : "#1F2937",
-                  "&:hover": { opacity: 0.9 },
+                  fontSize: "14px",
+                  transition: "0.25s",
+                  // ACTIVE / INACTIVE TEXT COLOR
+                  color: tab === index ? "#0CD7FF" : "#A1A1A1",
+                  // FIX: FORCE ACTIVE TEXT COLOR
+                  "&.Mui-selected": {
+                    color: "#0CD7FF !important",
+                  },
+                  // BORDER
+                  border:
+                    tab === index ? "1px solid #0CD7FF" : "1px solid #1f2937",
+                  // BACKGROUND
+                  backgroundColor: tab === index ? "#1aa6bc58" : "#1F2937",
+                  // HOVER
+                  "&:hover": { opacity: 0.8 },
                 }}
               />
             ))}
@@ -178,11 +214,25 @@ export default function StationManagement() {
           {/* Status Filter */}
           <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              <Box sx={{ width: 10, height: 10, borderRadius: "50%", backgroundColor: "#00FF7F" }} />
+              <Box
+                sx={{
+                  width: 10,
+                  height: 10,
+                  borderRadius: "50%",
+                  backgroundColor: "#00FF7F",
+                }}
+              />
               <Typography variant="body2">Available</Typography>
             </Box>
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              <Box sx={{ width: 10, height: 10, borderRadius: "50%", backgroundColor: "#9A60E8BF" }} />
+              <Box
+                sx={{
+                  width: 10,
+                  height: 10,
+                  borderRadius: "50%",
+                  backgroundColor: "#9A60E8BF",
+                }}
+              />
               <Typography variant="body2">Playing</Typography>
             </Box>
 
