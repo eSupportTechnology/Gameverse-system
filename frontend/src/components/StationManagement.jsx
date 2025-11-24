@@ -143,7 +143,7 @@ export default function StationManagement() {
             <Typography variant="h5" fontWeight={600}>
               Station Management
             </Typography>
-            <Typography variant="body2" color="gray">
+            <Typography color="#fff" fontSize={13}>
               Monitor and control gaming stations
             </Typography>
           </Box>

@@ -28,7 +28,7 @@ const ReportsManagement = () => {
   // Handle export functionality
   const handleExport = () => {
     toast.info("Exporting report data...");
-    // Export logic 
+    // Export logic
     setTimeout(() => {
       toast.success("Report exported successfully!");
     }, 1000);
@@ -52,7 +52,7 @@ const ReportsManagement = () => {
 
   const currentData = getCurrentData();
 
-  // Metric cards data 
+  // Metric cards data
   const metrics = [
     {
       id: 1,
@@ -61,7 +61,7 @@ const ReportsManagement = () => {
       value: "LKR 15,800",
       // value: `LKR ${currentData.totalRevenue.toLocaleString()}`,
       changePositive: true,
-      iconBgColor: "#ff6b81", 
+      iconBgColor: "#ff6b81",
     },
     {
       id: 2,
@@ -70,7 +70,7 @@ const ReportsManagement = () => {
       value: "45",
       // value: currentData.totalBookings.toString(),
       changePositive: true,
-      iconBgColor: "#ffa86b", 
+      iconBgColor: "#ffa86b",
     },
     {
       id: 3,
@@ -79,7 +79,7 @@ const ReportsManagement = () => {
       value: "60",
       // value: currentData.totalSales.toString(),
       changePositive: true,
-      iconBgColor: "#2bdc65", 
+      iconBgColor: "#2bdc65",
     },
     {
       id: 4,
@@ -88,7 +88,7 @@ const ReportsManagement = () => {
       value: "10",
       // value: currentData.rejectedBookings.toString().padStart(2, "0"),
       changePositive: false,
-      iconBgColor: "#b28bff", 
+      iconBgColor: "#b28bff",
     },
   ];
 
@@ -145,11 +145,9 @@ const ReportsManagement = () => {
                 Reports & Analytics
               </Typography>
               <Typography
-                variant="body2"
                 sx={{
-                  color: "#6b7280",
-                  fontSize: { xs: "11px", sm: "12px", md: "13px" },
-                  lineHeight: 1.3,
+                  color: "#fff",
+                  fontSize: 13,
                 }}
               >
                 Business performance insights and data analysis
@@ -290,7 +288,7 @@ const ReportsManagement = () => {
               backgroundColor: "#0a0e1a",
               color: "#fff",
               p: { xs: 1.5, sm: 2, md: 2 },
-              mt: { xs: 1, sm: 2, md: 3 }, 
+              mt: { xs: 1, sm: 2, md: 3 },
               width: "100%",
               maxWidth: "100vw",
               borderRadius: "8px",

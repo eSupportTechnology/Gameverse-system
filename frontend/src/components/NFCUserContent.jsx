@@ -306,11 +306,9 @@ export default function NFCUserContent() {
               NFC Customers Management
             </Typography>
             <Typography
-              variant="h6"
               sx={{
-                color: "#888",
-                fontWeight: "500",
-                fontSize: "16px",
+                color: "#fff",
+                fontSize: 13,
               }}
             >
               Manage NFC Customers

@@ -182,7 +182,7 @@ export default function UserManagement() {
             <Typography variant="h6" fontWeight={600}>
               User Management
             </Typography>
-            <Typography variant="body2" color="gray">
+            <Typography variant="body2" color="#fff">
               Manage users, roles, and permissions
             </Typography>
           </Box>
