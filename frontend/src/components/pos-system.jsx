@@ -468,7 +468,7 @@ const PosSystem = () => {
             <Typography sx={{ fontSize: 22, fontWeight: 700 }}>
               POS System
             </Typography>
-            <Typography sx={{ fontSize: 13, color: "#9CA3AF" }}>
+            <Typography sx={{ fontSize: 13, color: "#fff" }}>
               Point of Sale and Product Management
             </Typography>
           </Box>
@@ -497,7 +497,7 @@ const PosSystem = () => {
             justifyContent: "space-between",
             alignItems: "center",
             //width: "100%",
-            height: 60,
+            // height: 60,
             bgcolor: "#0E111B",
             p: 1,
           }}

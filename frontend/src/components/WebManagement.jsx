@@ -228,7 +228,7 @@ const WebManagement = () => {
             <Typography variant="h5" fontWeight="bold" fontSize={24}>
               Website Management{" "}
             </Typography>
-            <Typography variant="body2" color="gray" fontSize={16}>
+            <Typography color="#fff" fontSize={13}>
               Manage Website
             </Typography>
           </Box>

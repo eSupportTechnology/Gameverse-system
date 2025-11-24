@@ -287,7 +287,7 @@ export default function TVOffer() {
         >
           TV Screen Management
         </Typography>
-        <Typography variant="h6" sx={{ color: "#888", fontSize: "15px" }}>
+        <Typography sx={{ color: "#fff", fontSize: 13 }}>
           Manage TV Screens
         </Typography>
       </Box>

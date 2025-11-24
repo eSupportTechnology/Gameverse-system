@@ -1,5 +1,5 @@
 // BookingManagement.jsx (Updated)
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -10,22 +10,24 @@ import {
   TextField,
   CircularProgress,
 } from "@mui/material";
-import BookingForm from './BookingForm';
-import BookingGrid from './BookingGrid';
-import BookingDialog from './BookingDialog'; // For Upcoming
-import SessionDialog from './SessionDialog'; // For In Progress
-import CompletedBookingDialog from './CompletedBookingDialog'; // For Completed
-import axios from 'axios';
+import BookingForm from "./BookingForm";
+import BookingGrid from "./BookingGrid";
+import BookingDialog from "./BookingDialog"; // For Upcoming
+import SessionDialog from "./SessionDialog"; // For In Progress
+import CompletedBookingDialog from "./CompletedBookingDialog"; // For Completed
+import axios from "axios";
 
 const BookingManagement = () => {
   const [view, setView] = React.useState("timeline");
-  const [date, setDate] = React.useState(new Date().toISOString().split('T')[0]);
+  const [date, setDate] = React.useState(
+    new Date().toISOString().split("T")[0]
+  );
   const [openDialog, setOpenDialog] = useState(false);
   const [apiBookings, setApiBookings] = useState([]);
   const [loading, setLoading] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [selectedBooking, setSelectedBooking] = useState(null);
-  
+
   // Separate states for each dialog type
   const [upcomingDialogOpen, setUpcomingDialogOpen] = useState(false);
   const [inProgressDialogOpen, setInProgressDialogOpen] = useState(false);
@@ -33,104 +35,126 @@ const BookingManagement = () => {
 
   // Scrollbar styles
   const scrollbarStyles = {
-    '&::-webkit-scrollbar': {
-      width: '8px',
-      height: '8px',
+    "&::-webkit-scrollbar": {
+      width: "8px",
+      height: "8px",
     },
-    '&::-webkit-scrollbar-track': {
-      background: '#1F2937',
-      borderRadius: '10px',
+    "&::-webkit-scrollbar-track": {
+      background: "#1F2937",
+      borderRadius: "10px",
     },
-    '&::-webkit-scrollbar-thumb': {
-      background: 'linear-gradient(45deg, #0CD7FF, #8A38F5)',
-      borderRadius: '10px',
-      border: '1px solid rgba(255,255,255,0.2)',
+    "&::-webkit-scrollbar-thumb": {
+      background: "linear-gradient(45deg, #0CD7FF, #8A38F5)",
+      borderRadius: "10px",
+      border: "1px solid rgba(255,255,255,0.2)",
     },
-    '&::-webkit-scrollbar-thumb:hover': {
-      background: 'linear-gradient(45deg, #00E5FF, #9A60E8)',
+    "&::-webkit-scrollbar-thumb:hover": {
+      background: "linear-gradient(45deg, #00E5FF, #9A60E8)",
     },
-    '&::-webkit-scrollbar-corner': {
-      background: '#1F2937',
+    "&::-webkit-scrollbar-corner": {
+      background: "#1F2937",
     },
     // Firefox support
-    scrollbarWidth: 'thin',
-    scrollbarColor: '#949c9da4 #1F2937',
+    scrollbarWidth: "thin",
+    scrollbarColor: "#949c9da4 #1F2937",
   };
 
   // Helper functions
   const normalizeTimeFormat = (timeString) => {
-    if (!timeString) return '';
-    
+    if (!timeString) return "";
+
     const timeMatch = timeString.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?/);
     if (timeMatch) {
       let hours = parseInt(timeMatch[1]);
       const minutes = timeMatch[2];
-      
+
       if (hours === 0) {
         return `12:${minutes}`;
       } else if (hours > 12) {
-        return `${String(hours - 12).padStart(2, '0')}:${minutes}`;
+        return `${String(hours - 12).padStart(2, "0")}:${minutes}`;
       } else if (hours < 10) {
-        return `${String(hours).padStart(2, '0')}:${minutes}`;
+        return `${String(hours).padStart(2, "0")}:${minutes}`;
       } else {
         return `${hours}:${minutes}`;
       }
     }
-    
+
     return timeString;
   };
 
   const matchStation = (apiStation, uiStationName) => {
     if (!apiStation || !uiStationName) return false;
-    
+
     const normalizedApi = apiStation.toLowerCase().trim();
     const normalizedUI = uiStationName.toLowerCase().trim();
-    
+
     if (normalizedApi === normalizedUI) return true;
-    
-    if (normalizedApi === 'station1' && normalizedUI.includes('station 1')) return true;
-    if (normalizedApi === 'station2' && normalizedUI.includes('station 2')) return true;
-    if (normalizedApi === 'station3' && normalizedUI.includes('station 3')) return true;
-    
-    if (normalizedApi.includes('station 1') && normalizedUI.includes('station 1')) return true;
-    if (normalizedApi.includes('station 2') && normalizedUI.includes('station 2')) return true;
-    if (normalizedApi.includes('station 3') && normalizedUI.includes('station 3')) return true;
-    
-    if (normalizedApi.includes('pool') && normalizedUI.includes('pool')) return true;
-    
+
+    if (normalizedApi === "station1" && normalizedUI.includes("station 1"))
+      return true;
+    if (normalizedApi === "station2" && normalizedUI.includes("station 2"))
+      return true;
+    if (normalizedApi === "station3" && normalizedUI.includes("station 3"))
+      return true;
+
+    if (
+      normalizedApi.includes("station 1") &&
+      normalizedUI.includes("station 1")
+    )
+      return true;
+    if (
+      normalizedApi.includes("station 2") &&
+      normalizedUI.includes("station 2")
+    )
+      return true;
+    if (
+      normalizedApi.includes("station 3") &&
+      normalizedUI.includes("station 3")
+    )
+      return true;
+
+    if (normalizedApi.includes("pool") && normalizedUI.includes("pool"))
+      return true;
+
     return false;
   };
 
   const fetchBookings = async () => {
     setLoading(true);
     try {
-      const response = await axios.get('http://127.0.0.1:8000/api/bookings');
-      
+      const response = await axios.get("http://127.0.0.1:8000/api/bookings");
+
       if (response.data.success) {
         const mapBooking = (b) => {
           const statusMap = {
-            pending: 'upcoming',
-            confirmed: 'inprogress',
-            cancelled: 'completed',
-            completed: 'completed',
+            pending: "upcoming",
+            confirmed: "inprogress",
+            cancelled: "completed",
+            completed: "completed",
           };
 
-          const normalizedTime = normalizeTimeFormat(b.start_time || b.startTime || b.time || '');
+          const normalizedTime = normalizeTimeFormat(
+            b.start_time || b.startTime || b.time || ""
+          );
 
           return {
             id: b.id,
-            customer_name: b.customer_name || b.customerName || b.user || '',
-            station: b.station || '',
+            customer_name: b.customer_name || b.customerName || b.user || "",
+            station: b.station || "",
             start_time: normalizedTime,
             time: normalizedTime,
-            original_start_time: b.start_time || b.startTime || b.time || '',
-            booking_date: b.booking_date || b.date || '',
-            duration: b.duration || '',
+            original_start_time: b.start_time || b.startTime || b.time || "",
+            booking_date: b.booking_date || b.date || "",
+            duration: b.duration || "",
             amount: b.amount ?? b.full_amount ?? b.price ?? 0,
-            status: (statusMap[b.status] || b.status || 'upcoming').toLowerCase(),
-            user: b.customer_name || b.user || '',
-            phone: b.phone_number || b.phone || '',
-            extended_time: b.extended_time || '',
+            status: (
+              statusMap[b.status] ||
+              b.status ||
+              "upcoming"
+            ).toLowerCase(),
+            user: b.customer_name || b.user || "",
+            phone: b.phone_number || b.phone || "",
+            extended_time: b.extended_time || "",
             players: b.players || [],
             online_deposit: b.online_deposit || 0,
             total_amount: b.total_amount || b.amount || 0,
@@ -139,13 +163,13 @@ const BookingManagement = () => {
         };
 
         const normalized = response.data.data.map(mapBooking);
-        
+
         // Add random mock bookings for demonstration if API doesn't have all statuses
         const enhancedBookings = [...normalized, ...generateMockBookings()];
         setApiBookings(enhancedBookings);
       }
     } catch (error) {
-      console.error('Error fetching bookings:', error);
+      console.error("Error fetching bookings:", error);
       // Use mock data if API fails
       setApiBookings(generateMockBookings());
     } finally {
@@ -167,7 +191,7 @@ const BookingManagement = () => {
         user: "John Smith",
         phone: "+94 771234567",
         amount: 300,
-        players: ["Player 01", "Player 02"]
+        players: ["Player 01", "Player 02"],
       },
       {
         id: "1002",
@@ -179,7 +203,7 @@ const BookingManagement = () => {
         user: "Emma Wilson",
         phone: "+94 772345678",
         amount: 400,
-        players: ["Player 03", "Player 04"]
+        players: ["Player 03", "Player 04"],
       },
       {
         id: "1003",
@@ -191,7 +215,7 @@ const BookingManagement = () => {
         user: "Mike Johnson",
         phone: "+94 773456789",
         amount: 200,
-        players: ["Player 01"]
+        players: ["Player 01"],
       },
 
       // In Progress Bookings
@@ -205,7 +229,7 @@ const BookingManagement = () => {
         user: "Sarah Brown",
         phone: "+94 774567890",
         amount: 400,
-        players: ["Player 01", "Player 02", "Player 03"]
+        players: ["Player 01", "Player 02", "Player 03"],
       },
       {
         id: "2002",
@@ -217,7 +241,7 @@ const BookingManagement = () => {
         user: "David Lee",
         phone: "+94 775678901",
         amount: 300,
-        players: ["Player 01", "Player 04"]
+        players: ["Player 01", "Player 04"],
       },
       {
         id: "2003",
@@ -229,7 +253,7 @@ const BookingManagement = () => {
         user: "Lisa Garcia",
         phone: "+94 776789012",
         amount: 500,
-        players: ["Player 02", "Player 03"]
+        players: ["Player 02", "Player 03"],
       },
 
       // Completed Bookings
@@ -243,7 +267,7 @@ const BookingManagement = () => {
         user: "Robert Taylor",
         phone: "+94 777890123",
         amount: 200,
-        players: ["Player 01"]
+        players: ["Player 01"],
       },
       {
         id: "3002",
@@ -255,7 +279,7 @@ const BookingManagement = () => {
         user: "Maria Martinez",
         phone: "+94 778901234",
         amount: 400,
-        players: ["Player 02", "Player 04"]
+        players: ["Player 02", "Player 04"],
       },
       {
         id: "3003",
@@ -267,8 +291,8 @@ const BookingManagement = () => {
         user: "James Anderson",
         phone: "+94 779012345",
         amount: 300,
-        players: ["Player 03"]
-      }
+        players: ["Player 03"],
+      },
     ];
 
     return mockBookings;
@@ -279,7 +303,7 @@ const BookingManagement = () => {
   }, [refreshTrigger]);
 
   const refreshBookings = () => {
-    setRefreshTrigger(prev => prev + 1);
+    setRefreshTrigger((prev) => prev + 1);
   };
 
   const handleViewChange = (event, newView) => {
@@ -289,15 +313,15 @@ const BookingManagement = () => {
   // Handle booking slot click - opens appropriate dialog based on status
   const handleBookingSlotClick = (booking) => {
     setSelectedBooking(booking);
-    
-    switch(booking.status) {
-      case 'upcoming':
+
+    switch (booking.status) {
+      case "upcoming":
         setUpcomingDialogOpen(true);
         break;
-      case 'inprogress':
+      case "inprogress":
         setInProgressDialogOpen(true);
         break;
-      case 'completed':
+      case "completed":
         setCompletedDialogOpen(true);
         break;
       default:
@@ -307,50 +331,71 @@ const BookingManagement = () => {
 
   // Dialog action handlers
   const handleEditBooking = () => {
-    console.log('Edit booking:', selectedBooking);
+    console.log("Edit booking:", selectedBooking);
     setUpcomingDialogOpen(false);
     // Implement edit functionality
   };
 
   const handleCancelBooking = () => {
-    console.log('Cancel booking:', selectedBooking);
+    console.log("Cancel booking:", selectedBooking);
     setUpcomingDialogOpen(false);
     // Implement cancel functionality
   };
 
   const handleUpdateTime = () => {
-    console.log('Update time for:', selectedBooking);
+    console.log("Update time for:", selectedBooking);
     // Implement time update functionality
   };
 
   const handleEndSession = () => {
-    console.log('End session for:', selectedBooking);
+    console.log("End session for:", selectedBooking);
     setInProgressDialogOpen(false);
     // Implement end session functionality
   };
 
   const handleCollectPayment = () => {
-    console.log('Collect payment for:', selectedBooking);
+    console.log("Collect payment for:", selectedBooking);
     setCompletedDialogOpen(false);
     // Implement collect payment functionality
   };
 
   // Sample stations
   const stations = [
-    { name: "PSS Station 1", subname: 'PSS Station 1', rate: "$12.5/hr" },
-    { name: "PSS Station 2", subname: 'PSS Station 1', rate: "$12.5/hr" },
-    { name: "PSS Station 3", subname: 'PSS Station 1', rate: "$12.5/hr" },
-    { name: "8 Ball Pool(Suprime)", subname: 'Pool', rate: "$12.5/hr" },
-    { name: "8 Ball Pool(Premium)", subname: 'Pool', rate: "$12.5/hr" },
-    { name: "PSS Station 4", subname: 'PSS Station 4', rate: "$12.5/hr" },
-  { name: "PSS Station 5", subname: 'PSS Station 5', rate: "$12.5/hr" },
-  { name: "8 Ball Pool(Suprime)", subname: 'Pool', rate: "$15/hr" },
+    { name: "PSS Station 1", subname: "PSS Station 1", rate: "$12.5/hr" },
+    { name: "PSS Station 2", subname: "PSS Station 1", rate: "$12.5/hr" },
+    { name: "PSS Station 3", subname: "PSS Station 1", rate: "$12.5/hr" },
+    { name: "8 Ball Pool(Suprime)", subname: "Pool", rate: "$12.5/hr" },
+    { name: "8 Ball Pool(Premium)", subname: "Pool", rate: "$12.5/hr" },
+    { name: "PSS Station 4", subname: "PSS Station 4", rate: "$12.5/hr" },
+    { name: "PSS Station 5", subname: "PSS Station 5", rate: "$12.5/hr" },
+    { name: "8 Ball Pool(Suprime)", subname: "Pool", rate: "$15/hr" },
   ];
 
   const timeSlots = [
-    "12:00", "12:30", "01:00", "01:30", "02:00", "02:30", "03:00", "03:30",
-    "04:00", "04:30", "05:00", "05:30", "06:00", "06:30", "07:00", "07:30",
-    "08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30",
+    "12:00",
+    "12:30",
+    "01:00",
+    "01:30",
+    "02:00",
+    "02:30",
+    "03:00",
+    "03:30",
+    "04:00",
+    "04:30",
+    "05:00",
+    "05:30",
+    "06:00",
+    "06:30",
+    "07:00",
+    "07:30",
+    "08:00",
+    "08:30",
+    "09:00",
+    "09:30",
+    "10:00",
+    "10:30",
+    "11:00",
+    "11:30",
   ];
 
   const statusColors = {
@@ -360,29 +405,51 @@ const BookingManagement = () => {
   };
 
   return (
-    <Box sx={{ 
-      p: 2, 
-      bgcolor: "1E1E1E", 
-      color: "#fff", 
-      minHeight: "100vh", 
-      overflowX: "hidden", 
-      ml: 0,
-      ...scrollbarStyles 
-    }}>
+    <Box
+      sx={{
+        p: 2,
+        bgcolor: "1E1E1E",
+        color: "#fff",
+        minHeight: "100vh",
+        overflowX: "hidden",
+        ml: 0,
+        ...scrollbarStyles,
+      }}
+    >
       {/* Header */}
       <Box
         display="flex"
         flexDirection={{ xs: "column", sm: "column", md: "row" }}
-        justifyContent={{ xs: "flex-start", sm: "flex-start", md: "space-between" }}
+        justifyContent={{
+          xs: "flex-start",
+          sm: "flex-start",
+          md: "space-between",
+        }}
         alignItems={{ xs: "flex-start", sm: "flex-start", md: "center" }}
         mb={2}
       >
-        <Box sx={{ display: "flex", flexDirection: "column", alignItems: "flex-start", justifyContent: "flex-start" }}>
-          <Typography variant="h5" fontWeight="bold" fontSize={24}>Booking Management</Typography>
-          <Typography variant="body2" color="gray" fontSize={16}>Manage reservations and station schedules</Typography>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "flex-start",
+            justifyContent: "flex-start",
+          }}
+        >
+          <Typography variant="h5" fontWeight="bold" fontSize={24}>
+            Booking Management
+          </Typography>
+          <Typography color="#fff" fontSize={13}>
+            Manage reservations and station schedules
+          </Typography>
         </Box>
 
-        <Box display="flex" gap={2} mt={{ xs: 2, sm: 2, md: 0 }} width={{ xs: "100%", sm: "100%", md: "auto" }}>
+        <Box
+          display="flex"
+          gap={2}
+          mt={{ xs: 2, sm: 2, md: 0 }}
+          width={{ xs: "100%", sm: "100%", md: "auto" }}
+        >
           <ToggleButtonGroup
             value={view}
             exclusive
@@ -403,8 +470,12 @@ const BookingManagement = () => {
               },
             }}
           >
-            <ToggleButton sx={{ px: 2, py: 1 }} value="timeline">Timeline</ToggleButton>
-            <ToggleButton sx={{ px: 2, py: 1 }} value="grid">Grid</ToggleButton>
+            <ToggleButton sx={{ px: 2, py: 1 }} value="timeline">
+              Timeline
+            </ToggleButton>
+            <ToggleButton sx={{ px: 2, py: 1 }} value="grid">
+              Grid
+            </ToggleButton>
           </ToggleButtonGroup>
 
           <Box>
@@ -417,36 +488,50 @@ const BookingManagement = () => {
                 py: 1,
                 textTransform: "none",
                 fontWeight: "600",
-                "&:hover": { background: "linear-gradient(to right, #0bbfe0, #732ed1)" },
+                "&:hover": {
+                  background: "linear-gradient(to right, #0bbfe0, #732ed1)",
+                },
               }}
               onClick={() => setOpenDialog(true)}
             >
               + New Booking
             </Button>
-            <BookingForm 
-              open={openDialog} 
+            <BookingForm
+              open={openDialog}
               handleClose={() => setOpenDialog(false)}
-              onBookingCreated={refreshBookings} 
+              onBookingCreated={refreshBookings}
             />
           </Box>
         </Box>
       </Box>
 
       {/* Toolbar */}
-      <Box display="flex" flexDirection={{ xs: "column", sm: "column", md: "row" }}
-        justifyContent={{ xs: "flex-start", sm: "flex-start", md: "space-between" }} px={1.5} py={1.5} borderRadius='10px' bgcolor='#0E111B' alignItems={{ xs: "flex-start", sm: "flex-start", md: "center" }} mb={2}>
-        
+      <Box
+        display="flex"
+        flexDirection={{ xs: "column", sm: "column", md: "row" }}
+        justifyContent={{
+          xs: "flex-start",
+          sm: "flex-start",
+          md: "space-between",
+        }}
+        px={1.5}
+        py={1.5}
+        borderRadius="10px"
+        bgcolor="#0E111B"
+        alignItems={{ xs: "flex-start", sm: "flex-start", md: "center" }}
+        mb={2}
+      >
         <TextField
           type="date"
           value={date}
           onChange={(e) => setDate(e.target.value)}
           InputLabelProps={{ shrink: true }}
-          inputProps={{ 
-            style: { 
-              height: "40px", 
+          inputProps={{
+            style: {
+              height: "40px",
               padding: "0 12px",
-              color: "#fff" 
-            } 
+              color: "#fff",
+            },
           }}
           sx={{
             bgcolor: "#1F2937",
@@ -459,62 +544,131 @@ const BookingManagement = () => {
             "& .MuiInputBase-input": {
               color: "#fff",
             },
-            mb: { xs: 2, sm: 2, md: 0 }
+            mb: { xs: 2, sm: 2, md: 0 },
           }}
         />
 
         <Box display="flex" gap={3}>
           <Box display="flex" alignItems="center" gap={1}>
-            <Box sx={{ width: 12, height: 12, borderRadius: "50%", bgcolor: statusColors.upcoming }} />
-            <Typography color="#fff" fontSize={12}>Upcoming</Typography>
+            <Box
+              sx={{
+                width: 12,
+                height: 12,
+                borderRadius: "50%",
+                bgcolor: statusColors.upcoming,
+              }}
+            />
+            <Typography color="#fff" fontSize={12}>
+              Upcoming
+            </Typography>
           </Box>
           <Box display="flex" alignItems="center" gap={1}>
-            <Box sx={{ width: 12, height: 12, borderRadius: "50%", bgcolor: statusColors.inprogress }} />
-            <Typography color="#fff" fontSize={12}>Inprogress</Typography>
+            <Box
+              sx={{
+                width: 12,
+                height: 12,
+                borderRadius: "50%",
+                bgcolor: statusColors.inprogress,
+              }}
+            />
+            <Typography color="#fff" fontSize={12}>
+              Inprogress
+            </Typography>
           </Box>
           <Box display="flex" alignItems="center" gap={1}>
-            <Box sx={{ width: 12, height: 12, borderRadius: "50%", bgcolor: statusColors.completed }} />
-            <Typography color="#fff" fontSize={12}>Completed</Typography>
+            <Box
+              sx={{
+                width: 12,
+                height: 12,
+                borderRadius: "50%",
+                bgcolor: statusColors.completed,
+              }}
+            />
+            <Typography color="#fff" fontSize={12}>
+              Completed
+            </Typography>
           </Box>
         </Box>
       </Box>
 
       {/* Booking Timeline */}
       {view === "timeline" && (
-        <Paper sx={{ 
-          p: 2, 
-          borderRadius: "12px", 
-          bgcolor: '#0E111B', 
-          height: '100vh',
-          overflow: 'auto',
-          ...scrollbarStyles 
-        }}>
+        <Paper
+          sx={{
+            p: 2,
+            borderRadius: "12px",
+            bgcolor: "#0E111B",
+            height: "100vh",
+            overflow: "auto",
+            ...scrollbarStyles,
+          }}
+        >
           <Box sx={{ display: "flex", width: "100%" }}>
             {/* Left Column */}
             <Box sx={{ flex: "0 0 200px", pr: 2 }}>
-              <Typography fontWeight='bold' mb={1} fontSize={14} sx={{ color: 'white' }}>Stations</Typography>
+              <Typography
+                fontWeight="bold"
+                mb={1}
+                fontSize={14}
+                sx={{ color: "white" }}
+              >
+                Stations
+              </Typography>
               {stations.map((station, i) => (
-                <Box key={i} sx={{
-                  display: 'flex', flexDirection: 'column', gap: 0.2, width: '100%', maxWidth: 185, height: 50, py: 1, px: 2, bgcolor: '#171E2A', mb: 1, borderRadius: '10px'
-                }}>
-                  <Typography fontWeight="bold" color='#FFFFFF' fontSize={12}>{station.name}</Typography>
-                  <Typography fontWeight={500} color='#9CA3AF' fontSize={12}>{station.subname}</Typography>
-                  <Typography variant="caption" color="#0CD7FF" fontSize={12}>{station.rate}</Typography>
+                <Box
+                  key={i}
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 0.2,
+                    width: "100%",
+                    maxWidth: 185,
+                    height: 50,
+                    py: 1,
+                    px: 2,
+                    bgcolor: "#171E2A",
+                    mb: 1,
+                    borderRadius: "10px",
+                  }}
+                >
+                  <Typography fontWeight="bold" color="#FFFFFF" fontSize={12}>
+                    {station.name}
+                  </Typography>
+                  <Typography fontWeight={500} color="#9CA3AF" fontSize={12}>
+                    {station.subname}
+                  </Typography>
+                  <Typography variant="caption" color="#0CD7FF" fontSize={12}>
+                    {station.rate}
+                  </Typography>
                 </Box>
               ))}
             </Box>
 
             {/* Right Column */}
-            <Box sx={{ 
-              overflowX: "auto", 
-              flex: 1,
-              ...scrollbarStyles 
-            }}>
+            <Box
+              sx={{
+                overflowX: "auto",
+                flex: 1,
+                ...scrollbarStyles,
+              }}
+            >
               <Box sx={{ maxWidth: 50, mx: 2 }}>
                 <Box sx={{ display: "flex", mb: 2 }}>
                   {timeSlots.map((slot) => (
-                    <Box key={slot} sx={{ display: "flex", alignItems: "center", justifyContent: "center", minWidth: 56, textAlign: "center", mr: 1 }}>
-                      <Typography variant="body2" color="#FFFFFF">{slot}</Typography>
+                    <Box
+                      key={slot}
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        minWidth: 56,
+                        textAlign: "center",
+                        mr: 1,
+                      }}
+                    >
+                      <Typography variant="body2" color="#FFFFFF">
+                        {slot}
+                      </Typography>
                     </Box>
                   ))}
                 </Box>
@@ -523,17 +677,23 @@ const BookingManagement = () => {
                   <Box key={i} sx={{ display: "flex", mb: 2 }}>
                     {timeSlots.map((slot) => {
                       const apiBooking = apiBookings.find(
-                        (b) => matchStation(b.station, station.name) && b.start_time === slot
+                        (b) =>
+                          matchStation(b.station, station.name) &&
+                          b.start_time === slot
                       );
-                      
+
                       return (
                         <Box
                           key={slot}
                           sx={{
                             minWidth: 56,
                             height: 56,
-                            border: apiBooking ? `1px solid ${statusColors[apiBooking.status]}` : "1px solid #222",
-                            bgcolor: apiBooking ? statusColors[apiBooking.status] : "transparent",
+                            border: apiBooking
+                              ? `1px solid ${statusColors[apiBooking.status]}`
+                              : "1px solid #222",
+                            bgcolor: apiBooking
+                              ? statusColors[apiBooking.status]
+                              : "transparent",
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
@@ -541,14 +701,40 @@ const BookingManagement = () => {
                             mr: 1,
                             position: "relative",
                             overflow: "hidden",
-                            cursor: apiBooking ? 'pointer' : 'default',
-                            "&::after": apiBooking ? { content: '""', position: "absolute", top: 0, left: 0, width: "100%", height: "100%", bgcolor: "rgba(0,0,0,0.8)", borderRadius: "8px" } : {},
-                            "&:hover": apiBooking ? { transform: 'scale(1.05)', transition: 'transform 0.2s', boxShadow: `0 0 8px ${statusColors[apiBooking.status]}` } : {},
+                            cursor: apiBooking ? "pointer" : "default",
+                            "&::after": apiBooking
+                              ? {
+                                  content: '""',
+                                  position: "absolute",
+                                  top: 0,
+                                  left: 0,
+                                  width: "100%",
+                                  height: "100%",
+                                  bgcolor: "rgba(0,0,0,0.8)",
+                                  borderRadius: "8px",
+                                }
+                              : {},
+                            "&:hover": apiBooking
+                              ? {
+                                  transform: "scale(1.05)",
+                                  transition: "transform 0.2s",
+                                  boxShadow: `0 0 8px ${
+                                    statusColors[apiBooking.status]
+                                  }`,
+                                }
+                              : {},
                           }}
-                          onClick={() => apiBooking && handleBookingSlotClick(apiBooking)}
+                          onClick={() =>
+                            apiBooking && handleBookingSlotClick(apiBooking)
+                          }
                         >
                           {apiBooking && (
-                            <Typography fontSize={10} fontWeight={400} zIndex={1} color='#FFFFFF'>
+                            <Typography
+                              fontSize={10}
+                              fontWeight={400}
+                              zIndex={1}
+                              color="#FFFFFF"
+                            >
                               {apiBooking.customer_name || apiBooking.user}
                             </Typography>
                           )}
@@ -563,12 +749,16 @@ const BookingManagement = () => {
         </Paper>
       )}
 
-      {view === "grid" &&
+      {view === "grid" && (
         <Box sx={scrollbarStyles}>
-          <BookingGrid apiBookings={apiBookings} loading={loading} onBookingUpdated={refreshBookings} />
+          <BookingGrid
+            apiBookings={apiBookings}
+            loading={loading}
+            onBookingUpdated={refreshBookings}
+          />
         </Box>
-      }
-      
+      )}
+
       {loading && (
         <Box position="fixed" bottom={20} right={20} zIndex={9999}>
           <CircularProgress size={30} sx={{ color: "#0CD7FF" }} />
@@ -595,7 +785,7 @@ const BookingManagement = () => {
         onCollectPayment={handleCollectPayment}
       />
     </Box>
-  )
-}
+  );
+};
 
 export default BookingManagement;

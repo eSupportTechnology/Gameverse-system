@@ -96,7 +96,7 @@ const GamesManagement = () => {
           <Typography variant="h5" fontWeight="bold" fontSize={24}>
             Admin Games Management
           </Typography>
-          <Typography variant="body2" color="gray" fontSize={16}>
+          <Typography variant="body2" color="#fff" fontSize={13}>
             Manage all available game stations
           </Typography>
         </Box>
