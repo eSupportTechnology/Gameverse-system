@@ -18,13 +18,13 @@ import AddIcon from "@mui/icons-material/Add";
 import axios from "axios";
 
 import CreateSuccessDialog from "./CreateSuccessDialog";
-import AddNFCUserDialog from "./AddNFCUserDialog"; // Import the NFC dialog
+import AddNFCUserDialog from "./AddNFCUserDialog";
 
 const BookingForm = ({ open, handleClose, onBookingCreated }) => {
   const [createSuccess, setcreateSuccess] = useState(false);
   const [cancelConfirm, setCancelConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [nfcDialogOpen, setNfcDialogOpen] = useState(false); // State for NFC dialog
+  const [nfcDialogOpen, setNfcDialogOpen] = useState(false);
   const [nfcFormData, setNfcFormData] = useState({
     nfcCardNumber: "",
     fullName: "",
@@ -39,6 +39,7 @@ const BookingForm = ({ open, handleClose, onBookingCreated }) => {
     phoneNumber: "",
     station: "",
     bookingDate: "",
+    vrPlay: "yes",
     startTime: "",
     duration: "",
     amount: 400,
@@ -56,17 +57,14 @@ const BookingForm = ({ open, handleClose, onBookingCreated }) => {
 
   // Handle NFC user creation - auto-fill booking form
   const handleCreateNFCUser = (nfcData) => {
-    // Auto-fill the booking form with NFC user data
     setFormData(prev => ({
       ...prev,
       nfcCardNumber: nfcData.nfcCardNumber,
       customerName: nfcData.fullName,
-      phoneNumber: nfcData.phoneNo.replace(/\s/g, ""), // Remove spaces for phone number
+      phoneNumber: nfcData.phoneNo.replace(/\s/g, ""),
     }));
     
-    // Close NFC dialog
     setNfcDialogOpen(false);
-    
     console.log("NFC User created:", nfcData);
   };
 
@@ -90,6 +88,7 @@ const BookingForm = ({ open, handleClose, onBookingCreated }) => {
       phoneNumber: "",
       station: "",
       bookingDate: "",
+      vrPlay: "yes",
       startTime: "",
       duration: "",
       amount: 400,
@@ -119,6 +118,7 @@ const BookingForm = ({ open, handleClose, onBookingCreated }) => {
         phone_number: formData.phoneNumber,
         station: formData.station,
         booking_date: formData.bookingDate,
+        vr_play: formData.vrPlay,
         start_time: formData.startTime,
         duration: formData.duration,
         amount: formData.amount,
@@ -141,6 +141,7 @@ const BookingForm = ({ open, handleClose, onBookingCreated }) => {
           phoneNumber: "",
           station: "",
           bookingDate: "",
+          vrPlay: "yes",
           startTime: "",
           duration: "",
           amount: 400,
@@ -199,7 +200,7 @@ const BookingForm = ({ open, handleClose, onBookingCreated }) => {
         </Box>
 
         <DialogContent dividers sx={{ py: 0, pb: 2 }}>
-          {/* NFC */}
+          {/* NFC Card Number */}
           <Box display="flex" flexDirection="column" gap={1} mt={1}>
             <Typography variant="body2" sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF" }}>
               NFC Card Number
@@ -235,7 +236,6 @@ const BookingForm = ({ open, handleClose, onBookingCreated }) => {
                 }}
               />
 
-              {/* This is the + icon that opens the NFC dialog */}
               <Box
                 sx={{
                   width: 38,
@@ -248,14 +248,14 @@ const BookingForm = ({ open, handleClose, onBookingCreated }) => {
                   cursor: "pointer",
                   "&:hover": { backgroundColor: "#374151" },
                 }}
-                onClick={handleOpenNfcDialog} // This opens the NFC dialog
+                onClick={handleOpenNfcDialog}
               >
                 <AddIcon sx={{ color: "white", fontSize: 22 }} />
               </Box>
             </Box>
           </Box>
 
-          {/* Rest of your form content remains the same */}
+          {/* Customer Name & Phone Number */}
           <Box display="grid" gridTemplateColumns={{ xs: "1fr", md: "1fr 1fr" }} gap={2} mt={2}>
             {/* Customer Name */}
             <Box display="flex" flexDirection="column" gap={1}>
@@ -290,7 +290,7 @@ const BookingForm = ({ open, handleClose, onBookingCreated }) => {
                 variant="outlined"
                 fullWidth
                 size="small"
-                placeholder="Enter Phone number (numbers only)"
+                placeholder="Enter Phone number"
                 value={formData.phoneNumber}
                 onChange={(e) => handleInputChange("phoneNumber", e.target.value)}
                 inputProps={{ inputMode: "numeric", pattern: "[0-9]*", maxLength: 15 }}
@@ -305,7 +305,10 @@ const BookingForm = ({ open, handleClose, onBookingCreated }) => {
                 }}
               />
             </Box>
+          </Box>
 
+          {/* Station & Date */}
+          <Box display="grid" gridTemplateColumns={{ xs: "1fr", md: "1fr 1fr" }} gap={2} mt={2}>
             {/* Station */}
             <Box display="flex" flexDirection="column" gap={1}>
               <Typography variant="body2" sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF" }}>
@@ -373,7 +376,174 @@ const BookingForm = ({ open, handleClose, onBookingCreated }) => {
                 }}
               />
             </Box>
+          </Box>
 
+         
+         
+         
+         
+         
+         {/* VR Play */}
+<Box mt={2}>
+  <Typography
+    variant="body2"
+    sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF", mb: 1 }}
+  >
+    VR Play
+  </Typography>
+
+  <Box sx={{ display: "flex", gap: 2 }}>
+    {/* YES */}
+    <Box
+      onClick={() => handleInputChange("vrPlay", "yes")}
+      sx={{
+        flex: 1,
+        height: 40,
+        borderRadius: "12px",
+        backgroundColor: "#1F2937",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        px: 2,
+        cursor: "pointer",
+        transition: "0.2s",
+        border: "1px solid #253041",
+      }}
+    >
+      <Typography
+        sx={{
+          color: "#9CA3AF",
+          fontSize: 15,
+        }}
+      >
+        Yes
+      </Typography>
+
+      {/* Radio icon */}
+      <Box
+        sx={{
+          width: 20,
+          height: 20,
+          borderRadius: "50%",
+          border: "2px solid #9CA3AF",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        {formData.vrPlay === "yes" && (
+          <Box
+            sx={{
+              width: 10,
+              height: 10,
+              borderRadius: "50%",
+              backgroundColor: "#9CA3AF",
+            }}
+          />
+        )}
+      </Box>
+    </Box>
+
+    {/* NO */}
+    <Box
+      onClick={() => handleInputChange("vrPlay", "no")}
+      sx={{
+        flex: 1,
+        height: 40,
+        borderRadius: "12px",
+        backgroundColor: "#1F2937",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        px: 2,
+        cursor: "pointer",
+        transition: "0.2s",
+        border: "1px solid #253041",
+      }}
+    >
+      <Typography
+        sx={{
+          color: "#9CA3AF",
+          fontSize: 15,
+        }}
+      >
+        No
+      </Typography>
+
+      {/* Radio icon */}
+      <Box
+        sx={{
+          width: 20,
+          height: 20,
+          borderRadius: "50%",
+          border: "2px solid #9CA3AF",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        {formData.vrPlay === "no" && (
+          <Box
+            sx={{
+              width: 10,
+              height: 10,
+              borderRadius: "50%",
+              backgroundColor: "#9CA3AF",
+            }}
+          />
+        )}
+      </Box>
+    </Box>
+  </Box>
+</Box>
+
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+
+          {/* Start Time & Duration */}
+          <Box display="grid" gridTemplateColumns={{ xs: "1fr", md: "1fr 1fr" }} gap={2} mt={2}>
             {/* Start Time */}
             <Box display="flex" flexDirection="column" gap={1}>
               <Typography variant="body2" sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF" }}>
@@ -405,10 +575,10 @@ const BookingForm = ({ open, handleClose, onBookingCreated }) => {
                     Select time
                   </em>
                 </MenuItem>
-                <MenuItem value="12:00">12:00</MenuItem>
-                <MenuItem value="01:00">01:00</MenuItem>
-                <MenuItem value="01:30">01:30</MenuItem>
-                <MenuItem value="02:00">02:00</MenuItem>
+                <MenuItem value="12:00">12.00</MenuItem>
+                <MenuItem value="01:00">01.00</MenuItem>
+                <MenuItem value="01:30">01.30</MenuItem>
+                <MenuItem value="02:00">02.00</MenuItem>
               </Select>
             </Box>
 
@@ -575,7 +745,7 @@ const BookingForm = ({ open, handleClose, onBookingCreated }) => {
         <CreateSuccessDialog open={createSuccess} onClose={handleSuccessOk} />
       </Dialog>
 
-      {/* Add NFC User Dialog - This will open when + icon is clicked */}
+      {/* Add NFC User Dialog */}
       <AddNFCUserDialog
         open={nfcDialogOpen}
         onClose={handleCloseNfcDialog}
