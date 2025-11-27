@@ -141,7 +141,11 @@ const PosSystem = () => {
 
   // Cart operations
   const addToCart = (product) => {
+    // BLOCK if no stock
+    if (product.stock <= 0) return;
+
     const exists = cart.find((p) => p.id === product.id);
+
     if (exists) {
       setCart(
         cart.map((p) => (p.id === product.id ? { ...p, qty: p.qty + 1 } : p))
@@ -149,10 +153,18 @@ const PosSystem = () => {
     } else {
       setCart([...cart, { ...product, qty: 1 }]);
     }
+
+    // DECREASE STOCK
+    setProducts((prevProducts) =>
+      prevProducts.map((p) =>
+        p.id === product.id ? { ...p, stock: p.stock - 1 } : p
+      )
+    );
   };
 
   const removeFromCart = (product) => {
     const exists = cart.find((p) => p.id === product.id);
+
     if (exists.qty === 1) {
       setCart(cart.filter((p) => p.id !== product.id));
     } else {
@@ -160,14 +172,33 @@ const PosSystem = () => {
         cart.map((p) => (p.id === product.id ? { ...p, qty: p.qty - 1 } : p))
       );
     }
+
+    // INCREASE STOCK
+    setProducts((prevProducts) =>
+      prevProducts.map((p) =>
+        p.id === product.id ? { ...p, stock: p.stock + 1 } : p
+      )
+    );
   };
 
   const handleDeleteCart = (product) => {
+    // Find how many were in cart
+    const deletedItem = cart.find((p) => p.id === product.id);
+    if (!deletedItem) return;
+
+    // Remove from cart
     setCart(cart.filter((p) => p.id !== product.id));
+
+    // RESTORE STOCK (all qty)
+    setProducts((prevProducts) =>
+      prevProducts.map((p) =>
+        p.id === product.id ? { ...p, stock: p.stock + deletedItem.qty } : p
+      )
+    );
   };
 
   const totalPrice = cart.reduce((sum, item) => {
-    return sum + item.price * item.qty;
+    return sum + Number(item.price) * Number(item.qty || 1);
   }, 0);
 
   //  Add Item
@@ -660,14 +691,10 @@ const PosSystem = () => {
                         {item.item_name}
                       </Typography>
 
-                      {item.fav && (
-                        <IconButton size="small" sx={{ color: "white" }}>
+                      {Number(item.loyality_price) === 1 && (
+                        <IconButton size="small" disableRipple>
                           <StarIcon
-                            sx={{
-                              color: "#C6379F",
-                              width: 15,
-                              height: 14,
-                            }}
+                            sx={{ color: "#C6379F", width: 15, height: 14 }}
                           />
                         </IconButton>
                       )}
@@ -694,7 +721,15 @@ const PosSystem = () => {
                         Stock: {item.stock}
                       </Typography>
 
-                      <IconButton size="small" onClick={() => addToCart(item)}>
+                      <IconButton
+                        size="small"
+                        disabled={item.stock <= 0}
+                        onClick={() => addToCart(item)}
+                        sx={{
+                          opacity: item.stock <= 0 ? 0.4 : 1,
+                          pointerEvents: item.stock <= 0 ? "none" : "auto",
+                        }}
+                      >
                         <img
                           src="/images/add.png"
                           alt="add"
@@ -846,6 +881,9 @@ const PosSystem = () => {
                       <Typography>{item.qty}</Typography>
                       <IconButton
                         size="small"
+                        disabled={
+                          products.find((p) => p.id === item.id)?.stock <= 0
+                        }
                         sx={{ bgcolor: "#334155", color: "white" }}
                         onClick={() => addToCart(item)}
                       >
@@ -1110,7 +1148,7 @@ const PosSystem = () => {
               type="number"
               value={newItem.stock}
               onChange={(e) =>
-                setNewItem({ ...newItem, stock: e.target.value })
+                setNewItem({ ...newItem, stock: Number(e.target.value) })
               }
               fullWidth
               variant="outlined"
