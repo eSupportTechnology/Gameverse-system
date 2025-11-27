@@ -1,26 +1,26 @@
-import React, { useState } from "react";
+import AddIcon from "@mui/icons-material/Add";
+import CloseIcon from "@mui/icons-material/Close";
 import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  Button,
-  MenuItem,
   Box,
-  Typography,
-  Select,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   IconButton,
   InputAdornment,
+  MenuItem,
+  Select,
+  TextField,
+  Typography,
 } from "@mui/material";
-import CloseIcon from "@mui/icons-material/Close";
-import AddIcon from "@mui/icons-material/Add";
 import axios from "axios";
+import { useState } from "react";
 
-import CreateSuccessDialog from "./CreateSuccessDialog";
 import AddNFCUserDialog from "./AddNFCUserDialog";
+import CreateSuccessDialog from "./CreateSuccessDialog";
 
-const BookingForm = ({ open, handleClose, onBookingCreated }) => {
+const BookingForm = ({ open, handleClose, onBookingCreated, stations }) => {
   const [createSuccess, setcreateSuccess] = useState(false);
   const [cancelConfirm, setCancelConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -57,13 +57,13 @@ const BookingForm = ({ open, handleClose, onBookingCreated }) => {
 
   // Handle NFC user creation - auto-fill booking form
   const handleCreateNFCUser = (nfcData) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       nfcCardNumber: nfcData.nfcCardNumber,
       customerName: nfcData.fullName,
       phoneNumber: nfcData.phoneNo.replace(/\s/g, ""),
     }));
-    
+
     setNfcDialogOpen(false);
     console.log("NFC User created:", nfcData);
   };
@@ -101,13 +101,19 @@ const BookingForm = ({ open, handleClose, onBookingCreated }) => {
   };
 
   const handleCreateBooking = async () => {
-    if (!formData.customerName.trim()) return alert("Customer name is required");
+    if (!formData.customerName.trim())
+      return alert("Customer name is required");
     if (!formData.phoneNumber.trim()) return alert("Phone number is required");
     if (!/^\d+$/.test(formData.phoneNumber))
       return alert("Phone number must contain only numbers");
     if (formData.phoneNumber.length < 9)
       return alert("Phone number must be at least 9 digits long");
-    if (!formData.station || !formData.bookingDate || !formData.startTime || !formData.duration)
+    if (
+      !formData.station ||
+      !formData.bookingDate ||
+      !formData.startTime ||
+      !formData.duration
+    )
       return alert("Please fill in all required fields");
 
     setLoading(true);
@@ -125,12 +131,16 @@ const BookingForm = ({ open, handleClose, onBookingCreated }) => {
       };
 
       const token = localStorage.getItem("aToken");
-      const response = await axios.post("http://127.0.0.1:8000/api/bookings", payload, {
-        headers: {
-          Authorization: token ? `Bearer ${token}` : "",
-          "Content-Type": "application/json",
-        },
-      });
+      const response = await axios.post(
+        "http://127.0.0.1:8000/api/bookings",
+        payload,
+        {
+          headers: {
+            Authorization: token ? `Bearer ${token}` : "",
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
       if (response.data.success) {
         setcreateSuccess(true);
@@ -155,23 +165,11 @@ const BookingForm = ({ open, handleClose, onBookingCreated }) => {
     }
   };
 
-  // Station options
-  const stationOptions = [
-    "PSS Station 1",
-    "PSS Station 2",
-    "PSS Station 3",
-    "PSS Station 4",
-    "PSS Station 5",
-    "Racing Simulator 1",
-    "Racing Simulator 2",
-    "Racing Simulator 3",
-    "Racing Simulator 4",
-    "Supreme Billiard 1",
-    "Supreme Billiard 2",
-    "Premium Billiard 1",
-    "Premium Billiard 2",
-    "Premium Billiard 3",
-  ];
+  const selectedStation = stations.find(
+    (station) => station.name === formData.station
+  );
+
+  const showVRPlay = selectedStation?.vrPrice && selectedStation?.vrTime;
 
   return (
     <>
@@ -190,8 +188,17 @@ const BookingForm = ({ open, handleClose, onBookingCreated }) => {
         }}
       >
         {/* Header */}
-        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", px: 1 }}>
-          <DialogTitle sx={{ color: "#FFFFFF", fontSize: 18, fontWeight: "bold" }}>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            px: 1,
+          }}
+        >
+          <DialogTitle
+            sx={{ color: "#FFFFFF", fontSize: 18, fontWeight: "bold" }}
+          >
             Create New Booking
           </DialogTitle>
           <IconButton onClick={handleClose} sx={{ color: "#FFFFFF" }}>
@@ -202,7 +209,10 @@ const BookingForm = ({ open, handleClose, onBookingCreated }) => {
         <DialogContent dividers sx={{ py: 0, pb: 2 }}>
           {/* NFC Card Number */}
           <Box display="flex" flexDirection="column" gap={1} mt={1}>
-            <Typography variant="body2" sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF" }}>
+            <Typography
+              variant="body2"
+              sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF" }}
+            >
               NFC Card Number
             </Typography>
 
@@ -213,7 +223,9 @@ const BookingForm = ({ open, handleClose, onBookingCreated }) => {
                 size="small"
                 placeholder="Enter NFC Card Number"
                 value={formData.nfcCardNumber}
-                onChange={(e) => handleInputChange("nfcCardNumber", e.target.value)}
+                onChange={(e) =>
+                  handleInputChange("nfcCardNumber", e.target.value)
+                }
                 InputProps={{
                   endAdornment: (
                     <InputAdornment position="end">
@@ -229,7 +241,10 @@ const BookingForm = ({ open, handleClose, onBookingCreated }) => {
                   sx: {
                     backgroundColor: "#1F2937",
                     borderRadius: "6px",
-                    "& input::placeholder": { color: "#9CA3AF", fontSize: "14px" },
+                    "& input::placeholder": {
+                      color: "#9CA3AF",
+                      fontSize: "14px",
+                    },
                     color: "white",
                     fontWeight: 500,
                   },
@@ -256,10 +271,18 @@ const BookingForm = ({ open, handleClose, onBookingCreated }) => {
           </Box>
 
           {/* Customer Name & Phone Number */}
-          <Box display="grid" gridTemplateColumns={{ xs: "1fr", md: "1fr 1fr" }} gap={2} mt={2}>
+          <Box
+            display="grid"
+            gridTemplateColumns={{ xs: "1fr", md: "1fr 1fr" }}
+            gap={2}
+            mt={2}
+          >
             {/* Customer Name */}
             <Box display="flex" flexDirection="column" gap={1}>
-              <Typography variant="body2" sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF" }}>
+              <Typography
+                variant="body2"
+                sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF" }}
+              >
                 Customer Name
               </Typography>
               <TextField
@@ -268,12 +291,17 @@ const BookingForm = ({ open, handleClose, onBookingCreated }) => {
                 size="small"
                 placeholder="Enter customer name"
                 value={formData.customerName}
-                onChange={(e) => handleInputChange("customerName", e.target.value)}
+                onChange={(e) =>
+                  handleInputChange("customerName", e.target.value)
+                }
                 InputProps={{
                   sx: {
                     backgroundColor: "#1F2937",
                     borderRadius: "6px",
-                    "& input::placeholder": { color: "#9CA3AF", fontSize: "14px" },
+                    "& input::placeholder": {
+                      color: "#9CA3AF",
+                      fontSize: "14px",
+                    },
                     color: "white",
                     fontWeight: 500,
                   },
@@ -283,7 +311,10 @@ const BookingForm = ({ open, handleClose, onBookingCreated }) => {
 
             {/* Phone */}
             <Box display="flex" flexDirection="column" gap={1}>
-              <Typography variant="body2" sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF" }}>
+              <Typography
+                variant="body2"
+                sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF" }}
+              >
                 Phone Number
               </Typography>
               <TextField
@@ -292,13 +323,22 @@ const BookingForm = ({ open, handleClose, onBookingCreated }) => {
                 size="small"
                 placeholder="Enter Phone number"
                 value={formData.phoneNumber}
-                onChange={(e) => handleInputChange("phoneNumber", e.target.value)}
-                inputProps={{ inputMode: "numeric", pattern: "[0-9]*", maxLength: 15 }}
+                onChange={(e) =>
+                  handleInputChange("phoneNumber", e.target.value)
+                }
+                inputProps={{
+                  inputMode: "numeric",
+                  pattern: "[0-9]*",
+                  maxLength: 15,
+                }}
                 InputProps={{
                   sx: {
                     backgroundColor: "#1F2937",
                     borderRadius: "6px",
-                    "& input::placeholder": { color: "#9CA3AF", fontSize: "14px" },
+                    "& input::placeholder": {
+                      color: "#9CA3AF",
+                      fontSize: "14px",
+                    },
                     color: "white",
                     fontWeight: 500,
                   },
@@ -308,10 +348,18 @@ const BookingForm = ({ open, handleClose, onBookingCreated }) => {
           </Box>
 
           {/* Station & Date */}
-          <Box display="grid" gridTemplateColumns={{ xs: "1fr", md: "1fr 1fr" }} gap={2} mt={2}>
+          <Box
+            display="grid"
+            gridTemplateColumns={{ xs: "1fr", md: "1fr 1fr" }}
+            gap={2}
+            mt={2}
+          >
             {/* Station */}
             <Box display="flex" flexDirection="column" gap={1}>
-              <Typography variant="body2" sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF" }}>
+              <Typography
+                variant="body2"
+                sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF" }}
+              >
                 Station
               </Typography>
               <Select
@@ -342,13 +390,20 @@ const BookingForm = ({ open, handleClose, onBookingCreated }) => {
                 }}
               >
                 <MenuItem value="">
-                  <em style={{ fontSize: 14, color: "#9CA3AF", fontStyle: "normal" }}>
+                  <em
+                    style={{
+                      fontSize: 14,
+                      color: "#9CA3AF",
+                      fontStyle: "normal",
+                    }}
+                  >
                     Select station
                   </em>
                 </MenuItem>
-                {stationOptions.map((station, index) => (
-                  <MenuItem key={index} value={station}>
-                    {station}
+
+                {stations.map((station) => (
+                  <MenuItem key={station.id} value={station.name}>
+                    {station.name}
                   </MenuItem>
                 ))}
               </Select>
@@ -356,7 +411,10 @@ const BookingForm = ({ open, handleClose, onBookingCreated }) => {
 
             {/* Date */}
             <Box display="flex" flexDirection="column" gap={1}>
-              <Typography variant="body2" sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF" }}>
+              <Typography
+                variant="body2"
+                sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF" }}
+              >
                 Date
               </Typography>
               <TextField
@@ -365,188 +423,138 @@ const BookingForm = ({ open, handleClose, onBookingCreated }) => {
                 fullWidth
                 size="small"
                 value={formData.bookingDate}
-                onChange={(e) => handleInputChange("bookingDate", e.target.value)}
+                onChange={(e) =>
+                  handleInputChange("bookingDate", e.target.value)
+                }
                 InputProps={{
                   sx: {
                     backgroundColor: "#1F2937",
                     borderRadius: "6px",
                     color: "white",
-                    "&::-webkit-calendar-picker-indicator": { filter: "invert(1)" },
+                    "&::-webkit-calendar-picker-indicator": {
+                      filter: "invert(1)",
+                    },
                   },
                 }}
               />
             </Box>
           </Box>
 
-         
-         
-         
-         
-         
-         {/* VR Play */}
-<Box mt={2}>
-  <Typography
-    variant="body2"
-    sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF", mb: 1 }}
-  >
-    VR Play
-  </Typography>
+          {/* VR Play */}
+          {showVRPlay && (
+            <Box mt={2}>
+              <Typography
+                variant="body2"
+                sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF", mb: 1 }}
+              >
+                VR Play
+              </Typography>
 
-  <Box sx={{ display: "flex", gap: 2 }}>
-    {/* YES */}
-    <Box
-      onClick={() => handleInputChange("vrPlay", "yes")}
-      sx={{
-        flex: 1,
-        height: 40,
-        borderRadius: "12px",
-        backgroundColor: "#1F2937",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        px: 2,
-        cursor: "pointer",
-        transition: "0.2s",
-        border: "1px solid #253041",
-      }}
-    >
-      <Typography
-        sx={{
-          color: "#9CA3AF",
-          fontSize: 15,
-        }}
-      >
-        Yes
-      </Typography>
+              <Box sx={{ display: "flex", gap: 2 }}>
+                {/* YES */}
+                <Box
+                  onClick={() => handleInputChange("vrPlay", "yes")}
+                  sx={{
+                    flex: 1,
+                    height: 40,
+                    borderRadius: "12px",
+                    backgroundColor: "#1F2937",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    px: 2,
+                    cursor: "pointer",
+                    transition: "0.2s",
+                    border: "1px solid #253041",
+                  }}
+                >
+                  <Typography sx={{ color: "#9CA3AF", fontSize: 15 }}>
+                    Yes
+                  </Typography>
+                  <Box
+                    sx={{
+                      width: 20,
+                      height: 20,
+                      borderRadius: "50%",
+                      border: "2px solid #9CA3AF",
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                    }}
+                  >
+                    {formData.vrPlay === "yes" && (
+                      <Box
+                        sx={{
+                          width: 10,
+                          height: 10,
+                          borderRadius: "50%",
+                          backgroundColor: "#9CA3AF",
+                        }}
+                      />
+                    )}
+                  </Box>
+                </Box>
 
-      {/* Radio icon */}
-      <Box
-        sx={{
-          width: 20,
-          height: 20,
-          borderRadius: "50%",
-          border: "2px solid #9CA3AF",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
-        {formData.vrPlay === "yes" && (
-          <Box
-            sx={{
-              width: 10,
-              height: 10,
-              borderRadius: "50%",
-              backgroundColor: "#9CA3AF",
-            }}
-          />
-        )}
-      </Box>
-    </Box>
-
-    {/* NO */}
-    <Box
-      onClick={() => handleInputChange("vrPlay", "no")}
-      sx={{
-        flex: 1,
-        height: 40,
-        borderRadius: "12px",
-        backgroundColor: "#1F2937",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        px: 2,
-        cursor: "pointer",
-        transition: "0.2s",
-        border: "1px solid #253041",
-      }}
-    >
-      <Typography
-        sx={{
-          color: "#9CA3AF",
-          fontSize: 15,
-        }}
-      >
-        No
-      </Typography>
-
-      {/* Radio icon */}
-      <Box
-        sx={{
-          width: 20,
-          height: 20,
-          borderRadius: "50%",
-          border: "2px solid #9CA3AF",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
-        {formData.vrPlay === "no" && (
-          <Box
-            sx={{
-              width: 10,
-              height: 10,
-              borderRadius: "50%",
-              backgroundColor: "#9CA3AF",
-            }}
-          />
-        )}
-      </Box>
-    </Box>
-  </Box>
-</Box>
-
-         
-         
-         
-         
-         
-         
-         
-         
-         
-         
-         
-         
-         
-         
-         
-         
-         
-         
-         
-         
-         
-         
-         
-         
-         
-         
-         
-         
-         
-         
-         
-         
-         
-         
-         
-         
-         
-         
-         
-         
-         
-         
-         
-         
+                {/* NO */}
+                <Box
+                  onClick={() => handleInputChange("vrPlay", "no")}
+                  sx={{
+                    flex: 1,
+                    height: 40,
+                    borderRadius: "12px",
+                    backgroundColor: "#1F2937",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    px: 2,
+                    cursor: "pointer",
+                    transition: "0.2s",
+                    border: "1px solid #253041",
+                  }}
+                >
+                  <Typography sx={{ color: "#9CA3AF", fontSize: 15 }}>
+                    No
+                  </Typography>
+                  <Box
+                    sx={{
+                      width: 20,
+                      height: 20,
+                      borderRadius: "50%",
+                      border: "2px solid #9CA3AF",
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                    }}
+                  >
+                    {formData.vrPlay === "no" && (
+                      <Box
+                        sx={{
+                          width: 10,
+                          height: 10,
+                          borderRadius: "50%",
+                          backgroundColor: "#9CA3AF",
+                        }}
+                      />
+                    )}
+                  </Box>
+                </Box>
+              </Box>
+            </Box>
+          )}
 
           {/* Start Time & Duration */}
-          <Box display="grid" gridTemplateColumns={{ xs: "1fr", md: "1fr 1fr" }} gap={2} mt={2}>
+          <Box
+            display="grid"
+            gridTemplateColumns={{ xs: "1fr", md: "1fr 1fr" }}
+            gap={2}
+            mt={2}
+          >
             {/* Start Time */}
             <Box display="flex" flexDirection="column" gap={1}>
-              <Typography variant="body2" sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF" }}>
+              <Typography
+                variant="body2"
+                sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF" }}
+              >
                 Start Time
               </Typography>
               <Select
@@ -571,7 +579,13 @@ const BookingForm = ({ open, handleClose, onBookingCreated }) => {
                 }}
               >
                 <MenuItem value="">
-                  <em style={{ fontSize: 14, color: "#9CA3AF", fontStyle: "normal" }}>
+                  <em
+                    style={{
+                      fontSize: 14,
+                      color: "#9CA3AF",
+                      fontStyle: "normal",
+                    }}
+                  >
                     Select time
                   </em>
                 </MenuItem>
@@ -584,7 +598,10 @@ const BookingForm = ({ open, handleClose, onBookingCreated }) => {
 
             {/* Duration */}
             <Box display="flex" flexDirection="column" gap={1}>
-              <Typography variant="body2" sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF" }}>
+              <Typography
+                variant="body2"
+                sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF" }}
+              >
                 Duration
               </Typography>
               <Select
@@ -609,7 +626,13 @@ const BookingForm = ({ open, handleClose, onBookingCreated }) => {
                 }}
               >
                 <MenuItem value="">
-                  <em style={{ fontSize: 14, color: "#9CA3AF", fontStyle: "normal" }}>
+                  <em
+                    style={{
+                      fontSize: 14,
+                      color: "#9CA3AF",
+                      fontStyle: "normal",
+                    }}
+                  >
                     Select duration
                   </em>
                 </MenuItem>
@@ -622,7 +645,14 @@ const BookingForm = ({ open, handleClose, onBookingCreated }) => {
           </Box>
 
           {/* Amount */}
-          <Box mt={3} sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <Box
+            mt={3}
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
             <Typography variant="h6" color="cyan">
               Amount
             </Typography>
@@ -716,7 +746,8 @@ const BookingForm = ({ open, handleClose, onBookingCreated }) => {
                     "linear-gradient(90deg, rgba(12, 215, 255, 0.4) 0%, rgba(138, 56, 245, 0.4) 73%)",
                   color: "white",
                   "&:hover": {
-                    background: "linear-gradient(90deg, #0CD7FF 0%, #8A38F5 73%)",
+                    background:
+                      "linear-gradient(90deg, #0CD7FF 0%, #8A38F5 73%)",
                   },
                 }}
               >

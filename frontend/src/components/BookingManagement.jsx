@@ -32,6 +32,26 @@ const BookingManagement = () => {
   const [upcomingDialogOpen, setUpcomingDialogOpen] = useState(false);
   const [inProgressDialogOpen, setInProgressDialogOpen] = useState(false);
   const [completedDialogOpen, setCompletedDialogOpen] = useState(false);
+  const [stations, setStations] = useState([]);
+
+  const fetchStations = async () => {
+    try {
+      const response = await axios.get("http://127.0.0.1:8000/api/stations");
+      const mappedStations = response.data.map((s) => ({
+        ...s,
+        displayPrice: s.price ? `$${s.price}/hr` : "$0/hr",
+      }));
+
+      setStations(mappedStations);
+    } catch (error) {
+      console.error("Error fetching stations:", error);
+      setStations([]);
+    }
+  };
+
+  useEffect(() => {
+    fetchStations();
+  }, []);
 
   // Scrollbar styles
   const scrollbarStyles = {
@@ -82,41 +102,25 @@ const BookingManagement = () => {
     return timeString;
   };
 
-  const matchStation = (apiStation, uiStationName) => {
-    if (!apiStation || !uiStationName) return false;
+  const matchStation = (apiName, uiName, stationsList = stations) => {
+    if (!apiName || !uiName) return false;
 
-    const normalizedApi = apiStation.toLowerCase().trim();
-    const normalizedUI = uiStationName.toLowerCase().trim();
+    const clean = (str) =>
+      str
+        .toLowerCase()
+        .replace(/\s+/g, "")
+        .replace(/[^a-z0-9]/g, "");
 
-    if (normalizedApi === normalizedUI) return true;
+    const uiClean = clean(uiName);
 
-    if (normalizedApi === "station1" && normalizedUI.includes("station 1"))
-      return true;
-    if (normalizedApi === "station2" && normalizedUI.includes("station 2"))
-      return true;
-    if (normalizedApi === "station3" && normalizedUI.includes("station 3"))
-      return true;
-
-    if (
-      normalizedApi.includes("station 1") &&
-      normalizedUI.includes("station 1")
-    )
-      return true;
-    if (
-      normalizedApi.includes("station 2") &&
-      normalizedUI.includes("station 2")
-    )
-      return true;
-    if (
-      normalizedApi.includes("station 3") &&
-      normalizedUI.includes("station 3")
-    )
-      return true;
-
-    if (normalizedApi.includes("pool") && normalizedUI.includes("pool"))
-      return true;
-
-    return false;
+    return stationsList.some((s) => {
+      const apiClean = clean(s.name);
+      return (
+        apiClean === uiClean ||
+        apiClean.includes(uiClean) ||
+        uiClean.includes(apiClean)
+      );
+    });
   };
 
   const fetchBookings = async () => {
@@ -161,141 +165,16 @@ const BookingManagement = () => {
             balance_amount: b.balance_amount || 0,
           };
         };
-
         const normalized = response.data.data.map(mapBooking);
-
-        // Add random mock bookings for demonstration if API doesn't have all statuses
-        const enhancedBookings = [...normalized, ...generateMockBookings()];
-        setApiBookings(enhancedBookings);
+        setApiBookings(normalized);
       }
     } catch (error) {
       console.error("Error fetching bookings:", error);
       // Use mock data if API fails
-      setApiBookings(generateMockBookings());
+      setApiBookings([]);
     } finally {
       setLoading(false);
     }
-  };
-
-  // Generate mock bookings for all statuses
-  const generateMockBookings = () => {
-    const mockBookings = [
-      // Upcoming Bookings
-      {
-        id: "1001",
-        customer_name: "John Smith",
-        station: "PSS Station 1",
-        start_time: "02:00",
-        duration: "1h 30m",
-        status: "upcoming",
-        user: "John Smith",
-        phone: "+94 771234567",
-        amount: 300,
-        players: ["Player 01", "Player 02"],
-      },
-      {
-        id: "1002",
-        customer_name: "Emma Wilson",
-        station: "PSS Station 2",
-        start_time: "04:30",
-        duration: "2h 0m",
-        status: "upcoming",
-        user: "Emma Wilson",
-        phone: "+94 772345678",
-        amount: 400,
-        players: ["Player 03", "Player 04"],
-      },
-      {
-        id: "1003",
-        customer_name: "Mike Johnson",
-        station: "8 Ball Pool(Premium)",
-        start_time: "07:00",
-        duration: "1h 0m",
-        status: "upcoming",
-        user: "Mike Johnson",
-        phone: "+94 773456789",
-        amount: 200,
-        players: ["Player 01"],
-      },
-
-      // In Progress Bookings
-      {
-        id: "2001",
-        customer_name: "Sarah Brown",
-        station: "PSS Station 1",
-        start_time: "12:00",
-        duration: "2h 0m",
-        status: "inprogress",
-        user: "Sarah Brown",
-        phone: "+94 774567890",
-        amount: 400,
-        players: ["Player 01", "Player 02", "Player 03"],
-      },
-      {
-        id: "2002",
-        customer_name: "David Lee",
-        station: "PSS Station 3",
-        start_time: "01:30",
-        duration: "1h 30m",
-        status: "inprogress",
-        user: "David Lee",
-        phone: "+94 775678901",
-        amount: 300,
-        players: ["Player 01", "Player 04"],
-      },
-      {
-        id: "2003",
-        customer_name: "Lisa Garcia",
-        station: "8 Ball Pool(Suprime)",
-        start_time: "06:00",
-        duration: "2h 30m",
-        status: "inprogress",
-        user: "Lisa Garcia",
-        phone: "+94 776789012",
-        amount: 500,
-        players: ["Player 02", "Player 03"],
-      },
-
-      // Completed Bookings
-      {
-        id: "3001",
-        customer_name: "Robert Taylor",
-        station: "PSS Station 2",
-        start_time: "10:00",
-        duration: "1h 0m",
-        status: "completed",
-        user: "Robert Taylor",
-        phone: "+94 777890123",
-        amount: 200,
-        players: ["Player 01"],
-      },
-      {
-        id: "3002",
-        customer_name: "Maria Martinez",
-        station: "PSS Station 1",
-        start_time: "11:30",
-        duration: "2h 0m",
-        status: "completed",
-        user: "Maria Martinez",
-        phone: "+94 778901234",
-        amount: 400,
-        players: ["Player 02", "Player 04"],
-      },
-      {
-        id: "3003",
-        customer_name: "James Anderson",
-        station: "PSS Station 3",
-        start_time: "09:00",
-        duration: "1h 30m",
-        status: "completed",
-        user: "James Anderson",
-        phone: "+94 779012345",
-        amount: 300,
-        players: ["Player 03"],
-      },
-    ];
-
-    return mockBookings;
   };
 
   useEffect(() => {
@@ -358,18 +237,6 @@ const BookingManagement = () => {
     setCompletedDialogOpen(false);
     // Implement collect payment functionality
   };
-
-  // Sample stations
-  const stations = [
-    { name: "PSS Station 1", subname: "PSS Station 1", rate: "$12.5/hr" },
-    { name: "PSS Station 2", subname: "PSS Station 1", rate: "$12.5/hr" },
-    { name: "PSS Station 3", subname: "PSS Station 1", rate: "$12.5/hr" },
-    { name: "8 Ball Pool(Suprime)", subname: "Pool", rate: "$12.5/hr" },
-    { name: "8 Ball Pool(Premium)", subname: "Pool", rate: "$12.5/hr" },
-    { name: "PSS Station 4", subname: "PSS Station 4", rate: "$12.5/hr" },
-    { name: "PSS Station 5", subname: "PSS Station 5", rate: "$12.5/hr" },
-    { name: "8 Ball Pool(Suprime)", subname: "Pool", rate: "$15/hr" },
-  ];
 
   const timeSlots = [
     "12:00",
@@ -500,6 +367,7 @@ const BookingManagement = () => {
               open={openDialog}
               handleClose={() => setOpenDialog(false)}
               onBookingCreated={refreshBookings}
+              stations={stations}
             />
           </Box>
         </Box>
@@ -635,10 +503,10 @@ const BookingManagement = () => {
                     {station.name}
                   </Typography>
                   <Typography fontWeight={500} color="#9CA3AF" fontSize={12}>
-                    {station.subname}
+                    {station.type}
                   </Typography>
                   <Typography variant="caption" color="#0CD7FF" fontSize={12}>
-                    {station.rate}
+                    {station.price}
                   </Typography>
                 </Box>
               ))}
@@ -678,8 +546,7 @@ const BookingManagement = () => {
                     {timeSlots.map((slot) => {
                       const apiBooking = apiBookings.find(
                         (b) =>
-                          matchStation(b.station, station.name) &&
-                          b.start_time === slot
+                          b.station === station.name && b.start_time === slot
                       );
 
                       return (

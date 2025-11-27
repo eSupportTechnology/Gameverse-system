@@ -27,6 +27,8 @@ export default function StationManagement() {
     location: "",
     price: "",
     time: "",
+    vrTime: "",
+    vrPrice: "",
     status: "Available",
   });
 
@@ -36,10 +38,6 @@ export default function StationManagement() {
     ...Array.from(new Set(stations.map((s) => s.type))),
   ];
 
-  useEffect(() => {
-    fetchStations();
-  }, []);
-
   const fetchStations = async () => {
     try {
       const res = await axios.get("http://localhost:8000/api/stations");
@@ -48,6 +46,10 @@ export default function StationManagement() {
       console.error("Failed to fetch stations", err);
     }
   };
+
+  useEffect(() => {
+    fetchStations();
+  }, []);
 
   const handleTabChange = (event, newValue) => setTab(newValue);
 
@@ -60,6 +62,8 @@ export default function StationManagement() {
       location: "",
       price: "",
       time: "",
+      vrTime: "",
+      vrPrice: "",
       status: "Available",
     });
     setOpen(true);
@@ -82,6 +86,7 @@ export default function StationManagement() {
     setFormData({
       ...station,
       time: convertMinutesToTime(station.time),
+      vrTime: convertMinutesToTime(station.vrTime),
     });
     setOpen(true);
   };

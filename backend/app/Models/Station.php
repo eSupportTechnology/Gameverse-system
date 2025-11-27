@@ -15,5 +15,7 @@ class Station extends Model
         'status',
         'bookings',
         'time',
+        'vrTime',
+        'vrPrice',
     ];
 }

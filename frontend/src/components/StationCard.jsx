@@ -41,7 +41,7 @@ const StationCard = ({ station, onEdit, onToggleStatus }) => {
         borderRadius: "12px",
         backgroundColor: "#0d1727ff",
         border: "1px solid rgba(255,255,255,0.08)",
-        height: "250px",
+        height: "270px",
         display: "flex",
         flexDirection: "column",
         justifyContent: "space-between",
@@ -64,8 +64,7 @@ const StationCard = ({ station, onEdit, onToggleStatus }) => {
           justifyContent: "space-between",
         }}
       >
-        <Box>
-          {/* ===== Top Row ===== */}
+        <Box sx={{ flexGrow: 1, minHeight: "160px" }}>
           <Box
             sx={{
               display: "flex",
@@ -98,6 +97,7 @@ const StationCard = ({ station, onEdit, onToggleStatus }) => {
                 {station.status}
               </Typography>
             </Box>
+
             <IconButton
               size="small"
               onClick={() => onEdit(station)}
@@ -113,14 +113,9 @@ const StationCard = ({ station, onEdit, onToggleStatus }) => {
             </IconButton>
           </Box>
 
-          {/* ===== Title + Type ===== */}
+          {/* Name + Type */}
           <Typography
-            sx={{
-              color: "#fff",
-              fontWeight: 700,
-              fontSize: "1rem",
-              mb: 0.2,
-            }}
+            sx={{ color: "#fff", fontWeight: 700, fontSize: "1rem", mb: 0.2 }}
           >
             {station.name}
           </Typography>
@@ -128,36 +123,67 @@ const StationCard = ({ station, onEdit, onToggleStatus }) => {
             {station.type}
           </Typography>
 
-          {/* ===== Time + Price ===== */}
+          {/* Pricing box */}
           <Box
             sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              mb: 1,
               backgroundColor: "rgba(210, 216, 229, 0.1)",
               px: 2,
-              py: 0.4,
+              py: 0.8,
               borderRadius: "6px",
+              mb: 1.2,
             }}
           >
-            <Typography sx={{ color: "#e5e5e6", fontSize: "0.7rem" }}>
-              {station.time} min
-            </Typography>
-            <Typography
+            {/* Normal price or single price */}
+            <Box
               sx={{
-                color: "#00d7ec",
-                fontWeight: 700,
-                fontSize: "0.8rem",
+                display: "flex",
+                justifyContent: "space-between",
+                mb: station.vrPrice ? 0.6 : 0,
               }}
             >
-              LKR {station.price}
-            </Typography>
+              <Typography sx={{ color: "#e5e5e6", fontSize: "0.7rem" }}>
+                {station.time} min {station.vrPrice ? "(Normal)" : ""}
+              </Typography>
+
+              <Typography
+                sx={{
+                  color: "#00d7ec",
+                  fontWeight: 700,
+                  fontSize: "0.8rem",
+                }}
+              >
+                LKR {station.price}
+              </Typography>
+            </Box>
+
+            {/* VR price (only if exists) */}
+            {station.vrPrice && (
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                }}
+              >
+                <Typography sx={{ color: "#e5e5e6", fontSize: "0.7rem" }}>
+                  {station.time} min (+ VR)
+                </Typography>
+
+                <Typography
+                  sx={{
+                    color: "#00d7ec",
+                    fontWeight: 700,
+                    fontSize: "0.8rem",
+                  }}
+                >
+                  LKR {station.vrPrice}
+                </Typography>
+              </Box>
+            )}
           </Box>
 
-          {/* ===== Location + Bookings ===== */}
+          {/* Location */}
           <Box
-            sx={{ display: "flex", justifyContent: "space-between", mb: 0.3 }}
+            sx={{ display: "flex", justifyContent: "space-between", mb: 0.4 }}
           >
             <Typography sx={{ color: "#9CA3AF", fontSize: "0.8rem" }}>
               Location:
@@ -168,9 +194,9 @@ const StationCard = ({ station, onEdit, onToggleStatus }) => {
               {station.location}
             </Typography>
           </Box>
-          <Box
-            sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}
-          >
+
+          {/* Bookings */}
+          <Box sx={{ display: "flex", justifyContent: "space-between" }}>
             <Typography sx={{ color: "#9CA3AF", fontSize: "0.8rem" }}>
               No of bookings:
             </Typography>
