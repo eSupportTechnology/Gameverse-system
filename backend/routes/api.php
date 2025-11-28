@@ -13,6 +13,8 @@ use App\Http\Controllers\NfcUserController;
 use App\Http\Controllers\OperatorPosItemController;
 use App\Http\Controllers\OperatorPosSaleController;
 use App\Http\Controllers\OperaterGameController;
+use App\Http\Controllers\PortalGameController;
+
 
 
 // Public route
@@ -116,3 +118,17 @@ Route::middleware('auth:sanctum')->prefix('operator/games')->group(function () {
     Route::put('/{id}', [OperaterGameController::class, 'update']);
     Route::delete('/{id}', [OperaterGameController::class, 'destroy']);
 });
+
+
+
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/portal_games', [PortalGameController::class, 'index']);
+    Route::post('/portal_games', [PortalGameController::class, 'store']);
+    Route::post('/portal_games/{id}', [PortalGameController::class, 'update']); // Changed to POST
+    Route::delete('/portal_games/{id}', [PortalGameController::class, 'destroy']);
+});
+
+
+
+
