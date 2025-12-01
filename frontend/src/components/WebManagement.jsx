@@ -25,6 +25,8 @@ import CancelPopup from "./CancelPopup";
 import UpdateSuccessDialog from "./UpdateSuccess";
 import ThumbnailUpdate from "./ThumbnailUpdate";
 import RemovePopup from "./RemovePopup";
+import axios from "axios";
+import { toast } from "react-toastify";
 
 const categories = [
   { label: "Booking Games" },
@@ -107,28 +109,53 @@ const WebManagement = () => {
     setEditStationCategory(false);
   };
 
-  // other game section
-  const handleAddGame = (newGame) => {
-    setGames([...games, newGame]);
-    console.log(newGame);
+  // Other game section - SIMPLIFIED
+  const handleAddGame = () => {
+    // Just refresh the games list from API
+    fetchGames();
+    console.log("Game added - refreshing list");
   };
 
-  const handleUpdateGame = (updatedGame) => {
-    setGames((prev) =>
-      prev.map((g) => (g.title === editData.title ? updatedGame : g))
-    );
+  const handleUpdateGame = () => {
+    // Just refresh the games list from API  
+    fetchGames();
+    console.log("Game updated - refreshing list");
   };
 
-  const handleRemoveGame = (title) => {
-    setGameToRemove(title);
-    setGameRemoveMessage("Are you want to remove this game?");
+  // FIXED: Remove function now calls backend API
+  const handleRemoveGame = (game) => {
+    setGameToRemove(game);
+    setGameRemoveMessage(`Are you sure you want to remove "${game.title}"?`);
     setRemoveGame(true);
   };
 
   const removeGameConfirm = async () => {
-    setGames(games.filter((game) => game.title !== gameToRemove));
-    setRemoveGame(false);
-    setGameToRemove(null);
+    const token = localStorage.getItem("aToken");
+    if (!token) {
+      console.error("No token found");
+      toast.error("Unauthorized! Please login.");
+      return;
+    }
+
+    try {
+      // Call backend API to delete the game
+      await axios.delete(`http://127.0.0.1:8000/api/portal_games/${gameToRemove.id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      // Remove from frontend state
+      setGames(games.filter((game) => game.id !== gameToRemove.id));
+      
+      console.log("Game removed successfully");
+      toast.success("Game removed successfully!");
+      
+    } catch (err) {
+      console.error("Failed to remove game:", err);
+      toast.error("Failed to remove game");
+    } finally {
+      setRemoveGame(false);
+      setGameToRemove(null);
+    }
   };
 
   const cancelRemoveGame = () => {
@@ -136,7 +163,7 @@ const WebManagement = () => {
     setGameToRemove(null);
   };
 
-  // Event and tournerment
+  // Event and tournament
   const handleAddEvent = (newEvent) => {
     setEvent([...event, newEvent]);
     console.log(newEvent);
@@ -170,7 +197,7 @@ const WebManagement = () => {
   // Gallery section
   const handleAddPhoto = (newPhoto) => {
     setGallery([...gallery, newPhoto]);
-    console.log("new photo aded");
+    console.log("new photo added");
   };
 
   const handleRemovePhoto = (index) => {
@@ -195,6 +222,37 @@ const WebManagement = () => {
       setSelectedImage(selectedCategory.image);
     }
   }, [selectedCategory]);
+
+  // Fetch games from API
+  useEffect(() => {
+    fetchGames();
+  }, []);
+
+  const fetchGames = async () => {
+    const token = localStorage.getItem("aToken");
+    if (!token) return;
+
+    try {
+      const res = await axios.get("http://127.0.0.1:8000/api/portal_games", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const data = res.data?.data ?? res.data;
+      if (Array.isArray(data)) {
+        // Map the API response to match your component's expected structure
+        const formattedGames = data.map(game => ({
+          ...game,
+          image: game.thumbnail_url || game.image // Use thumbnail_url from API
+        }));
+        setGames(formattedGames);
+        console.log("Fetched games:", formattedGames);
+      } else {
+        console.warn("Unexpected games response:", res.data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch games:", err);
+    }
+  };
 
   return (
     <div>
@@ -508,10 +566,11 @@ const WebManagement = () => {
                 </Box>
               ))}
 
+            {/* Other Games section - FIXED */}
             {activeCategory === "Other Games" &&
               games.map((item, index) => (
                 <Box
-                  key={index}
+                  key={item.id || index}
                   sx={{
                     borderRadius: "12px",
                     overflow: "hidden",
@@ -565,16 +624,37 @@ const WebManagement = () => {
                         borderRadius: "12px",
                       }}
                     >
-                      {/* IMAGE */}
-                      <img
-                        src={item.image}
-                        alt={item.title}
-                        style={{
-                          width: "100%",
-                          height: "190px",
-                          objectFit: "cover",
-                        }}
-                      />
+                      {/* IMAGE - Fixed to use proper image source */}
+                      {item.image ? (
+                        <img
+                          src={item.image}
+                          alt={item.title}
+                          style={{
+                            width: "100%",
+                            height: "190px",
+                            objectFit: "cover",
+                          }}
+                        />
+                      ) : (
+                        <Box
+                          sx={{
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            height: "190px",
+                            backgroundColor: "#0E111B",
+                            color: "#fff",
+                          }}
+                        >
+                          <img
+                            src={upload}
+                            alt="upload"
+                            style={{ width: 30, height: 30, marginBottom: 6 }}
+                          />
+                          No Image
+                        </Box>
+                      )}
 
                       {/* TEXT CONTENT */}
                       <Box sx={{ p: 2, textAlign: "center", flexGrow: 1 }}>
@@ -601,11 +681,11 @@ const WebManagement = () => {
                     </Box>
                   </Box>
 
-                  {/* BUTTON */}
+                  {/* BUTTON - FIXED: Now passes entire game object */}
                   <Box sx={{ py: 2 }}>
                     <button
                       className="card-button-red"
-                      onClick={() => handleRemoveGame(item.title)}
+                      onClick={() => handleRemoveGame(item)}
                     >
                       Remove
                     </button>
@@ -613,6 +693,7 @@ const WebManagement = () => {
                 </Box>
               ))}
 
+            {/* Event & Tournaments section */}
             {activeCategory === "Event & Tournaments" &&
               event.map((item, index) => (
                 <Box
@@ -725,6 +806,7 @@ const WebManagement = () => {
                 </Box>
               ))}
 
+            {/* Gallery section */}
             {activeCategory === "Gallery" &&
               gallery.map((item, index) => (
                 <Box
@@ -797,7 +879,7 @@ const WebManagement = () => {
         </Box>
       </Box>
 
-      {/* Edit Station Category */}
+      {/* Edit Station Category Dialog */}
       <Dialog
         open={editStationCategory}
         fullWidth
@@ -815,7 +897,6 @@ const WebManagement = () => {
         {/* FORM BODY */}
         <DialogContent
           sx={{
-            /* Scrollbar styling */
             "&::-webkit-scrollbar": {
               width: "6px",
             },
@@ -1012,40 +1093,40 @@ const WebManagement = () => {
         </DialogActions>
       </Dialog>
 
-      {/* cancel popu */}
+      {/* Cancel Popup */}
       <CancelPopup
         open={cancelOpen}
         handleCancelClose={() => setCancelOpen(false)}
         handleConfirm={handleConfirm}
       />
 
-      {/* update sucessfull */}
+      {/* Update Success Dialog */}
       <UpdateSuccessDialog
         open={openCategoryUpdate}
         onClose={() => setOpenCategoryUpdate(false)}
       />
 
-      {/* update Thumbnail */}
+      {/* Thumbnail Update Success */}
       <ThumbnailUpdate
         open={thumbUpdateSuccess}
         onClose={() => setThumbUpdateSuccess(false)}
       />
 
-      {/* Add & update other game section */}
+      {/* Add & Update Other Game Section */}
       <AddGameDialog
         open={openAddGame}
         onClose={() => setOpenAddGame(false)}
-        onSubmit={handleAddGame}
+        onRefresh={handleAddGame}
       />
 
       <AddGameDialog
         open={openEditGame}
         onClose={() => setOpenEditGame(false)}
-        onSubmit={handleUpdateGame}
+        onRefresh={handleUpdateGame}
         initialData={editData}
       />
 
-      {/* remove Game confirm */}
+      {/* Remove Game Confirm */}
       <RemovePopup
         open={removeGame}
         handleRemoveClose={cancelRemoveGame}
@@ -1053,7 +1134,7 @@ const WebManagement = () => {
         message={gameRemoveMessage}
       />
 
-      {/* Add & update other Event section */}
+      {/* Add & Update Event Section */}
       <AddEventDialog
         open={openAddEvent}
         onClose={() => setOpenAddEvent(false)}
@@ -1074,7 +1155,7 @@ const WebManagement = () => {
         message={eventRemoveMessage}
       />
 
-      {/* Add photo in Gallery section */}
+      {/* Add Photo in Gallery Section */}
       <AddGalleyDialog
         open={openAddPhoto}
         onClose={() => setOpenAddPhoto(false)}
