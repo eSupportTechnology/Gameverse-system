@@ -1,23 +1,22 @@
-// components/BookingDialog.jsx
-import React, { useState } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogActions,
-  Button,
-  Typography,
-  Box,
-  IconButton,
-} from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import EditIcon from "@mui/icons-material/Edit";
 import StarIcon from "@mui/icons-material/Star";
+import {
+  Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  IconButton,
+  Typography,
+} from "@mui/material";
+import { useState } from "react";
 
-// Import CancelPopup
 import CancelPopup from "../components/CancelPopup";
+import EditBookingFrom from "./EditBookingFrom";
 import { minutesToHHMMDisplay } from "./SessionDialog";
 
-// Helper function to calculate end time
+// Calculate end time
 const calculateEndTime = (startTime, duration) => {
   if (!startTime || !duration) return "N/A";
   try {
@@ -42,21 +41,24 @@ const calculateEndTime = (startTime, duration) => {
   }
 };
 
-const BookingDialog = ({ open, onClose, onEdit, bookings = [] }) => {
+const BookingDialog = ({ open, onClose, bookings = [] }) => {
   const [activePlayer, setActivePlayer] = useState(0);
   const [cancelOpen, setCancelOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
 
   if (!bookings || bookings.length === 0) return null;
 
   const booking = bookings[activePlayer];
 
-  // Status colors
   const statusColors = { upcoming: "#0CD7FF" };
   const statusText = { upcoming: "Upcoming" };
 
-  const handleEdit = () => {
-    if (onEdit) onEdit(booking);
-    console.log("Editing booking:", booking);
+  const handleEditClick = () => {
+    setEditOpen(true);
+  };
+
+  const handleEditClose = () => {
+    setEditOpen(false);
   };
 
   const handleCancelClick = () => setCancelOpen(true);
@@ -129,10 +131,9 @@ const BookingDialog = ({ open, onClose, onEdit, bookings = [] }) => {
                     bgcolor: activePlayer === i ? "#0097A7" : "#2A2D3E",
                     transition: "0.2s ease",
                     position: "relative",
-                    overflow: "visible", // This allows the dot to show outside
+                    overflow: "visible",
                   }}
                 >
-                  {/* Online indicator if available */}
                   {b.is_online === 1 && (
                     <Box
                       sx={{
@@ -171,11 +172,8 @@ const BookingDialog = ({ open, onClose, onEdit, bookings = [] }) => {
                 border: "1px solid #152833",
               }}
             >
-              {/* TOP ROW: status + booking id + loyalty points */}
               <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                {/* LEFT SIDE → Status + Name/ID/PN */}
                 <Box sx={{ flex: 1 }}>
-                  {/* STATUS */}
                   <Box
                     sx={{
                       display: "flex",
@@ -206,8 +204,6 @@ const BookingDialog = ({ open, onClose, onEdit, bookings = [] }) => {
                       {statusText[booking.status]}
                     </Typography>
                   </Box>
-
-                  {/* NAME / ID / PN */}
                   <Typography
                     sx={{ fontWeight: 700, fontSize: 15, color: "#fff" }}
                   >
@@ -221,13 +217,7 @@ const BookingDialog = ({ open, onClose, onEdit, bookings = [] }) => {
                   </Typography>
                 </Box>
 
-                <Box
-                  sx={{
-                    textAlign: "right",
-                    minWidth: 120,
-                  }}
-                >
-                  {/* Booking ID */}
+                <Box sx={{ textAlign: "right", minWidth: 120 }}>
                   <Typography
                     sx={{
                       color: "#9CA3AF",
@@ -238,19 +228,12 @@ const BookingDialog = ({ open, onClose, onEdit, bookings = [] }) => {
                   >
                     Booking #{booking.id}
                   </Typography>
-
-                  {/* Loyalty Points */}
-                  <Box
-                    sx={{
-                      display: "flex",
-                      justifyContent: "flex-end",
-                    }}
-                  >
+                  <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
                     <Box
                       sx={{
                         display: "flex",
                         flexDirection: "column",
-                        alignItems: "center", // center the points under the star
+                        alignItems: "center",
                       }}
                     >
                       <StarIcon sx={{ color: "#FD00B5", fontSize: 18 }} />
@@ -266,16 +249,15 @@ const BookingDialog = ({ open, onClose, onEdit, bookings = [] }) => {
                       </Typography>
                     </Box>
                   </Box>
-
                   <Typography sx={{ color: "#9CA3AF", fontSize: 12, mt: 0.5 }}>
                     Loyalty Points
                   </Typography>
                 </Box>
               </Box>
             </Box>
-            {/* Session Details & Payment Info */}
+
+            {/* Session & Payment Info */}
             <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
-              {/* Session Details */}
               <Box
                 sx={{ flex: 1, bgcolor: "#18212F", p: 2, borderRadius: "8px" }}
               >
@@ -300,7 +282,6 @@ const BookingDialog = ({ open, onClose, onEdit, bookings = [] }) => {
                 />
               </Box>
 
-              {/* Payment Info */}
               <Box
                 sx={{ flex: 1, bgcolor: "#18212F", p: 2, borderRadius: "8px" }}
               >
@@ -333,24 +314,22 @@ const BookingDialog = ({ open, onClose, onEdit, bookings = [] }) => {
             variant="outlined"
             fullWidth
             startIcon={<EditIcon />}
-            onClick={handleEdit}
+            onClick={handleEditClick}
             sx={{
               borderColor: "#323e4fff",
               color: "#eef3f4ff",
               textTransform: "none",
               borderRadius: "8px",
-              fontWeight: "bold",
               bgcolor: "#1F2937",
+              fontWeight: "bold",
               fontSize: "0.875rem",
               py: 1.5,
-              "&:hover": {
-                borderColor: "#1F2937",
-                bgcolor: "#4a596ed8",
-              },
+              "&:hover": { borderColor: "#1F2937", bgcolor: "#4a596ed8" },
             }}
           >
             Edit
           </Button>
+
           <Button
             variant="outlined"
             fullWidth
@@ -365,10 +344,7 @@ const BookingDialog = ({ open, onClose, onEdit, bookings = [] }) => {
               fontWeight: "bold",
               fontSize: "0.875rem",
               py: 1.5,
-              "&:hover": {
-                borderColor: "#dc2626",
-                bgcolor: "#dc262620",
-              },
+              "&:hover": { borderColor: "#dc2626", bgcolor: "#dc262620" },
             }}
           >
             Cancel
@@ -382,6 +358,14 @@ const BookingDialog = ({ open, onClose, onEdit, bookings = [] }) => {
         handleCancelClose={handleCancelClose}
         handleConfirm={handleCancelConfirm}
       />
+
+      {editOpen && (
+        <EditBookingFrom
+          open={editOpen}
+          handleClose={handleEditClose}
+          booking={booking}
+        />
+      )}
     </>
   );
 };

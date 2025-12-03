@@ -19,18 +19,10 @@ import EndSessionPopup from "../components/Endsession";
 import UpdateSuccessDialog from "../components/UpdateSuccess";
 import endSessionIcon from "../assets/q.png";
 import arrowIcon from "../assets/end.png";
+import axios from "axios";
 
 // --- helpers ---
 const pad2 = (n) => String(n).padStart(2, "0");
-
-const addMinutesToTime = (timeStr, minsToAdd) => {
-  const [hh, mm] = timeStr.split(":").map(Number);
-  let total = hh * 60 + mm + Math.round(minsToAdd);
-  total = ((total % (24 * 60)) + 24 * 60) % (24 * 60);
-  const newH = Math.floor(total / 60);
-  const newM = total % 60;
-  return `${pad2(newH)}:${pad2(newM)}`;
-};
 
 export const minutesToHHMMDisplay = (mins) => {
   const h = Math.floor(mins / 60);
@@ -111,29 +103,84 @@ const SessionDialog = ({ open, onClose, onEndSession, bookings = [] }) => {
     if (num <= 480) setCustomMinutes(num);
   };
 
-  const handleUpdateTime = () => {
+  const handleUpdateTime = async () => {
     if (!activeBooking) return;
 
-    setPlayers((prev) => {
-      const updated = [...prev];
-      const b = { ...updated[activeIndex].booking };
-      b.extended_time = Number(customMinutes);
-      b.end_time = addMinutesToTime(b.end_time, Number(customMinutes));
-      updated[activeIndex] = { ...updated[activeIndex], booking: b };
-      return updated;
-    });
+    try {
+      const payload = {
+        extended_time: String(customMinutes),
+      };
 
-    setUpdateSuccessOpen(true);
+      const response = await axios.put(
+        `http://127.0.0.1:8000/api/bookings/${activeBooking.id}`,
+        payload
+      );
+
+      if (response.data.success) {
+        // Update local state
+        setPlayers((prev) => {
+          const updated = [...prev];
+          updated[activeIndex] = {
+            ...updated[activeIndex],
+            booking: {
+              ...updated[activeIndex].booking,
+              extended_time: Number(customMinutes),
+            },
+          };
+          return updated;
+        });
+        setUpdateSuccessOpen(true);
+      } else {
+        console.error("Update failed:", response.data);
+      }
+    } catch (error) {
+      console.error("Error updating booking:", error.response?.data || error);
+    }
   };
 
   const handleEndSessionClick = () => setEndSessionOpen(true);
 
-  const handleEndSessionConfirmed = () => {
-    setEndSessionOpen(false);
-    if (typeof onEndSession === "function" && activeIndex >= 0) {
-      onEndSession(players[activeIndex]);
+  const handleEndSessionConfirmed = async () => {
+    if (!activeBooking) return;
+
+    const now = new Date();
+    const pad2 = (n) => String(n).padStart(2, "0");
+    const endTime = `${pad2(now.getHours())}:${pad2(now.getMinutes())}`;
+
+    try {
+      const response = await axios.put(
+        `http://127.0.0.1:8000/api/bookings/${activeBooking.id}`,
+        {
+          status: "completed",
+          end_time: endTime, // store the current time
+        }
+      );
+
+      if (response.data.success) {
+        setPlayers((prev) => {
+          const updated = [...prev];
+          updated[activeIndex] = {
+            ...updated[activeIndex],
+            booking: {
+              ...updated[activeIndex].booking,
+              status: "completed",
+              end_time: endTime,
+            },
+          };
+          return updated;
+        });
+
+        setEndSessionOpen(false);
+        if (typeof onEndSession === "function") {
+          onEndSession(players[activeIndex]);
+        }
+        if (onClose) onClose();
+      } else {
+        console.error("Failed to end session:", response.data);
+      }
+    } catch (error) {
+      console.error("Error ending session:", error.response?.data || error);
     }
-    if (onClose) onClose();
   };
 
   const handleUpdateSuccessClose = () => setUpdateSuccessOpen(false);

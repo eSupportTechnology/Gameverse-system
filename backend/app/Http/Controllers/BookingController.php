@@ -129,6 +129,7 @@ class BookingController extends Controller
                 'duration' => 'string|max:20',
                 'extended_time' => 'nullable|string|max:20',
                 'payment_method' => 'nullable|string|max:50',
+                'end_time' => 'nullable|string|max:10',
                 'amount' => 'numeric|min:0',
                 'status' => 'in:pending,confirmed,cancelled,completed',
                 'is_online' => 'nullable|boolean',
