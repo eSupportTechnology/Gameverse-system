@@ -122,7 +122,10 @@ const BookingManagement = () => {
       );
     });
   };
-
+  const formatBookingDate = (bookingDate) => {
+    if (!bookingDate) return "";
+    return bookingDate.split("T")[0]; // Extract YYYY-MM-DD
+  };
   const fetchBookings = async () => {
     setLoading(true);
     try {
@@ -163,9 +166,11 @@ const BookingManagement = () => {
             online_deposit: b.online_deposit || 0,
             total_amount: b.total_amount || b.amount || 0,
             balance_amount: b.balance_amount || 0,
+            is_online: b.is_online ?? 0,
           };
         };
         const normalized = response.data.data.map(mapBooking);
+
         setApiBookings(normalized);
       }
     } catch (error) {
@@ -176,7 +181,7 @@ const BookingManagement = () => {
       setLoading(false);
     }
   };
-
+  console.log("bookings", apiBookings);
   useEffect(() => {
     fetchBookings();
   }, [refreshTrigger]);
@@ -189,11 +194,13 @@ const BookingManagement = () => {
     if (newView !== null) setView(newView);
   };
 
-  // Handle booking slot click - opens appropriate dialog based on status
-  const handleBookingSlotClick = (booking) => {
-    setSelectedBooking(booking);
+  const handleBookingSlotClick = (bookingsArray) => {
+    if (!bookingsArray || bookingsArray.length === 0) return;
 
-    switch (booking.status) {
+    setSelectedBooking(bookingsArray);
+
+    const status = bookingsArray[0].status;
+    switch (status) {
       case "upcoming":
         setUpcomingDialogOpen(true);
         break;
@@ -207,6 +214,8 @@ const BookingManagement = () => {
         setUpcomingDialogOpen(true);
     }
   };
+
+  console.log("sel", selectedBooking);
 
   // Dialog action handlers
   const handleEditBooking = () => {
@@ -368,6 +377,7 @@ const BookingManagement = () => {
               handleClose={() => setOpenDialog(false)}
               onBookingCreated={refreshBookings}
               stations={stations}
+              bookings={apiBookings}
             />
           </Box>
         </Box>
@@ -544,9 +554,11 @@ const BookingManagement = () => {
                 {stations.map((station, i) => (
                   <Box key={i} sx={{ display: "flex", mb: 2 }}>
                     {timeSlots.map((slot) => {
-                      const apiBooking = apiBookings.find(
+                      const bookingsForSlot = apiBookings.filter(
                         (b) =>
-                          b.station === station.name && b.start_time === slot
+                          b.station === station.name &&
+                          b.start_time === slot &&
+                          formatBookingDate(b.booking_date) === date
                       );
 
                       return (
@@ -555,11 +567,13 @@ const BookingManagement = () => {
                           sx={{
                             minWidth: 56,
                             height: 56,
-                            border: apiBooking
-                              ? `1px solid ${statusColors[apiBooking.status]}`
+                            border: bookingsForSlot.length
+                              ? `1px solid ${
+                                  statusColors[bookingsForSlot[0].status]
+                                }`
                               : "1px solid #222",
-                            bgcolor: apiBooking
-                              ? statusColors[apiBooking.status]
+                            bgcolor: bookingsForSlot.length
+                              ? statusColors[bookingsForSlot[0].status]
                               : "transparent",
                             display: "flex",
                             alignItems: "center",
@@ -568,8 +582,10 @@ const BookingManagement = () => {
                             mr: 1,
                             position: "relative",
                             overflow: "hidden",
-                            cursor: apiBooking ? "pointer" : "default",
-                            "&::after": apiBooking
+                            cursor: bookingsForSlot.length
+                              ? "pointer"
+                              : "default",
+                            "&::after": bookingsForSlot.length
                               ? {
                                   content: '""',
                                   position: "absolute",
@@ -581,28 +597,31 @@ const BookingManagement = () => {
                                   borderRadius: "8px",
                                 }
                               : {},
-                            "&:hover": apiBooking
+                            "&:hover": bookingsForSlot.length
                               ? {
                                   transform: "scale(1.05)",
                                   transition: "transform 0.2s",
                                   boxShadow: `0 0 8px ${
-                                    statusColors[apiBooking.status]
+                                    statusColors[bookingsForSlot[0].status]
                                   }`,
                                 }
                               : {},
                           }}
                           onClick={() =>
-                            apiBooking && handleBookingSlotClick(apiBooking)
+                            bookingsForSlot.length &&
+                            handleBookingSlotClick(bookingsForSlot)
                           }
                         >
-                          {apiBooking && (
+                          {bookingsForSlot.length > 0 && (
                             <Typography
                               fontSize={10}
                               fontWeight={400}
                               zIndex={1}
                               color="#FFFFFF"
                             >
-                              {apiBooking.customer_name || apiBooking.user}
+                              {bookingsForSlot
+                                .map((b) => b.customer_name)
+                                .join(", ")}
                             </Typography>
                           )}
                         </Box>
@@ -638,18 +657,21 @@ const BookingManagement = () => {
         onClose={() => setUpcomingDialogOpen(false)}
         onEdit={handleEditBooking}
         onCancel={handleCancelBooking}
+        bookings={selectedBooking}
       />
 
       <SessionDialog
         open={inProgressDialogOpen}
         onClose={() => setInProgressDialogOpen(false)}
         onEndSession={handleEndSession}
+        bookings={selectedBooking}
       />
 
       <CompletedBookingDialog
         open={completedDialogOpen}
         onClose={() => setCompletedDialogOpen(false)}
         onCollectPayment={handleCollectPayment}
+        bookings={selectedBooking}
       />
     </Box>
   );
