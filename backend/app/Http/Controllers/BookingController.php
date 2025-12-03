@@ -15,7 +15,7 @@ class BookingController extends Controller
     public function index(): JsonResponse
     {
         $bookings = Booking::orderBy('created_at', 'desc')->get();
-        
+
         return response()->json([
             'success' => true,
             'data' => $bookings
@@ -35,7 +35,8 @@ class BookingController extends Controller
             'booking_date' => 'required|date',
             'start_time' => 'required|string|max:10',
             'duration' => 'required|string|max:20',
-            'amount' => 'required|numeric|min:0'
+            'amount' => 'required|numeric|min:0',
+            'is_online' => 'nullable|boolean',
         ]);
 
         if ($validator->fails()) {
@@ -47,7 +48,10 @@ class BookingController extends Controller
         }
 
         try {
-            $booking = Booking::create($validator->validated());
+            $bookingData = $validator->validated();
+            $bookingData['is_online'] = $bookingData['is_online'] ?? false;
+
+            $booking = Booking::create($bookingData);
 
             return response()->json([
                 'success' => true,
@@ -70,8 +74,7 @@ class BookingController extends Controller
     {
         try {
             $booking = Booking::findOrFail($id);
-            
-            // Normalize booking data for frontend compatibility
+
             $normalizedBooking = [
                 'id' => $booking->id,
                 'nfc_card_number' => $booking->nfc_card_number,
@@ -83,6 +86,7 @@ class BookingController extends Controller
                 'duration' => $booking->duration,
                 'amount' => $booking->amount,
                 'status' => $booking->status,
+                'is_online' => $booking->is_online,
                 'extended_time' => $booking->extended_time ?? '',
                 'payment_method' => $booking->payment_method ?? '',
                 'created_at' => $booking->created_at,
@@ -94,7 +98,7 @@ class BookingController extends Controller
                 'user' => $booking->customer_name,
                 'price' => $booking->amount,
             ];
-            
+
             return response()->json([
                 'success' => true,
                 'data' => $normalizedBooking
@@ -114,7 +118,7 @@ class BookingController extends Controller
     {
         try {
             $booking = Booking::findOrFail($id);
-            
+
             $validator = Validator::make($request->all(), [
                 'nfc_card_number' => 'nullable|string|max:255',
                 'customer_name' => 'string|max:255',
@@ -126,7 +130,8 @@ class BookingController extends Controller
                 'extended_time' => 'nullable|string|max:20',
                 'payment_method' => 'nullable|string|max:50',
                 'amount' => 'numeric|min:0',
-                'status' => 'in:pending,confirmed,cancelled,completed'
+                'status' => 'in:pending,confirmed,cancelled,completed',
+                'is_online' => 'nullable|boolean',
             ]);
 
             if ($validator->fails()) {

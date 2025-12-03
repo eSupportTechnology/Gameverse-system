@@ -20,7 +20,13 @@ import { useState } from "react";
 import AddNFCUserDialog from "./AddNFCUserDialog";
 import CreateSuccessDialog from "./CreateSuccessDialog";
 
-const BookingForm = ({ open, handleClose, onBookingCreated, stations }) => {
+const BookingForm = ({
+  open,
+  handleClose,
+  onBookingCreated,
+  stations,
+  bookings,
+}) => {
   const [createSuccess, setcreateSuccess] = useState(false);
   const [cancelConfirm, setCancelConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -100,7 +106,38 @@ const BookingForm = ({ open, handleClose, onBookingCreated, stations }) => {
     handleClose();
   };
 
+  const isSlotFull = () => {
+    const formStation = formData.station?.trim();
+    const formTime = formData.startTime?.trim();
+    const formDate = formData.bookingDate?.trim();
+
+    // Ensure bookings is an array
+    const allBookings = Array.isArray(bookings) ? bookings : [];
+
+    const matchedBookings = allBookings.filter((b) => {
+      const bookingStation = b.station?.trim();
+      const bookingTime = b.start_time?.trim();
+      const bookingDate = b.booking_date?.split("T")[0];
+
+      return (
+        bookingStation === formStation &&
+        bookingTime === formTime &&
+        bookingDate === formDate
+      );
+    });
+
+    return matchedBookings.length >= 4;
+  };
+
   const handleCreateBooking = async () => {
+    // Prevent adding if slot is full
+    if (isSlotFull()) {
+      console.log("Slot is full, cannot add booking.");
+      return alert(
+        "This time slot is already full (maximum 4 bookings allowed)."
+      );
+    }
+
     if (!formData.customerName.trim())
       return alert("Customer name is required");
     if (!formData.phoneNumber.trim()) return alert("Phone number is required");
