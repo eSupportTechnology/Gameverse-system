@@ -126,6 +126,24 @@ const BookingManagement = () => {
     if (!bookingDate) return "";
     return bookingDate.split("T")[0]; // Extract YYYY-MM-DD
   };
+
+  const autoUpdateStatuses = async () => {
+    try {
+      await axios.post("http://127.0.0.1:8000/api/auto-update-bookings");
+      fetchBookings(); // Refresh bookings after updating
+    } catch (error) {
+      console.error("Error auto-updating statuses:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchBookings();
+    const interval = setInterval(() => {
+      autoUpdateStatuses();
+    }, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
   const fetchBookings = async () => {
     setLoading(true);
     try {

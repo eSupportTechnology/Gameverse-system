@@ -42,6 +42,7 @@ Route::post('/bookings', [BookingController::class, 'store']);     // create a b
 Route::get('/bookings/{id}', [BookingController::class, 'show']);  // get single booking
 Route::put('/bookings/{id}', [BookingController::class, 'update']); // update booking
 Route::delete('/bookings/{id}', [BookingController::class, 'destroy']); // delete booking
+Route::post('/auto-update-bookings', [BookingController::class, 'autoUpdateStatuses']);
 
 
 // Protected routes
@@ -128,7 +129,3 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/portal_games/{id}', [PortalGameController::class, 'update']); // Changed to POST
     Route::delete('/portal_games/{id}', [PortalGameController::class, 'destroy']);
 });
-
-
-
-
