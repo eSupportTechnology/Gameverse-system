@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Booking;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
 class BookingController extends Controller
@@ -178,5 +180,80 @@ class BookingController extends Controller
                 'message' => 'Failed to delete booking'
             ], 500);
         }
+    }
+    public function autoUpdateStatuses()
+    {
+        $bookings = Booking::all();
+        $timezone = 'Asia/Colombo';
+        $now = Carbon::now($timezone);
+
+        Log::info("Server timezone: {$timezone}");
+        Log::info("Carbon now: " . $now->format('h:i A')); // 12-hour format
+
+        foreach ($bookings as $booking) {
+            try {
+                if (!$booking->booking_date || !$booking->start_time) {
+                    Log::warning("Booking {$booking->id} missing date or start time.");
+                    continue;
+                }
+
+                // Normalize start time: assume PM if no AM/PM
+                $startTime = $booking->start_time;
+                if (!preg_match('/AM|PM/i', $startTime)) {
+                    $timeParts = explode(':', $startTime);
+                    $hour = (int)$timeParts[0];
+                    $minute = $timeParts[1] ?? '00';
+                    if ($hour < 12) $hour += 12; // convert to PM
+                    $startTime = $hour . ':' . $minute;
+                }
+
+                // Parse booking start datetime
+                $bookingDate = Carbon::parse($booking->booking_date, $timezone)->format('Y-m-d');
+                $start = Carbon::parse("{$bookingDate} {$startTime}", $timezone);
+
+                // Calculate total duration
+                $durationMinutes = $this->convertDurationToMinutes($booking->duration);
+                $extendedMinutes = $this->convertDurationToMinutes($booking->extended_time ?? '');
+                $totalMinutes = $durationMinutes + $extendedMinutes;
+
+                $end = $start->copy()->addMinutes($totalMinutes);
+
+                // Update status
+                if ($now->between($start, $end)) {
+                    $booking->status = 'confirmed';
+                } elseif ($now->greaterThan($end)) {
+                    $booking->status = 'completed';
+                } else {
+                    $booking->status = 'pending';
+                }
+
+                $booking->save();
+
+                Log::info(
+                    "Booking {$booking->id}: start={$start->format('h:i A')}, " .
+                        "end={$end->format('h:i A')}, now={$now->format('h:i A')}, status={$booking->status}"
+                );
+            } catch (\Exception $e) {
+                Log::error("Error updating booking {$booking->id}: " . $e->getMessage());
+                continue;
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Statuses updated successfully',
+        ]);
+    }
+
+    private function convertDurationToMinutes($duration)
+    {
+        if (!$duration) return 0;
+
+        preg_match('/(?:(\d+)h)?\s*(?:(\d+)m)?/', $duration, $matches);
+
+        $hours = isset($matches[1]) ? (int)$matches[1] : 0;
+        $minutes = isset($matches[2]) ? (int)$matches[2] : 0;
+
+        return ($hours * 60) + $minutes;
     }
 }
