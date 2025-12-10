@@ -40,10 +40,10 @@ class PortalGameController extends Controller
 
         // Trim title
         $validated['title'] = trim($validated['title']);
-        
+
         // Handle thumbnail upload
         if ($request->hasFile('thumbnail')) {
-            $validated['thumbnail'] = $request->file('thumbnail')->store('thumbnails', 'public');
+            $validated['thumbnail'] = $request->file('thumbnail')->store('games/thumbnails', 'public');
         } else {
             $validated['thumbnail'] = null;
         }
@@ -86,7 +86,7 @@ class PortalGameController extends Controller
             if ($game->thumbnail && Storage::disk('public')->exists($game->thumbnail)) {
                 Storage::disk('public')->delete($game->thumbnail);
             }
-            $validated['thumbnail'] = $request->file('thumbnail')->store('thumbnails', 'public');
+            $validated['thumbnail'] = $request->file('thumbnail')->store('games/thumbnails', 'public');
         } else {
             // Keep existing thumbnail if no new one provided
             $validated['thumbnail'] = $game->thumbnail;
@@ -133,7 +133,7 @@ class PortalGameController extends Controller
     public function show($id)
     {
         $game = PortalGame::findOrFail($id);
-        
+
         $game->thumbnail_url = $game->thumbnail
             ? asset('storage/' . $game->thumbnail)
             : null;
