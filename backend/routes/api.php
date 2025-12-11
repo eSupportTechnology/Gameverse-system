@@ -14,6 +14,8 @@ use App\Http\Controllers\OperatorPosItemController;
 use App\Http\Controllers\OperatorPosSaleController;
 use App\Http\Controllers\OperaterGameController;
 use App\Http\Controllers\PortalGameController;
+use App\Http\Controllers\Api\EventController;
+use App\Http\Controllers\Api\GalleryController;
 
 
 
@@ -129,3 +131,15 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/portal_games/{id}', [PortalGameController::class, 'update']); // Changed to POST
     Route::delete('/portal_games/{id}', [PortalGameController::class, 'destroy']);
 });
+
+
+    // Event & Tournaments
+    Route::get('/events', [EventController::class, 'index']);
+    Route::post('/events', [EventController::class, 'store']);
+    Route::put('/events/{id}', [EventController::class, 'update']);
+    Route::delete('/events/{id}', [EventController::class, 'destroy']);
+
+    // Gallery
+    Route::get('/gallery', [GalleryController::class, 'index']);
+    Route::post('/gallery', [GalleryController::class, 'store']);
+    Route::delete('/gallery/{id}', [GalleryController::class, 'destroy']);

@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {
   Dialog,
-  DialogTitle,
   DialogContent,
   DialogActions,
   IconButton,
@@ -10,60 +9,70 @@ import {
   Box,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import upload from '../assets/upload.png'
+import upload from '../assets/upload.png';
 import ThumbnailUpdate from "./ThumbnailUpdate";
 import UpdateSuccessDialog from "./UpdateSuccess";
 import CancelPopup from "./CancelPopup";
 
-
 const AddEventDialog = ({ open, onClose, onSubmit, initialData }) => {
   const [title, setTitle] = useState("");
   const [date, setDate] = useState("");
-  const [thumbnail, setThumbnail] = useState(null);
+  // actual file to submit
+  const [thumbnailFile, setThumbnailFile] = useState(null); 
+  const [thumbnailPreview, setThumbnailPreview] = useState(null); 
 
-  const [successMessage, setSuccessMessage] = useState("")
+  const [successMessage, setSuccessMessage] = useState("");
   const [thumbUpdateSuccess, setThumbUpdateSuccess] = useState(false);
   const [openUpdateSuccess, setOpenUpdateSucess] = useState(false);
-  const [cancelOpen, setCancelOpen] = useState(false)
+  const [cancelOpen, setCancelOpen] = useState(false);
 
   // Load initial data when editing
-  useEffect(() => {
+useEffect(() => {
+  if (open) {
     if (initialData) {
-      setTitle(initialData.title);
-      setDate(initialData.date);
-      setThumbnail(initialData.image);
+      setTitle(initialData.name || "");
+      setDate(initialData.date || "");
+      setThumbnailPreview(initialData.image || null);
+      setThumbnailFile(null);
     } else {
+      // Reset all fields for creating a new event
       setTitle("");
       setDate("");
-      setThumbnail(null);
+      setThumbnailPreview(null);
+      setThumbnailFile(null);
     }
-  }, [initialData]);
+  }
+}, [open, initialData]);
+
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setThumbnail(URL.createObjectURL(file));
+      // for submit
+      setThumbnailFile(file); 
+      // for preview
+      setThumbnailPreview(URL.createObjectURL(file)); 
+      setSuccessMessage("Thumbnail Added Successfully!");
+      setThumbUpdateSuccess(true);
     }
-    setSuccessMessage('Thumbnail Added Successful !')
-    setThumbUpdateSuccess(true);
-
   };
 
   const handleSubmit = () => {
     onSubmit({
-      title,
+      id: initialData?.id,
+      name: title,
       date,
-      image: thumbnail,
+      thumbnail: thumbnailFile,
     });
-    setOpenUpdateSucess(true)
-    onClose();
 
+    setOpenUpdateSucess(true);
+    onClose();
   };
 
-  const handleConfirm = async () => {
+  const handleConfirm = () => {
     setCancelOpen(false);
-    onClose()
-  }
+    onClose();
+  };
 
   return (
     <>
@@ -83,7 +92,7 @@ const AddEventDialog = ({ open, onClose, onSubmit, initialData }) => {
         }}
       >
         {/* FORM BODY */}
-        <DialogContent sx={{}}>
+        <DialogContent>
           <Box sx={{
             display: "flex",
             justifyContent: "space-between",
@@ -96,10 +105,9 @@ const AddEventDialog = ({ open, onClose, onSubmit, initialData }) => {
             <IconButton onClick={onClose} sx={{ color: "#9CA3AF" }}>
               <CloseIcon />
             </IconButton>
-
           </Box>
 
-          {/* Game Name */}
+          {/* Event Name */}
           <p style={{ marginBottom: 6, fontSize: '14px', fontWeight: 500 }}>Event Name</p>
           <TextField
             fullWidth
@@ -113,7 +121,6 @@ const AddEventDialog = ({ open, onClose, onSubmit, initialData }) => {
                 borderRadius: "8px",
                 color: "white",
                 border: "0.5px solid #374151",
-
                 "& .MuiInputBase-input": {
                   padding: "12px 14px",
                   fontSize: "14px",
@@ -122,12 +129,10 @@ const AddEventDialog = ({ open, onClose, onSubmit, initialData }) => {
             }}
           />
 
-
           {/* Date */}
           <p style={{ marginTop: 15, marginBottom: 6, fontSize: '14px', fontWeight: 500 }}>
             Date
           </p>
-
           <TextField
             fullWidth
             placeholder="mm/dd/yyyy"
@@ -145,20 +150,14 @@ const AddEventDialog = ({ open, onClose, onSubmit, initialData }) => {
                 borderRadius: "8px",
                 color: "white",
                 border: "0.5px solid #374151",
-
                 "& .MuiInputBase-input": {
                   fontSize: "14px",
                   padding: "12px 14px",
                 },
-
-                // Make placeholder text visible for date input
-                "& input::-webkit-datetime-edit": {
-                  color: "#9CA3AF",
-                },
+                "& input::-webkit-datetime-edit": { color: "#9CA3AF" },
               },
             }}
           />
-
 
           {/* Thumbnail Upload */}
           <p style={{ marginTop: 15, marginBottom: 6, fontSize: '14px', fontWeight: 500 }}>Thumbnail</p>
@@ -185,9 +184,9 @@ const AddEventDialog = ({ open, onClose, onSubmit, initialData }) => {
               onChange={handleImageUpload}
             />
 
-            {thumbnail ? (
+            {thumbnailPreview ? (
               <img
-                src={thumbnail}
+                src={thumbnailPreview}
                 alt="Thumbnail"
                 style={{
                   width: "100%",
@@ -208,7 +207,7 @@ const AddEventDialog = ({ open, onClose, onSubmit, initialData }) => {
         {/* ACTION BUTTONS */}
         <DialogActions sx={{ px: 3, pb: 2, mt: 1 }}>
           <Button
-            onClick={()=>setCancelOpen(true)}
+            onClick={() => setCancelOpen(true)}
             sx={{
               flex: 1,
               borderRadius: "8px",
@@ -218,9 +217,7 @@ const AddEventDialog = ({ open, onClose, onSubmit, initialData }) => {
               fontWeight: "bold",
               textTransform: "none",
               boxShadow: "0 2px 6px rgba(0,0,0,0.3)",
-              "&:hover": {
-                backgroundColor: "#3B4859",
-              },
+              "&:hover": { backgroundColor: "#3B4859" },
             }}
           >
             Cancel
@@ -237,9 +234,7 @@ const AddEventDialog = ({ open, onClose, onSubmit, initialData }) => {
               borderRadius: "8px",
               background: "linear-gradient(to right, #0CD7FF, #8A38F5)",
               boxShadow: "0 2px 6px rgba(0,0,0,0.3)",
-              "&:hover": {
-                background: "linear-gradient(to right, #8A38F5, #0CD7FF)",
-              },
+              "&:hover": { background: "linear-gradient(to right, #8A38F5, #0CD7FF)" },
             }}
           >
             {initialData ? "Update" : "Add"}
@@ -247,28 +242,27 @@ const AddEventDialog = ({ open, onClose, onSubmit, initialData }) => {
         </DialogActions>
       </Dialog>
 
-      {/* Thumbanai successful */}
+      {/* Thumbnail added */}
       <ThumbnailUpdate
         open={thumbUpdateSuccess}
         onClose={() => setThumbUpdateSuccess(false)}
-        message = {successMessage}
+        message={successMessage}
       />
 
-      {/* update Sucess */}
+      {/* update Success */}
       <UpdateSuccessDialog
         open={openUpdateSuccess}
         onClose={() => setOpenUpdateSucess(false)}
       />
 
-      {/* cancel dialog */}
+      {/* Cancel popup */}
       <CancelPopup
         open={cancelOpen}
         handleCancelClose={() => setCancelOpen(false)}
         handleConfirm={handleConfirm}
       />
-
     </>
-  )
-}
+  );
+};
 
-export default AddEventDialog
+export default AddEventDialog;

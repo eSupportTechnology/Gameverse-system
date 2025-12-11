@@ -5,48 +5,51 @@ import {
   DialogContent,
   DialogActions,
   IconButton,
-  TextField,
   Button,
   Box,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import upload from '../assets/upload.png'
+import upload from '../assets/upload.png';
 import ThumbnailUpdate from "./ThumbnailUpdate";
 import CancelPopup from "./CancelPopup";
 
-const AddGalleyDialog = ({ open, onClose, onSubmit, }) => {
-
-  const [thumbnail, setThumbnail] = useState(null);
+const AddGalleryDialog = ({ open, onClose, onSubmit }) => {
+  const [thumbnailFile, setThumbnailFile] = useState(null); // actual file
+  const [thumbnailPreview, setThumbnailPreview] = useState(null); // preview URL
   const [photoAddedSuccess, setPhotoAddedSuccess] = useState(false);
-  const [successMessage, setSuccessMessage] = useState('')
-  const [openUpdateSuccess, setOpenUpdateSucess] = useState(false);
-  const [cancelOpen, setCancelOpen] = useState(false)
+  const [successMessage, setSuccessMessage] = useState('');
+  const [cancelOpen, setCancelOpen] = useState(false);
 
-
+  // Handle file selection and create preview
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setThumbnail(URL.createObjectURL(file));
+      setThumbnailFile(file);
+      setThumbnailPreview(URL.createObjectURL(file));
     }
-
-
   };
 
-  const handleSubmit = () => {
-    onSubmit({
-      image: thumbnail,
-    });
-    setSuccessMessage('Photo Added Successful !')
-    setPhotoAddedSuccess(true);
-    onClose();
-    setThumbnail(null)
-
+  // Submit image to parent API handler
+  const handleSubmit = async () => {
+    if (!thumbnailFile) return; // prevent empty submission
+    try {
+      await onSubmit(thumbnailFile); // pass actual File object
+      setSuccessMessage('Photo Added Successfully!');
+      setPhotoAddedSuccess(true);
+      onClose();
+      setThumbnailFile(null);
+      setThumbnailPreview(null);
+    } catch (err) {
+      console.error("Failed to add photo:", err);
+    }
   };
 
-  const handleConfirm = async () => {
+  const handleConfirmCancel = () => {
     setCancelOpen(false);
-    onClose()
-  }
+    onClose();
+    setThumbnailFile(null);
+    setThumbnailPreview(null);
+  };
 
   return (
     <>
@@ -65,33 +68,34 @@ const AddGalleyDialog = ({ open, onClose, onSubmit, }) => {
           },
         }}
       >
-        {/* FORM BODY */}
-        <DialogContent sx={{}}>
-          <Box sx={{
+        {/* Header */}
+        <Box
+          sx={{
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            fontWeight: "700",
-            fontSize: "18px",
-            py: 0,
-          }}>
-            Add Photos
-            <IconButton onClick={onClose} sx={{ color: "#9CA3AF" }}>
-              <CloseIcon />
-            </IconButton>
+            fontWeight: 700,
+            fontSize: 18,
+            p: 2,
+          }}
+        >
+          Add Photos
+          <IconButton onClick={onClose} sx={{ color: "#9CA3AF" }}>
+            <CloseIcon />
+          </IconButton>
+        </Box>
 
-          </Box>
-
-          {/* Thumbnail Upload */}
-          <p style={{ marginTop: 15, marginBottom: 6, fontSize: '14px', fontWeight: 500 }}>Photo</p>
+        {/* Upload Section */}
+        <DialogContent>
+          <p style={{ marginTop: 15, marginBottom: 6, fontSize: 14, fontWeight: 500 }}>Photo</p>
           <Box
             sx={{
               backgroundColor: "#171C2D",
-              borderRadius: "8px",
+              borderRadius: 2,
               height: 208,
               border: "0.5px solid #374151",
               display: "flex",
-              flexDirection: 'column',
+              flexDirection: "column",
               justifyContent: "center",
               alignItems: "center",
               color: "#aaa",
@@ -106,15 +110,14 @@ const AddGalleyDialog = ({ open, onClose, onSubmit, }) => {
               style={{ display: "none" }}
               onChange={handleImageUpload}
             />
-
-            {thumbnail ? (
+            {thumbnailPreview ? (
               <img
-                src={thumbnail}
+                src={thumbnailPreview}
                 alt="Thumbnail"
                 style={{
                   width: "100%",
                   height: "100%",
-                  borderRadius: "8px",
+                  borderRadius: 8,
                   objectFit: "cover",
                 }}
               />
@@ -127,41 +130,36 @@ const AddGalleyDialog = ({ open, onClose, onSubmit, }) => {
           </Box>
         </DialogContent>
 
-        {/* ACTION BUTTONS */}
+        {/* Action Buttons */}
         <DialogActions sx={{ px: 3, pb: 2, mt: 1 }}>
           <Button
-            onClick={()=>setCancelOpen(true)}
+            onClick={() => setCancelOpen(true)}
             sx={{
               flex: 1,
-              borderRadius: "8px",
+              borderRadius: 2,
               backgroundColor: "#1A1D2A",
               color: "white",
-              fontSize: '14px',
+              fontSize: 14,
               fontWeight: "bold",
               textTransform: "none",
               boxShadow: "0 2px 6px rgba(0,0,0,0.3)",
-              "&:hover": {
-                backgroundColor: "#3B4859",
-              },
+              "&:hover": { backgroundColor: "#3B4859" },
             }}
           >
             Cancel
           </Button>
-
           <Button
             variant="contained"
             onClick={handleSubmit}
             sx={{
-              fontSize: '14px',
-              fontWeight: "bold",
               flex: 1,
+              fontSize: 14,
+              fontWeight: "bold",
               textTransform: "none",
-              borderRadius: "8px",
+              borderRadius: 2,
               background: "linear-gradient(to right, #0CD7FF, #8A38F5)",
               boxShadow: "0 2px 6px rgba(0,0,0,0.3)",
-              "&:hover": {
-                background: "linear-gradient(to right, #8A38F5, #0CD7FF)",
-              },
+              "&:hover": { background: "linear-gradient(to right, #8A38F5, #0CD7FF)" },
             }}
           >
             Add
@@ -169,22 +167,21 @@ const AddGalleyDialog = ({ open, onClose, onSubmit, }) => {
         </DialogActions>
       </Dialog>
 
-      {/* photo add success dialog */}
+      {/* Success Popup */}
       <ThumbnailUpdate
         open={photoAddedSuccess}
         onClose={() => setPhotoAddedSuccess(false)}
         message={successMessage}
       />
 
-      {/* cancel popup */}
+      {/* Cancel Confirmation Popup */}
       <CancelPopup
         open={cancelOpen}
         handleCancelClose={() => setCancelOpen(false)}
-        handleConfirm={handleConfirm}
+        handleConfirm={handleConfirmCancel}
       />
-
     </>
-  )
-}
+  );
+};
 
-export default AddGalleyDialog
+export default AddGalleryDialog;

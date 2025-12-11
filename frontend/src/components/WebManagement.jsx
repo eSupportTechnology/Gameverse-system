@@ -27,6 +27,12 @@ import ThumbnailUpdate from "./ThumbnailUpdate";
 import RemovePopup from "./RemovePopup";
 import axios from "axios";
 import { toast } from "react-toastify";
+import OtherGamesSection from "./OtherGamesSection";
+import AddNewGame from "./AddNewGame";
+import { getEvents, createEvent, updateEvent, deleteEvent } from "../api";
+import { getGallery, addGalleryPhoto, deleteGalleryPhoto } from "../api";
+
+
 
 const categories = [
   { label: "Booking Games" },
@@ -52,6 +58,9 @@ const WebManagement = () => {
 
   const [openAddGame, setOpenAddGame] = useState(false);
   const [openEditGame, setOpenEditGame] = useState(false);
+  const [editDbGameData, setEditDbGameData] = useState(null);
+  const [openEditDbGame, setOpenEditDbGame] = useState(false);
+
   const [editData, setEditData] = useState(null);
   const [gameRemoveMessage, setGameRemoveMessage] = useState("");
   const [gameToRemove, setGameToRemove] = useState(null);
@@ -75,6 +84,7 @@ const WebManagement = () => {
   const [cancelOpen, setCancelOpen] = useState(false);
   const [openCategoryUpdate, setOpenCategoryUpdate] = useState(false);
   const [thumbUpdateSuccess, setThumbUpdateSuccess] = useState(false);
+  const [dbGames, setDbGames] = useState([]);
 
   const handleUpdate = () => {
     const updatedList = bookingGames.map((game) =>
@@ -88,21 +98,22 @@ const WebManagement = () => {
     setOpenCategoryUpdate(true);
   };
 
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+const handleImageUpload = (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      setSelectedImage(reader.result);
-      setSelectedCategory({
-        ...selectedCategory,
-        image: reader.result,
-      });
-      setThumbUpdateSuccess(true);
-    };
-    reader.readAsDataURL(file);
-  };
+  // Store the actual File object for API submission
+  setSelectedCategory((prev) => ({
+    ...prev,
+    thumbnail: file, // <--- store the File object here
+  }));
+
+  // Optional: store preview separately
+  const reader = new FileReader();
+  reader.onload = () => setSelectedImage(reader.result);
+  reader.readAsDataURL(file);
+};
+
 
   const handleConfirm = async () => {
     setCancelOpen(false);
@@ -117,12 +128,10 @@ const WebManagement = () => {
   };
 
   const handleUpdateGame = () => {
-    // Just refresh the games list from API  
     fetchGames();
     console.log("Game updated - refreshing list");
   };
 
-  // FIXED: Remove function now calls backend API
   const handleRemoveGame = (game) => {
     setGameToRemove(game);
     setGameRemoveMessage(`Are you sure you want to remove "${game.title}"?`);
@@ -130,6 +139,8 @@ const WebManagement = () => {
   };
 
   const removeGameConfirm = async () => {
+    if (!gameToRemove) return;
+
     const token = localStorage.getItem("aToken");
     if (!token) {
       console.error("No token found");
@@ -138,17 +149,25 @@ const WebManagement = () => {
     }
 
     try {
-      // Call backend API to delete the game
-      await axios.delete(`http://127.0.0.1:8000/api/portal_games/${gameToRemove.id}`, {
+      let apiUrl = "";
+      if (gameToRemove.source === "portable") {
+        apiUrl = `http://127.0.0.1:8000/api/portal_games/${gameToRemove.id}`;
+      } else {
+        apiUrl = `http://127.0.0.1:8000/api/games/${gameToRemove.id}`;
+      }
+
+      await axios.delete(apiUrl, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
       // Remove from frontend state
-      setGames(games.filter((game) => game.id !== gameToRemove.id));
-      
-      console.log("Game removed successfully");
+      if (gameToRemove.source === "portable") {
+        setGames(games.filter((g) => g.id !== gameToRemove.id));
+      } else {
+        setDbGames(dbGames.filter((g) => g.id !== gameToRemove.id));
+      }
+
       toast.success("Game removed successfully!");
-      
     } catch (err) {
       console.error("Failed to remove game:", err);
       toast.error("Failed to remove game");
@@ -164,41 +183,132 @@ const WebManagement = () => {
   };
 
   // Event and tournament
-  const handleAddEvent = (newEvent) => {
-    setEvent([...event, newEvent]);
-    console.log(newEvent);
-  };
+const handleAddEvent = async (newEvent) => {
+  try {
+    const eventData = {
+      name: newEvent.name,
+      date: newEvent.date,
+      thumbnail: newEvent.thumbnail || null, // File object from upload
+    };
 
-  const handleUpdateEvent = (updatedEvent) => {
+    const savedEvent = await createEvent(eventData);
+
+    setEvent((prev) => [
+      ...prev,
+      {
+        id: savedEvent.id,
+        name: savedEvent.name,
+        date: savedEvent.date,
+        image: savedEvent.thumbnail
+          ? `http://127.0.0.1:8000/storage/${savedEvent.thumbnail}`
+          : "",
+      },
+    ]);
+  } catch (err) {
+    console.error("Error adding event:", err);
+    toast.error("Failed to add event");
+  }
+};
+
+
+
+
+const handleUpdateEvent = async (updatedEvent) => {
+  try {
+    const eventData = {
+      name: updatedEvent.name,
+      date: updatedEvent.date,
+      thumbnail: updatedEvent.thumbnail || null, // File object
+    };
+
+    const savedEvent = await updateEvent(updatedEvent.id, eventData);
+
+    const mappedEvent = {
+      id: savedEvent.id,
+      name: savedEvent.name,
+      date: savedEvent.date,
+      image: savedEvent.thumbnail
+        ? `http://127.0.0.1:8000/storage/${savedEvent.thumbnail}`
+        : "",
+    };
+
     setEvent((prev) =>
-      prev.map((event) =>
-        event.title === editEvent.title ? updatedEvent : event
-      )
+      prev.map((e) => (e.id === mappedEvent.id ? mappedEvent : e))
     );
-  };
 
-  const handleRemoveEvent = (title) => {
-    setEventToRemove(title);
-    setEventRemoveMessage("Are you want to remove this event?");
-    setRemoveEvent(true);
-  };
+    console.log("Event updated:", mappedEvent);
+    toast.success("Event updated successfully!");
+  } catch (err) {
+    console.error("Error updating event:", err);
+    toast.error("Failed to update event");
+  }
+};
 
-  const removeEventConfirm = async () => {
-    setEvent(event.filter((event) => event.title !== eventToRemove));
+
+
+const handleRemoveEvent = (eventItem) => {
+  setEventToRemove(eventItem);
+  setEventRemoveMessage(`Are you sure you want to remove "${eventItem.name}"?`);
+  setRemoveEvent(true);
+};
+
+const removeEventConfirm = async () => {
+  if (!eventToRemove) return;
+
+  try {
+    await deleteEvent(eventToRemove.id);
+    setEvent(event.filter((e) => e.id !== eventToRemove.id));
+    console.log("Event deleted:", eventToRemove);
+  } catch (err) {
+    console.error(err);
+  } finally {
     setRemoveEvent(false);
     setEventToRemove(null);
-  };
+  }
+};
+
 
   const cancelRemoveEvent = () => {
     setRemoveEvent(false);
     setEventToRemove(null);
   };
 
+  
+
   // Gallery section
-  const handleAddPhoto = (newPhoto) => {
-    setGallery([...gallery, newPhoto]);
-    console.log("new photo added");
+  useEffect(() => {
+  const fetchGallery = async () => {
+    const data = await getGallery();
+    setGallery(data);
   };
+  fetchGallery();
+}, []);
+
+// Add
+const handleAddPhoto = async (file) => {
+  try {
+    const newPhoto = await addGalleryPhoto(file);
+    setGallery((prev) => [...prev, newPhoto]);
+    toast.success("Photo added successfully!");
+  } catch {
+    toast.error("Failed to add photo");
+  }
+};
+
+// Remove
+const handleRemovePhotoConfirm = async () => {
+  try {
+    await deleteGalleryPhoto(photoToRemove.id);
+    setGallery((prev) => prev.filter((p) => p.id !== photoToRemove.id));
+    toast.success("Photo removed!");
+  } catch {
+    toast.error("Failed to remove photo");
+  } finally {
+    setRemovePhoto(false);
+    setPhotoToRemove(null);
+  }
+};
+ 
 
   const handleRemovePhoto = (index) => {
     setPhotoToRemove(index);
@@ -226,8 +336,34 @@ const WebManagement = () => {
   // Fetch games from API
   useEffect(() => {
     fetchGames();
+    fetchDbGames();
   }, []);
 
+  const fetchDbGames = async () => {
+    const token = localStorage.getItem("aToken");
+    if (!token) return;
+
+    try {
+      const res = await axios.get("http://127.0.0.1:8000/api/games", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const data = res.data?.data ?? res.data;
+
+      if (Array.isArray(data)) {
+        const formattedGames = data.map((game) => ({
+          ...game,
+          image: game.thumbnail_url || "",
+        }));
+
+        setDbGames(formattedGames);
+        console.log("DB Games:", formattedGames);
+      }
+    } catch (err) {
+      console.error("Error fetching DB games:", err);
+    }
+  };
+  console.log("first", dbGames);
   const fetchGames = async () => {
     const token = localStorage.getItem("aToken");
     if (!token) return;
@@ -240,9 +376,9 @@ const WebManagement = () => {
       const data = res.data?.data ?? res.data;
       if (Array.isArray(data)) {
         // Map the API response to match your component's expected structure
-        const formattedGames = data.map(game => ({
+        const formattedGames = data.map((game) => ({
           ...game,
-          image: game.thumbnail_url || game.image // Use thumbnail_url from API
+          image: game.thumbnail_url || game.image, // Use thumbnail_url from API
         }));
         setGames(formattedGames);
         console.log("Fetched games:", formattedGames);
@@ -253,6 +389,33 @@ const WebManagement = () => {
       console.error("Failed to fetch games:", err);
     }
   };
+
+  const handleSaveGame = () => {
+    setEditDbGameData(null);
+    setOpenAddGame(false);
+    fetchDbGames();
+  };
+  
+
+useEffect(() => {
+  const fetchAllEvents = async () => {
+    const eventsFromApi = await getEvents();
+   const mappedEvents = eventsFromApi.map((e) => ({
+  id: e.id,
+  name: e.name || "No Name",
+  date: e.date || null,
+  image: e.thumbnail ? `http://127.0.0.1:8000/storage/${e.thumbnail}` : "", 
+}));
+
+    setEvent(mappedEvents);
+  };
+
+  fetchAllEvents();
+}, []);
+
+
+
+
 
   return (
     <div>
@@ -565,133 +728,17 @@ const WebManagement = () => {
                   </Box>
                 </Box>
               ))}
-
-            {/* Other Games section - FIXED */}
-            {activeCategory === "Other Games" &&
-              games.map((item, index) => (
-                <Box
-                  key={item.id || index}
-                  sx={{
-                    borderRadius: "12px",
-                    overflow: "hidden",
-                    height: "100%",
-                    position: "relative",
-                  }}
-                >
-                  {/* EDIT ICON BUTTON */}
-                  <Box
-                    sx={{
-                      position: "absolute",
-                      top: 10,
-                      right: 10,
-                      width: 30,
-                      height: 30,
-                      borderRadius: "50%",
-                      backgroundColor: "#C500FFCC",
-                      display: "flex",
-                      justifyContent: "center",
-                      alignItems: "center",
-                      cursor: "pointer",
-                      zIndex: 10,
-                    }}
-                    onClick={() => {
-                      setEditData(item);
-                      setOpenEditGame(true);
-                    }}
-                  >
-                    <img src={EditIcon} alt="edit-icon" style={{ width: 16 }} />
-                  </Box>
-
-                  <Box
-                    sx={{
-                      borderRadius: "12px",
-                      display: "flex",
-                      flexDirection: "column",
-                      height: 360,
-                      border: "1px solid transparent",
-                      backgroundImage:
-                        "linear-gradient(#0E111B, #0E111B), linear-gradient(180deg, #CF36E1, #15A2EF)",
-                      backgroundOrigin: "border-box",
-                      backgroundClip: "content-box, border-box",
-                    }}
-                  >
-                    <Box
-                      sx={{
-                        backgroundColor: "#000000",
-                        flexGrow: 1,
-                        display: "flex",
-                        flexDirection: "column",
-                        borderRadius: "12px",
-                      }}
-                    >
-                      {/* IMAGE - Fixed to use proper image source */}
-                      {item.image ? (
-                        <img
-                          src={item.image}
-                          alt={item.title}
-                          style={{
-                            width: "100%",
-                            height: "190px",
-                            objectFit: "cover",
-                          }}
-                        />
-                      ) : (
-                        <Box
-                          sx={{
-                            display: "flex",
-                            flexDirection: "column",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            height: "190px",
-                            backgroundColor: "#0E111B",
-                            color: "#fff",
-                          }}
-                        >
-                          <img
-                            src={upload}
-                            alt="upload"
-                            style={{ width: 30, height: 30, marginBottom: 6 }}
-                          />
-                          No Image
-                        </Box>
-                      )}
-
-                      {/* TEXT CONTENT */}
-                      <Box sx={{ p: 2, textAlign: "center", flexGrow: 1 }}>
-                        <h3
-                          style={{
-                            fontSize: "16px",
-                            fontWeight: "500",
-                            color: "white",
-                          }}
-                        >
-                          {item.title}
-                        </h3>
-                        <p
-                          style={{
-                            fontSize: "14px",
-                            fontWeight: "300",
-                            marginTop: "8px",
-                            color: "#FFFFFF",
-                          }}
-                        >
-                          {item.desc}
-                        </p>
-                      </Box>
-                    </Box>
-                  </Box>
-
-                  {/* BUTTON - FIXED: Now passes entire game object */}
-                  <Box sx={{ py: 2 }}>
-                    <button
-                      className="card-button-red"
-                      onClick={() => handleRemoveGame(item)}
-                    >
-                      Remove
-                    </button>
-                  </Box>
-                </Box>
-              ))}
+            {activeCategory === "Other Games" && (
+              <OtherGamesSection
+                games={games}
+                dbGames={dbGames}
+                handleRemoveGame={handleRemoveGame}
+                setEditData={setEditData}
+                setOpenEditGame={setOpenEditGame}
+                setEditDbGameData={setEditDbGameData}
+                setOpenEditDbGame={setOpenEditDbGame}
+              />
+            )}
 
             {/* Event & Tournaments section */}
             {activeCategory === "Event & Tournaments" &&
@@ -754,7 +801,7 @@ const WebManagement = () => {
                       {/* IMAGE */}
                       <img
                         src={item.image}
-                        alt={item.title}
+                        alt={item.name}
                         style={{
                           width: "100%",
                           height: "196px",
@@ -771,7 +818,7 @@ const WebManagement = () => {
                             color: "white",
                           }}
                         >
-                          {item.title}
+                          {item.name}
                         </h3>
                         <p
                           style={{
@@ -798,8 +845,7 @@ const WebManagement = () => {
                   <Box sx={{ py: 2 }}>
                     <button
                       className="card-button-red"
-                      onClick={() => handleRemoveEvent(item.title)}
-                    >
+                      onClick={() => handleRemoveEvent(item)}>
                       Remove
                     </button>
                   </Box>
@@ -1111,7 +1157,14 @@ const WebManagement = () => {
         open={thumbUpdateSuccess}
         onClose={() => setThumbUpdateSuccess(false)}
       />
-
+      {/* Games table edit dialog */}
+      <AddNewGame
+        open={openEditDbGame}
+        handleClose={() => setOpenEditDbGame(false)}
+        mode="edit"
+        initialData={editDbGameData}
+        onSubmit={handleSaveGame}
+      />
       {/* Add & Update Other Game Section */}
       <AddGameDialog
         open={openAddGame}
