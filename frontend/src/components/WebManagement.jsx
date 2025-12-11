@@ -29,6 +29,10 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import OtherGamesSection from "./OtherGamesSection";
 import AddNewGame from "./AddNewGame";
+import { getEvents, createEvent, updateEvent, deleteEvent } from "../api";
+import { getGallery, addGalleryPhoto, deleteGalleryPhoto } from "../api";
+
+
 
 const categories = [
   { label: "Booking Games" },
@@ -178,41 +182,150 @@ const WebManagement = () => {
   };
 
   // Event and tournament
-  const handleAddEvent = (newEvent) => {
-    setEvent([...event, newEvent]);
-    console.log(newEvent);
-  };
 
-  const handleUpdateEvent = (updatedEvent) => {
+const handleAddEvent = async (newEvent) => {
+  try {
+    const form = new FormData();
+    form.append("name", newEvent.name);
+    form.append("date", newEvent.date);
+    if (newEvent.thumbnail) form.append("thumbnail", newEvent.thumbnail);
+
+    const savedEvent = await createEvent(form);
+
+    setEvent((prev) => [
+      ...prev,
+      {
+        id: savedEvent.id,
+        name: savedEvent.name,
+        date: savedEvent.date,
+        image: savedEvent.thumbnail
+          ? `http://127.0.0.1:8000/storage/${savedEvent.thumbnail}`
+          : "",
+      },
+    ]);
+  } catch (err) {
+    console.error("Error adding event:", err);
+    toast.error("Failed to add event");
+  }
+};
+
+ 
+const handleUpdateEvent = async (updatedEvent) => {
+  try {
+    const form = new FormData();
+    form.append("name", updatedEvent.name);
+    form.append("date", updatedEvent.date);
+
+    if (updatedEvent.thumbnail instanceof File) {
+      form.append("thumbnail", updatedEvent.thumbnail);
+    }
+
+    const savedEvent = await updateEvent(updatedEvent.id, form);
+
+    const mappedEvent = {
+      id: savedEvent.id,
+      name: savedEvent.name,
+      date: savedEvent.date,
+      image: savedEvent.thumbnail
+        ? `http://127.0.0.1:8000/storage/${savedEvent.thumbnail}`
+        : "",
+    };
+
     setEvent((prev) =>
-      prev.map((event) =>
-        event.title === editEvent.title ? updatedEvent : event
-      )
+      prev.map((e) => (e.id === mappedEvent.id ? mappedEvent : e))
     );
-  };
 
-  const handleRemoveEvent = (title) => {
-    setEventToRemove(title);
-    setEventRemoveMessage("Are you want to remove this event?");
-    setRemoveEvent(true);
-  };
+    toast.success("Event updated successfully!");
+  } catch (err) {
+    console.error("Error updating event:", err);
+    toast.error("Failed to update event");
+  }
+};
 
-  const removeEventConfirm = async () => {
-    setEvent(event.filter((event) => event.title !== eventToRemove));
-    setRemoveEvent(false);
-    setEventToRemove(null);
-  };
+
+ const handleRemoveEvent = (eventItem) => {
+   setEventToRemove(eventItem);
+   setEventRemoveMessage(`Are you sure you want to remove "${eventItem.name}"?`);
+   setRemoveEvent(true);
+ };
+ 
+ const removeEventConfirm = async () => {
+   if (!eventToRemove) return;
+ 
+   try {
+     await deleteEvent(eventToRemove.id);
+     setEvent(event.filter((e) => e.id !== eventToRemove.id));
+     console.log("Event deleted:", eventToRemove);
+   } catch (err) {
+     console.error(err);
+   } finally {
+     setRemoveEvent(false);
+     setEventToRemove(null);
+   }
+ };
+ 
 
   const cancelRemoveEvent = () => {
     setRemoveEvent(false);
     setEventToRemove(null);
   };
 
-  // Gallery section
-  const handleAddPhoto = (newPhoto) => {
-    setGallery([...gallery, newPhoto]);
-    console.log("new photo added");
+
+useEffect(() => {
+  const fetchAllEvents = async () => {
+    const eventsFromApi = await getEvents();
+   const mappedEvents = eventsFromApi.map((e) => ({
+  id: e.id,
+  name: e.name || "No Name",
+  date: e.date || null,
+  image: e.thumbnail ? `http://127.0.0.1:8000/storage/${e.thumbnail}` : "", 
+}));
+
+    setEvent(mappedEvents);
   };
+
+  fetchAllEvents();
+}, []);
+
+
+
+  // Gallery section
+ 
+  useEffect(() => {
+  const fetchGallery = async () => {
+    const data = await getGallery();
+    setGallery(data);
+  };
+  fetchGallery();
+}, []);
+
+// Add
+const handleAddPhoto = async (file) => {
+  try {
+    const newPhoto = await addGalleryPhoto(file);
+    setGallery((prev) => [...prev, newPhoto]);
+    toast.success("Photo added successfully!");
+  } catch {
+    toast.error("Failed to add photo");
+  }
+};
+
+// Remove
+const handleRemovePhotoConfirm = async () => {
+  try {
+    await deleteGalleryPhoto(photoToRemove.id);
+    setGallery((prev) => prev.filter((p) => p.id !== photoToRemove.id));
+    toast.success("Photo removed!");
+  } catch {
+    toast.error("Failed to remove photo");
+  } finally {
+    setRemovePhoto(false);
+    setPhotoToRemove(null);
+  }
+};
+ 
+
+
 
   const handleRemovePhoto = (index) => {
     setPhotoToRemove(index);
@@ -267,7 +380,7 @@ const WebManagement = () => {
       console.error("Error fetching DB games:", err);
     }
   };
-  console.log("first", dbGames);
+
   const fetchGames = async () => {
     const token = localStorage.getItem("aToken");
     if (!token) return;
@@ -623,118 +736,116 @@ const WebManagement = () => {
             )}
 
             {/* Event & Tournaments section */}
-            {activeCategory === "Event & Tournaments" &&
-              event.map((item, index) => (
-                <Box
-                  key={index}
-                  sx={{
-                    borderRadius: "12px",
-                    overflow: "hidden",
-                    height: "100%",
-                    position: "relative",
-                  }}
-                >
-                  {/* EDIT ICON BUTTON */}
-                  <Box
-                    sx={{
-                      position: "absolute",
-                      top: 10,
-                      right: 10,
-                      width: 30,
-                      height: 30,
-                      borderRadius: "50%",
-                      backgroundColor: "#C500FFCC",
-                      display: "flex",
-                      justifyContent: "center",
-                      alignItems: "center",
-                      cursor: "pointer",
-                      zIndex: 10,
-                    }}
-                    onClick={() => {
-                      setEditEvent(item);
-                      setOpenEditEvent(true);
-                    }}
-                  >
-                    <img src={EditIcon} alt="edit-icon" style={{ width: 16 }} />
-                  </Box>
-
-                  <Box
-                    sx={{
-                      borderRadius: "12px",
-                      display: "flex",
-                      flexDirection: "column",
-                      border: "1px solid transparent",
-                      backgroundImage:
-                        "linear-gradient(#0E111B, #0E111B), linear-gradient(180deg, #CF36E1, #15A2EF)",
-                      backgroundOrigin: "border-box",
-                      backgroundClip: "content-box, border-box",
-                    }}
-                  >
-                    <Box
-                      sx={{
-                        backgroundColor: "#000000",
-                        flexGrow: 1,
-                        display: "flex",
-                        flexDirection: "column",
-                        borderRadius: "12px",
-                        height: 295,
-                      }}
-                    >
-                      {/* IMAGE */}
-                      <img
-                        src={item.image}
-                        alt={item.title}
-                        style={{
-                          width: "100%",
-                          height: "196px",
-                          objectFit: "cover",
-                        }}
-                      />
-
-                      {/* TEXT CONTENT */}
-                      <Box sx={{ p: 2, textAlign: "center", flexGrow: 1 }}>
-                        <h3
-                          style={{
-                            fontSize: "16px",
-                            fontWeight: "500",
-                            color: "white",
-                          }}
-                        >
-                          {item.title}
-                        </h3>
-                        <p
-                          style={{
-                            fontSize: "14px",
-                            fontWeight: "400",
-                            marginTop: "8px",
-                            background:
-                              "linear-gradient(180deg, #CF36E1, #15A2EF)",
-                            WebkitBackgroundClip: "text",
-                            WebkitTextFillColor: "transparent",
-                          }}
-                        >
-                          {new Date(item.date).toLocaleDateString("en-US", {
-                            month: "short",
-                            day: "numeric",
-                            year: "numeric",
-                          })}
-                        </p>
-                      </Box>
-                    </Box>
-                  </Box>
-
-                  {/* BUTTON */}
-                  <Box sx={{ py: 2 }}>
-                    <button
-                      className="card-button-red"
-                      onClick={() => handleRemoveEvent(item.title)}
-                    >
-                      Remove
-                    </button>
-                  </Box>
-                </Box>
-              ))}
-
+             {activeCategory === "Event & Tournaments" &&
+                          event.map((item, index) => (
+                            <Box
+                              key={index}
+                              sx={{
+                                borderRadius: "12px",
+                                overflow: "hidden",
+                                height: "100%",
+                                position: "relative",
+                              }}
+                            >
+                              {/* EDIT ICON BUTTON */}
+                              <Box
+                                sx={{
+                                  position: "absolute",
+                                  top: 10,
+                                  right: 10,
+                                  width: 30,
+                                  height: 30,
+                                  borderRadius: "50%",
+                                  backgroundColor: "#C500FFCC",
+                                  display: "flex",
+                                  justifyContent: "center",
+                                  alignItems: "center",
+                                  cursor: "pointer",
+                                  zIndex: 10,
+                                }}
+                                onClick={() => {
+                                  setEditEvent(item);
+                                  setOpenEditEvent(true);
+                                }}
+                              >
+                                <img src={EditIcon} alt="edit-icon" style={{ width: 16 }} />
+                              </Box>
+            
+                              <Box
+                                sx={{
+                                  borderRadius: "12px",
+                                  display: "flex",
+                                  flexDirection: "column",
+                                  border: "1px solid transparent",
+                                  backgroundImage:
+                                    "linear-gradient(#0E111B, #0E111B), linear-gradient(180deg, #CF36E1, #15A2EF)",
+                                  backgroundOrigin: "border-box",
+                                  backgroundClip: "content-box, border-box",
+                                }}
+                              >
+                                <Box
+                                  sx={{
+                                    backgroundColor: "#000000",
+                                    flexGrow: 1,
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    borderRadius: "12px",
+                                    height: 295,
+                                  }}
+                                >
+                                  {/* IMAGE */}
+                                  <img
+                                    src={item.image}
+                                    alt={item.name}
+                                    style={{
+                                      width: "100%",
+                                      height: "196px",
+                                      objectFit: "cover",
+                                    }}
+                                  />
+            
+                                  {/* TEXT CONTENT */}
+                                  <Box sx={{ p: 2, textAlign: "center", flexGrow: 1 }}>
+                                    <h3
+                                      style={{
+                                        fontSize: "16px",
+                                        fontWeight: "500",
+                                        color: "white",
+                                      }}
+                                    >
+                                      {item.name}
+                                    </h3>
+                                    <p
+                                      style={{
+                                        fontSize: "14px",
+                                        fontWeight: "400",
+                                        marginTop: "8px",
+                                        background:
+                                          "linear-gradient(180deg, #CF36E1, #15A2EF)",
+                                        WebkitBackgroundClip: "text",
+                                        WebkitTextFillColor: "transparent",
+                                      }}
+                                    >
+                                      {new Date(item.date).toLocaleDateString("en-US", {
+                                        month: "short",
+                                        day: "numeric",
+                                        year: "numeric",
+                                      })}
+                                    </p>
+                                  </Box>
+                                </Box>
+                              </Box>
+            
+                              {/* BUTTON */}
+                              <Box sx={{ py: 2 }}>
+                                <button
+                                  className="card-button-red"
+                                  onClick={() => handleRemoveEvent(item)}>
+                                  Remove
+                                </button>
+                              </Box>
+                            </Box>
+                          ))}
             {/* Gallery section */}
             {activeCategory === "Gallery" &&
               gallery.map((item, index) => (
