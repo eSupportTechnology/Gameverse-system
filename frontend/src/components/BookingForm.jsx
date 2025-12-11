@@ -15,7 +15,7 @@ import {
   Typography,
 } from "@mui/material";
 import axios from "axios";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import AddNFCUserDialog from "./AddNFCUserDialog";
 import CreateSuccessDialog from "./CreateSuccessDialog";
@@ -129,6 +129,39 @@ const BookingForm = ({
     return matchedBookings.length >= 4;
   };
 
+  // Auto-set slot duration if already exists
+  useEffect(() => {
+    const slotDuration = getSlotDurationFromExistingBookings();
+    if (slotDuration) {
+      setFormData((prev) => ({ ...prev, duration: slotDuration }));
+    }
+  }, [formData.station, formData.startTime, formData.bookingDate, bookings]);
+
+  const getSlotDurationFromExistingBookings = () => {
+    const formStation = formData.station?.trim();
+    const formTime = formData.startTime?.trim();
+    const formDate = formData.bookingDate?.trim();
+
+    const allBookings = Array.isArray(bookings) ? bookings : [];
+
+    const matchedBookings = allBookings.filter((b) => {
+      const bookingStation = b.station?.trim();
+      const bookingTime = b.start_time?.trim();
+      const bookingDate = b.booking_date?.split("T")[0];
+
+      return (
+        bookingStation === formStation &&
+        bookingTime === formTime &&
+        bookingDate === formDate
+      );
+    });
+
+    if (matchedBookings.length === 0) return null;
+
+    // First booking determines slot duration
+    return matchedBookings[0].duration;
+  };
+
   const handleCreateBooking = async () => {
     // Prevent adding if slot is full
     if (isSlotFull()) {
@@ -137,6 +170,10 @@ const BookingForm = ({
         "This time slot is already full (maximum 4 bookings allowed)."
       );
     }
+    // ❗ Auto-apply duration from first booking in slot
+    const slotDuration = getSlotDurationFromExistingBookings();
+
+    const finalDuration = slotDuration || formData.duration; // Use selected duration only if first booking
 
     if (!formData.customerName.trim())
       return alert("Customer name is required");
@@ -163,7 +200,7 @@ const BookingForm = ({
         booking_date: formData.bookingDate,
         vr_play: formData.vrPlay,
         start_time: formData.startTime,
-        duration: formData.duration,
+        duration: finalDuration,
         amount: formData.amount,
       };
 
@@ -646,6 +683,7 @@ const BookingForm = ({
                 value={formData.duration}
                 onChange={(e) => handleInputChange("duration", e.target.value)}
                 fullWidth
+                disabled={!!getSlotDurationFromExistingBookings()} // Disable if duration exists
                 sx={{
                   backgroundColor: "#1F2937",
                   borderRadius: "6px",
