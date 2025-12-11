@@ -27,6 +27,12 @@ import ThumbnailUpdate from "./ThumbnailUpdate";
 import RemovePopup from "./RemovePopup";
 import axios from "axios";
 import { toast } from "react-toastify";
+import OtherGamesSection from "./OtherGamesSection";
+import AddNewGame from "./AddNewGame";
+import { getEvents, createEvent, updateEvent, deleteEvent } from "../api";
+import { getGallery, addGalleryPhoto, deleteGalleryPhoto } from "../api";
+
+
 
 const categories = [
   { label: "Booking Games" },
@@ -92,22 +98,21 @@ const WebManagement = () => {
     setOpenCategoryUpdate(true);
   };
 
-const handleImageUpload = (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
 
-  // Store the actual File object for API submission
-  setSelectedCategory((prev) => ({
-    ...prev,
-    thumbnail: file, // <--- store the File object here
-  }));
-
-  // Optional: store preview separately
-  const reader = new FileReader();
-  reader.onload = () => setSelectedImage(reader.result);
-  reader.readAsDataURL(file);
-};
-
+    const reader = new FileReader();
+    reader.onload = () => {
+      setSelectedImage(reader.result);
+      setSelectedCategory({
+        ...selectedCategory,
+        image: reader.result,
+      });
+      setThumbUpdateSuccess(true);
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handleConfirm = async () => {
     setCancelOpen(false);
@@ -177,15 +182,15 @@ const handleImageUpload = (e) => {
   };
 
   // Event and tournament
+
 const handleAddEvent = async (newEvent) => {
   try {
-    const eventData = {
-      name: newEvent.name,
-      date: newEvent.date,
-      thumbnail: newEvent.thumbnail || null, // File object from upload
-    };
+    const form = new FormData();
+    form.append("name", newEvent.name);
+    form.append("date", newEvent.date);
+    if (newEvent.thumbnail) form.append("thumbnail", newEvent.thumbnail);
 
-    const savedEvent = await createEvent(eventData);
+    const savedEvent = await createEvent(form);
 
     setEvent((prev) => [
       ...prev,
@@ -204,18 +209,18 @@ const handleAddEvent = async (newEvent) => {
   }
 };
 
-
-
-
+ 
 const handleUpdateEvent = async (updatedEvent) => {
   try {
-    const eventData = {
-      name: updatedEvent.name,
-      date: updatedEvent.date,
-      thumbnail: updatedEvent.thumbnail || null, // File object
-    };
+    const form = new FormData();
+    form.append("name", updatedEvent.name);
+    form.append("date", updatedEvent.date);
 
-    const savedEvent = await updateEvent(updatedEvent.id, eventData);
+    if (updatedEvent.thumbnail instanceof File) {
+      form.append("thumbnail", updatedEvent.thumbnail);
+    }
+
+    const savedEvent = await updateEvent(updatedEvent.id, form);
 
     const mappedEvent = {
       id: savedEvent.id,
@@ -230,7 +235,6 @@ const handleUpdateEvent = async (updatedEvent) => {
       prev.map((e) => (e.id === mappedEvent.id ? mappedEvent : e))
     );
 
-    console.log("Event updated:", mappedEvent);
     toast.success("Event updated successfully!");
   } catch (err) {
     console.error("Error updating event:", err);
@@ -239,37 +243,54 @@ const handleUpdateEvent = async (updatedEvent) => {
 };
 
 
-
-const handleRemoveEvent = (eventItem) => {
-  setEventToRemove(eventItem);
-  setEventRemoveMessage(`Are you sure you want to remove "${eventItem.name}"?`);
-  setRemoveEvent(true);
-};
-
-const removeEventConfirm = async () => {
-  if (!eventToRemove) return;
-
-  try {
-    await deleteEvent(eventToRemove.id);
-    setEvent(event.filter((e) => e.id !== eventToRemove.id));
-    console.log("Event deleted:", eventToRemove);
-  } catch (err) {
-    console.error(err);
-  } finally {
-    setRemoveEvent(false);
-    setEventToRemove(null);
-  }
-};
-
+ const handleRemoveEvent = (eventItem) => {
+   setEventToRemove(eventItem);
+   setEventRemoveMessage(`Are you sure you want to remove "${eventItem.name}"?`);
+   setRemoveEvent(true);
+ };
+ 
+ const removeEventConfirm = async () => {
+   if (!eventToRemove) return;
+ 
+   try {
+     await deleteEvent(eventToRemove.id);
+     setEvent(event.filter((e) => e.id !== eventToRemove.id));
+     console.log("Event deleted:", eventToRemove);
+   } catch (err) {
+     console.error(err);
+   } finally {
+     setRemoveEvent(false);
+     setEventToRemove(null);
+   }
+ };
+ 
 
   const cancelRemoveEvent = () => {
     setRemoveEvent(false);
     setEventToRemove(null);
   };
 
-  
+
+useEffect(() => {
+  const fetchAllEvents = async () => {
+    const eventsFromApi = await getEvents();
+   const mappedEvents = eventsFromApi.map((e) => ({
+  id: e.id,
+  name: e.name || "No Name",
+  date: e.date || null,
+  image: e.thumbnail ? `http://127.0.0.1:8000/storage/${e.thumbnail}` : "", 
+}));
+
+    setEvent(mappedEvents);
+  };
+
+  fetchAllEvents();
+}, []);
+
+
 
   // Gallery section
+ 
   useEffect(() => {
   const fetchGallery = async () => {
     const data = await getGallery();
@@ -303,6 +324,8 @@ const handleRemovePhotoConfirm = async () => {
   }
 };
  
+
+
 
   const handleRemovePhoto = (index) => {
     setPhotoToRemove(index);
@@ -357,7 +380,7 @@ const handleRemovePhotoConfirm = async () => {
       console.error("Error fetching DB games:", err);
     }
   };
-  console.log("first", dbGames);
+
   const fetchGames = async () => {
     const token = localStorage.getItem("aToken");
     if (!token) return;
@@ -383,33 +406,6 @@ const handleRemovePhotoConfirm = async () => {
       console.error("Failed to fetch games:", err);
     }
   };
-
-  const handleSaveGame = () => {
-    setEditDbGameData(null);
-    setOpenAddGame(false);
-    fetchDbGames();
-  };
-  
-
-useEffect(() => {
-  const fetchAllEvents = async () => {
-    const eventsFromApi = await getEvents();
-   const mappedEvents = eventsFromApi.map((e) => ({
-  id: e.id,
-  name: e.name || "No Name",
-  date: e.date || null,
-  image: e.thumbnail ? `http://127.0.0.1:8000/storage/${e.thumbnail}` : "", 
-}));
-
-    setEvent(mappedEvents);
-  };
-
-  fetchAllEvents();
-}, []);
-
-
-
-
 
   const handleSaveGame = () => {
     setEditDbGameData(null);
@@ -740,117 +736,116 @@ useEffect(() => {
             )}
 
             {/* Event & Tournaments section */}
-            {activeCategory === "Event & Tournaments" &&
-              event.map((item, index) => (
-                <Box
-                  key={index}
-                  sx={{
-                    borderRadius: "12px",
-                    overflow: "hidden",
-                    height: "100%",
-                    position: "relative",
-                  }}
-                >
-                  {/* EDIT ICON BUTTON */}
-                  <Box
-                    sx={{
-                      position: "absolute",
-                      top: 10,
-                      right: 10,
-                      width: 30,
-                      height: 30,
-                      borderRadius: "50%",
-                      backgroundColor: "#C500FFCC",
-                      display: "flex",
-                      justifyContent: "center",
-                      alignItems: "center",
-                      cursor: "pointer",
-                      zIndex: 10,
-                    }}
-                    onClick={() => {
-                      setEditEvent(item);
-                      setOpenEditEvent(true);
-                    }}
-                  >
-                    <img src={EditIcon} alt="edit-icon" style={{ width: 16 }} />
-                  </Box>
-
-                  <Box
-                    sx={{
-                      borderRadius: "12px",
-                      display: "flex",
-                      flexDirection: "column",
-                      border: "1px solid transparent",
-                      backgroundImage:
-                        "linear-gradient(#0E111B, #0E111B), linear-gradient(180deg, #CF36E1, #15A2EF)",
-                      backgroundOrigin: "border-box",
-                      backgroundClip: "content-box, border-box",
-                    }}
-                  >
-                    <Box
-                      sx={{
-                        backgroundColor: "#000000",
-                        flexGrow: 1,
-                        display: "flex",
-                        flexDirection: "column",
-                        borderRadius: "12px",
-                        height: 295,
-                      }}
-                    >
-                      {/* IMAGE */}
-                      <img
-                        src={item.image}
-                        alt={item.name}
-                        style={{
-                          width: "100%",
-                          height: "196px",
-                          objectFit: "cover",
-                        }}
-                      />
-
-                      {/* TEXT CONTENT */}
-                      <Box sx={{ p: 2, textAlign: "center", flexGrow: 1 }}>
-                        <h3
-                          style={{
-                            fontSize: "16px",
-                            fontWeight: "500",
-                            color: "white",
-                          }}
-                        >
-                          {item.name}
-                        </h3>
-                        <p
-                          style={{
-                            fontSize: "14px",
-                            fontWeight: "400",
-                            marginTop: "8px",
-                            background:
-                              "linear-gradient(180deg, #CF36E1, #15A2EF)",
-                            WebkitBackgroundClip: "text",
-                            WebkitTextFillColor: "transparent",
-                          }}
-                        >
-                          {new Date(item.date).toLocaleDateString("en-US", {
-                            month: "short",
-                            day: "numeric",
-                            year: "numeric",
-                          })}
-                        </p>
-                      </Box>
-                    </Box>
-                  </Box>
-
-                  {/* BUTTON */}
-                  <Box sx={{ py: 2 }}>
-                    <button
-                      className="card-button-red"
-                      onClick={() => handleRemoveEvent(item)}>
-                      Remove
-                    </button>
-                  </Box>
-                </Box>
-              ))}
-
+             {activeCategory === "Event & Tournaments" &&
+                          event.map((item, index) => (
+                            <Box
+                              key={index}
+                              sx={{
+                                borderRadius: "12px",
+                                overflow: "hidden",
+                                height: "100%",
+                                position: "relative",
+                              }}
+                            >
+                              {/* EDIT ICON BUTTON */}
+                              <Box
+                                sx={{
+                                  position: "absolute",
+                                  top: 10,
+                                  right: 10,
+                                  width: 30,
+                                  height: 30,
+                                  borderRadius: "50%",
+                                  backgroundColor: "#C500FFCC",
+                                  display: "flex",
+                                  justifyContent: "center",
+                                  alignItems: "center",
+                                  cursor: "pointer",
+                                  zIndex: 10,
+                                }}
+                                onClick={() => {
+                                  setEditEvent(item);
+                                  setOpenEditEvent(true);
+                                }}
+                              >
+                                <img src={EditIcon} alt="edit-icon" style={{ width: 16 }} />
+                              </Box>
+            
+                              <Box
+                                sx={{
+                                  borderRadius: "12px",
+                                  display: "flex",
+                                  flexDirection: "column",
+                                  border: "1px solid transparent",
+                                  backgroundImage:
+                                    "linear-gradient(#0E111B, #0E111B), linear-gradient(180deg, #CF36E1, #15A2EF)",
+                                  backgroundOrigin: "border-box",
+                                  backgroundClip: "content-box, border-box",
+                                }}
+                              >
+                                <Box
+                                  sx={{
+                                    backgroundColor: "#000000",
+                                    flexGrow: 1,
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    borderRadius: "12px",
+                                    height: 295,
+                                  }}
+                                >
+                                  {/* IMAGE */}
+                                  <img
+                                    src={item.image}
+                                    alt={item.name}
+                                    style={{
+                                      width: "100%",
+                                      height: "196px",
+                                      objectFit: "cover",
+                                    }}
+                                  />
+            
+                                  {/* TEXT CONTENT */}
+                                  <Box sx={{ p: 2, textAlign: "center", flexGrow: 1 }}>
+                                    <h3
+                                      style={{
+                                        fontSize: "16px",
+                                        fontWeight: "500",
+                                        color: "white",
+                                      }}
+                                    >
+                                      {item.name}
+                                    </h3>
+                                    <p
+                                      style={{
+                                        fontSize: "14px",
+                                        fontWeight: "400",
+                                        marginTop: "8px",
+                                        background:
+                                          "linear-gradient(180deg, #CF36E1, #15A2EF)",
+                                        WebkitBackgroundClip: "text",
+                                        WebkitTextFillColor: "transparent",
+                                      }}
+                                    >
+                                      {new Date(item.date).toLocaleDateString("en-US", {
+                                        month: "short",
+                                        day: "numeric",
+                                        year: "numeric",
+                                      })}
+                                    </p>
+                                  </Box>
+                                </Box>
+                              </Box>
+            
+                              {/* BUTTON */}
+                              <Box sx={{ py: 2 }}>
+                                <button
+                                  className="card-button-red"
+                                  onClick={() => handleRemoveEvent(item)}>
+                                  Remove
+                                </button>
+                              </Box>
+                            </Box>
+                          ))}
             {/* Gallery section */}
             {activeCategory === "Gallery" &&
               gallery.map((item, index) => (
