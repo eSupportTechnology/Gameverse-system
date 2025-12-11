@@ -107,34 +107,51 @@ const SessionDialog = ({ open, onClose, onEndSession, bookings = [] }) => {
     if (!activeBooking) return;
 
     try {
-      const payload = {
-        extended_time: String(customMinutes),
-      };
+      const updatedExtendedTime = Number(customMinutes);
 
-      const response = await axios.put(
-        `http://127.0.0.1:8000/api/bookings/${activeBooking.id}`,
-        payload
+      const slotBookings = players
+        .map((p) => p.booking)
+        .filter(
+          (b) =>
+            b &&
+            b.station === activeBooking.station &&
+            b.start_time === activeBooking.start_time &&
+            b.booking_date === activeBooking.booking_date
+        );
+
+      const updatePromises = slotBookings.map((b) =>
+        axios.put(`http://127.0.0.1:8000/api/bookings/${b.id}`, {
+          extended_time: String(updatedExtendedTime),
+        })
       );
 
-      if (response.data.success) {
-        // Update local state
-        setPlayers((prev) => {
-          const updated = [...prev];
-          updated[activeIndex] = {
-            ...updated[activeIndex],
-            booking: {
-              ...updated[activeIndex].booking,
-              extended_time: Number(customMinutes),
-            },
-          };
-          return updated;
-        });
+      const responses = await Promise.all(updatePromises);
+
+      const allSuccess = responses.every((res) => res.data.success);
+
+      if (allSuccess) {
+        setPlayers((prev) =>
+          prev.map((p) => {
+            if (!p.booking) return p;
+            const match = slotBookings.find((b) => b.id === p.booking.id);
+            if (match) {
+              return {
+                ...p,
+                booking: { ...p.booking, extended_time: updatedExtendedTime },
+              };
+            }
+            return p;
+          })
+        );
         setUpdateSuccessOpen(true);
       } else {
-        console.error("Update failed:", response.data);
+        console.error("Some updates failed:", responses);
       }
     } catch (error) {
-      console.error("Error updating booking:", error.response?.data || error);
+      console.error(
+        "Error updating slot bookings:",
+        error.response?.data || error
+      );
     }
   };
 
