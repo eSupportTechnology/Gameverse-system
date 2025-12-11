@@ -27,12 +27,6 @@ import ThumbnailUpdate from "./ThumbnailUpdate";
 import RemovePopup from "./RemovePopup";
 import axios from "axios";
 import { toast } from "react-toastify";
-import OtherGamesSection from "./OtherGamesSection";
-import AddNewGame from "./AddNewGame";
-import { getEvents, createEvent, updateEvent, deleteEvent } from "../api";
-import { getGallery, addGalleryPhoto, deleteGalleryPhoto } from "../api";
-
-
 
 const categories = [
   { label: "Booking Games" },
@@ -417,6 +411,11 @@ useEffect(() => {
 
 
 
+  const handleSaveGame = () => {
+    setEditDbGameData(null);
+    setOpenAddGame(false);
+    fetchDbGames();
+  };
   return (
     <div>
       <Box
