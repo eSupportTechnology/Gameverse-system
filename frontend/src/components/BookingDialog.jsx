@@ -71,6 +71,7 @@ const BookingDialog = ({ open, onClose, bookings = [] }) => {
       loyalty_points: b?.loyalty_points || null,
       status: b?.status || "Upcoming",
       id: b?.id || null,
+      vr_play: b?.vr_play || null,
     };
   });
   const booking = playerSlots[activePlayer];
@@ -303,7 +304,14 @@ const BookingDialog = ({ open, onClose, bookings = [] }) => {
                   </Typography>
                 </Box>
 
-                <DetailRow label="Station" value={booking.station} />
+                <DetailRow
+                  label="Station"
+                  value={
+                    booking.vr_play === "yes"
+                      ? `${booking.station} + VR`
+                      : booking.station
+                  }
+                />
                 <DetailRow
                   label="Time"
                   value={`${booking.start_time} - ${calculateEndTime(
