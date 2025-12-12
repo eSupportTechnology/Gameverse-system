@@ -1,25 +1,26 @@
-import React, { useState, useEffect } from "react";
+import CloseIcon from "@mui/icons-material/Close";
+import CreditCardIcon from "@mui/icons-material/CreditCard";
+import SportsEsportsIcon from "@mui/icons-material/SportsEsports";
+import StarIcon from "@mui/icons-material/Star";
 import {
-  Dialog,
-  DialogContent,
-  DialogActions,
-  Button,
-  Typography,
   Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
   IconButton,
   TextField,
+  Typography,
 } from "@mui/material";
-import CloseIcon from "@mui/icons-material/Close";
-import VideogameAssetIcon from "@mui/icons-material/VideogameAsset";
-import PaymentIcon from "@mui/icons-material/Payment";
-import StarIcon from "@mui/icons-material/Star";
+import { useEffect, useState } from "react";
 
 // Popups
+import axios from "axios";
+import arrowIcon from "../assets/end.png";
+import endSessionIcon from "../assets/q.png";
 import EndSessionPopup from "../components/Endsession";
 import UpdateSuccessDialog from "../components/UpdateSuccess";
-import endSessionIcon from "../assets/q.png";
-import arrowIcon from "../assets/end.png";
-import axios from "axios";
+import { calculateEndTime } from "./BookingDialog";
 
 // --- helpers ---
 const pad2 = (n) => String(n).padStart(2, "0");
@@ -28,6 +29,10 @@ export const minutesToHHMMDisplay = (mins) => {
   const h = Math.floor(mins / 60);
   const m = mins % 60;
   return `${pad2(h)}:${pad2(m)}`;
+};
+export const formatAmount = (amount) => {
+  const num = Math.round(amount); 
+  return String(num).padStart(3, "0");
 };
 
 // --- DetailRow ---
@@ -63,27 +68,58 @@ const SessionDialog = ({ open, onClose, onEndSession, bookings = [] }) => {
   const [endSessionOpen, setEndSessionOpen] = useState(false);
   const [updateSuccessOpen, setUpdateSuccessOpen] = useState(false);
 
-  // Initialize players from bookings
   useEffect(() => {
-    if (bookings?.length > 0) {
-      const playerSlots = [0, 1, 2, 3].map((index) => {
-        const booking = bookings[index] || null;
-        return {
-          id: index + 1,
-          name: `Player ${pad2(index + 1)}`,
-          online: !!booking,
-          booking: booking,
-        };
-      });
-      setPlayers(playerSlots);
-      setActiveIndex(0);
-    } else {
-      setPlayers([]);
-      setActiveIndex(-1);
-    }
+    const safeBookings = Array.isArray(bookings) ? bookings : [];
+
+    const defaultStation =
+      safeBookings.find((b) => b && b.station)?.station || "N/A";
+
+    const playerSlots = [0, 1, 2, 3].map((index) => {
+      const booking = safeBookings[index] || null;
+      return {
+        id: index + 1,
+        name: `Player ${pad2(index + 1)}`,
+        online: !!booking,
+        booking: booking
+          ? {
+              ...booking,
+              duration: booking.duration || "0h 0m",
+              extended_time: booking.extended_time || 0,
+            }
+          : {
+              id: null,
+              customer_name: null,
+              phone: null,
+              station: defaultStation,
+              duration: "0h 0m",
+              start_time: "00:00",
+              extended_time: 0,
+              status: "upcoming",
+              total_amount: 0,
+              balance_amount: 0,
+              online_deposit: 0,
+              loyalty_points: 0,
+            },
+      };
+    });
+
+    setPlayers(playerSlots);
+    setActiveIndex(0);
   }, [bookings]);
 
-  const activeBooking = players[activeIndex]?.booking;
+  const activeBooking = players[activeIndex]?.booking || {
+    station: players[0]?.booking.station || "N/A",
+    duration: "0h 0m",
+    extended_time: 0,
+    start_time: "00:00",
+    customer_name: null,
+    phone: null,
+    total_amount: 0,
+    balance_amount: 0,
+    online_deposit: 0,
+    loyalty_points: null,
+    status: "upcoming",
+  };
 
   useEffect(() => {
     if (activeBooking) {
@@ -224,16 +260,27 @@ const SessionDialog = ({ open, onClose, onEndSession, bookings = [] }) => {
         {/* Header */}
         <Box
           sx={{
+            p: 2,
+            pb: 1,
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            p: 2,
           }}
         >
-          <Typography sx={{ fontWeight: 700, fontSize: 18 }}>
+          <Typography
+            variant="h6"
+            fontWeight="bold"
+            sx={{ fontSize: "1.25rem" }}
+          >
             Booking Details
           </Typography>
-          <IconButton onClick={onClose} sx={{ color: "#9CA3AF" }}>
+          <IconButton
+            onClick={onClose}
+            sx={{
+              color: "#9CA3AF",
+              "&:hover": { color: "#fff", bgcolor: "rgba(255,255,255,0.1)" },
+            }}
+          >
             <CloseIcon />
           </IconButton>
         </Box>
@@ -258,7 +305,7 @@ const SessionDialog = ({ open, onClose, onEndSession, bookings = [] }) => {
                     transition: "0.25s",
                   }}
                 >
-                  {p.is_online === 1 && (
+                  {p.booking && p.booking.id && (
                     <Box
                       sx={{
                         position: "absolute",
@@ -287,191 +334,182 @@ const SessionDialog = ({ open, onClose, onEndSession, bookings = [] }) => {
           </Box>
 
           {/* Booking Card */}
-          {activeBooking ? (
-            <Box
-              sx={{
-                bgcolor: "#18212F",
-                p: 2,
-                borderRadius: 2,
-                mb: 3,
-                border: "1px solid #152833",
-              }}
-            >
-              {/* TOP ROW: status + booking id + loyalty points */}
-              <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                {/* LEFT SIDE → Status + Name/ID/PN */}
-                <Box sx={{ flex: 1 }}>
-                  {/* STATUS */}
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 1,
-                      mb: 1,
-                    }}
-                  >
-                    <Box
-                      sx={{
-                        width: 10,
-                        height: 10,
-                        borderRadius: "50%",
-                        bgcolor: "#8B5CF6",
-                      }}
-                    />
-                    <Typography
-                      sx={{
-                        bgcolor: "#8B5CF6",
-                        color: "#fff",
-                        px: 1.5,
-                        py: 0.5,
-                        borderRadius: "14px",
-                        fontSize: "12px",
-                        fontWeight: "bold",
-                      }}
-                    >
-                      Inprogress
-                    </Typography>
-                  </Box>
-
-                  {/* NAME / ID / PN */}
-                  <Typography
-                    sx={{ fontWeight: 700, fontSize: 15, color: "#fff" }}
-                  >
-                    Name: {activeBooking.customer_name}
-                  </Typography>
-                  <Typography sx={{ color: "#9CA3AF", mt: 0.5, fontSize: 14 }}>
-                    ID: {activeBooking.id}
-                  </Typography>
-                  <Typography sx={{ color: "#9CA3AF", mt: 0.5, fontSize: 14 }}>
-                    PN: {activeBooking.phone}
-                  </Typography>
-                </Box>
-
+          <Box
+            sx={{
+              bgcolor: "#18212F",
+              p: 2,
+              borderRadius: 2,
+              mb: 3,
+              border: "1px solid #152833",
+            }}
+          >
+            {/* TOP ROW: status + booking id + loyalty points */}
+            <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+              {/* LEFT SIDE → Status + Name/ID/PN */}
+              <Box sx={{ flex: 1 }}>
+                {/* STATUS */}
                 <Box
                   sx={{
-                    textAlign: "right",
-                    minWidth: 120,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1,
+                    mb: 1,
                   }}
                 >
-                  {/* Booking ID */}
+                  <Box
+                    sx={{
+                      width: 10,
+                      height: 10,
+                      borderRadius: "50%",
+                      bgcolor: "#8B5CF6",
+                    }}
+                  />
                   <Typography
                     sx={{
-                      color: "#9CA3AF",
-                      fontSize: 13,
-                      fontWeight: 500,
-                      mb: 2,
+                      bgcolor: "#8B5CF6",
+                      color: "#fff",
+                      px: 1.5,
+                      py: 0.5,
+                      borderRadius: "14px",
+                      fontSize: "12px",
+                      fontWeight: "bold",
                     }}
                   >
-                    Booking #{activeBooking.id}
+                    Inprogress
                   </Typography>
+                </Box>
 
-                  {/* Loyalty Points */}
+                {/* NAME / ID / PN */}
+                <Typography
+                  sx={{ fontWeight: 700, fontSize: 15, color: "#fff" }}
+                >
+                  Name: {activeBooking.customer_name}
+                </Typography>
+                <Typography sx={{ color: "#9CA3AF", mt: 0.5, fontSize: 14 }}>
+                  ID: {activeBooking.id}
+                </Typography>
+                <Typography sx={{ color: "#9CA3AF", mt: 0.5, fontSize: 14 }}>
+                  PN: {activeBooking.phone}
+                </Typography>
+              </Box>
+
+              <Box
+                sx={{
+                  textAlign: "right",
+                  minWidth: 120,
+                }}
+              >
+                {/* Booking ID */}
+                <Typography
+                  sx={{
+                    color: "#9CA3AF",
+                    fontSize: 13,
+                    fontWeight: 500,
+                    mb: 2,
+                  }}
+                >
+                  Booking #{activeBooking.id}
+                </Typography>
+
+                {/* Loyalty Points */}
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "flex-end",
+                  }}
+                >
                   <Box
                     sx={{
                       display: "flex",
-                      justifyContent: "flex-end",
+                      flexDirection: "column",
+                      alignItems: "center", // center the points under the star
                     }}
                   >
-                    <Box
+                    <StarIcon sx={{ color: "#FD00B5", fontSize: 18 }} />
+                    <Typography
                       sx={{
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "center", // center the points under the star
+                        color: "#FD00B5",
+                        fontWeight: 700,
+                        fontSize: 14,
+                        mt: 0.5,
                       }}
                     >
-                      <StarIcon sx={{ color: "#FD00B5", fontSize: 18 }} />
-                      <Typography
-                        sx={{
-                          color: "#FD00B5",
-                          fontWeight: 700,
-                          fontSize: 14,
-                          mt: 0.5,
-                        }}
-                      >
-                        {activeBooking.loyalty_points ?? 0} pts
-                      </Typography>
-                    </Box>
+                      {activeBooking.loyalty_points} pts
+                    </Typography>
                   </Box>
-
-                  <Typography sx={{ color: "#9CA3AF", fontSize: 12, mt: 0.5 }}>
-                    Loyalty Points
-                  </Typography>
                 </Box>
+
+                <Typography sx={{ color: "#9CA3AF", fontSize: 12, mt: 0.5 }}>
+                  Loyalty Points
+                </Typography>
               </Box>
             </Box>
-          ) : (
-            <Typography sx={{ color: "#9CA3AF", textAlign: "center", py: 4 }}>
-              No bookings available
-            </Typography>
-          )}
+          </Box>
 
           {/* Session + Payment Panels */}
           {activeBooking && (
             <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
               <Box
-                sx={{
-                  flex: 1,
-                  bgcolor: "#18212F",
-                  p: 2,
-                  borderRadius: 2,
-                  border: "1px solid #152833",
-                }}
+                sx={{ flex: 1, bgcolor: "#18212F", p: 2, borderRadius: "8px" }}
               >
-                <Box
-                  sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}
-                >
-                  <VideogameAssetIcon sx={{ color: "#0CD7FF", fontSize: 20 }} />
-                  <Typography sx={{ fontWeight: 700, fontSize: 15 }}>
+                <Box display="flex" alignItems="center" gap={1} mb={2}>
+                  <SportsEsportsIcon sx={{ fontSize: 18, color: "gray" }} />
+                  <Typography
+                    variant="subtitle1"
+                    sx={{
+                      fontWeight: "bold",
+                      fontSize: "0.875rem",
+                      color: "#FFFFFF",
+                    }}
+                  >
                     Session Details
                   </Typography>
                 </Box>
-                <DetailRow label="Station:" value={activeBooking.station} />
+
+                <DetailRow label="Station" value={activeBooking.station} />
                 <DetailRow
-                  label="Time:"
-                  value={`${activeBooking.start_time} - ${activeBooking.duration}`}
+                  label="Time"
+                  value={`${activeBooking.start_time} - ${calculateEndTime(
+                    activeBooking.start_time,
+                    activeBooking.duration
+                  )}`}
                 />
-                <DetailRow label="Duration:" value={activeBooking.duration} />
+                <DetailRow label="Duration" value={activeBooking.duration} />
                 <DetailRow
-                  label="Extended Time:"
-                  value={minutesToHHMMDisplay(activeBooking.extended_time || 0)}
+                  label="Extended Time"
+                  value={minutesToHHMMDisplay(activeBooking.extended_time)}
                 />
               </Box>
 
               <Box
-                sx={{
-                  flex: 1,
-                  bgcolor: "#18212F",
-                  p: 2,
-                  borderRadius: 2,
-                  border: "1px solid #152833",
-                }}
+                sx={{ flex: 1, bgcolor: "#18212F", p: 2, borderRadius: "8px" }}
               >
-                <Box
-                  sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}
-                >
-                  <PaymentIcon sx={{ color: "#8B5CF6", fontSize: 20 }} />
-                  <Typography sx={{ fontWeight: 700, fontSize: 15 }}>
+                <Box display="flex" alignItems="center" gap={1} mb={2}>
+                  <CreditCardIcon sx={{ color: "#8A38F5", fontSize: 18 }} />
+                  <Typography fontSize={15} fontWeight={600} color="#FFFFFF">
                     Payment Info
                   </Typography>
                 </Box>
+
                 <DetailRow
                   label="Online Deposit"
-                  value={`LKR ${activeBooking.online_deposit}`}
+                  value={`LKR ${formatAmount(activeBooking.online_deposit)}`}
                 />
+                <Box sx={{ my: 1.5, borderTop: "1px solid #374151" }} />
                 <DetailRow
-                  label="Total amounts:"
+                  label="Total amounts"
                   value={
-                    <span
-                      style={{ color: "#0CD7FF", fontWeight: 700 }}
-                    >{`LKR ${activeBooking.total_amount}`}</span>
+                    <span style={{ color: "#0CD7FF", fontWeight: 700 }}>
+                      {`LKR ${formatAmount(activeBooking.total_amount)}`}
+                    </span>
                   }
                 />
                 <DetailRow
-                  label="Balance amounts:"
+                  label="Balance amounts"
                   value={
-                    <span
-                      style={{ color: "#0CD7FF", fontWeight: 700 }}
-                    >{`LKR ${activeBooking.balance_amount}`}</span>
+                    <span style={{ color: "#0CD7FF", fontWeight: 700 }}>
+                      {`LKR ${formatAmount(activeBooking.balance_amount)}`}
+                    </span>
                   }
                 />
               </Box>
