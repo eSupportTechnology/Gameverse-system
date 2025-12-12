@@ -11,11 +11,13 @@ class Station extends Model
         'name',
         'type',
         'location',
+        'description',
         'price',
         'status',
         'bookings',
         'time',
         'vrTime',
         'vrPrice',
+        'thumbnail',
     ];
 }
