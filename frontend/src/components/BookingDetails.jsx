@@ -31,6 +31,7 @@ import EndSessionPopup from "../components/Endsession";
 import PaymentSuccessPopup from "../components/paymentsuccess";
 
 import UpdateSuccessDialog from "../components/UpdateSuccess";
+import BookingForm from "./BookingForm";
 
 //const [updateSuccessOpen, setUpdateSuccessOpen] = useState(false);
 // const [updateSuccessOpen, setUpdateSuccessOpen] = useState(false);
@@ -64,7 +65,15 @@ const BookingDetails = ({ open, handleClose, booking, onBookingUpdated }) => {
 
   */
 
-const BookingDetails = ({ open, handleClose, booking, onBookingUpdated }) => {
+const BookingDetails = ({
+  open,
+  handleClose,
+  onClose,
+  booking,
+  onBookingUpdated,
+  bookings = [],
+  stations = [],
+}) => {
   const [cancelOpen, setCancelOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [endSessionOpen, setEndSessionOpen] = useState(false);
@@ -79,7 +88,9 @@ const BookingDetails = ({ open, handleClose, booking, onBookingUpdated }) => {
   const handleDecrease = () => setTime((prev) => Math.max(0, prev - 15));
   const handleCancelOpen = () => setCancelOpen(true);
   const handleCancelClose = () => setCancelOpen(false);
-
+  const handleEditClose = () => {
+    setEditOpen(false);
+  };
   // Cancel Booking
   const handleConfirm = async () => {
     if (!booking?.id) return;
@@ -476,12 +487,13 @@ const BookingDetails = ({ open, handleClose, booking, onBookingUpdated }) => {
             handleCancelClose={handleCancelClose}
             handleConfirm={handleConfirm}
           />
-
-          <EditBookingFrom
+          <BookingForm
             open={editOpen}
-            handleClose={() => setEditOpen(false)}
-            booking={booking}
-            onBookingUpdated={onBookingUpdated}
+            handleClose={handleEditClose}
+            onBookingCreated={onClose}
+            bookings={bookings}
+            stations={stations}
+            existingBooking={booking}
           />
 
           <EndSessionPopup

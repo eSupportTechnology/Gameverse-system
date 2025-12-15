@@ -19,6 +19,7 @@ import { useEffect, useState } from "react";
 
 import AddNFCUserDialog from "./AddNFCUserDialog";
 import CreateSuccessDialog from "./CreateSuccessDialog";
+import UpdateSuccessDialog from "./UpdateSuccess";
 
 const BookingForm = ({
   open,
@@ -26,11 +27,14 @@ const BookingForm = ({
   onBookingCreated,
   stations,
   bookings,
+  existingBooking = null,
 }) => {
   const [createSuccess, setcreateSuccess] = useState(false);
+  const [updateSuccess, setUpdateSuccess] = useState(false);
   const [cancelConfirm, setCancelConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [nfcDialogOpen, setNfcDialogOpen] = useState(false);
+
   const [nfcFormData, setNfcFormData] = useState({
     nfcCardNumber: "",
     fullName: "",
@@ -38,7 +42,7 @@ const BookingForm = ({
     nicNumber: "",
     activeUser: true,
   });
-
+  console.log("station", existingBooking);
   const [formData, setFormData] = useState({
     nfcCardNumber: "",
     customerName: "",
@@ -50,8 +54,24 @@ const BookingForm = ({
     duration: "",
     amount: 400,
   });
+  useEffect(() => {
+    if (existingBooking) {
+      setFormData({
+        nfcCardNumber: existingBooking.nfc_card_number || "",
+        customerName: existingBooking.customer_name || "",
+        phoneNumber: existingBooking.phone_number || "",
+        station: existingBooking.station || "",
+        bookingDate: existingBooking.booking_date?.split("T")[0] || "",
+        vrPlay: existingBooking.vr_play || "",
+        startTime: existingBooking.start_time || "",
+        duration: existingBooking.duration || "",
+        amount: existingBooking.amount || 400,
+      });
+    }
+  }, [existingBooking]);
 
-  // Open NFC dialog when + icon is clicked
+  console.log("Form station:", formData.station);
+
   const handleOpenNfcDialog = () => {
     setNfcDialogOpen(true);
   };
@@ -106,6 +126,10 @@ const BookingForm = ({
     handleClose();
   };
 
+  const handleUpdateOk = () => {
+    setUpdateSuccess(false);
+    handleClose();
+  };
   const isSlotFull = () => {
     const formStation = formData.station?.trim();
     const formTime = formData.startTime?.trim();
@@ -118,6 +142,8 @@ const BookingForm = ({
       const bookingStation = b.station?.trim();
       const bookingTime = b.start_time?.trim();
       const bookingDate = b.booking_date?.split("T")[0];
+
+      if (existingBooking && b.id === existingBooking.id) return false;
 
       return (
         bookingStation === formStation &&
@@ -148,6 +174,7 @@ const BookingForm = ({
       const bookingStation = b.station?.trim();
       const bookingTime = b.start_time?.trim();
       const bookingDate = b.booking_date?.split("T")[0];
+      if (existingBooking && b.id === existingBooking.id) return false;
 
       return (
         bookingStation === formStation &&
@@ -163,17 +190,8 @@ const BookingForm = ({
   };
 
   const handleCreateBooking = async () => {
-    // Prevent adding if slot is full
-    if (isSlotFull()) {
-      console.log("Slot is full, cannot add booking.");
-      return alert(
-        "This time slot is already full (maximum 4 bookings allowed)."
-      );
-    }
-    // ❗ Auto-apply duration from first booking in slot
     const slotDuration = getSlotDurationFromExistingBookings();
-
-    const finalDuration = slotDuration || formData.duration; // Use selected duration only if first booking
+    const finalDuration = slotDuration || formData.duration;
 
     if (!formData.customerName.trim())
       return alert("Customer name is required");
@@ -190,6 +208,12 @@ const BookingForm = ({
     )
       return alert("Please fill in all required fields");
 
+    if (!existingBooking && isSlotFull()) {
+      return alert(
+        "This time slot is already full (maximum 4 bookings allowed)."
+      );
+    }
+
     setLoading(true);
     try {
       const payload = {
@@ -205,20 +229,29 @@ const BookingForm = ({
       };
 
       const token = localStorage.getItem("aToken");
-      const response = await axios.post(
-        "http://127.0.0.1:8000/api/bookings",
-        payload,
-        {
+
+      if (existingBooking) {
+        // Update booking
+        await axios.put(
+          `http://127.0.0.1:8000/api/bookings/${existingBooking.id}`,
+          payload,
+          {
+            headers: {
+              Authorization: token ? `Bearer ${token}` : "",
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        setUpdateSuccess(true); // show update dialog
+      } else {
+        // Create new booking
+        await axios.post("http://127.0.0.1:8000/api/bookings", payload, {
           headers: {
             Authorization: token ? `Bearer ${token}` : "",
             "Content-Type": "application/json",
           },
-        }
-      );
-
-      if (response.data.success) {
-        setcreateSuccess(true);
-        onBookingCreated && onBookingCreated();
+        });
+        setcreateSuccess(true); // show create dialog
         setFormData({
           nfcCardNumber: "",
           customerName: "",
@@ -231,9 +264,11 @@ const BookingForm = ({
           amount: 400,
         });
       }
+
+      onBookingCreated && onBookingCreated();
     } catch (error) {
-      console.error("Error creating booking:", error);
-      alert(error.response?.data?.message || "Failed to create booking");
+      console.error("Error submitting booking:", error);
+      alert(error.response?.data?.message || "Failed to submit booking");
     } finally {
       setLoading(false);
     }
@@ -243,7 +278,9 @@ const BookingForm = ({
     (station) => station.name === formData.station
   );
 
-  const showVRPlay = selectedStation?.vrPrice && selectedStation?.vrTime;
+  const showVRPlay =
+    (selectedStation?.vrPrice && selectedStation?.vrTime) ||
+    existingBooking?.vr_play !== null;
 
   return (
     <>
@@ -273,7 +310,7 @@ const BookingForm = ({
           <DialogTitle
             sx={{ color: "#FFFFFF", fontSize: 18, fontWeight: "bold" }}
           >
-            Create New Booking
+            {existingBooking ? "Edit Booking" : "Create New Booking"}
           </DialogTitle>
           <IconButton onClick={handleClose} sx={{ color: "#FFFFFF" }}>
             <CloseIcon />
@@ -771,7 +808,13 @@ const BookingForm = ({
               },
             }}
           >
-            {loading ? "Creating..." : "Create Booking"}
+            {loading
+              ? existingBooking
+                ? "Updating..."
+                : "Creating..."
+              : existingBooking
+              ? "Update Booking"
+              : "Create Booking"}
           </Button>
         </DialogActions>
 
@@ -849,6 +892,7 @@ const BookingForm = ({
 
         {/* SUCCESS DIALOG */}
         <CreateSuccessDialog open={createSuccess} onClose={handleSuccessOk} />
+        <UpdateSuccessDialog open={updateSuccess} onClose={handleUpdateOk} />
       </Dialog>
 
       {/* Add NFC User Dialog */}

@@ -17,6 +17,7 @@ import SportsEsportsIcon from "@mui/icons-material/SportsEsports";
 import CancelPopup from "../components/CancelPopup";
 import EditBookingFrom from "./EditBookingFrom";
 import { formatAmount, minutesToHHMMDisplay } from "./SessionDialog";
+import BookingForm from "./BookingForm";
 
 export const calculateEndTime = (startTime, durationStr) => {
   if (!startTime) startTime = "00:00";
@@ -46,7 +47,7 @@ export const calculateEndTime = (startTime, durationStr) => {
   return minutesToHHMMDisplay(endHours * 60 + endMinutes);
 };
 
-const BookingDialog = ({ open, onClose, bookings = [] }) => {
+const BookingDialog = ({ open, onClose, bookings = [],  stations = [] }) => {
   const [activePlayer, setActivePlayer] = useState(0);
   const [cancelOpen, setCancelOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
@@ -413,11 +414,14 @@ const BookingDialog = ({ open, onClose, bookings = [] }) => {
         handleConfirm={handleCancelConfirm}
       />
 
-      {editOpen && (
-        <EditBookingFrom
+     {editOpen && (
+        <BookingForm
           open={editOpen}
           handleClose={handleEditClose}
-          booking={booking}
+          onBookingCreated={onClose}
+          bookings={bookings}
+          stations={stations}
+          existingBooking={booking}
         />
       )}
     </>

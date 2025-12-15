@@ -178,7 +178,7 @@ const BookingManagement = () => {
               "upcoming"
             ).toLowerCase(),
             user: b.customer_name || b.user || "",
-            phone: b.phone_number || b.phone || "",
+            phone_number: b.phone_number || "",
             extended_time: b.extended_time || "",
             players: b.players || [],
             online_deposit: b.online_deposit || 0,
@@ -233,34 +233,23 @@ const BookingManagement = () => {
     }
   };
 
-  console.log("sel", selectedBooking);
-
   // Dialog action handlers
   const handleEditBooking = () => {
-    console.log("Edit booking:", selectedBooking);
     setUpcomingDialogOpen(false);
     // Implement edit functionality
   };
 
   const handleCancelBooking = () => {
-    console.log("Cancel booking:", selectedBooking);
     setUpcomingDialogOpen(false);
     // Implement cancel functionality
   };
 
-  const handleUpdateTime = () => {
-    console.log("Update time for:", selectedBooking);
-    // Implement time update functionality
-  };
-
   const handleEndSession = () => {
-    console.log("End session for:", selectedBooking);
     setInProgressDialogOpen(false);
     // Implement end session functionality
   };
 
   const handleCollectPayment = () => {
-    console.log("Collect payment for:", selectedBooking);
     setCompletedDialogOpen(false);
     // Implement collect payment functionality
   };
