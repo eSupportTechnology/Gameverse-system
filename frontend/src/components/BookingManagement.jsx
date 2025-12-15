@@ -184,7 +184,7 @@ const BookingManagement = () => {
             online_deposit: b.online_deposit || 0,
             total_amount: b.total_amount || b.amount || 0,
             balance_amount: b.balance_amount || 0,
-            is_online: b.is_online ?? 0,
+            vr_play: b.vr_play || "",
           };
         };
         const normalized = response.data.data.map(mapBooking);

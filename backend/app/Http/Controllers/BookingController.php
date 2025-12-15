@@ -38,7 +38,7 @@ class BookingController extends Controller
             'start_time' => 'required|string|max:10',
             'duration' => 'required|string|max:20',
             'amount' => 'required|numeric|min:0',
-            'is_online' => 'nullable|boolean',
+            'vr_play' => 'nullable|in:yes,no',
         ]);
 
         if ($validator->fails()) {
@@ -51,7 +51,6 @@ class BookingController extends Controller
 
         try {
             $bookingData = $validator->validated();
-            $bookingData['is_online'] = $bookingData['is_online'] ?? false;
 
             $booking = Booking::create($bookingData);
 
@@ -88,7 +87,7 @@ class BookingController extends Controller
                 'duration' => $booking->duration,
                 'amount' => $booking->amount,
                 'status' => $booking->status,
-                'is_online' => $booking->is_online,
+                'vr_play' => $booking->vr_play,
                 'extended_time' => $booking->extended_time ?? '',
                 'payment_method' => $booking->payment_method ?? '',
                 'created_at' => $booking->created_at,
@@ -134,7 +133,7 @@ class BookingController extends Controller
                 'end_time' => 'nullable|string|max:10',
                 'amount' => 'numeric|min:0',
                 'status' => 'in:pending,confirmed,cancelled,completed',
-                'is_online' => 'nullable|boolean',
+                'vr_play' => 'nullable|in:yes,no',
             ]);
 
             if ($validator->fails()) {

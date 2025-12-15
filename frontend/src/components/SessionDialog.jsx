@@ -31,7 +31,7 @@ export const minutesToHHMMDisplay = (mins) => {
   return `${pad2(h)}:${pad2(m)}`;
 };
 export const formatAmount = (amount) => {
-  const num = Math.round(amount); 
+  const num = Math.round(amount);
   return String(num).padStart(3, "0");
 };
 
@@ -99,6 +99,7 @@ const SessionDialog = ({ open, onClose, onEndSession, bookings = [] }) => {
               balance_amount: 0,
               online_deposit: 0,
               loyalty_points: 0,
+              vr_play: null,
             },
       };
     });
@@ -119,6 +120,7 @@ const SessionDialog = ({ open, onClose, onEndSession, bookings = [] }) => {
     online_deposit: 0,
     loyalty_points: null,
     status: "upcoming",
+    vr_play: null,
   };
 
   useEffect(() => {
@@ -466,7 +468,14 @@ const SessionDialog = ({ open, onClose, onEndSession, bookings = [] }) => {
                   </Typography>
                 </Box>
 
-                <DetailRow label="Station" value={activeBooking.station} />
+                <DetailRow
+                  label="Station"
+                  value={
+                    activeBooking.vr_play === "yes"
+                      ? `${activeBooking.station} + VR`
+                      : activeBooking.station
+                  }
+                />
                 <DetailRow
                   label="Time"
                   value={`${activeBooking.start_time} - ${calculateEndTime(

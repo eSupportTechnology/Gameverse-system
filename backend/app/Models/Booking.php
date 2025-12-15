@@ -19,8 +19,8 @@ class Booking extends Model
         'payment_method',
         'amount',
         'status',
-        'is_online',
-        'end_time'
+        'end_time',
+        'vr_play'
     ];
 
 

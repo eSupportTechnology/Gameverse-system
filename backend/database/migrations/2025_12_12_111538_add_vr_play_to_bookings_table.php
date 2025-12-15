@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('bookings', function (Blueprint $table) {
-            $table->boolean('is_online')->default(false)->after('status');
+            $table->enum('vr_play', ['yes', 'no'])->nullable()->after('booking_date');
         });
     }
 
@@ -22,7 +22,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('bookings', function (Blueprint $table) {
-            $table->dropColumn('is_online');
+            $table->dropColumn('vr_play');
         });
     }
 };
