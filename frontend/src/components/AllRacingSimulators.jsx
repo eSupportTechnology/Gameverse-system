@@ -1,6 +1,6 @@
 import { Box, Button, Typography, Dialog, DialogContent, DialogTitle, IconButton, TextField, MenuItem, } from '@mui/material'
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import React, { useState } from 'react'
+import React, { useEffect,useState } from 'react'
 import { useNavigate } from "react-router-dom";
 import { AllRacing } from '../assets/assets';
 import CloseIcon from "@mui/icons-material/Close";
@@ -11,11 +11,11 @@ import UpdateSuccessDialog from './UpdateSuccess';
 import CancelPopup from './CancelPopup';
 import RemovePopup from './RemovePopup';
 import backArrow from '../assets/back_arrow.png'
-
+import { deleteSimulator } from '../api';
 
 const AllRacingSimulators = () => {
   const navigate = useNavigate();
-  const [simulators, setSimulators] = useState(AllRacing);
+  const [simulators, setSimulators] = useState([]);
   const [openAddRacing, setOpenAddRacing] = useState(false);
   const [dialogMode, setDialogMode] = useState("add"); // add | edit
   const [editIndex, setEditIndex] = useState(null);
@@ -23,11 +23,13 @@ const AllRacingSimulators = () => {
   // form fields
   const [simulatorName, setSimulatorName] = useState("");
   const [description, setDescription] = useState("");
+  const [location, setLocation] = useState("");
   const [priceNormal, setPriceNormal] = useState("");
   const [timeNormal, setTimeNormal] = useState("");
   const [priceVR, setPriceVR] = useState("");
   const [timeVR, setTimeVR] = useState("");
   const [thumbnail, setThumbnail] = useState(null);
+  const [thumbnailFile, setThumbnailFile] = useState(null);
 
   const [openAddSuccess, setOpenAddSuccess] = useState(false)
   const [addMessage, setAddMessage] = useState('')
@@ -39,90 +41,172 @@ const AllRacingSimulators = () => {
   const [removeSimulator, setRemoveSimulator] = useState(false)
 
 
-  const handleImageUpload = (e) => {
+    const handleImageUpload = (e) => {
     const file = e.target.files[0];
-    if (file) {
-      setThumbnail(URL.createObjectURL(file));
+    if (!file) return;
+    setThumbnail(URL.createObjectURL(file));
+    setThumbnailFile(file);
+  };
+
+
+    // Fetch simulators from API
+  useEffect(() => {
+    fetchSimulators();
+  }, []);
+
+  const fetchSimulators = async () => {
+    try {
+      const res = await fetch("http://127.0.0.1:8000/api/stations?category=simulator");
+      const data = await res.json();
+      setSimulators(data);
+    } catch (err) {
+      console.log("Fetch failed", err);
     }
   };
 
   // open ADD dialog
-  const handleAdd = () => {
-    setDialogMode("add");
-    setSimulatorName("");
-    setDescription("");
-    setPriceNormal("");
-    setPriceVR("");
-    setTimeNormal("30 Min");
-    setTimeVR("30 Min");
-    setThumbnail("");
-    setOpenAddRacing(true);
-  };
+const handleAdd = () => {
+  setDialogMode("add");
+  setSimulatorName("");
+  setLocation("");  
+  setDescription("");
+  setPriceNormal("");
+  setPriceVR("");
+  setTimeNormal("30 Min");
+  setTimeVR("30 Min");
+  setThumbnail(null);
+  setThumbnailFile(null);
+  setOpenAddRacing(true);
+};
+
 
   // open EDIT dialog
   const handleEdit = (item, index) => {
     setDialogMode("edit");
     setEditIndex(index);
 
-    setSimulatorName(item.title);
-    setDescription(item.desc);
-    setPriceNormal(item.priceNormal);
-    setPriceVR(item.priceVR);
+    setSimulatorName(item.name);
+    setDescription(item.description);
+    setLocation(item.location);
+      setPriceNormal(item.price);   
+  setPriceVR(item.vrPrice);
     setTimeNormal(item.timeNormal);
     setTimeVR(item.timeVR);
-    setThumbnail(item.image);
+    setThumbnail(item.thumbnail);
+    setThumbnailFile(null);
+    setOpenAddRacing(true);
 
     setOpenAddRacing(true);
   };
 
   // save station (Add or Update)
-  const handleSave = () => {
-    const newData = {
-      title: simulatorName,
-      desc: description,
-      priceNormal,
-      priceVR,
-      timeNormal,
-      timeVR,
-      image: thumbnail,
-    };
+   const handleSave = async () => {
+  // Basic validation
+  if (!simulatorName || !description || !priceNormal) {
+    return alert("Please fill all required fields");
+  }
 
-    if (dialogMode === "add") {
-      setSimulators([...simulators, newData]);
-      setAddMessage('Simulator Added Successful !')
-      setOpenAddSuccess(true)
-    } else {
-      const updated = [...simulators];
-      updated[editIndex] = newData;
-      setSimulators(updated);
-      setOpenUpdateSuccess(true)
+  try {
+    const formData = new FormData();
+    formData.append("name", simulatorName);
+    formData.append("location", location);
+    formData.append("description", description);
+    formData.append("price", priceNormal); // backend expects 'price'
+    formData.append("time", timeNormal === "1 Hour" ? 60 : 30); // backend expects 'time'
+    formData.append("vrPrice", priceVR); // backend expects 'vrPrice'
+    formData.append("vrTime", timeVR === "1 Hour" ? 60 : 30); // backend expects 'vrTime'
+    formData.append("type", "Simulator");
+
+    if (thumbnailFile) {
+      formData.append("thumbnail", thumbnailFile); // backend expects 'thumbnail'
     }
 
+    // Determine URL and method
+    let url = "http://127.0.0.1:8000/api/stations";
+    let method = "POST";
+
+    if (dialogMode === "edit") {
+      const id = simulators[editIndex].id;
+      url = `http://127.0.0.1:8000/api/stations/${id}`;
+      formData.append("_method", "PUT"); // Laravel requires _method for PUT with FormData
+    }
+
+    const res = await fetch(url, {
+      method: method,
+      body: formData,
+    });
+
+    // Handle server response
+    if (!res.ok) {
+      // Try to parse JSON, else fallback to text
+      let errorMessage = "Failed to save simulator";
+      try {
+        const errorData = await res.json();
+        if (errorData.errors) {
+          errorMessage = Object.values(errorData.errors)
+            .flat()
+            .join("\n");
+        } else if (errorData.message) {
+          errorMessage = errorData.message;
+        }
+      } catch (err) {
+        const text = await res.text();
+        errorMessage = text;
+      }
+      return alert(errorMessage);
+    }
+
+    const data = await res.json();
+
+    // Show success dialogs
+    if (dialogMode === "add") {
+      setAddMessage("Simulator Added Successfully!");
+      setOpenAddSuccess(true);
+    } else {
+      setOpenUpdateSuccess(true);
+    }
+
+    // Close dialog and refresh list
     setOpenAddRacing(false);
-  };
+    fetchSimulators();
+  } catch (err) {
+    console.error(err);
+    alert("Something went wrong. Check console for details.");
+  }
+};
+
 
   const handleCancelConfirm = async () => {
     setCancelOpen(false);
     setOpenAddRacing(false)
   }
 
-  // delete station
+
+// Confirm deletion
+// delete station
   const handleRemove = (index) => {
     setSimulatorToRemove(index);
     setRemoveMessage('Are you want to remove this simulator?')
     setRemoveSimulator(true);
   };
 
-  const removeConfirm = async () => {
-    setSimulators(simulators.filter((_, i) => i !== simulatorToRemove));
+  const confirmRemove = async () => {
+  if (!simulatorToRemove) return;
+  try {
+    await deleteSimulator(simulatorToRemove.id);
+    setSimulators(prev => prev.filter(s => s.id !== simulatorToRemove.id));
     setRemoveSimulator(false);
     setSimulatorToRemove(null);
+  } catch (err) {
+    alert("Failed to delete simulator: " + (err.message || ""));
   }
+};
 
   const cancelRemove = () => {
     setRemoveSimulator(false);
     setSimulatorToRemove(null);
   };
+
 
   return (
     <div>
@@ -265,8 +349,8 @@ const AllRacingSimulators = () => {
                   <Box sx={{ backgroundColor: "#000000", flexGrow: 1, display: "flex", flexDirection: "column", borderRadius: "12px" }}>
                     {/* IMAGE */}
                     <img
-                      src={item.image}
-                      alt={item.title}
+                      src={item.thumbnail}
+                      alt={item.name}
                       style={{
                         width: "100%",
                         height: "190px",
@@ -277,10 +361,10 @@ const AllRacingSimulators = () => {
                     {/* TEXT CONTENT */}
                     <Box sx={{ p: 2, textAlign: "center", flexGrow: 1, }}>
                       <h3 style={{ fontSize: "16px", fontWeight: "500", color: "white" }}>
-                        {item.title}
+                        {item.name}
                       </h3>
                       <p style={{ fontSize: "14px", fontWeight: "300", marginTop: "8px", color: "#FFFFFF" }}>
-                        {item.desc}
+                        {item.description}
                       </p>
                     </Box>
                   </Box>
@@ -289,7 +373,7 @@ const AllRacingSimulators = () => {
                 {/* BUTTON */}
                 <Box sx={{ py: 2 }}>
                   <button className="card-button-red"
-                    onClick={() => handleRemove(index)}
+                    onClick={() => handleRemove(item)}
                   >Remove</button>
                 </Box>
               </Box>
@@ -366,6 +450,24 @@ const AllRacingSimulators = () => {
                 },
               }}
             />
+            {/* Location */}
+            <p style={{ marginBottom: 6, fontSize: '14px', fontWeight: 500 }}>Location</p>
+              <TextField
+                fullWidth
+                placeholder="Enter Location"
+                variant="outlined"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                InputProps={{
+                  sx: {
+                    backgroundColor: "#171C2D",
+                    borderRadius: "8px",
+                    color: "white",
+                    border: "0.5px solid #374151",
+                    "& .MuiInputBase-input": { padding: "12px 14px", fontSize: "14px" },
+                  },
+                }}
+              />
 
             {/* Description */}
             <p style={{ marginTop: 15, marginBottom: 6, fontSize: '14px', fontWeight: 500 }}>Description</p>
@@ -609,7 +711,7 @@ const AllRacingSimulators = () => {
       <RemovePopup
         open={removeSimulator}
         handleRemoveClose={cancelRemove}
-        removeConfirm={removeConfirm}
+        removeConfirm={confirmRemove}
         message={removeMessage}
       />
 

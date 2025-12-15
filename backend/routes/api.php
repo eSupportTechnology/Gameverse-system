@@ -143,3 +143,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/gallery', [GalleryController::class, 'index']);
     Route::post('/gallery', [GalleryController::class, 'store']);
     Route::delete('/gallery/{id}', [GalleryController::class, 'destroy']);
+
+
+    Route::get('/stations', [StationController::class, 'index']);
+Route::post('/stations', [StationController::class, 'store']);
+Route::put('/stations/{id}', [StationController::class, 'update']);
+
+Route::delete('/stations/{id}', [StationController::class, 'destroy']);

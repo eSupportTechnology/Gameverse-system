@@ -3,7 +3,7 @@ import axios from "axios";
 const API_BASE_URL = "http://127.0.0.1:8000/api";
 
 // Use a function to get token fresh each time
-const getAxiosInstance = () => {
+export const getAxiosInstance = () => {
   const token = localStorage.getItem("aToken");
   return axios.create({
     baseURL: API_BASE_URL,
@@ -13,7 +13,7 @@ const getAxiosInstance = () => {
   });
 };
 
-// ------------------ Events API ------------------
+//  Events API 
 
 // Get all events
 export const getEvents = async () => {
@@ -121,3 +121,68 @@ export const deleteGalleryPhoto = async (id) => {
     throw err;
   }
 };
+
+
+// Simulators API 
+export const deleteSimulator = async (id) => {
+  try {
+    const res = await getAxiosInstance().delete(`/stations/${id}`);
+    return res.data;
+  } catch (err) {
+    console.error("Failed to delete simulator:", err.response?.data || err);
+    throw err;
+  }
+};
+
+
+// Pool Tables API 
+
+// Create a new pool table
+export const addPoolTable = async (data) => {
+  try {
+    const formData = new FormData();
+    formData.append("name", data.name);
+    formData.append("description", data.description);
+    formData.append("location", data.location || "");
+    formData.append("price", data.price);
+    formData.append("time", data.time === "1 Hour" ? 60 : 30);
+    formData.append("type", "Pool");
+    if (data.thumbnail) formData.append("thumbnail", data.thumbnail);
+
+    const res = await getAxiosInstance().post("/stations", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+
+    return res.data;
+  } catch (err) {
+    console.error("Failed to add pool table:", err.response?.data || err);
+    throw err;
+  }
+};
+
+// Update an existing pool table
+
+export const updatePoolTable = async (id, data) => {
+  try {
+    const formData = new FormData();
+    
+    // Append only if values exist
+    if (data.name) formData.append("name", data.name);
+    if (data.description) formData.append("description", data.description);
+    if (data.location) formData.append("location", data.location);
+    if (data.price) formData.append("price", data.price);
+    if (data.time) formData.append("time", data.time === "1 Hour" ? 60 : 30);
+    if (data.thumbnail) formData.append("thumbnail", data.thumbnail);
+
+    // Use POST with ?_method=PUT for Laravel/method override
+    const res = await getAxiosInstance().post(`/stations/${id}?_method=PUT`, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+
+    return res.data;
+  } catch (err) {
+    console.error("Failed to update pool table:", err.response?.data || err);
+    throw err;
+  }
+};
+

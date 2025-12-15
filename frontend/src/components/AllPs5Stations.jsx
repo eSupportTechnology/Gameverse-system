@@ -2,7 +2,7 @@ import {
   Box, Button, Typography, Dialog, DialogContent, DialogTitle, IconButton, TextField, MenuItem,
 } from '@mui/material'
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import React, { useState } from 'react'
+import React, { useEffect,useState } from 'react'
 import { useNavigate } from "react-router-dom";
 import { AllStations } from '../assets/assets';
 import CloseIcon from "@mui/icons-material/Close";
@@ -13,16 +13,19 @@ import UpdateSuccessDialog from './UpdateSuccess';
 import CancelPopup from './CancelPopup';
 import RemovePopup from './RemovePopup';
 import backArrow from '../assets/back_arrow.png'
+import { deleteSimulator } from '../api';
+
 
 const AllPs5Stations = () => {
   const navigate = useNavigate();
-  const [stations, setStations] = useState(AllStations);
+
   const [openDialog, setOpenDialog] = useState(false);
   const [dialogMode, setDialogMode] = useState("add"); // add | edit
   const [editIndex, setEditIndex] = useState(null);
 
   // form fields
   const [stationName, setStationName] = useState("");
+    const [location, setLocation] = useState("");
   const [description, setDescription] = useState("");
   const [priceNormal, setPriceNormal] = useState("");
   const [timeNormal, setTimeNormal] = useState("");
@@ -39,90 +42,179 @@ const AllPs5Stations = () => {
   const [stationToRemove, setStationToRemove] = useState(null);
   const [removeStation, setRemoveStation] = useState(false)
 
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setThumbnail(URL.createObjectURL(file));
+const [stations, setStations] = useState([]);
+const [thumbnailFile, setThumbnailFile] = useState(null);
+
+
+
+// --- OPEN ADD DIALOG ---
+const handleAdd = () => {
+  setDialogMode("add");
+  setEditIndex(null);   
+  setStationName("");
+  setLocation("");
+  setDescription("");
+  setPriceNormal("");
+  setPriceVR("");
+  setTimeNormal("30");
+  setTimeVR("");
+  setThumbnail(null);
+  setThumbnailFile(null);    
+  setOpenDialog(true);
+};
+
+const handleEdit = (item, index) => {
+  setDialogMode("edit");
+  setEditIndex(index);
+
+  setStationName(item.name);
+  setLocation(item.location);
+  setDescription(item.description);
+
+  setPriceNormal(item.price);    // FIXED
+  setPriceVR(item.vrPrice);      // FIXED
+
+  setTimeNormal(item.time === 60 ? "1 Hour" : "30 Min");
+  setTimeVR(item.vrTime === 60 ? "1 Hour" : "30 Min");
+
+  setThumbnail(item.thumbnail);
+  setThumbnailFile(null);
+
+  setOpenDialog(true);
+};
+
+
+
+
+
+// --- FETCH STATIONS ---
+useEffect(() => {
+  fetchStations();
+}, []);
+
+const fetchStations = async () => {
+  try {
+    const res = await fetch("http://127.0.0.1:8000/api/stations");
+    if (!res.ok) throw new Error("Failed to fetch stations");
+    const data = await res.json();
+    setStations(data.filter((s) => s.type === "PlayStation")); // filter by category if needed
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+// HANDLE IMAGE UPLOAD
+const handleImageUpload = (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  setThumbnailFile(file);
+  setThumbnail(URL.createObjectURL(file));
+};
+
+// save
+const handleSave = async () => {
+  // Validation
+  if (!stationName || !description || !priceNormal) {
+    return alert("Please fill all required fields");
+  }
+
+  try {
+    const formData = new FormData();
+    formData.append("name", stationName);
+    formData.append("location", location);
+    formData.append("description", description);
+    formData.append("price", priceNormal);
+    formData.append("time", timeNormal === "1 Hour" ? 60 : 30);
+    formData.append("vrPrice", priceVR);
+    formData.append("vrTime", timeVR === "1 Hour" ? 60 : 30);
+    formData.append("type", "PlayStation");
+
+    if (thumbnailFile) {
+      formData.append("thumbnail", thumbnailFile);
     }
-  };
 
-  // open ADD dialog
-  const handleAdd = () => {
-    setDialogMode("add");
-    setStationName("");
-    setDescription("");
-    setPriceNormal("");
-    setPriceVR("");
-    setTimeNormal("30 Min");
-    setTimeVR("30 Min");
-    setThumbnail("");
-    setOpenDialog(true);
-  };
+    let url = "http://127.0.0.1:8000/api/stations";
+    let method = "POST";
 
-  // open EDIT dialog
-  const handleEdit = (item, index) => {
-    setDialogMode("edit");
-    setEditIndex(index);
+    if (dialogMode === "edit") {
+      const id = stations[editIndex].id;
+      url = `http://127.0.0.1:8000/api/stations/${id}`;
+      formData.append("_method", "PUT");
+      method = "POST";
+    }
 
-    setStationName(item.title);
-    setDescription(item.desc);
-    setPriceNormal(item.priceNormal);
-    setPriceVR(item.priceVR);
-    setTimeNormal(item.timeNormal);
-    setTimeVR(item.timeVR);
-    setThumbnail(item.image);
+    const res = await fetch(url, {
+      method,
+      body: formData,
+      headers: {
+        "Accept": "application/json",
+        "Authorization": `Bearer ${localStorage.getItem("token")}`,
+      },
+    });
 
-    setOpenDialog(true);
-  };
+    if (!res.ok) {
+      const error = await res.json();
+      return alert(error.message || "Failed to save station");
+    }
 
-  // save station (Add or Update)
-  const handleSave = () => {
-    const newData = {
-      title: stationName,
-      desc: description,
-      priceNormal,
-      priceVR,
-      timeNormal,
-      timeVR,
-      image: thumbnail,
-    };
-
+    // SUCCESS
     if (dialogMode === "add") {
-      setStations([...stations, newData]);
-      setAddMessage('Station Added Successful !')
-      setOpenAddSuccess(true)
+      setAddMessage("Station Added Successfully!");
+      setOpenAddSuccess(true);
     } else {
-      const updated = [...stations];
-      updated[editIndex] = newData;
-      setStations(updated);
-      setOpenUpdateSuccess(true)
+      setOpenUpdateSuccess(true);
     }
 
     setOpenDialog(false);
-  };
+    fetchStations(); // refresh list
 
-  const handleCancelConfirm = async () => {
-    setCancelOpen(false);
-    setOpenDialog(false)
+  } catch (err) {
+    console.error(err);
+    alert("Something went wrong");
   }
+};
 
-  // delete station
-  const handleRemove = (index) => {
-    setStationToRemove(index);
-    setRemoveMessage('Are you want to remove this event?')
-    setRemoveStation(true);
-  };
 
-  const removeConfirm = async () => {
-    setStations(stations.filter((_, i) => i !== stationToRemove));
+
+
+// DELETE
+const handleRemove = (index) => {
+  setStationToRemove(index);
+  setRemoveMessage("Are you sure you want to remove this station?");
+  setRemoveStation(true);
+};
+const removeConfirm = async () => {
+  try {
+    const stationId = stations[stationToRemove].id;
+    await deleteSimulator(stationId); // call API function
     setRemoveStation(false);
     setStationToRemove(null);
+    fetchStations(); // refresh the list
+  } catch (err) {
+    console.error(err);
+    alert("Failed to delete station.");
   }
+};
 
-  const cancelRemove = () => {
-    setRemoveStation(false);
-    setStationToRemove(null);
-  };
+
+const cancelRemove = () => {
+  setRemoveStation(false);
+  setStationToRemove(null);
+};
+
+const handleCancelConfirm = () => {
+  setCancelOpen(false);  
+  setOpenDialog(false);  
+};
+
+// Convert "30 Min" or "1 Hour" to minutes
+const parseTime = (timeStr) => {
+  if (!timeStr) return null;
+  if (timeStr.includes("Hour")) return 60;
+  const num = parseInt(timeStr);
+  return isNaN(num) ? null : num;
+};
+
 
   return (
     <div>
@@ -271,8 +363,8 @@ const AllPs5Stations = () => {
                   <Box sx={{ backgroundColor: "#000000", flexGrow: 1, display: "flex", flexDirection: "column", borderRadius: "12px" }}>
                     {/* IMAGE */}
                     <img
-                      src={item.image}
-                      alt={item.title}
+                      src={item.thumbnail}
+                      // alt={item.name}
                       style={{
                         width: "100%",
                         height: "190px",
@@ -283,10 +375,10 @@ const AllPs5Stations = () => {
                     {/* TEXT CONTENT */}
                     <Box sx={{ p: 2, textAlign: "center", flexGrow: 1, }}>
                       <h3 style={{ fontSize: "16px", fontWeight: "500", color: "white" }}>
-                        {item.title}
+                        {item.name}
                       </h3>
                       <p style={{ fontSize: "14px", fontWeight: "300", marginTop: "8px", color: "#FFFFFF" }}>
-                        {item.desc}
+                        {item.description}
                       </p>
                     </Box>
                   </Box>
@@ -374,7 +466,24 @@ const AllPs5Stations = () => {
               },
             }}
           />
-
+          {/* Location */}
+            <p style={{ marginBottom: 6, fontSize: '14px', fontWeight: 500 }}>Location</p>
+              <TextField
+                fullWidth
+                placeholder="Enter Location"
+                variant="outlined"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                InputProps={{
+                  sx: {
+                    backgroundColor: "#171C2D",
+                    borderRadius: "8px",
+                    color: "white",
+                    border: "0.5px solid #374151",
+                    "& .MuiInputBase-input": { padding: "12px 14px", fontSize: "14px" },
+                  },
+                }}
+              />
           {/* Description */}
           <p style={{ marginTop: 15, marginBottom: 6, fontSize: '14px', fontWeight: 500 }}>Description</p>
           <TextField

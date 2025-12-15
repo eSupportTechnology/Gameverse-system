@@ -11,20 +11,24 @@ import UpdateSuccessDialog from './UpdateSuccess';
 import CancelPopup from './CancelPopup';
 import RemovePopup from './RemovePopup';
 import backArrow from '../assets/back_arrow.png'
+import { addPoolTable, updatePoolTable, deleteSimulator } from '../api';
 
 const AllPoolTabels = () => {
   const navigate = useNavigate();
-  const [pools, setPools] = useState(AllPool);
+  const [pools, setPools] = useState([]);
   const [openAddPool, setOpenAddPool] = useState(false);
   const [dialogMode, setDialogMode] = useState("add"); // add | edit
   const [editIndex, setEditIndex] = useState(null);
 
   // form fields
   const [tableName, setTableName] = useState("");
+  const [location, setLocation] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
   const [time, setTime] = useState("");
   const [thumbnail, setThumbnail] = useState(null);
+
+  const [thumbnailFile, setThumbnailFile] = useState(null);
 
   const [openAddSuccess, setOpenAddSuccess] = useState(false)
   const [addMessage, setAddMessage] = useState('')
@@ -37,11 +41,28 @@ const AllPoolTabels = () => {
 
 
   const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setThumbnail(URL.createObjectURL(file));
-    }
-  };
+  const file = e.target.files[0];
+  if (!file) return;
+  setThumbnail(URL.createObjectURL(file));
+  setThumbnailFile(file);
+};
+
+
+
+React.useEffect(() => {
+  fetchPools();
+}, []);
+
+const fetchPools = async () => {
+  try {
+    const res = await fetch("http://127.0.0.1:8000/api/stations?category=pool");
+
+    const data = await res.json();
+    setPools(data);
+  } catch (err) {
+    console.log("Fetch failed", err);
+  }
+};
 
   // open ADD dialog
   const handleAdd = () => {
@@ -50,49 +71,63 @@ const AllPoolTabels = () => {
     setDescription("");
     setPrice("");
     setTime("30 Min");
-    setThumbnail("");
+    setThumbnail(null);
+setThumbnailFile(null);
+
     setOpenAddPool(true);
   };
 
   // open EDIT dialog
   const handleEdit = (item, index) => {
-    setDialogMode("edit");
-    setEditIndex(index);
+  setDialogMode("edit");
+  setEditIndex(index);
 
-    setTableName(item.title);
-    setDescription(item.desc);
-    setPrice(item.price);
-    setTime(item.time);
-    setThumbnail(item.image);
+  setTableName(item.name);
+  setLocation(item.location);
+  setDescription(item.description);
+  setPrice(item.price);
+  setTime(item.time === 60 ? "1 Hour" : "30 Min");
+  setThumbnail(item.thumbnail);
+  setThumbnailFile(null);
 
-    setOpenAddPool(true);
-  };
+  setOpenAddPool(true);
+};
+
 
 
   // save station (Add or Update)
-  const handleSave = () => {
-    const newData = {
-      title: tableName,
-      desc: description,
-      price,
-      time,
-      image: thumbnail,
-    };
+const handleSave = async () => {
+  if (!tableName || !description || !price) {
+    return alert("Please fill all fields");
+  }
 
+  const data = {
+    name: tableName,
+    description,
+    location,
+    price,
+    time,
+    thumbnail: thumbnailFile, // File object
+  };
+
+  try {
     if (dialogMode === "add") {
-      setPools([...pools, newData]);
-      setAddMessage('Pool Table Added Successful !')
-      setOpenAddSuccess(true)
-    } else {
-      const updated = [...pools];
-      updated[editIndex] = newData;
-      setPools(updated);
-      setOpenUpdateSuccess(true)
+      await addPoolTable(data);
+      setAddMessage("Pool Table Added Successfully!");
+      setOpenAddSuccess(true);
+    } else if (dialogMode === "edit") {
+      const id = pools[editIndex].id;
+      await updatePoolTable(id, data);
+      setOpenUpdateSuccess(true);
     }
 
     setOpenAddPool(false);
-  };
-
+    fetchPools(); // refresh list
+  } catch (err) {
+    console.error(err);
+    alert("Failed to save pool table.");
+  }
+};
   const handleCancelConfirm = async () => {
     setCancelOpen(false);
     setOpenAddPool(false)
@@ -105,11 +140,19 @@ const AllPoolTabels = () => {
     setRemovePool(true);
   };
 
-  const removeConfirm = async () => {
-    setPools(pools.filter((_, i) => i !== poolToRemove));
+const removeConfirm = async () => {
+  try {
+    const id = pools[poolToRemove].id;
+    await deleteSimulator(id);
     setRemovePool(false);
     setPoolToRemove(null);
+    fetchPools();
+  } catch (err) {
+    console.error(err);
+    alert("Failed to delete table.");
   }
+};
+
 
   const cancelRemove = () => {
     setRemovePool(false);
@@ -255,23 +298,24 @@ const AllPoolTabels = () => {
                 }}>
                   <Box sx={{ backgroundColor: "#000000", flexGrow: 1, display: "flex", flexDirection: "column", borderRadius: "12px" }}>
                     {/* IMAGE */}
-                    <img
-                      src={item.image}
-                      alt={item.title}
-                      style={{
-                        width: "100%",
-                        height: "190px",
-                        objectFit: "cover",
-                      }}
-                    />
+                  <img
+                    src={item.thumbnail}
+
+                    // alt={item.name}
+                    style={{
+                      width: "100%",
+                      height: "190px",
+                      objectFit: "cover",
+                    }}
+                  />
 
                     {/* TEXT CONTENT */}
                     <Box sx={{ p: 2, textAlign: "center", flexGrow: 1, }}>
                       <h3 style={{ fontSize: "16px", fontWeight: "500", color: "white" }}>
-                        {item.title}
+                        {item.name}
                       </h3>
                       <p style={{ fontSize: "14px", fontWeight: "300", marginTop: "8px", color: "#FFFFFF" }}>
-                        {item.desc}
+                        {item.description}
                       </p>
                     </Box>
                   </Box>
@@ -358,6 +402,24 @@ const AllPoolTabels = () => {
                 },
               }}
             />
+            {/* Location */}
+            <p style={{ marginBottom: 6, fontSize: '14px', fontWeight: 500 }}>Location</p>
+              <TextField
+                fullWidth
+                placeholder="Enter Location"
+                variant="outlined"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                InputProps={{
+                  sx: {
+                    backgroundColor: "#171C2D",
+                    borderRadius: "8px",
+                    color: "white",
+                    border: "0.5px solid #374151",
+                    "& .MuiInputBase-input": { padding: "12px 14px", fontSize: "14px" },
+                  },
+                }}
+              />        
 
             {/* Description */}
             <p style={{ marginTop: 15, marginBottom: 6, fontSize: '14px', fontWeight: 500 }}>Description</p>
