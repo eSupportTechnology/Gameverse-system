@@ -51,7 +51,6 @@ class BookingController extends Controller
 
         try {
             $bookingData = $validator->validated();
-           
 
             $booking = Booking::create($bookingData);
 
