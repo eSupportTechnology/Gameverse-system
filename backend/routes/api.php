@@ -16,7 +16,7 @@ use App\Http\Controllers\OperaterGameController;
 use App\Http\Controllers\PortalGameController;
 use App\Http\Controllers\Api\EventController;
 use App\Http\Controllers\Api\GalleryController;
-
+use App\Http\Controllers\Api\TvScreenController;
 
 
 // Public route
@@ -150,3 +150,11 @@ Route::post('/stations', [StationController::class, 'store']);
 Route::put('/stations/{id}', [StationController::class, 'update']);
 
 Route::delete('/stations/{id}', [StationController::class, 'destroy']);
+
+
+// TV Screen Management
+
+Route::get('/tv-screen', [TvScreenController::class, 'index']);
+Route::post('/tv-screen', [TvScreenController::class, 'store']);
+Route::patch('/tv-screen/{id}/toggle', [TvScreenController::class, 'toggleStatus']);
+Route::delete('/tv-screen/{id}', [TvScreenController::class, 'destroy']);

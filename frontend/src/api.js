@@ -186,3 +186,57 @@ export const updatePoolTable = async (id, data) => {
   }
 };
 
+// Tv Screen API
+export const getTvScreens = async () => {
+  try {
+    const res = await getAxiosInstance().get("/tv-screen");
+    return res.data.map((item) => ({
+      id: item.id,
+      fileType: item.file_type,
+      status: item.status,
+      fileUrl: item.file_path
+        ? `http://127.0.0.1:8000/storage/${item.file_path}`
+        : "",
+    }));
+  } catch (err) {
+    console.error("Failed to fetch TV screens:", err);
+    return [];
+  }
+};
+
+export const uploadTvScreen = async (file) => {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  try {
+    const res = await getAxiosInstance().post("/tv-screen", formData);
+    return res.data;
+  } catch (err) {
+    console.error("Upload failed:", err.response?.data);
+    throw err;
+  }
+};
+
+
+
+export const toggleTvScreenStatus = async (id) => {
+  try {
+    const res = await getAxiosInstance().patch(`/tv-screen/${id}/toggle`);
+    return res.data;
+  } catch (err) {
+    console.error("Failed to toggle TV screen status:", err.response?.data || err);
+    throw err;
+  }
+};
+
+
+
+export const deleteTvScreen = async (id) => {
+  try {
+    const res = await getAxiosInstance().delete(`/tv-screen/${id}`);
+    return res.data;
+  } catch (err) {
+    console.error("Failed to delete TV screen:", err.response?.data || err);
+    throw err;
+  }
+};
