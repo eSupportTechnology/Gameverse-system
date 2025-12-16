@@ -219,6 +219,7 @@ export default function TVOffer() {
 import React, { useState } from "react";
 import { Box, Typography, Card, Grid, Tabs, Tab, Button } from "@mui/material";
 import { CloudUploadOutlined } from "@mui/icons-material";
+import { getTvScreens, uploadTvScreen, toggleTvScreenStatus, deleteTvScreen } from '../api';
 
 export default function TVOffer() {
   const [posts, setPosts] = useState(
@@ -248,35 +249,49 @@ export default function TVOffer() {
     );
   };
 
-  const handlePost = (id) => {
-    setPosts((prev) =>
-      prev.map((post) => (post.id === id ? { ...post, posted: true } : post))
-    );
-  };
+ const handlePost = async (id) => {
+  const post = posts.find(p => p.id === id);
+  if (!post.file) return;
 
-  const handleDelete = (id) => {
-    setPosts((prev) =>
-      prev.map((post) =>
-        post.id === id
-          ? {
-              ...post,
-              file: null,
-              fileType: null,
-              posted: false,
-              isHeld: false,
-            }
-          : post
-      )
-    );
-  };
+  const data = await uploadTvScreen(post.file);
 
-  const handleHoldToggle = (id) => {
-    setPosts((prev) =>
-      prev.map((post) =>
-        post.id === id ? { ...post, isHeld: !post.isHeld } : post
-      )
-    );
-  };
+  setPosts(prev =>
+    prev.map(p =>
+      p.id === id
+        ? {
+            ...p,
+            posted: true,
+            backendId: data.id,
+            fileUrl: data.fileUrl,
+          }
+        : p
+    )
+  );
+};
+  const handleDelete = async (id) => {
+  const post = posts.find(p => p.id === id);
+
+  await deleteTvScreen(post.backendId);
+
+  setPosts(prev =>
+    prev.map(p =>
+      p.id === id
+        ? { ...p, file: null, posted: false, isHeld: false }
+        : p
+    )
+  );
+};
+ const handleHoldToggle = async (id) => {
+  const post = posts.find(p => p.id === id);
+
+  await toggleTvScreenStatus(post.backendId);
+
+  setPosts(prev =>
+    prev.map(p =>
+      p.id === id ? { ...p, isHeld: !p.isHeld } : p
+    )
+  );
+};
 
   return (
     <Box sx={{ p: 2, bgcolor: "#000", minHeight: "100vh" }}>

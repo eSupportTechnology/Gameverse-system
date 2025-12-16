@@ -16,7 +16,7 @@ use App\Http\Controllers\OperaterGameController;
 use App\Http\Controllers\PortalGameController;
 use App\Http\Controllers\Api\EventController;
 use App\Http\Controllers\Api\GalleryController;
-
+use App\Http\Controllers\Api\TvScreenController;
 
 
 // Public route
@@ -144,3 +144,8 @@ Route::delete('/events/{id}', [EventController::class, 'destroy']);
 Route::get('/gallery', [GalleryController::class, 'index']);
 Route::post('/gallery', [GalleryController::class, 'store']);
 Route::delete('/gallery/{id}', [GalleryController::class, 'destroy']);
+
+Route::get('/tv-screen', [TvScreenController::class, 'index']);
+Route::post('/tv-screen', [TvScreenController::class, 'store']);
+Route::patch('/tv-screen/{id}/toggle', [TvScreenController::class, 'toggleStatus']);
+Route::delete('/tv-screen/{id}', [TvScreenController::class, 'destroy']);
