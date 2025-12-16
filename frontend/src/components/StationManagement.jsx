@@ -16,6 +16,7 @@ import StationsGrid from "./StationsGrid";
 export default function StationManagement() {
   const [tab, setTab] = useState(0);
   const [stations, setStations] = useState([]);
+  const [bookings, setBookings] = useState([]);
   const [statusFilter, setStatusFilter] = useState("All");
   const [open, setOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -47,7 +48,17 @@ export default function StationManagement() {
     }
   };
 
+  const fetchBookings = async () => {
+    try {
+      const res = await axios.get("http://localhost:8000/api/bookings");
+      setBookings(res.data);
+    } catch (err) {
+      console.error("Failed to fetch stations", err);
+    }
+  };
+
   useEffect(() => {
+    fetchBookings();
     fetchStations();
   }, []);
 
@@ -114,14 +125,27 @@ export default function StationManagement() {
     handleMenuClose();
   };
 
-  const handleToggleStatus = (id) => {
-    setStations((prev) =>
-      prev.map((s) =>
-        s.id === id
-          ? { ...s, status: s.status === "Available" ? "Offline" : "Available" }
-          : s
-      )
-    );
+  const handleToggleStatus = async (stationId) => {
+    const station = stations.find((s) => s.id === stationId);
+    if (!station) return;
+
+    const newStatus = station.status === "Available" ? "Offline" : "Available";
+
+    try {
+      const token = localStorage.getItem("aToken");
+
+      const response = await axios.put(
+        `http://localhost:8000/api/stations/${stationId}`,
+        { status: newStatus },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setStations((prev) =>
+        prev.map((s) => (s.id === stationId ? { ...s, status: newStatus } : s))
+      );
+    } catch (err) {
+      console.error("Failed to update station status", err);
+    }
   };
 
   // Filter stations based on selected tab and status
@@ -292,6 +316,7 @@ export default function StationManagement() {
           stations={filteredStations}
           onEditStation={handleEditStation}
           onToggleStatus={handleToggleStatus}
+          bookings={bookings}
         />
       </Box>
 

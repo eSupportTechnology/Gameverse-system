@@ -1,4 +1,4 @@
-import React, { useState, useEffect} from "react";
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -65,7 +65,6 @@ const BookingDetails = ({ open, handleClose, booking, onBookingUpdated }) => {
 
   */
 
-
 const BookingDetails = ({
   open,
   handleClose,
@@ -73,30 +72,15 @@ const BookingDetails = ({
   booking,
   onBookingUpdated,
   bookings = [],
-  stations: initialStations = [],
+  stations = [],
 }) => {
-  const [stations, setStations] = useState(initialStations);
   const [cancelOpen, setCancelOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [endSessionOpen, setEndSessionOpen] = useState(false);
   const [paymentSuccessOpen, setPaymentSuccessOpen] = useState(false);
   const [time, setTime] = useState(0);
   const [timeUpdate, setTimeUpdate] = useState(false);
-  const [updateSuccessOpen, setUpdateSuccessOpen] = useState(false); // ✅ Moved inside component
-
-  useEffect(() => {
-  const fetchStations = async () => {
-    try {
-      const response = await axios.get("http://127.0.0.1:8000/api/stations");
-      setStations(response.data);
-    } catch (error) {
-      console.error("Failed to fetch stations", error);
-    }
-  };
-
-  if (open) fetchStations();
-}, [open]);
-
+  const [updateSuccessOpen, setUpdateSuccessOpen] = useState(false);
 
   // +15 minutes
   const handleIncrease = () => setTime((prev) => prev + 15);
