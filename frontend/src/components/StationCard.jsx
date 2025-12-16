@@ -9,7 +9,7 @@ import {
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 
-const StationCard = ({ station, onEdit, onToggleStatus }) => {
+const StationCard = ({ station, onEdit, onToggleStatus, bookings = [] }) => {
   const colors = {
     available: {
       bg: "#2A2D3E",
@@ -33,6 +33,12 @@ const StationCard = ({ station, onEdit, onToggleStatus }) => {
 
   const status = station.status.toLowerCase();
   const theme = colors[status] || colors.available;
+
+  const bookingArray = Array.isArray(bookings?.data) ? bookings.data : [];
+
+  const bookingCount = bookingArray.filter(
+    (b) => b.station === station.name
+  ).length;
 
   return (
     <Card
@@ -203,7 +209,7 @@ const StationCard = ({ station, onEdit, onToggleStatus }) => {
             <Typography
               sx={{ color: "#fff", fontWeight: 600, fontSize: "0.8rem" }}
             >
-              {station.bookings}
+              {bookingCount}
             </Typography>
           </Box>
         </Box>

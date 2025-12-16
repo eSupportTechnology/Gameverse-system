@@ -1,7 +1,14 @@
-import React, { useState, useEffect } from 'react'
-import { Box, Card, CardContent, Typography, Button, Chip } from "@mui/material";
+import React, { useState, useEffect } from "react";
+import {
+  Box,
+  Card,
+  CardContent,
+  Typography,
+  Button,
+  Chip,
+} from "@mui/material";
 //import { sampleBookings } from '../assets/assets.js';
-import BookingDetails from './BookingDetails.jsx';
+import BookingDetails from "./BookingDetails.jsx";
 
 // status colors mapping
 const statusColors = {
@@ -10,14 +17,18 @@ const statusColors = {
   completed: "#FD00B5",
 };
 
-const BookingGrid = ({ apiBookings = [], loading = false, onBookingUpdated }) => {
+const BookingGrid = ({
+  apiBookings = [],
+  loading = false,
+  onBookingUpdated,
+  stations = [],
+}) => {
   const [open, setOpen] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
-  
+
   // Log API bookings for development purposes
   useEffect(() => {
     if (apiBookings.length > 0) {
-      console.log('API bookings in grid component:', apiBookings);
     }
   }, [apiBookings]);
 
@@ -31,7 +42,13 @@ const BookingGrid = ({ apiBookings = [], loading = false, onBookingUpdated }) =>
     setSelectedBooking(null);
   };
   return (
-    <div style={{ minHeight: "100vh", backgroundColor: '#0E111B', borderRadius: "10px", }}>
+    <div
+      style={{
+        minHeight: "100vh",
+        backgroundColor: "#0E111B",
+        borderRadius: "10px",
+      }}
+    >
       <Box
         sx={{
           display: "grid",
@@ -43,7 +60,8 @@ const BookingGrid = ({ apiBookings = [], loading = false, onBookingUpdated }) =>
       >
         {/* First display API bookings */}
         {apiBookings.map((booking, i) => {
-          const statusColor = statusColors[booking.status.toLowerCase()] || "#9CA3AF";
+          const statusColor =
+            statusColors[booking.status.toLowerCase()] || "#9CA3AF";
           return (
             <Card
               key={`api-${booking.id}`}
@@ -53,7 +71,7 @@ const BookingGrid = ({ apiBookings = [], loading = false, onBookingUpdated }) =>
                 pb: 2,
                 boxShadow: "0 2px 8px rgba(0,0,0,0.4)",
                 height: 238,
-                border: "2px solid #0CD7FF" // Highlight API bookings
+                border: "2px solid #0CD7FF", // Highlight API bookings
               }}
             >
               <CardContent>
@@ -72,9 +90,9 @@ const BookingGrid = ({ apiBookings = [], loading = false, onBookingUpdated }) =>
                     size="small"
                     sx={{
                       bgcolor: statusColor,
-                      color: '#FFFFFF',
+                      color: "#FFFFFF",
                       fontWeight: "bold",
-                      px: 2
+                      px: 2,
                     }}
                   />
                 </Box>
@@ -146,113 +164,6 @@ const BookingGrid = ({ apiBookings = [], loading = false, onBookingUpdated }) =>
             </Card>
           );
         })}
-        
-        
-        {/* {sampleBookings.map((booking, i) => {  // Then display sample bookings
-          const statusColor = statusColors[booking.status.toLowerCase()] || "#9CA3AF"; 
-          return (
-            <Card
-              key={`sample-${i}`}
-              sx={{
-                bgcolor: "#171C2D",
-                borderRadius: "12px",
-                pb: 2,
-                boxShadow: "0 2px 8px rgba(0,0,0,0.4)",
-                height: 238,
-                opacity: 0.7 // Make sample bookings slightly transparent
-              }}
-            >
-              <CardContent>
-                
-                <Box display="flex" justifyContent="space-between" mb={1}>
-                  <Box
-                    sx={{
-                      width: 12,
-                      height: 12,
-                      borderRadius: "50%",
-                      bgcolor: statusColor,
-                    }}
-                  />
-                  <Chip
-                    label={booking.status}
-                    size="small"
-                    sx={{
-                      bgcolor: statusColor,
-                      color: '#FFFFFF',
-                      fontWeight: "bold",
-                      px: 2
-                    }}
-                  />
-                </Box>
-
-                <Typography
-                  variant="h6"
-                  fontSize={16}
-                  fontWeight={500}
-                  color="#fff"
-                  mb={0.5}
-                >
-                  {booking.user}
-                </Typography>
-                <Typography color="#9CA3AF" fontSize={12} mb={0.5}>
-                  {booking.station}
-                </Typography>
-                <Typography color="#FFFFFF" fontSize={12} mb={1}>
-                  {booking.game}
-                </Typography>
-
-               
-                <Box display="flex" justifyContent="space-between" mb={1}>
-                  <Typography fontSize={12} color="#fff">
-                    Time:
-                  </Typography>
-                  <Typography fontSize={12} fontWeight={500} color="#fff">
-                    {booking.time}
-                  </Typography>
-                </Box>
-
-                
-                <Box display="flex" justifyContent="space-between" mb={1}>
-                  <Typography fontSize={12} color="#FFFFFF">
-                    Price:
-                  </Typography>
-                  <Typography fontSize={12} color="#0CD7FF">
-                    LKR {booking.price}
-                  </Typography>
-                </Box>
-
-              
-                <Box display="flex" justifyContent="space-between" mb={2}>
-                  <Typography fontSize={12} color="#FFFFFF">
-                    Loyalty Price:
-                  </Typography>
-                  <Typography fontSize={12} color="#8A38F5">
-                    {booking.loyaltyPrice}
-                  </Typography>
-                </Box>
-
-                <Button
-                  fullWidth
-                  variant="contained"
-                  sx={{
-                    bgcolor: "#374151",
-                    color: "#fff",
-                    borderRadius: "8px",
-                    py: 0.2,
-                    textTransform: "none",
-                    "&:hover": { bgcolor: "#1F2937" },
-                  }}
-                  onClick={() => handleOpen(booking)}
-                >
-                  View
-                </Button>
-              </CardContent>
-              
-
-            </Card>
-
-          );
-        })} */}
 
       </Box>
 
@@ -262,11 +173,10 @@ const BookingGrid = ({ apiBookings = [], loading = false, onBookingUpdated }) =>
         handleClose={handleClose}
         booking={selectedBooking}
         onBookingUpdated={onBookingUpdated}
+        stations={stations}
       />
-
     </div>
-  )
-}
+  );
+};
 
-export default BookingGrid
- 
+export default BookingGrid;
