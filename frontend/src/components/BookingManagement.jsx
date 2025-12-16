@@ -140,7 +140,7 @@ const BookingManagement = () => {
     fetchBookings();
     const interval = setInterval(() => {
       autoUpdateStatuses();
-    }, 30000);
+    }, 10000);
     return () => clearInterval(interval);
   }, []);
 
@@ -660,26 +660,28 @@ const BookingManagement = () => {
 
       {/* All Three Dialogs */}
       <BookingDialog
-        open={upcomingDialogOpen}
-        onClose={() => setUpcomingDialogOpen(false)}
-        onEdit={handleEditBooking}
-        onCancel={handleCancelBooking}
-        bookings={selectedBooking}
-      />
+  open={upcomingDialogOpen}
+  onClose={() => setUpcomingDialogOpen(false)}
+  onEdit={handleEditBooking}
+  onCancel={handleCancelBooking}
+  bookings={selectedBooking || []}
+  stations={stations}
+/>
 
-      <SessionDialog
-        open={inProgressDialogOpen}
-        onClose={() => setInProgressDialogOpen(false)}
-        onEndSession={handleEndSession}
-        bookings={selectedBooking}
-      />
+     <SessionDialog
+  open={inProgressDialogOpen}
+  onClose={() => setInProgressDialogOpen(false)}
+  onEndSession={handleEndSession}
+  bookings={selectedBooking || []}
+/>
 
-      <CompletedBookingDialog
-        open={completedDialogOpen}
-        onClose={() => setCompletedDialogOpen(false)}
-        onCollectPayment={handleCollectPayment}
-        bookings={selectedBooking}
-      />
+<CompletedBookingDialog
+  open={completedDialogOpen}
+  onClose={() => setCompletedDialogOpen(false)}
+  onCollectPayment={handleCollectPayment}
+  bookings={selectedBooking || []}
+/>
+
     </Box>
   );
 };
