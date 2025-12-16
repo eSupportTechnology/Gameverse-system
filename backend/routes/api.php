@@ -64,6 +64,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::put('/stations/{id}', [StationController::class, 'update']);
     Route::delete('/stations/{id}', [StationController::class, 'destroy']);
 });
+Route::post('/stations/update-category/{type}', [StationController::class, 'updateCategory']);
 
 
 
@@ -133,26 +134,16 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 
-    // Event & Tournaments
-    Route::get('/events', [EventController::class, 'index']);
-    Route::post('/events', [EventController::class, 'store']);
-    Route::put('/events/{id}', [EventController::class, 'update']);
-    Route::delete('/events/{id}', [EventController::class, 'destroy']);
+// Event & Tournaments
+Route::get('/events', [EventController::class, 'index']);
+Route::post('/events', [EventController::class, 'store']);
+Route::put('/events/{id}', [EventController::class, 'update']);
+Route::delete('/events/{id}', [EventController::class, 'destroy']);
 
-    // Gallery
-    Route::get('/gallery', [GalleryController::class, 'index']);
-    Route::post('/gallery', [GalleryController::class, 'store']);
-    Route::delete('/gallery/{id}', [GalleryController::class, 'destroy']);
-
-
-    Route::get('/stations', [StationController::class, 'index']);
-Route::post('/stations', [StationController::class, 'store']);
-Route::put('/stations/{id}', [StationController::class, 'update']);
-
-Route::delete('/stations/{id}', [StationController::class, 'destroy']);
-
-
-// TV Screen Management
+// Gallery
+Route::get('/gallery', [GalleryController::class, 'index']);
+Route::post('/gallery', [GalleryController::class, 'store']);
+Route::delete('/gallery/{id}', [GalleryController::class, 'destroy']);
 
 Route::get('/tv-screen', [TvScreenController::class, 'index']);
 Route::post('/tv-screen', [TvScreenController::class, 'store']);

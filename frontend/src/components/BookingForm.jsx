@@ -278,9 +278,7 @@ const BookingForm = ({
     (station) => station.name === formData.station
   );
 
-  const showVRPlay =
-    (selectedStation?.vrPrice && selectedStation?.vrTime) ||
-    existingBooking?.vr_play !== null;
+  const showVRPlay = selectedStation?.vrPrice && selectedStation?.vrTime;
 
   return (
     <>

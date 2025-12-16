@@ -31,8 +31,9 @@ import OtherGamesSection from "./OtherGamesSection";
 import AddNewGame from "./AddNewGame";
 import { getEvents, createEvent, updateEvent, deleteEvent } from "../api";
 import { getGallery, addGalleryPhoto, deleteGalleryPhoto } from "../api";
-
-
+import PS5station from "../assets/ps5_station.jpg";
+import poolTable from "../assets/pool_table.jpg";
+import racingSimulator from "../assets/racing_simulators.jpg";
 
 const categories = [
   { label: "Booking Games" },
@@ -41,16 +42,33 @@ const categories = [
   { label: "Gallery" },
 ];
 
-const routeMap = {
-  "PS5 Stations": "/web-portal/station",
-  "Pool Tables": "/web-portal/pool",
-  "Racing Simulators": "/web-portal/simulator",
+const typeDefaults = {
+  PlayStation: {
+    route: "/web-portal/station",
+    button: "View Station",
+    defaultImage: PS5station,
+  },
+  Pool: {
+    route: "/web-portal/pool",
+    button: "View Table",
+    defaultImage: poolTable,
+  },
+  Simulator: {
+    route: "/web-portal/simulator",
+    button: "View Simulator",
+    defaultImage: racingSimulator,
+  },
+};
+const typeDisplayTitles = {
+  PlayStation: "PS5 Stations",
+  Pool: "Pool Tables",
+  Simulator: "Racing Simulators",
 };
 
 const WebManagement = () => {
   const navigate = useNavigate();
 
-  const [bookingGames, setBookingGames] = useState(BookingGames);
+  const [bookingGames, setBookingGames] = useState([]);
   const [games, setGames] = useState(OtherGames);
   const [event, setEvent] = useState(Event);
   const [gallery, setGallery] = useState(Gallery);
@@ -86,34 +104,90 @@ const WebManagement = () => {
   const [thumbUpdateSuccess, setThumbUpdateSuccess] = useState(false);
   const [dbGames, setDbGames] = useState([]);
 
-  const handleUpdate = () => {
-    const updatedList = bookingGames.map((game) =>
-      game.title === selectedCategory.titleBeforeEdit ? selectedCategory : game
-    );
+  const fetchStations = async () => {
+    try {
+      const res = await axios.get("http://127.0.0.1:8000/api/stations");
+      const stations = res.data;
 
-    setBookingGames(updatedList);
-    console.log(updatedList);
+      // Build unique type categories
+      const categoriesMap = {};
+      stations.forEach((station) => {
+        if (!categoriesMap[station.type]) {
+          const defaults = typeDefaults[station.type] || {
+            route: "#",
+            button: "View",
+            defaultImage: null,
+          };
 
-    setEditStationCategory(false);
-    setOpenCategoryUpdate(true);
+          categoriesMap[station.type] = {
+            type: station.type, // <-- store the actual type
+            title: typeDisplayTitles[station.type] || station.type,
+            desc:
+              station.description ||
+              "Latest PS5 games with 4K graphics and immersive gameplay on premium gaming setups",
+            image: station.common_thumbnail
+              ? `http://127.0.0.1:8000/storage/${station.common_thumbnail}`
+              : defaults.defaultImage,
+            route: defaults.route,
+            button: defaults.button,
+          };
+        }
+      });
+
+      setBookingGames(Object.values(categoriesMap));
+    } catch (err) {
+      console.error("Failed to fetch stations:", err);
+    }
   };
 
-const handleImageUpload = (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
+  useEffect(() => {
+    fetchStations();
+  }, []);
 
-  // Store the actual File object for API submission
-  setSelectedCategory((prev) => ({
-    ...prev,
-    thumbnail: file, // <--- store the File object here
-  }));
+  const handleUpdate = async () => {
+    if (!selectedCategory) return;
 
-  // Optional: store preview separately
-  const reader = new FileReader();
-  reader.onload = () => setSelectedImage(reader.result);
-  reader.readAsDataURL(file);
-};
+    const formData = new FormData();
+    formData.append("description", selectedCategory.desc || "");
 
+    if (selectedCategory.thumbnail) {
+      formData.append("common_thumbnail", selectedCategory.thumbnail);
+    }
+
+    try {
+      // Use selectedCategory.type, NOT title
+      await axios.post(
+        `http://127.0.0.1:8000/api/stations/update-category/${selectedCategory.type}`,
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
+
+      toast.success("Category updated successfully!");
+      fetchStations(); // refresh categories
+      setEditStationCategory(false);
+    } catch (err) {
+      console.error("Failed to update category:", err);
+      toast.error("Failed to update category");
+    }
+  };
+
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Store the actual File object for API submission
+    setSelectedCategory((prev) => ({
+      ...prev,
+      thumbnail: file, // <--- store the File object here
+    }));
+
+    // Optional: store preview separately
+    const reader = new FileReader();
+    reader.onload = () => setSelectedImage(reader.result);
+    reader.readAsDataURL(file);
+  };
 
   const handleConfirm = async () => {
     setCancelOpen(false);
@@ -183,90 +257,86 @@ const handleImageUpload = (e) => {
   };
 
   // Event and tournament
-const handleAddEvent = async (newEvent) => {
-  try {
-    const eventData = {
-      name: newEvent.name,
-      date: newEvent.date,
-      thumbnail: newEvent.thumbnail || null, // File object from upload
-    };
+  const handleAddEvent = async (newEvent) => {
+    try {
+      const eventData = {
+        name: newEvent.name,
+        date: newEvent.date,
+        thumbnail: newEvent.thumbnail || null, // File object from upload
+      };
 
-    const savedEvent = await createEvent(eventData);
+      const savedEvent = await createEvent(eventData);
 
-    setEvent((prev) => [
-      ...prev,
-      {
+      setEvent((prev) => [
+        ...prev,
+        {
+          id: savedEvent.id,
+          name: savedEvent.name,
+          date: savedEvent.date,
+          image: savedEvent.thumbnail
+            ? `http://127.0.0.1:8000/storage/${savedEvent.thumbnail}`
+            : "",
+        },
+      ]);
+    } catch (err) {
+      console.error("Error adding event:", err);
+      toast.error("Failed to add event");
+    }
+  };
+
+  const handleUpdateEvent = async (updatedEvent) => {
+    try {
+      const eventData = {
+        name: updatedEvent.name,
+        date: updatedEvent.date,
+        thumbnail: updatedEvent.thumbnail || null, // File object
+      };
+
+      const savedEvent = await updateEvent(updatedEvent.id, eventData);
+
+      const mappedEvent = {
         id: savedEvent.id,
         name: savedEvent.name,
         date: savedEvent.date,
         image: savedEvent.thumbnail
           ? `http://127.0.0.1:8000/storage/${savedEvent.thumbnail}`
           : "",
-      },
-    ]);
-  } catch (err) {
-    console.error("Error adding event:", err);
-    toast.error("Failed to add event");
-  }
-};
+      };
 
+      setEvent((prev) =>
+        prev.map((e) => (e.id === mappedEvent.id ? mappedEvent : e))
+      );
 
+      console.log("Event updated:", mappedEvent);
+      toast.success("Event updated successfully!");
+    } catch (err) {
+      console.error("Error updating event:", err);
+      toast.error("Failed to update event");
+    }
+  };
 
-
-const handleUpdateEvent = async (updatedEvent) => {
-  try {
-    const eventData = {
-      name: updatedEvent.name,
-      date: updatedEvent.date,
-      thumbnail: updatedEvent.thumbnail || null, // File object
-    };
-
-    const savedEvent = await updateEvent(updatedEvent.id, eventData);
-
-    const mappedEvent = {
-      id: savedEvent.id,
-      name: savedEvent.name,
-      date: savedEvent.date,
-      image: savedEvent.thumbnail
-        ? `http://127.0.0.1:8000/storage/${savedEvent.thumbnail}`
-        : "",
-    };
-
-    setEvent((prev) =>
-      prev.map((e) => (e.id === mappedEvent.id ? mappedEvent : e))
+  const handleRemoveEvent = (eventItem) => {
+    setEventToRemove(eventItem);
+    setEventRemoveMessage(
+      `Are you sure you want to remove "${eventItem.name}"?`
     );
+    setRemoveEvent(true);
+  };
 
-    console.log("Event updated:", mappedEvent);
-    toast.success("Event updated successfully!");
-  } catch (err) {
-    console.error("Error updating event:", err);
-    toast.error("Failed to update event");
-  }
-};
+  const removeEventConfirm = async () => {
+    if (!eventToRemove) return;
 
-
-
-const handleRemoveEvent = (eventItem) => {
-  setEventToRemove(eventItem);
-  setEventRemoveMessage(`Are you sure you want to remove "${eventItem.name}"?`);
-  setRemoveEvent(true);
-};
-
-const removeEventConfirm = async () => {
-  if (!eventToRemove) return;
-
-  try {
-    await deleteEvent(eventToRemove.id);
-    setEvent(event.filter((e) => e.id !== eventToRemove.id));
-    console.log("Event deleted:", eventToRemove);
-  } catch (err) {
-    console.error(err);
-  } finally {
-    setRemoveEvent(false);
-    setEventToRemove(null);
-  }
-};
-
+    try {
+      await deleteEvent(eventToRemove.id);
+      setEvent(event.filter((e) => e.id !== eventToRemove.id));
+      console.log("Event deleted:", eventToRemove);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setRemoveEvent(false);
+      setEventToRemove(null);
+    }
+  };
 
   const cancelRemoveEvent = () => {
     setRemoveEvent(false);
@@ -274,57 +344,56 @@ const removeEventConfirm = async () => {
   };
 
   useEffect(() => {
-  const fetchAllEvents = async () => {
-    const eventsFromApi = await getEvents();
-   const mappedEvents = eventsFromApi.map((e) => ({
-  id: e.id,
-  name: e.name || "No Name",
-  date: e.date || null,
-  image: e.thumbnail ? `http://127.0.0.1:8000/storage/${e.thumbnail}` : "", 
-}));
+    const fetchAllEvents = async () => {
+      const eventsFromApi = await getEvents();
+      const mappedEvents = eventsFromApi.map((e) => ({
+        id: e.id,
+        name: e.name || "No Name",
+        date: e.date || null,
+        image: e.thumbnail
+          ? `http://127.0.0.1:8000/storage/${e.thumbnail}`
+          : "",
+      }));
 
-    setEvent(mappedEvents);
-  };
+      setEvent(mappedEvents);
+    };
 
-  fetchAllEvents();
-}, []);
-
-  
+    fetchAllEvents();
+  }, []);
 
   // Gallery section
   useEffect(() => {
-  const fetchGallery = async () => {
-    const data = await getGallery();
-    setGallery(data);
+    const fetchGallery = async () => {
+      const data = await getGallery();
+      setGallery(data);
+    };
+    fetchGallery();
+  }, []);
+
+  // Add
+  const handleAddPhoto = async (file) => {
+    try {
+      const newPhoto = await addGalleryPhoto(file);
+      setGallery((prev) => [...prev, newPhoto]);
+      toast.success("Photo added successfully!");
+    } catch {
+      toast.error("Failed to add photo");
+    }
   };
-  fetchGallery();
-}, []);
 
-// Add
-const handleAddPhoto = async (file) => {
-  try {
-    const newPhoto = await addGalleryPhoto(file);
-    setGallery((prev) => [...prev, newPhoto]);
-    toast.success("Photo added successfully!");
-  } catch {
-    toast.error("Failed to add photo");
-  }
-};
-
-// Remove
-const handleRemovePhotoConfirm = async () => {
-  try {
-    await deleteGalleryPhoto(photoToRemove.id);
-    setGallery((prev) => prev.filter((p) => p.id !== photoToRemove.id));
-    toast.success("Photo removed!");
-  } catch {
-    toast.error("Failed to remove photo");
-  } finally {
-    setRemovePhoto(false);
-    setPhotoToRemove(null);
-  }
-};
- 
+  // Remove
+  const handleRemovePhotoConfirm = async () => {
+    try {
+      await deleteGalleryPhoto(photoToRemove.id);
+      setGallery((prev) => prev.filter((p) => p.id !== photoToRemove.id));
+      toast.success("Photo removed!");
+    } catch {
+      toast.error("Failed to remove photo");
+    } finally {
+      setRemovePhoto(false);
+      setPhotoToRemove(null);
+    }
+  };
 
   const handleRemovePhoto = (index) => {
     setPhotoToRemove(index);
@@ -411,7 +480,7 @@ const handleRemovePhotoConfirm = async () => {
     setOpenAddGame(false);
     fetchDbGames();
   };
-  
+
   return (
     <div>
       <Box
@@ -715,7 +784,7 @@ const handleRemovePhotoConfirm = async () => {
                   <Box sx={{ py: 2 }}>
                     <button
                       style={{ fontWeight: 600 }}
-                      onClick={() => navigate(routeMap[item.title])}
+                      onClick={() => navigate(item.route)}
                       className="card-button"
                     >
                       {item.button}
@@ -840,7 +909,8 @@ const handleRemovePhotoConfirm = async () => {
                   <Box sx={{ py: 2 }}>
                     <button
                       className="card-button-red"
-                      onClick={() => handleRemoveEvent(item)}>
+                      onClick={() => handleRemoveEvent(item)}
+                    >
                       Remove
                     </button>
                   </Box>
@@ -973,31 +1043,18 @@ const handleRemovePhotoConfirm = async () => {
           <p style={{ marginBottom: 6, fontSize: "14px", fontWeight: 500 }}>
             Category Name
           </p>
-          <TextField
-            fullWidth
-            placeholder="Enter Category Name"
-            variant="outlined"
-            value={selectedCategory?.title || ""}
-            onChange={(e) =>
-              setSelectedCategory({
-                ...selectedCategory,
-                title: e.target.value,
-              })
-            }
-            InputProps={{
-              sx: {
-                backgroundColor: "#171C2D",
-                borderRadius: "8px",
-                color: "white",
-                border: "0.5px solid #374151",
-
-                "& .MuiInputBase-input": {
-                  padding: "12px 14px",
-                  fontSize: "14px",
-                },
-              },
+          <Box
+            sx={{
+              backgroundColor: "#171C2D",
+              borderRadius: "8px",
+              border: "0.5px solid #374151",
+              color: "#9CA3AF",
+              padding: "12px 14px",
+              fontSize: "14px",
             }}
-          />
+          >
+            {selectedCategory?.title || ""}
+          </Box>
 
           {/* Description */}
           <p
