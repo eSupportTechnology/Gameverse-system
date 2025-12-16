@@ -51,7 +51,7 @@ class BookingController extends Controller
 
         try {
             $bookingData = $validator->validated();
-            $bookingData['is_online'] = $bookingData['is_online'] ?? false;
+           
 
             $booking = Booking::create($bookingData);
 
