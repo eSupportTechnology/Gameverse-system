@@ -28,4 +28,9 @@ class Booking extends Model
         'booking_date' => 'date',
         'amount' => 'decimal:2'
     ];
+
+    public function station()
+{
+    return $this->belongsTo(\App\Models\Station::class);
+}
 }
