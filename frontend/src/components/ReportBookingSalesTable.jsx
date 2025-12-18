@@ -78,9 +78,14 @@ useEffect(() => {
   const handleDropdownClose = () => setAnchorEl(null);
 
   const handleDropdownSelect = (item) => {
-    setSelectedStation(item);
-    setAnchorEl(null);
-  };
+  setSelectedStation(item); // set the station
+  setAnchorEl(null);         
+
+  // fetch bookings immediately for new station
+  if (activeTab === 1 && selectedDate) {
+    fetchCompletedBookings(item, selectedDate);
+  }
+};
   const tableHeaderStyle = {
     backgroundColor: "#0E4450",
     color: "#fff",
@@ -137,6 +142,26 @@ console.log("Fetching for:", {
       toast.success("Report exported successfully!");
     }, 1000);
   };
+
+  const fetchCompletedBookings = async () => {
+  if (!selectedStation || !selectedDate) return;
+
+  try {
+    const formattedDate = format(selectedDate, "yyyy-MM-dd"); // YYYY-MM-DD
+
+    const res = await fetch(
+      `http://127.0.0.1:8000/api/reports/booking-sales?station=${selectedStation}&date=${formattedDate}`
+    );
+    const data = await res.json();
+
+    if (data.success) {
+      setBookings(data.data);
+    }
+  } catch (err) {
+    console.error(err);
+  }
+};
+
 
   return (
     <Box sx={{ pt: { xs: 2, sm: 4, md: 6 } }}>
@@ -295,6 +320,7 @@ console.log("Fetching for:", {
 
         {/* Right Controls */}
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+
           {/* Date Picker */}
   <LocalizationProvider dateAdapter={AdapterDateFns}>
           <DatePicker
@@ -367,7 +393,7 @@ console.log("Fetching for:", {
                 boxShadow: "0px 2px 6px rgba(0,0,0,0.35)",
               }}
             >
-              {selectedStation}
+               {selectedStation || "Select Station"}
               <ArrowDropDownIcon />
             </Box>
 
@@ -422,10 +448,10 @@ console.log("Fetching for:", {
                       },
                     }}
                   >
-                    {stations.map((item, index) => (
+                    {stations.map((station, index) => (
                       <Box
                         key={index}
-                        onClick={() => handleDropdownSelect(item)}
+                        onClick={() => handleDropdownSelect(station)}
                         sx={{
                           padding: "10px 14px",
                           borderBottom: "1px solid #1e293b",
@@ -438,7 +464,7 @@ console.log("Fetching for:", {
                           },
                         }}
                       >
-                        {item}
+                        {station}
                       </Box>
                     ))}
                   </Paper>

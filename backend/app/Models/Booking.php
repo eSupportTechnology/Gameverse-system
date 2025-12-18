@@ -29,8 +29,8 @@ class Booking extends Model
         'amount' => 'decimal:2'
     ];
 
-//     public function station()
-// {
-//     return $this->belongsTo(\App\Models\Station::class);
-// }
+    public function station()
+{
+    return $this->belongsTo(\App\Models\Station::class);
+}
 }
