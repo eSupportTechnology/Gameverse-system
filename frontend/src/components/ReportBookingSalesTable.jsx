@@ -17,6 +17,10 @@ import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import ReportProductSalesTable from "./ReportProductSalesTable";
 import ReportOtherGamesSalesTable from "./ReportOtherGamesSalesTable";
 import ReportNFCcustomersTable from "./ReportNFCcustomersTable";
+import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
+import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
+import { format } from "date-fns";
+
 
 const ReportBookingSalesTable = ({
   showOnlyBooking = false,
@@ -40,23 +44,32 @@ const ReportBookingSalesTable = ({
   const [anchorEl, setAnchorEl] = useState(null);
   const anchorRef = useRef(null);
   const [selectedStation, setSelectedStation] = useState("PS5 Station 1");
+  const [selectedDate, setSelectedDate] = useState(new Date());
+const [bookings, setBookings] = useState([]);
 
-  const stations = [
-    "PS5 Station 1",
-    "PS5 Station 2",
-    "PS5 Station 3",
-    "PS5 Station 4",
-    "PS5 Station 5",
-    "Racing Simulator 1",
-    "Racing Simulator 2",
-    "Racing Simulator 3",
-    "Racing Simulator 4",
-    "Supreme Billiard 1",
-    "Supreme Billiard 2",
-    "Premium Billiard 1",
-    "Premium Billiard 2",
-    "Premium Billiard 3",
-  ];
+
+ const [stations, setStations] = useState([]);
+const fetchStations = async () => {
+  try {
+    const res = await fetch("http://127.0.0.1:8000/api/booking-stations");
+    const data = await res.json();
+
+    if (data.success) {
+      setStations(data.data);
+
+      // Auto-select first station if none selected
+      if (!selectedStation && data.data.length > 0) {
+        setSelectedStation(data.data[0]);
+      }
+    }
+  } catch (error) {
+    console.error("Failed to fetch stations:", error);
+  }
+};
+useEffect(() => {
+  fetchStations();
+}, []);
+
 
   const handleDropdownClick = (event) => {
     setAnchorEl(anchorEl ? null : event.currentTarget);
@@ -84,71 +97,37 @@ const ReportBookingSalesTable = ({
     borderBottom: "1px solid #1f2937",
   };
 
-  const bookings = [
-    {
-      name: "Danuka Perera",
-      contact: "0705568923",
-      time: "10.00 AM",
-      duration: "1 Hrs",
-      revenue: "LKR 600",
-    },
-    {
-      name: "Vishwa Pradeep",
-      contact: "0253692548",
-      time: "11.00 AM",
-      duration: "2 Hrs 30 Min",
-      revenue: "LKR 1450",
-    },
-    {
-      name: "Mayumi Lakshika",
-      contact: "0782536598",
-      time: "02.00 PM",
-      duration: "1 Hrs 30 Min",
-      revenue: "LKR 850",
-    },
-    {
-      name: "Udara Devinda",
-      contact: "0774586936",
-      time: "08.30 PM",
-      duration: "30 Min",
-      revenue: "LKR 400",
-    },
-    {
-      name: "Danuka Perera",
-      contact: "0705568923",
-      time: "10.00 AM",
-      duration: "1 Hrs",
-      revenue: "LKR 600",
-    },
-    {
-      name: "Vishwa Pradeep",
-      contact: "0253692548",
-      time: "11.00 AM",
-      duration: "2 Hrs 30 Min",
-      revenue: "LKR 1450",
-    },
-    {
-      name: "Mayumi Lakshika",
-      contact: "0782536598",
-      time: "02.00 PM",
-      duration: "1 Hrs 30 Min",
-      revenue: "LKR 850",
-    },
-    {
-      name: "Udara Devinda",
-      contact: "0774586936",
-      time: "08.30 PM",
-      duration: "30 Min",
-      revenue: "LKR 400",
-    },
-    {
-      name: "Danuka Perera",
-      contact: "0705568923",
-      time: "10.00 AM",
-      duration: "1 Hrs",
-      revenue: "LKR 600",
-    },
-  ];
+const fetchBookings = async () => {
+  try {
+    const day = format(selectedDate, "yyyy-MM-dd");
+
+    const res = await fetch(
+      `http://127.0.0.1:8000/api/bookings?station=${encodeURIComponent(selectedStation)}&date=${day}&status=completed`
+    );
+
+    const data = await res.json();
+    const completedBookings = data.data || [];
+
+    setBookings(completedBookings);
+  } catch (error) {
+    console.error("Error fetching bookings:", error);
+  }
+};
+
+
+
+useEffect(() => {
+  if (activeTab === 1) {
+    fetchBookings();
+  }
+}, [selectedDate, selectedStation, activeTab]);
+
+console.log("Fetching for:", {
+  station: selectedStation,
+  date: format(selectedDate, "yyyy-MM-dd"),
+});
+
+  
 
   // Handle export functionality
   const handleExport = () => {
@@ -317,21 +296,55 @@ const ReportBookingSalesTable = ({
         {/* Right Controls */}
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
           {/* Date Picker */}
-          <Box
-            sx={{
-              px: 2,
-              py: 1,
-              borderRadius: "8px",
-              backgroundColor: "#0F172A",
-              border: "1px solid #1e293b",
-              display: "flex",
-              alignItems: "center",
-              gap: 1,
-              color: "#fff",
+  <LocalizationProvider dateAdapter={AdapterDateFns}>
+          <DatePicker
+            value={selectedDate}
+            onChange={(newDate) => setSelectedDate(newDate)}
+            // format="dd-MM-yyyy"
+            slotProps={{
+              textField: {
+                InputProps: {
+                  sx: {
+                    color: "#fff",
+                    height: "45px",
+                    padding : "10px"
+
+                  },
+                },
+                sx: {
+                  width: 160,
+                  backgroundColor: "#0F172A",
+                  borderRadius: "8px",
+
+                  "& .MuiOutlinedInput-input": {
+                    color: "#ffffff !important",
+                    WebkitTextFillColor: "#ffffff !important",
+                  },
+
+                  "& input": {
+                    color: "#ffffff !important",
+                  },
+
+                  "& .MuiSvgIcon-root": {
+                    color: "#ffffff",
+                  },
+
+                  "& .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#1e293b",
+                  },
+
+                  "&:hover .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#0CD7FF",
+                  },
+
+                  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#0CD7FF",
+                  },
+                },
+              },
             }}
-          >
-            11/08/2025 <CalendarMonthIcon />
-          </Box>
+          />
+    </LocalizationProvider> 
 
           {/* Station Dropdown */}
           <Box sx={{ position: "relative" }}>
@@ -495,11 +508,11 @@ const ReportBookingSalesTable = ({
                     },
                   }}
                 >
-                  <Box sx={tableRowStyle}>{row.name}</Box>
-                  <Box sx={tableRowStyle}>{row.contact}</Box>
-                  <Box sx={tableRowStyle}>{row.time}</Box>
+                  <Box sx={tableRowStyle}>{row.customer_name}</Box>
+                  <Box sx={tableRowStyle}>{row.phone_number}</Box>
+                  <Box sx={tableRowStyle}>{row.start_time}</Box>
                   <Box sx={tableRowStyle}>{row.duration}</Box>
-                  <Box sx={tableRowStyle}>{row.revenue}</Box>
+                  <Box sx={tableRowStyle}>{row.amount}</Box>
                 </Box>
               ))}
             </Box>
