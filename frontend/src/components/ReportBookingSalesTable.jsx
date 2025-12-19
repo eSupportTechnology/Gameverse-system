@@ -11,16 +11,15 @@ import {
   Popper,
   Paper,
   ClickAwayListener,
+  TextField,
 } from "@mui/material";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import ReportProductSalesTable from "./ReportProductSalesTable";
 import ReportOtherGamesSalesTable from "./ReportOtherGamesSalesTable";
 import ReportNFCcustomersTable from "./ReportNFCcustomersTable";
-import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
-import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
-import { format } from "date-fns";
-
+import axios from "axios";
+import { formatBookingDate } from "./BookingManagement";
 
 const ReportBookingSalesTable = ({
   showOnlyBooking = false,
@@ -44,32 +43,53 @@ const ReportBookingSalesTable = ({
   const [anchorEl, setAnchorEl] = useState(null);
   const anchorRef = useRef(null);
   const [selectedStation, setSelectedStation] = useState("PS5 Station 1");
-  const [selectedDate, setSelectedDate] = useState(new Date());
-const [bookings, setBookings] = useState([]);
+  const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [date, setDate] = React.useState(
+    new Date().toISOString().split("T")[0]
+  );
 
+  useEffect(() => {
+    const fetchBookings = async () => {
+      try {
+        setLoading(true);
+        const response = await axios.get("http://localhost:8000/api/bookings");
 
- const [stations, setStations] = useState([]);
-const fetchStations = async () => {
-  try {
-    const res = await fetch("http://127.0.0.1:8000/api/booking-stations");
-    const data = await res.json();
-
-    if (data.success) {
-      setStations(data.data);
-
-      // Auto-select first station if none selected
-      if (!selectedStation && data.data.length > 0) {
-        setSelectedStation(data.data[0]);
+        if (response.data.success) {
+          const completedBookings = response.data.data.filter(
+            (b) =>
+              b.status === "completed" &&
+              b.station === selectedStation &&
+              formatBookingDate(b.booking_date) === date
+          );
+          setBookings(completedBookings);
+        }
+      } catch (error) {
+        console.error("Failed to fetch bookings", error);
+      } finally {
+        setLoading(false);
       }
-    }
-  } catch (error) {
-    console.error("Failed to fetch stations:", error);
-  }
-};
-useEffect(() => {
-  fetchStations();
-}, []);
+    };
 
+    fetchBookings();
+  }, [selectedStation, date]);
+
+  const stations = [
+    "PS5 Station 1",
+    "PS5 Station 2",
+    "PS5 Station 3",
+    "PS5 Station 4",
+    "PS5 Station 5",
+    "Racing Simulator 1",
+    "Racing Simulator 2",
+    "Racing Simulator 3",
+    "Racing Simulator 4",
+    "Supreme Billiard 1",
+    "Supreme Billiard 2",
+    "Premium Billiard 1",
+    "Premium Billiard 2",
+    "Premium Billiard 3",
+  ];
 
   const handleDropdownClick = (event) => {
     setAnchorEl(anchorEl ? null : event.currentTarget);
@@ -78,14 +98,9 @@ useEffect(() => {
   const handleDropdownClose = () => setAnchorEl(null);
 
   const handleDropdownSelect = (item) => {
-  setSelectedStation(item); // set the station
-  setAnchorEl(null);         
-
-  // fetch bookings immediately for new station
-  if (activeTab === 1 && selectedDate) {
-    fetchCompletedBookings(item, selectedDate);
-  }
-};
+    setSelectedStation(item);
+    setAnchorEl(null);
+  };
   const tableHeaderStyle = {
     backgroundColor: "#0E4450",
     color: "#fff",
@@ -102,66 +117,14 @@ useEffect(() => {
     borderBottom: "1px solid #1f2937",
   };
 
-const fetchBookings = async () => {
-  try {
-    const day = format(selectedDate, "yyyy-MM-dd");
-
-    const res = await fetch(
-      `http://127.0.0.1:8000/api/bookings?station=${encodeURIComponent(selectedStation)}&date=${day}&status=completed`
-    );
-
-    const data = await res.json();
-    const completedBookings = data.data || [];
-
-    setBookings(completedBookings);
-  } catch (error) {
-    console.error("Error fetching bookings:", error);
-  }
-};
-
-
-
-useEffect(() => {
-  if (activeTab === 1) {
-    fetchBookings();
-  }
-}, [selectedDate, selectedStation, activeTab]);
-
-console.log("Fetching for:", {
-  station: selectedStation,
-  date: format(selectedDate, "yyyy-MM-dd"),
-});
-
-  
-
   // Handle export functionality
   const handleExport = () => {
     toast.info("Exporting report data...");
-    // Export logic 
+    // Export logic
     setTimeout(() => {
       toast.success("Report exported successfully!");
     }, 1000);
   };
-
-  const fetchCompletedBookings = async () => {
-  if (!selectedStation || !selectedDate) return;
-
-  try {
-    const formattedDate = format(selectedDate, "yyyy-MM-dd"); // YYYY-MM-DD
-
-    const res = await fetch(
-      `http://127.0.0.1:8000/api/reports/booking-sales?station=${selectedStation}&date=${formattedDate}`
-    );
-    const data = await res.json();
-
-    if (data.success) {
-      setBookings(data.data);
-    }
-  } catch (err) {
-    console.error(err);
-  }
-};
-
 
   return (
     <Box sx={{ pt: { xs: 2, sm: 4, md: 6 } }}>
@@ -320,57 +283,33 @@ console.log("Fetching for:", {
 
         {/* Right Controls */}
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-
           {/* Date Picker */}
-  <LocalizationProvider dateAdapter={AdapterDateFns}>
-          <DatePicker
-            value={selectedDate}
-            onChange={(newDate) => setSelectedDate(newDate)}
-            // format="dd-MM-yyyy"
-            slotProps={{
-              textField: {
-                InputProps: {
-                  sx: {
-                    color: "#fff",
-                    height: "45px",
-                    padding : "10px"
-
-                  },
-                },
-                sx: {
-                  width: 160,
-                  backgroundColor: "#0F172A",
-                  borderRadius: "8px",
-
-                  "& .MuiOutlinedInput-input": {
-                    color: "#ffffff !important",
-                    WebkitTextFillColor: "#ffffff !important",
-                  },
-
-                  "& input": {
-                    color: "#ffffff !important",
-                  },
-
-                  "& .MuiSvgIcon-root": {
-                    color: "#ffffff",
-                  },
-
-                  "& .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "#1e293b",
-                  },
-
-                  "&:hover .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "#0CD7FF",
-                  },
-
-                  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "#0CD7FF",
-                  },
-                },
+          <TextField
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            InputLabelProps={{ shrink: true }}
+            inputProps={{
+              style: {
+                height: "40px",
+                padding: "0 12px",
+                color: "#fff",
               },
             }}
+            sx={{
+              bgcolor: "#1F2937",
+              cursor: "pointer",
+              "& .MuiOutlinedInput-root": {
+                "& fieldset": { borderColor: "#555" },
+                "&:hover fieldset": { borderColor: "#888" },
+                "&.Mui-focused fieldset": { borderColor: "#00E5FF" },
+              },
+              "& .MuiInputBase-input": {
+                color: "#fff",
+              },
+              mb: { xs: 2, sm: 2, md: 0 },
+            }}
           />
-    </LocalizationProvider> 
 
           {/* Station Dropdown */}
           <Box sx={{ position: "relative" }}>
@@ -393,7 +332,7 @@ console.log("Fetching for:", {
                 boxShadow: "0px 2px 6px rgba(0,0,0,0.35)",
               }}
             >
-               {selectedStation || "Select Station"}
+              {selectedStation}
               <ArrowDropDownIcon />
             </Box>
 
@@ -417,12 +356,12 @@ console.log("Fetching for:", {
                     sx={{
                       position: "absolute",
                       top: "-10px",
-                      right: "15px",  
+                      right: "15px",
                       width: 0,
                       height: 0,
                       borderLeft: "8px solid transparent",
                       borderRight: "8px solid transparent",
-                      borderBottom: "10px solid #0F172A", 
+                      borderBottom: "10px solid #0F172A",
                       filter: "drop-shadow(0px -2px 2px rgba(0,0,0,0.4))",
                     }}
                   />
@@ -448,10 +387,10 @@ console.log("Fetching for:", {
                       },
                     }}
                   >
-                    {stations.map((station, index) => (
+                    {stations.map((item, index) => (
                       <Box
                         key={index}
-                        onClick={() => handleDropdownSelect(station)}
+                        onClick={() => handleDropdownSelect(item)}
                         sx={{
                           padding: "10px 14px",
                           borderBottom: "1px solid #1e293b",
@@ -464,7 +403,7 @@ console.log("Fetching for:", {
                           },
                         }}
                       >
-                        {station}
+                        {item}
                       </Box>
                     ))}
                   </Paper>
@@ -518,15 +457,25 @@ console.log("Fetching for:", {
                 <Box sx={tableHeaderStyle}>Duration</Box>
                 <Box sx={tableHeaderStyle}>Revenue</Box>
               </Box>
+              {loading && (
+                <Box sx={{ p: 2, textAlign: "center", color: "#9ca3af" }}>
+                  Loading bookings...
+                </Box>
+              )}
+
+              {!loading && bookings.length === 0 && (
+                <Box sx={{ p: 2, textAlign: "center", color: "#9ca3af" }}>
+                  No bookings found
+                </Box>
+              )}
 
               {bookings.map((row, i) => (
                 <Box
-                  key={i}
+                  key={row.id}
                   sx={{
                     display: "grid",
                     gridTemplateColumns: "2fr 2fr 1fr 1fr 1fr",
                     borderBottom: "1px solid #1F2937",
-
                     "&:hover": { backgroundColor: "#1a2433" },
                     "& > div": {
                       borderRight: "1px solid #1F2937",
@@ -538,7 +487,9 @@ console.log("Fetching for:", {
                   <Box sx={tableRowStyle}>{row.phone_number}</Box>
                   <Box sx={tableRowStyle}>{row.start_time}</Box>
                   <Box sx={tableRowStyle}>{row.duration}</Box>
-                  <Box sx={tableRowStyle}>{row.amount}</Box>
+                  <Box sx={tableRowStyle}>
+                    LKR {Number(row.amount).toFixed(2)}
+                  </Box>
                 </Box>
               ))}
             </Box>

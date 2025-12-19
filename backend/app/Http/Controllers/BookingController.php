@@ -14,33 +14,15 @@ class BookingController extends Controller
     /**
      * Display a listing of the resource.
      */
- public function index(Request $request): JsonResponse
-{
-    $query = Booking::query();
+    public function index(): JsonResponse
+    {
+        $bookings = Booking::orderBy('created_at', 'desc')->get();
 
-    // Filter by station
-    if ($request->filled('station')) {
-        $query->where('station', $request->station);
+        return response()->json([
+            'success' => true,
+            'data' => $bookings
+        ]);
     }
-
-    // Filter by booking date
-    if ($request->filled('date')) {
-        $query->whereDate('booking_date', $request->date);
-    }
-
-    // filter only completed bookings
-    if ($request->filled('status')) {
-        $query->where('status', $request->status);
-    }
-
-    $bookings = $query->orderBy('created_at', 'desc')->get();
-
-    return response()->json([
-        'success' => true,
-        'data' => $bookings
-    ]);
-}
-
 
     /**
      * Store a newly created resource in storage.
@@ -273,18 +255,4 @@ class BookingController extends Controller
 
         return ($hours * 60) + $minutes;
     }
-
-    public function stations(): JsonResponse
-{
-    $stations = Booking::select('station')
-        ->distinct()
-        ->orderBy('station')
-        ->pluck('station');
-
-    return response()->json([
-        'success' => true,
-        'data' => $stations
-    ]);
-}
-
 }

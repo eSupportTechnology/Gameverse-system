@@ -150,14 +150,3 @@ Route::get('/tv-screen', [TvScreenController::class, 'index']);
 Route::post('/tv-screen', [TvScreenController::class, 'store']);
 Route::patch('/tv-screen/{id}/toggle', [TvScreenController::class, 'toggleStatus']);
 Route::delete('/tv-screen/{id}', [TvScreenController::class, 'destroy']);
-
-// Route::get('/reports/booking-sales', [ReportsController::class, 'bookingSales']);
-
-Route::get('/stations', [StationController::class, 'index']); 
-Route::post('/stations', [StationController::class, 'store']);
-Route::post('/stations/{id}', [StationController::class, 'update']); 
-Route::delete('/stations/{id}', [StationController::class, 'destroy']);
-
-// Route::get('/reports/booking-stations', [ReportsController::class, 'bookingStations']);
-
-Route::get('/booking-stations', [BookingController::class, 'stations']);
