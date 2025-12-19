@@ -316,6 +316,7 @@ const ReportsManagement = () => {
       {viewMode === "table" && (
         <Box sx={{ p: 5, minHeight: "100vh", color: "#fff" }}>
           <ReportBookingSalesTable
+           dateFilter={dateFilter}
             activeTabFromParent={openTab}
             onReturnToOverview={() => setViewMode("overview")}
           />
