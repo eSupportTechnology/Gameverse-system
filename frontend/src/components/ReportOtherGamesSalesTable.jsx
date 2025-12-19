@@ -1,7 +1,48 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Box, Typography } from "@mui/material";
+import axios from "axios";
 
-const ReportOtherGamesSalesTable = () => {
+const ReportOtherGamesSalesTable = ({date}) => {
+    const [games, setGames] = useState([]);
+    const [loading, setLoading] = useState(false);
+
+
+useEffect(() => {
+  fetchGames();
+}, [date]);  
+
+const fetchGames = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem("aToken");
+
+      const res = await axios.get("http://127.0.0.1:8000/api/games", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const apiData = Array.isArray(res.data.data)
+        ? res.data.data
+        : Array.isArray(res.data)
+        ? res.data
+        : [];
+
+      
+      const filteredGames = apiData.filter((game) => {
+        const gameDate = new Date(game.created_at)
+          .toISOString()
+          .split("T")[0];
+        return gameDate === date;
+      });
+
+      setGames(filteredGames);
+    } catch (error) {
+      console.error("Failed to fetch games", error);
+      setGames([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const tableHeaderStyle = {
     backgroundColor: "#0E4450",
     color: "#fff",
@@ -18,17 +59,7 @@ const ReportOtherGamesSalesTable = () => {
     borderBottom: "1px solid #1f2937",
   };
 
-  const otherGamesSales = [
-    { time: "10.00 AM", playingMethod: "Coin", qty: 10, revenue: "LKR 600" },
-    { time: "10.30 AM", playingMethod: "Coin", qty: 2, revenue: "LKR 1450" },
-    { time: "10.40 AM", playingMethod: "Coin", qty: 5, revenue: "LKR 850" },
-    { time: "11.10 AM", playingMethod: "Coin", qty: 4, revenue: "LKR 400" },
-    { time: "12.30 PM", playingMethod: "Coin", qty: 1, revenue: "LKR 600" },
-    { time: "12.50 PM", playingMethod: "Coin", qty: 3, revenue: "LKR 1450" },
-    { time: "01.00 PM", playingMethod: "Coin", qty: 6, revenue: "LKR 850" },
-    { time: "05.20 PM", playingMethod: "Coin", qty: 2, revenue: "LKR 400" },
-    { time: "07.15 PM", playingMethod: "Coin", qty: 4, revenue: "LKR 600" },
-  ];
+
 
   return (
     <Box
@@ -72,9 +103,9 @@ const ReportOtherGamesSalesTable = () => {
         </Box>
 
         {/* Table Rows */}
-        {otherGamesSales.map((item, i) => (
+         {games.map((game) => (
           <Box
-            key={i}
+            key={game.id}
             sx={{
               display: "grid",
               gridTemplateColumns: "1fr 1fr 1fr 1fr",
@@ -87,10 +118,10 @@ const ReportOtherGamesSalesTable = () => {
               },
             }}
           >
-            <Box sx={tableRowStyle}>{item.time}</Box>
-            <Box sx={tableRowStyle}>{item.playingMethod}</Box>
-            <Box sx={tableRowStyle}>{item.qty}</Box>
-            <Box sx={tableRowStyle}>{item.revenue}</Box>
+            <Box sx={tableRowStyle}>{new Date(game.created_at).toTimeString().slice(0, 5)}</Box>
+            <Box sx={tableRowStyle}>{game.method}</Box>
+            <Box sx={tableRowStyle}>{game.quantity}</Box>
+            <Box sx={tableRowStyle}>{game.price}</Box>
           </Box>
         ))}
       </Box>

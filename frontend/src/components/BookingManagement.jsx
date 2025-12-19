@@ -16,6 +16,10 @@ import BookingDialog from "./BookingDialog"; // For Upcoming
 import SessionDialog from "./SessionDialog"; // For In Progress
 import CompletedBookingDialog from "./CompletedBookingDialog"; // For Completed
 import axios from "axios";
+ export const formatBookingDate = (bookingDate) => {
+    if (!bookingDate) return "";
+    return bookingDate.split("T")[0]; // Extract YYYY-MM-DD
+  };
 
 const BookingManagement = () => {
   const [view, setView] = React.useState("timeline");
@@ -122,10 +126,7 @@ const BookingManagement = () => {
       );
     });
   };
-  const formatBookingDate = (bookingDate) => {
-    if (!bookingDate) return "";
-    return bookingDate.split("T")[0]; // Extract YYYY-MM-DD
-  };
+ 
 
   const autoUpdateStatuses = async () => {
     try {
