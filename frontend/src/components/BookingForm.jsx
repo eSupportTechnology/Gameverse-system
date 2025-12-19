@@ -131,56 +131,86 @@ const BookingForm = ({
     setUpdateSuccess(false);
     handleClose();
   };
-  
+
   const parse12HourTimeToMinutes = (timeStr) => {
     if (!timeStr) return 0;
     let [hour, min] = timeStr.split(":").map(Number);
-
-    if (hour === 12) hour = 12;
-    else hour += 12;
-
+    // Assuming all times are PM except 12 (like your earlier example)
+    if (hour !== 12) hour += 12;
     return hour * 60 + min;
+  };
+
+  const parseDurationToMinutes = (duration) => {
+    if (!duration) return 0;
+    let mins = 0;
+    const hourMatch = duration.match(/(\d+)h/);
+    const minMatch = duration.match(/(\d+)m/);
+    if (hourMatch) mins += parseInt(hourMatch[1], 10) * 60;
+    if (minMatch) mins += parseInt(minMatch[1], 10);
+    return mins;
   };
 
   const isTimeOverlap = (start1, duration1, start2, duration2) => {
     const s1 = parse12HourTimeToMinutes(start1);
     const e1 = s1 + parseDurationToMinutes(duration1);
-
     const s2 = parse12HourTimeToMinutes(start2);
     const e2 = s2 + parseDurationToMinutes(duration2);
-
     return s1 < e2 && s2 < e1;
   };
+  const isSameStartTime = (t1, t2) => {
+    return t1?.trim() === t2?.trim();
+  };
 
-  const isSlotFull = () => {
+  const validateSlot = () => {
     const formStation = formData.station?.trim();
     const formDate = formData.bookingDate?.trim();
     const formStartTime = formData.startTime?.trim();
     const formDuration = formData.duration;
 
     if (!formStation || !formDate || !formStartTime || !formDuration)
-      return false;
+      return { valid: true };
 
-    const allBookings = Array.isArray(bookings) ? bookings : [];
-
-    const relevantBookings = allBookings.filter((b) => {
-      if (existingBooking && b.id === existingBooking.id) return false;
-      return (
+    const relevantBookings = bookings.filter(
+      (b) =>
         b.station?.trim() === formStation &&
-        b.booking_date?.split("T")[0] === formDate
-      );
-    });
+        b.booking_date?.split("T")[0] === formDate &&
+        (!existingBooking || b.id !== existingBooking.id)
+    );
 
-    let overlapCount = 0;
+    let sameStartCount = 0;
+
     for (let b of relevantBookings) {
-      if (
-        isTimeOverlap(formStartTime, formDuration, b.start_time, b.duration)
-      ) {
-        overlapCount++;
+      const overlaps = isTimeOverlap(
+        formStartTime,
+        formDuration,
+        b.start_time,
+        b.duration
+      );
+
+      if (!overlaps) continue;
+
+      // 🔴 CASE 1: overlaps but different start time → BLOCK
+      if (!isSameStartTime(formStartTime, b.start_time)) {
+        return {
+          valid: false,
+          message:
+            "This time falls within an existing booking. Please choose another time.",
+        };
       }
+
+      // 🟢 CASE 2: same start time → count for capacity
+      sameStartCount++;
     }
 
-    return overlapCount >= 4;
+    // 🔴 Capacity rule
+    if (sameStartCount >= 4) {
+      return {
+        valid: false,
+        message: "This slot already has 4 bookings.",
+      };
+    }
+
+    return { valid: true };
   };
 
   // Auto-set slot duration if already exists
@@ -235,9 +265,11 @@ const BookingForm = ({
       !formData.duration
     )
       return alert("Please fill in all required fields");
+    const result = validateSlot();
 
-    if (!existingBooking && isSlotFull()) {
-      return alert("Cannot create booking: this time slot is already full.");
+    if (!result.valid) {
+      alert(result.message);
+      return;
     }
 
     setLoading(true);
