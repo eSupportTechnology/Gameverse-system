@@ -20,6 +20,7 @@ import { useEffect, useState } from "react";
 import AddNFCUserDialog from "./AddNFCUserDialog";
 import CreateSuccessDialog from "./CreateSuccessDialog";
 import UpdateSuccessDialog from "./UpdateSuccess";
+import { parseDurationToMinutes } from "./BookingManagement";
 
 const BookingForm = ({
   open,
@@ -130,29 +131,56 @@ const BookingForm = ({
     setUpdateSuccess(false);
     handleClose();
   };
+  
+  const parse12HourTimeToMinutes = (timeStr) => {
+    if (!timeStr) return 0;
+    let [hour, min] = timeStr.split(":").map(Number);
+
+    if (hour === 12) hour = 12;
+    else hour += 12;
+
+    return hour * 60 + min;
+  };
+
+  const isTimeOverlap = (start1, duration1, start2, duration2) => {
+    const s1 = parse12HourTimeToMinutes(start1);
+    const e1 = s1 + parseDurationToMinutes(duration1);
+
+    const s2 = parse12HourTimeToMinutes(start2);
+    const e2 = s2 + parseDurationToMinutes(duration2);
+
+    return s1 < e2 && s2 < e1;
+  };
+
   const isSlotFull = () => {
     const formStation = formData.station?.trim();
-    const formTime = formData.startTime?.trim();
     const formDate = formData.bookingDate?.trim();
+    const formStartTime = formData.startTime?.trim();
+    const formDuration = formData.duration;
 
-    // Ensure bookings is an array
+    if (!formStation || !formDate || !formStartTime || !formDuration)
+      return false;
+
     const allBookings = Array.isArray(bookings) ? bookings : [];
 
-    const matchedBookings = allBookings.filter((b) => {
-      const bookingStation = b.station?.trim();
-      const bookingTime = b.start_time?.trim();
-      const bookingDate = b.booking_date?.split("T")[0];
-
+    const relevantBookings = allBookings.filter((b) => {
       if (existingBooking && b.id === existingBooking.id) return false;
-
       return (
-        bookingStation === formStation &&
-        bookingTime === formTime &&
-        bookingDate === formDate
+        b.station?.trim() === formStation &&
+        b.booking_date?.split("T")[0] === formDate
       );
     });
 
-    return matchedBookings.length >= 4;
+    let overlapCount = 0;
+    for (let b of relevantBookings) {
+      if (
+        isTimeOverlap(formStartTime, formDuration, b.start_time, b.duration)
+      ) {
+        overlapCount++;
+      }
+    }
+
+    return overlapCount >= 4;
   };
 
   // Auto-set slot duration if already exists
@@ -209,9 +237,7 @@ const BookingForm = ({
       return alert("Please fill in all required fields");
 
     if (!existingBooking && isSlotFull()) {
-      return alert(
-        "This time slot is already full (maximum 4 bookings allowed)."
-      );
+      return alert("Cannot create booking: this time slot is already full.");
     }
 
     setLoading(true);
