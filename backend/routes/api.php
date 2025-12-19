@@ -17,6 +17,7 @@ use App\Http\Controllers\PortalGameController;
 use App\Http\Controllers\Api\EventController;
 use App\Http\Controllers\Api\GalleryController;
 use App\Http\Controllers\Api\TvScreenController;
+use App\Http\Controllers\Api\ReportsController;
 
 
 // Public route
@@ -149,3 +150,14 @@ Route::get('/tv-screen', [TvScreenController::class, 'index']);
 Route::post('/tv-screen', [TvScreenController::class, 'store']);
 Route::patch('/tv-screen/{id}/toggle', [TvScreenController::class, 'toggleStatus']);
 Route::delete('/tv-screen/{id}', [TvScreenController::class, 'destroy']);
+
+// Route::get('/reports/booking-sales', [ReportsController::class, 'bookingSales']);
+
+Route::get('/stations', [StationController::class, 'index']); 
+Route::post('/stations', [StationController::class, 'store']);
+Route::post('/stations/{id}', [StationController::class, 'update']); 
+Route::delete('/stations/{id}', [StationController::class, 'destroy']);
+
+// Route::get('/reports/booking-stations', [ReportsController::class, 'bookingStations']);
+
+Route::get('/booking-stations', [BookingController::class, 'stations']);

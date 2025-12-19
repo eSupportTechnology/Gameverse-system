@@ -240,3 +240,26 @@ export const deleteTvScreen = async (id) => {
     throw err;
   }
 };
+
+
+// export const getStations = async () => {
+//   try {
+//     const res = await getAxiosInstance().get("/stations");
+//     return res.data.data; // 
+//   } catch (err) {
+//     console.error("Failed to fetch stations:", err);
+//     return [];
+//   }
+// };
+
+
+// export const getBookingStations = async () => {
+//   try {
+//     const res = await getAxiosInstance().get("/reports/booking-stations");
+//     return res.data.data; // array of station names
+//   } catch (err) {
+//     console.error("Failed to fetch booking stations:", err);
+//     return [];
+//   }
+// };
+
