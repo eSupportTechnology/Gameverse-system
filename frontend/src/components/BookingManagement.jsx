@@ -16,10 +16,6 @@ import BookingDialog from "./BookingDialog"; // For Upcoming
 import SessionDialog from "./SessionDialog"; // For In Progress
 import CompletedBookingDialog from "./CompletedBookingDialog"; // For Completed
 import axios from "axios";
- export const formatBookingDate = (bookingDate) => {
-    if (!bookingDate) return "";
-    return bookingDate.split("T")[0]; // Extract YYYY-MM-DD
-  };
 
 export const parseDurationToMinutes = (duration) => {
   if (!duration) return 60;
@@ -124,28 +120,6 @@ const BookingManagement = () => {
 
     return timeString;
   };
-
-  const matchStation = (apiName, uiName, stationsList = stations) => {
-    if (!apiName || !uiName) return false;
-
-    const clean = (str) =>
-      str
-        .toLowerCase()
-        .replace(/\s+/g, "")
-        .replace(/[^a-z0-9]/g, "");
-
-    const uiClean = clean(uiName);
-
-    return stationsList.some((s) => {
-      const apiClean = clean(s.name);
-      return (
-        apiClean === uiClean ||
-        apiClean.includes(uiClean) ||
-        uiClean.includes(apiClean)
-      );
-    });
-  };
- 
 
   const autoUpdateStatuses = async () => {
     try {
