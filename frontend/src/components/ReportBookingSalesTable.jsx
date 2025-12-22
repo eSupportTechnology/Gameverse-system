@@ -498,9 +498,9 @@ const ReportBookingSalesTable = ({
       )}
 
       {/* TABS */}
-      {activeTab === 2 && <ReportProductSalesTable />}
+      {activeTab === 2 && <ReportProductSalesTable date={date} />}
 {activeTab === 3 && <ReportOtherGamesSalesTable date={date} />}
-      {activeTab === 4 && <ReportNFCcustomersTable />}
+      {activeTab === 4 && <ReportNFCcustomersTable date={date} />}
     </Box>
   );
 };

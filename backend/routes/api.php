@@ -80,6 +80,7 @@ Route::get('/games', [GameController::class, 'index']);
 Route::get('/games/{id}', [GameController::class, 'show']);
 
 // Pos System  Admin
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/pos/add-items', [PosItemController::class, 'store']);
     Route::get('/pos/get-items', [PosItemController::class, 'index']);
@@ -103,8 +104,8 @@ Route::put('/operator-bookings/{id}', [OperatorBookingController::class, 'update
 Route::delete('/operator-bookings/{id}', [OperatorBookingController::class, 'destroy']);
 
 // NFC User Management routes
+Route::get('/nfc-users', [NfcUserController::class, 'index']);
 Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/nfc-users', [NfcUserController::class, 'index']);
     Route::post('/nfc-users', [NfcUserController::class, 'store']);
     Route::get('/nfc-users/{id}', [NfcUserController::class, 'show']);
     Route::put('/nfc-users/{id}', [NfcUserController::class, 'update']);

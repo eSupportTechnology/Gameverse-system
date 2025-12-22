@@ -1,7 +1,12 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Box, Typography } from "@mui/material";
+import axios from "axios";
 
-const ReportNFCcustomersTable = () => {
+const ReportNFCcustomersTable = ({date}) => {
+
+const [customers, setCustomers] = useState([]);
+const [loading, setLoading] = useState(false);
+
   const tableHeaderStyle = {
     backgroundColor: "#0E4450",
     color: "#fff",
@@ -18,62 +23,50 @@ const ReportNFCcustomersTable = () => {
     borderBottom: "1px solid #1f2937",
   };
 
-  const NFCcustomers = [
-    {
-      name: "Danuka Perera",
-      contact: "0705568923",
-      carNo: "GV0111",
-      status: "Active",
-    },
-    {
-      name: "Vishwa Pradeep",
-      contact: "0253692548",
-      carNo: "GV0102",
-      status: "Active",
-    },
-    {
-      name: "Mayumi Lakshika",
-      contact: "0782536598",
-      carNo: "GV0112",
-      status: "Active",
-    },
-    {
-      name: "Udara Devinda",
-      contact: "0774586936",
-      carNo: "GV0104",
-      status: "Active",
-    },
-    {
-      name: "Danuka Perera",
-      contact: "0705568923",
-      carNo: "GV0119",
-      status: "Inactive",
-    },
-    {
-      name: "Vishwa Pradeep",
-      contact: "0253692548",
-      carNo: "GV0118",
-      status: "Active",
-    },
-    {
-      name: "Mayumi Lakshika",
-      contact: "0782536598",
-      carNo: "GV0185",
-      status: "Inactive",
-    },
-    {
-      name: "Udara Devinda",
-      contact: "0774586936",
-      carNo: "GV0117",
-      status: "Active",
-    },
-    {
-      name: "Danuka Perera",
-      contact: "0705568923",
-      carNo: "GV0114",
-      status: "Inactive",
-    },
-  ];
+   useEffect(() => {
+    fetchNFCUsers();
+  }, [date]);
+
+  const fetchNFCUsers = async () => {
+  try {
+    setLoading(true);
+
+    const token = localStorage.getItem("aToken");
+
+    const res = await axios.get("http://127.0.0.1:8000/api/nfc-users", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const apiData = Array.isArray(res.data?.data)
+      ? res.data.data
+      : Array.isArray(res.data)
+      ? res.data
+      : [];
+
+    // filter by selected date
+    const filteredData = date
+      ? apiData.filter((item) => {
+          if (!item.created_at) return false;
+
+          const itemDate = new Date(item.created_at)
+            .toISOString()
+            .split("T")[0];
+
+          return itemDate === date;
+        })
+      : apiData;
+
+    setCustomers(filteredData);
+  } catch (error) {
+    console.error("Failed to fetch NFC users", error);
+    setCustomers([]);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <Box
@@ -115,9 +108,21 @@ const ReportNFCcustomersTable = () => {
           <Box sx={tableHeaderStyle}>Car Number</Box>
           <Box sx={tableHeaderStyle}>Status</Box>
         </Box>
+        {loading && (
+          <Typography sx={{ p: 2, textAlign: "center", color: "#9ca3af" }}>
+            Loading customers...
+          </Typography>
+        )}
+
+        {!loading && customers.length === 0 && (
+          <Typography sx={{ p: 2, textAlign: "center", color: "#9ca3af" }}>
+            No customers found
+          </Typography>
+        )}
+
 
         {/* Table Rows */}
-        {NFCcustomers.map((item, i) => (
+        {customers.map((item, i) => (
           <Box
             key={i}
             sx={{
@@ -132,9 +137,9 @@ const ReportNFCcustomersTable = () => {
               },
             }}
           >
-            <Box sx={tableRowStyle}>{item.name}</Box>
-            <Box sx={tableRowStyle}>{item.contact}</Box>
-            <Box sx={tableRowStyle}>{item.carNo}</Box>
+            <Box sx={tableRowStyle}>{item.full_name}</Box>
+            <Box sx={tableRowStyle}>{item.phone_no}</Box>
+            <Box sx={tableRowStyle}>{item.card_no}</Box>
             <Box sx={tableRowStyle}>{item.status}</Box>
           </Box>
         ))}
