@@ -123,11 +123,6 @@ export default function AddNFCUserDialog({
 
   const handleClose = () => {
     handleOpenCancelPopup();
-    // if (formData.nfcCardNumber || formData.fullName || formData.phoneNo || formData.nicNumber) {
-    //   handleOpenCancelPopup();
-    // } else {
-    //   onClose();
-    // }
   };
 
   return (
