@@ -52,6 +52,13 @@ class PosSaleController extends Controller
                     'unit_price' => $cart->posItem->price,
                     'subtotal' => $cart->posItem->price * $cart->quantity,
                 ]);
+
+                PosItem::where('id', $cart->pos_item_id)->update([
+                    
+                    'paid_amount' => DB::raw(
+                        'paid_amount + ' . ($cart->posItem->price * $cart->quantity)
+                    ),
+                ]);
             }
 
             // Clear cart
