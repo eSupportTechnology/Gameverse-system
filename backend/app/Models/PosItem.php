@@ -15,6 +15,7 @@ class PosItem extends Model
         'stock',
         'loyality_price',
         'user_id',
+        'paid_amount'
     ];
 
     // Each item belongs to a user
