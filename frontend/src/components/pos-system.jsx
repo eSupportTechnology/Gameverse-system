@@ -9,7 +9,7 @@ import {
   Typography,
 } from "@mui/material";
 import axios from "axios";
-import { useContext, useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import EditIcon from "../assets/editicon.png";
 import addIcon from "../assets/plus.png";
@@ -77,63 +77,68 @@ const PosSystem = () => {
   const handleOpenAddNFCUserDialog = () => setOpenAddNFCUserDialog(true);
   const handleCloseAddNFCUserDialog = () => setOpenAddNFCUserDialog(false);
 
+
+  
   // Cart operations
-  const addToCart = (product) => {
-    // BLOCK if no stock
-    if (product.stock <= 0) return;
+  const fetchCart = async () => {
+  try {
+    const res = await axios.get("http://localhost:8000/api/cart");
 
-    const exists = cart.find((p) => p.id === product.id);
-
-    if (exists) {
+    if (res.data.success) {
       setCart(
-        cart.map((p) => (p.id === product.id ? { ...p, qty: p.qty + 1 } : p))
-      );
-    } else {
-      setCart([...cart, { ...product, qty: 1 }]);
-    }
-
-    // DECREASE STOCK
-    setProducts((prevProducts) =>
-      prevProducts.map((p) =>
-        p.id === product.id ? { ...p, stock: p.stock - 1 } : p
-      )
-    );
-  };
-
-  const removeFromCart = (product) => {
-    const exists = cart.find((p) => p.id === product.id);
-
-    if (exists.qty === 1) {
-      setCart(cart.filter((p) => p.id !== product.id));
-    } else {
-      setCart(
-        cart.map((p) => (p.id === product.id ? { ...p, qty: p.qty - 1 } : p))
+        res.data.data.map((c) => ({
+          id: c.pos_item.id,
+          name: c.pos_item.item_name,
+          price: c.pos_item.price,
+          qty: c.quantity,          
+        }))
       );
     }
+  } catch (err) {
+    console.error(err);
+  }
+};
 
-    // INCREASE STOCK
-    setProducts((prevProducts) =>
-      prevProducts.map((p) =>
-        p.id === product.id ? { ...p, stock: p.stock + 1 } : p
-      )
-    );
-  };
+useEffect(() => {
+  fetchItems();
+  fetchCart();
+}, []);
 
-  const handleDeleteCart = (product) => {
-    // Find how many were in cart
-    const deletedItem = cart.find((p) => p.id === product.id);
-    if (!deletedItem) return;
+const addToCart = async (item) => {
+  try {
+    await axios.post("http://localhost:8000/api/cart/add", {
+      pos_item_id: item.id,
+    });
 
-    // Remove from cart
-    setCart(cart.filter((p) => p.id !== product.id));
+    // refresh stock
+    fetchItems(); 
+     // refresh cart
+    fetchCart(); 
+  } catch (err) {
+    toast.error(err.response?.data?.message || "Out of stock");
+  }
+};
 
-    // RESTORE STOCK (all qty)
-    setProducts((prevProducts) =>
-      prevProducts.map((p) =>
-        p.id === product.id ? { ...p, stock: p.stock + deletedItem.qty } : p
-      )
-    );
-  };
+const removeFromCart = async (item) => {
+  await axios.post("http://localhost:8000/api/cart/decrease", {
+    pos_item_id: item.id,
+  });
+
+  fetchItems();
+  fetchCart();
+};
+const handleDeleteCart = async (item) => {
+  await axios.post("http://localhost:8000/api/cart/remove", {
+    pos_item_id: item.id,
+  });
+
+  fetchItems();
+  fetchCart();
+};
+
+
+
+  
 
   const totalPrice = cart.reduce((sum, item) => {
     return sum + Number(item.price) * Number(item.qty || 1);
@@ -193,16 +198,19 @@ const PosSystem = () => {
       };
 
       // Call backend API
-      const response = await axios.post(
-        "http://localhost:8000/api/pos/add-items",
-        payload,
-        {
-          headers: {
-            Authorization: `Bearer ${aToken}`, // from context
-            "Content-Type": "application/json",
-          },
-        }
-      );
+    const response = await axios.post(
+  "http://localhost:8000/api/pos/add-items",
+  payload,
+  {
+    headers: {
+      "Content-Type": "application/json",
+    },
+  }
+);
+
+
+
+
       if (response.status === 201) {
         const addedItem = response.data.data;
         await fetchItems();
@@ -225,32 +233,29 @@ const PosSystem = () => {
 
   // fetch items
   const fetchItems = async () => {
-    try {
-      const token = localStorage.getItem("aToken"); // your Sanctum token or similar
-      const response = await axios.get(
-        "http://localhost:8000/api/pos/get-items",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+  try {
+    const token = localStorage.getItem("aToken");
 
-      if (response.data.success) {
-        setProducts(response.data.data);
+    const response = await axios.get(
+      "http://localhost:8000/api/pos/get-items",
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       }
-    } catch (error) {
-      console.error("Error fetching POS items:", error);
-      // IMPORTANT FIX
-      setProducts([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+    );
 
-  useEffect(() => {
-    fetchItems();
-  }, [aToken]);
+    if (response.data.success) {
+      setProducts(response.data.data); // ✅ THIS WAS MISSING
+    }
+  } catch (error) {
+    console.error("Error fetching POS items:", error);
+    setProducts([]); // safety
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   // Update/Edit item
   const handleUpdateItem = async () => {
@@ -352,19 +357,35 @@ const PosSystem = () => {
   });
 
   // Category filter
-  const filteredProducts =
-    activeCategory === "All"
-      ? searchedProducts
-      : searchedProducts.filter(
-          (p) =>
-            (p.category || p.item_category || "").toLowerCase() ===
-            activeCategory.toLowerCase()
-        );
+const filteredProducts =
+  activeCategory === "All"
+    ? searchedProducts
+    : searchedProducts.filter(
+        (p) =>
+          p.category &&
+          p.category.toLowerCase() === activeCategory.toLowerCase()
+      );
+
 
   // Totals
   const subtotal = cart.reduce((acc, item) => acc + item.price * item.qty, 0);
   const discount = 0;
   const total = subtotal - discount;
+
+
+  const handlePayNow = async () => {
+  try {
+    await axios.post("http://localhost:8000/api/pos/checkout");
+
+    setOpenCheckout(false);
+    setOpenPaymentSuccess(true);
+
+    fetchCart();   // 🔥 cart must be empty now
+    fetchItems();  // 🔥 stock refreshed
+  } catch (err) {
+    toast.error(err.response?.data?.message || "Checkout failed");
+  }
+};
 
   return (
     <Box
@@ -520,6 +541,12 @@ const PosSystem = () => {
                 gap: 2,
               }}
             >
+              {filteredProducts.length === 0 && (
+  <Typography color="gray" textAlign="center">
+    No items found
+  </Typography>
+)}
+
               {filteredProducts.map((item) => (
                 <Card
                   key={item.id}
@@ -700,11 +727,11 @@ const PosSystem = () => {
       <CheckoutModal
         open={openCheckout}
         onClose={handleCheckoutClose}
-        customerName="Alex Chen"
-        customerId="GV001234"
+        // customerName="Alex Chen"
+        // customerId="GV001234"
         subtotal={subtotal}
         total={total}
-        onPayNow={() => setOpenPaymentSuccess(true)}
+        onPayNow={handlePayNow}
       />
 
       <PaymentSuccessPopup
