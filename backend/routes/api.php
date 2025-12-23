@@ -18,6 +18,7 @@ use App\Http\Controllers\Api\EventController;
 use App\Http\Controllers\Api\GalleryController;
 use App\Http\Controllers\Api\TvScreenController;
 use App\Http\Controllers\Api\ReportsController;
+use App\Http\Controllers\CartController;
 
 
 // Public route
@@ -81,12 +82,13 @@ Route::get('/games/{id}', [GameController::class, 'show']);
 
 // Pos System  Admin
 
-Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/pos/add-items', [PosItemController::class, 'store']);
+// Route::middleware('auth:sanctum')->group(function () {
+   Route::post('/pos/add-items', [PosItemController::class, 'store']);
+
     Route::get('/pos/get-items', [PosItemController::class, 'index']);
     Route::put('/pos/update-item/{id}', [PosItemController::class, 'updateItem']);
     Route::post('/pos/checkout', [PosSaleController::class, 'checkout']);
-});
+// });
 
 // Pos System operator
 Route::middleware('auth:sanctum')->group(function () {
@@ -151,3 +153,14 @@ Route::get('/tv-screen', [TvScreenController::class, 'index']);
 Route::post('/tv-screen', [TvScreenController::class, 'store']);
 Route::patch('/tv-screen/{id}/toggle', [TvScreenController::class, 'toggleStatus']);
 Route::delete('/tv-screen/{id}', [TvScreenController::class, 'destroy']);
+
+
+Route::prefix('cart')->group(function () {
+
+    Route::get('/', [CartController::class, 'index']);       // GET cart
+    Route::post('/add', [CartController::class, 'add']);     // + add item
+    Route::post('/decrease', [CartController::class, 'decrease']); // - decrease qty
+    Route::post('/remove', [CartController::class, 'remove']); // delete item
+    Route::post('/clear', [CartController::class, 'clear']); // clear cart
+
+});
