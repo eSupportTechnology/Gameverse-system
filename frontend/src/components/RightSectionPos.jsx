@@ -138,7 +138,7 @@ export default function RightSection({
               >
                 <Box>
                   <Typography fontWeight={600} fontSize={14}>
-                    {item.item_name}
+                    {item.name}
                   </Typography>
                   <Typography variant="body2" color="#9CA3AF" fontSize={12}>
                     LKR{item.price}
