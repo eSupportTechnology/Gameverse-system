@@ -380,8 +380,8 @@ const filteredProducts =
     setOpenCheckout(false);
     setOpenPaymentSuccess(true);
 
-    fetchCart();   // 🔥 cart must be empty now
-    fetchItems();  // 🔥 stock refreshed
+    fetchCart();  
+    fetchItems(); 
   } catch (err) {
     toast.error(err.response?.data?.message || "Checkout failed");
   }
