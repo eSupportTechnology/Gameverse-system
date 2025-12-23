@@ -246,7 +246,7 @@ const handleDeleteCart = async (item) => {
     );
 
     if (response.data.success) {
-      setProducts(response.data.data); // ✅ THIS WAS MISSING
+      setProducts(response.data.data); 
     }
   } catch (error) {
     console.error("Error fetching POS items:", error);
