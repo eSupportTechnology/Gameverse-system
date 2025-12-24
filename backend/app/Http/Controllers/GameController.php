@@ -88,16 +88,17 @@ class GameController extends Controller
     public function checkout(Request $request, $id)
     {
         $request->validate([
-            'balance' => 'required|integer|min:0',
+            'balance' => 'required|numeric|min:0',
         ]);
 
         $game = Game::findOrFail($id);
 
-        $game->balance = $request->balance;
+        $game->paid_amount = $request->balance;
         $game->save();
 
         return response()->json([
-            'message' => 'Balance updated successfully',
+            'success' => true,
+            'message' => 'Payment successful',
             'data' => $game
         ]);
     }
