@@ -1,12 +1,23 @@
 import React from "react";
-import { Modal, Box, Typography, IconButton, Button } from "@mui/material";
+import {
+  Modal,
+  Box,
+  Typography,
+  IconButton,
+  Button,
+  TextField,
+} from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 
 const CheckoutModal = ({
   open,
   onClose,
   customerName,
+  setCustomerName,
   customerId,
+  setCustomerId,
+  discount,
+  setDiscount,
   subtotal,
   total,
   onPayNow,
@@ -59,10 +70,36 @@ const CheckoutModal = ({
             {customerName?.[0]?.toUpperCase()}
           </Box>
           <Box>
-            <Typography fontWeight="500">
+            <Typography
+              fontWeight="500"
+              contentEditable
+              suppressContentEditableWarning
+              onBlur={(e) => setCustomerName(e.target.innerText)}
+              sx={{
+                cursor: "text",
+                outline: "none",
+                "&:focus": {
+                  borderBottom: "1px dashed #38BDF8",
+                },
+              }}
+            >
               {customerName || "Alex Chen"}
             </Typography>
-            <Typography variant="body2" color="gray">
+
+            <Typography
+              variant="body2"
+              color="gray"
+              contentEditable
+              suppressContentEditableWarning
+              onBlur={(e) => setCustomerId(e.target.innerText)}
+              sx={{
+                cursor: "text",
+                outline: "none",
+                "&:focus": {
+                  borderBottom: "1px dashed #38BDF8",
+                },
+              }}
+            >
               {customerId || "GV001234"}
             </Typography>
           </Box>
@@ -76,11 +113,39 @@ const CheckoutModal = ({
               LKR {Number(subtotal).toFixed(2)}
             </Typography>
           </Box>
-          <Box display="flex" justifyContent="space-between" mb={1}>
+          <Box
+            display="flex"
+            justifyContent="space-between"
+            alignItems="center"
+            mb={1}
+          >
             <Typography>Discount</Typography>
-            {/* <Typography>LKR {Number(discount).toFixed(2)}</Typography> */}
-            <Typography color="#94A3B8">.................</Typography>
+
+            <Typography
+              contentEditable
+              suppressContentEditableWarning
+              onBlur={(e) => {
+                const value = e.target.innerText.replace(/[^\d.]/g, "");
+                setDiscount(value || 0);
+              }}
+              sx={{
+                cursor: "text",
+                outline: "none",
+                minWidth: 80,
+                textAlign: "right",
+                color: "#94A3B8",
+                "&:focus": {
+                  borderBottom: "1px dashed #38BDF8",
+                },
+                "&:hover": {
+                  backgroundColor: "#1E293B",
+                },
+              }}
+            >
+              {discount || "0"}
+            </Typography>
           </Box>
+
           <Box borderBottom="1px solid #334155" my={2} />
           <Box
             sx={{
