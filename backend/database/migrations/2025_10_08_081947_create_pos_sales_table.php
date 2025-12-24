@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('pos_sales', function (Blueprint $table) {
             $table->id();
             $table->string('customer_name')->nullable();
-            $table->string('phone')->nullable();
+            $table->string('customer_id')->nullable();
             $table->string('email')->nullable();
             $table->decimal('subtotal', 10, 2);
             $table->decimal('discount', 10, 2)->default(0);
