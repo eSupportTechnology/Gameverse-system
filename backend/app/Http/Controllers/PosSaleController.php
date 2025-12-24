@@ -30,13 +30,24 @@ class PosSaleController extends Controller
 
 
             // Create sale
+            // Prepare items array
+            $itemsArray = $cartItems->map(function ($cart) {
+                return [
+                    'item_id' => $cart->pos_item_id,
+                    'quantity' => $cart->quantity
+                ];
+            })->toArray();
+
+            // Create sale
             $sale = PosSale::create([
                 'customer_name' => $request->customer_name ?: 'Walk-in',
-                'customer_id'   => $request->customer_id,
-                'subtotal'      => $subtotal,
-                'discount'      => $discount,
-                'total'         => $total,
+                'customer_id' => $request->customer_id,
+                'subtotal' => $subtotal,
+                'discount' => $discount,
+                'total' => $total,
+                'items' => json_encode($itemsArray), // <--- important
             ]);
+
 
 
             // Create sale items

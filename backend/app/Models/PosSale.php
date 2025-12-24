@@ -16,6 +16,7 @@ class PosSale extends Model
         'subtotal',
         'discount',
         'total',
+        'items'
     ];
 
     public function items()
