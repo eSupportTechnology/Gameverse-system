@@ -16,6 +16,7 @@ class Game extends Model
         'price',
         'balance',
         'team_game',
+        'paid_amount',
     ];
 
     // Ensure team_game is always a boolean
