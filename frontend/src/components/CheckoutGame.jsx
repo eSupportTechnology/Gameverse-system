@@ -66,7 +66,7 @@ const CheckoutGame = ({ game, handleClose }) => {
     try {
       await axios.post(
         `http://127.0.0.1:8000/api/games/${gameId}/balance`,
-        { balance },
+        { balance, discount: discountNumber },
         {
           headers: {
             Authorization: `Bearer ${token}`,
