@@ -1,7 +1,7 @@
 import React from "react";
 import { Box, Typography, LinearProgress } from "@mui/material";
 
-export default function RacingSimulatorTV() {
+export default function PremiumBilliardTV() {
   const currentPlayer = {
     name: "Lahiru Lakshitha",
     id: "12345",
@@ -59,7 +59,7 @@ export default function RacingSimulatorTV() {
               fontSize: "3rem",
             }}
           >
-            Racing Simulator
+            Premium Billiard Table 3
           </Typography>
         </Box>
 
@@ -104,8 +104,8 @@ export default function RacingSimulatorTV() {
                 }}
               >
                 <img
-                  src="../images/racing_si.png"
-                  alt="Racing Simulator"
+                  src="../images/premiumbtable.png"
+                  alt="Premium Billiard Table"
                   style={{
                     width: "100%",
                     height: "100%",
