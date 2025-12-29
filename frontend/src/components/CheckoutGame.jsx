@@ -43,66 +43,69 @@ const CheckoutGame = ({ game, handleClose, onPlayUpdate }) => {
   const token = localStorage.getItem('aToken');
 
   // Handle method and payment
-  const handlePay = async (gameId) => {
+ const handlePay = async (gameId) => {
   try {
+    if (!selectedMethod) {
+      alert("Payment method not selected");
+      return;
+    }
+
     let payload = {};
 
-    
     if (selectedMethod === "Per Hour") {
       payload = {
         type: "Per Hour",
-        hours: unitsNumber,
-        players: playersNumber,
+        hours: Number(units),
+        players: Number(players),
       };
-    }
-
-    
-    if (selectedMethod === "Coin") {
+    } else if (selectedMethod === "Coin") {
       payload = {
         type: "Coin",
-        coins: unitsNumber,
+        coins: Number(units),
       };
-    }
-
-    if (selectedMethod === "Arrow") {
+    } else if (selectedMethod === "Arrow") {
       payload = {
         type: "Arrow",
-        arrows: unitsNumber,
+        arrows: Number(units),
       };
+    } else {
+      alert("Invalid payment method");
+      return;
     }
 
     // Update method
-    const res = await axios.post(
+    const methodRes = await axios.post(
       `http://127.0.0.1:8000/api/games/${gameId}/play`,
       payload,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
+      { headers: { Authorization: `Bearer ${token}` } }
     );
 
     // Update balance
-    await axios.post(
+    const balanceRes = await axios.post(
       `http://127.0.0.1:8000/api/games/${gameId}/balance`,
-      { balance },
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
+      { balance: Number(balance) },
+      { headers: { Authorization: `Bearer ${token}` } }
     );
 
-    //  Update UI
-    onPlayUpdate?.(gameId, res.data.method);
+    // Update the parent state to reflect changes immediately
+    onPlayUpdate(gameId, methodRes.data.method);
 
     setPaymentSuccess(true);
   } catch (error) {
-    console.error(error);
+    console.error("API Error:", error.response?.data || error);
+    alert("Payment failed. Check console.");
   }
 };
 
+
+
 useEffect(() => {
-  if (game?.method?.type) {
-    setSelectedMethod(game.method.type);
-  } else if (typeof game.method === "string") {
-    setSelectedMethod(game.method);
+  if (game?.method) {
+    setSelectedMethod(
+      typeof game.method === "string"
+        ? game.method
+        : game.method.type
+    );
   }
 }, [game]);
 
@@ -216,6 +219,7 @@ useEffect(() => {
             />
           </Box>
 
+          
           {game.team_game && (
             <Box display="flex" justifyContent="space-between" mb={1.5}>
               <Typography fontSize={14} color="#FFFFFF">Players:</Typography>
