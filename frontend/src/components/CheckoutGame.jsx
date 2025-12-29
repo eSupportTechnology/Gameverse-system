@@ -26,7 +26,7 @@ const CheckoutGame = ({ game, handleClose, onPlayUpdate }) => {
   const handleCancelClose = () => setCancelOpen(false);
   const handleConfirm = () => {
     setCancelOpen(false);
-    handleClose(false);
+    handleClose();
   };
 
   if (!game) return null;
@@ -301,7 +301,7 @@ useEffect(() => {
             <Typography variant="h6" sx={{ background: "linear-gradient(90deg, #00C6FF, #FF00CC)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", fontSize: 24, fontWeight: 600, mb: 1 }}>
               Payment Successful!
             </Typography>
-            <Button onClick={() => setPaymentSuccess(false)} sx={{ px: 8, fontSize: 14, borderRadius: "8px", background: "linear-gradient(90deg, rgba(12, 215, 255, 0.4) 0%, rgba(138, 56, 245, 0.4) 73%)", color: "white" }}>
+            <Button onClick={handleConfirm} sx={{ px: 8, fontSize: 14, borderRadius: "8px", background: "linear-gradient(90deg, rgba(12, 215, 255, 0.4) 0%, rgba(138, 56, 245, 0.4) 73%)", color: "white" }}>
               Ok
             </Button>
           </DialogContent>
