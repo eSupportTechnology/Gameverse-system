@@ -8,43 +8,51 @@ use Illuminate\Http\Request;
 
 class PosSaleController extends Controller
 {
-    private function userId()
-    {
-        return 1; // default POS user
-    }
-        // Checkout (create sale)
+    // Checkout (create sale)
     public function checkout(Request $request)
     {
         DB::beginTransaction();
 
         try {
-            $cartItems = Cart::with('posItem')
-                ->where('user_id', $this->userId())
-                ->get();
+            // Get all cart items (global POS cart)
+            $cartItems = Cart::with('posItem')->get();
 
             if ($cartItems->isEmpty()) {
                 throw new \Exception('Cart is empty');
             }
 
-            $subtotal = $cartItems->sum(fn ($c) =>
-                $c->posItem->price * $c->quantity
-            );
+            $subtotal = $cartItems->sum(function ($c) {
+                return $c->posItem->price * $c->quantity;
+            });
 
-            $discount = 0;
-            $total = $subtotal - $discount;
+            $discount = (float) ($request->discount ?? 0);
+            $total = max($subtotal - $discount, 0);
+
+
+            // Create sale
+            // Prepare items array
+            $itemsArray = $cartItems->map(function ($cart) {
+                return [
+                    'item_id' => $cart->pos_item_id,
+                    'quantity' => $cart->quantity
+                ];
+            })->toArray();
 
             // Create sale
             $sale = PosSale::create([
-                'customer_name' => $request->customer_name ?? 'Walk-in',
-                'phone' => $request->phone,
-                'email' => $request->email,
+                'customer_name' => $request->customer_name ?: 'Walk-in',
+                'customer_id' => $request->customer_id,
                 'subtotal' => $subtotal,
                 'discount' => $discount,
                 'total' => $total,
+                'items' => json_encode($itemsArray), // <--- important
             ]);
 
-            // Create sale items 
+
+
+            // Create sale items
             foreach ($cartItems as $cart) {
+
                 SaleItem::create([
                     'sale_id' => $sale->id,
                     'item_id' => $cart->pos_item_id,
@@ -53,8 +61,8 @@ class PosSaleController extends Controller
                     'subtotal' => $cart->posItem->price * $cart->quantity,
                 ]);
 
+                // Update paid amount
                 PosItem::where('id', $cart->pos_item_id)->update([
-                    
                     'paid_amount' => DB::raw(
                         'paid_amount + ' . ($cart->posItem->price * $cart->quantity)
                     ),
@@ -62,7 +70,7 @@ class PosSaleController extends Controller
             }
 
             // Clear cart
-            Cart::where('user_id', $this->userId())->delete();
+            Cart::query()->delete();
 
             DB::commit();
 
@@ -71,9 +79,9 @@ class PosSaleController extends Controller
                 'message' => 'Checkout completed successfully',
                 'data' => $sale->load('items.item'),
             ], 201);
-
         } catch (\Exception $e) {
             DB::rollBack();
+
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),

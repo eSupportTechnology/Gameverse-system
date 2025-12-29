@@ -70,6 +70,9 @@ const PosSystem = () => {
     phoneNo: "",
     nicNumber: "",
   });
+  const [customerName, setCustomerName] = useState("");
+  const [customerId, setCustomerId] = useState("");
+  const [discount, setDiscount] = useState(0);
 
   // NFC Dialog State
   const [openAddNFCUserDialog, setOpenAddNFCUserDialog] = useState(false);
@@ -77,68 +80,62 @@ const PosSystem = () => {
   const handleOpenAddNFCUserDialog = () => setOpenAddNFCUserDialog(true);
   const handleCloseAddNFCUserDialog = () => setOpenAddNFCUserDialog(false);
 
-
-  
   // Cart operations
   const fetchCart = async () => {
-  try {
-    const res = await axios.get("http://localhost:8000/api/cart");
+    try {
+      const res = await axios.get("http://localhost:8000/api/cart");
 
-    if (res.data.success) {
-      setCart(
-        res.data.data.map((c) => ({
-          id: c.pos_item.id,
-          name: c.pos_item.item_name,
-          price: c.pos_item.price,
-          qty: c.quantity,          
-        }))
-      );
+      if (res.data.success) {
+        setCart(
+          res.data.data.map((c) => ({
+            id: c.pos_item.id,
+            name: c.pos_item.item_name,
+            price: c.pos_item.price,
+            qty: c.quantity,
+          }))
+        );
+      }
+    } catch (err) {
+      console.error(err);
     }
-  } catch (err) {
-    console.error(err);
-  }
-};
+  };
 
-useEffect(() => {
-  fetchItems();
-  fetchCart();
-}, []);
+  useEffect(() => {
+    fetchItems();
+    fetchCart();
+  }, []);
 
-const addToCart = async (item) => {
-  try {
-    await axios.post("http://localhost:8000/api/cart/add", {
+  const addToCart = async (item) => {
+    try {
+      await axios.post("http://localhost:8000/api/cart/add", {
+        pos_item_id: item.id,
+      });
+
+      // refresh stock
+      fetchItems();
+      // refresh cart
+      fetchCart();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Out of stock");
+    }
+  };
+
+  const removeFromCart = async (item) => {
+    await axios.post("http://localhost:8000/api/cart/decrease", {
       pos_item_id: item.id,
     });
 
-    // refresh stock
-    fetchItems(); 
-     // refresh cart
-    fetchCart(); 
-  } catch (err) {
-    toast.error(err.response?.data?.message || "Out of stock");
-  }
-};
+    fetchItems();
+    fetchCart();
+  };
+  const handleDeleteCart = async (item) => {
+    await axios.post("http://localhost:8000/api/cart/remove", {
+      pos_item_id: item.id,
+    });
 
-const removeFromCart = async (item) => {
-  await axios.post("http://localhost:8000/api/cart/decrease", {
-    pos_item_id: item.id,
-  });
-
-  fetchItems();
-  fetchCart();
-};
-const handleDeleteCart = async (item) => {
-  await axios.post("http://localhost:8000/api/cart/remove", {
-    pos_item_id: item.id,
-  });
-
-  fetchItems();
-  fetchCart();
-};
-
-
-
-  
+    fetchItems();
+    fetchCart();
+  };
 
   const totalPrice = cart.reduce((sum, item) => {
     return sum + Number(item.price) * Number(item.qty || 1);
@@ -198,18 +195,15 @@ const handleDeleteCart = async (item) => {
       };
 
       // Call backend API
-    const response = await axios.post(
-  "http://localhost:8000/api/pos/add-items",
-  payload,
-  {
-    headers: {
-      "Content-Type": "application/json",
-    },
-  }
-);
-
-
-
+      const response = await axios.post(
+        "http://localhost:8000/api/pos/add-items",
+        payload,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
       if (response.status === 201) {
         const addedItem = response.data.data;
@@ -233,29 +227,28 @@ const handleDeleteCart = async (item) => {
 
   // fetch items
   const fetchItems = async () => {
-  try {
-    const token = localStorage.getItem("aToken");
+    try {
+      const token = localStorage.getItem("aToken");
 
-    const response = await axios.get(
-      "http://localhost:8000/api/pos/get-items",
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      const response = await axios.get(
+        "http://localhost:8000/api/pos/get-items",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.data.success) {
+        setProducts(response.data.data);
       }
-    );
-
-    if (response.data.success) {
-      setProducts(response.data.data); 
+    } catch (error) {
+      console.error("Error fetching POS items:", error);
+      setProducts([]); // safety
+    } finally {
+      setLoading(false);
     }
-  } catch (error) {
-    console.error("Error fetching POS items:", error);
-    setProducts([]); // safety
-  } finally {
-    setLoading(false);
-  }
-};
-
+  };
 
   // Update/Edit item
   const handleUpdateItem = async () => {
@@ -357,35 +350,36 @@ const handleDeleteCart = async (item) => {
   });
 
   // Category filter
-const filteredProducts =
-  activeCategory === "All"
-    ? searchedProducts
-    : searchedProducts.filter(
-        (p) =>
-          p.category &&
-          p.category.toLowerCase() === activeCategory.toLowerCase()
-      );
+  const filteredProducts =
+    activeCategory === "All"
+      ? searchedProducts
+      : searchedProducts.filter(
+          (p) =>
+            p.category &&
+            p.category.toLowerCase() === activeCategory.toLowerCase()
+        );
 
-
-  // Totals
   const subtotal = cart.reduce((acc, item) => acc + item.price * item.qty, 0);
-  const discount = 0;
-  const total = subtotal - discount;
 
+  const total = Math.max(subtotal - Number(discount || 0), 0);
 
   const handlePayNow = async () => {
-  try {
-    await axios.post("http://localhost:8000/api/pos/checkout");
+    try {
+      await axios.post("http://localhost:8000/api/pos/checkout", {
+        customer_name: customerName,
+        customer_id: customerId,
+        discount: discount,
+      });
 
-    setOpenCheckout(false);
-    setOpenPaymentSuccess(true);
+      setOpenCheckout(false);
+      setOpenPaymentSuccess(true);
 
-    fetchCart();  
-    fetchItems(); 
-  } catch (err) {
-    toast.error(err.response?.data?.message || "Checkout failed");
-  }
-};
+      fetchCart();
+      fetchItems();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Checkout failed");
+    }
+  };
 
   return (
     <Box
@@ -542,10 +536,10 @@ const filteredProducts =
               }}
             >
               {filteredProducts.length === 0 && (
-  <Typography color="gray" textAlign="center">
-    No items found
-  </Typography>
-)}
+                <Typography color="gray" textAlign="center">
+                  No items found
+                </Typography>
+              )}
 
               {filteredProducts.map((item) => (
                 <Card
@@ -727,8 +721,12 @@ const filteredProducts =
       <CheckoutModal
         open={openCheckout}
         onClose={handleCheckoutClose}
-        // customerName="Alex Chen"
-        // customerId="GV001234"
+        customerName={customerName}
+        setCustomerName={setCustomerName}
+        customerId={customerId}
+        setCustomerId={setCustomerId}
+        discount={discount}
+        setDiscount={setDiscount}
         subtotal={subtotal}
         total={total}
         onPayNow={handlePayNow}
