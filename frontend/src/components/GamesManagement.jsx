@@ -82,6 +82,20 @@ const GamesManagement = () => {
     }
   };
 
+
+const handlePlayUpdate = (gameId, updatedMethod) => {
+  setGames(prev =>
+    prev.map(g =>
+      g.id === gameId
+        ? { ...g, method: updatedMethod }
+        : g
+    )
+  );
+};
+
+
+
+
   return (
     <Box sx={{ p: 2, bgcolor: "#1E1E1E", color: "#fff", minHeight: "100vh" }}>
       {/* Header */}
@@ -251,6 +265,8 @@ const GamesManagement = () => {
           <CheckoutGame
             game={selectedGame}
             handleClose={() => setSelectedGame(null)}
+            onPlayUpdate={handlePlayUpdate} 
+
           />
         )}
       </Box>

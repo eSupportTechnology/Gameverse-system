@@ -79,6 +79,8 @@ Route::post('/games/{id}/balance', [GameController::class, 'checkout']);
 // Routes for fetching games
 Route::get('/games', [GameController::class, 'index']);
 Route::get('/games/{id}', [GameController::class, 'show']);
+ 
+Route::post('/games/{id}/play', [GameController::class, 'play']);
 
 // Pos System  Admin
 

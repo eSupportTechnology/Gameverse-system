@@ -105,4 +105,40 @@ class GameController extends Controller
             'data' => $game
         ]);
     }
+
+    // Update game method based on play type
+ public function play(Request $request, $id)
+{
+    $game = Game::findOrFail($id);
+ 
+    if ($request->type === 'Per Hour') {
+        $game->method = [
+            'type' => 'Per Hour',
+            'hours' => (int) $request->hours,
+            'players' => (int) $request->players,
+        ];
+    }
+  
+    if ($request->type === 'Coin') {
+        $game->method = [
+            'type' => 'Coin',
+            'coins' => (int) $request->coins,
+        ];
+    }
+
+    if ($request->type === 'Arrow') {
+        $game->method = [
+            'type' => 'Arrow',
+            'arrows' => (int) $request->arrows,
+        ];
+    }
+
+    $game->save();
+
+    return response()->json([
+        'message' => 'Method updated',
+        'method' => $game->method,
+    ]);
+}
+
 }
