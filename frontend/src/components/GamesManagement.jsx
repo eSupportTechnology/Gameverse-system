@@ -82,8 +82,7 @@ const GamesManagement = () => {
     }
   };
 
-  // New function in GamesManagement.jsx
-// GamesManagement.jsx
+
 const handlePlayUpdate = (gameId, updatedMethod) => {
   setGames(prev =>
     prev.map(g =>

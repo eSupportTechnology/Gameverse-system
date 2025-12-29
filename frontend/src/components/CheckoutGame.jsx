@@ -216,7 +216,6 @@ useEffect(() => {
             />
           </Box>
 
-          {/* Players (team games only) */}
           {game.team_game && (
             <Box display="flex" justifyContent="space-between" mb={1.5}>
               <Typography fontSize={14} color="#FFFFFF">Players:</Typography>
