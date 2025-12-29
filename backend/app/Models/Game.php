@@ -21,5 +21,6 @@ class Game extends Model
     // Ensure team_game is always a boolean
     protected $casts = [
         'team_game' => 'boolean',
+        'method' => 'array',
     ];
 }
