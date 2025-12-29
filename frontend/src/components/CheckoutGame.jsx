@@ -83,7 +83,10 @@ const CheckoutGame = ({ game, handleClose, onPlayUpdate }) => {
     // Update balance
     const balanceRes = await axios.post(
       `http://127.0.0.1:8000/api/games/${gameId}/balance`,
-      { balance: Number(balance) },
+      { balance: Number(balance),
+        discount: Number(discount)
+      },
+     
       { headers: { Authorization: `Bearer ${token}` } }
     );
 
