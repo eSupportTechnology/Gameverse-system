@@ -4,11 +4,21 @@ import Booking from "./pages/Booking";
 import NFCUsers from "./pages/NFCUsers";
 import OtherGames from "./pages/OtherGames";
 import Pos from "./pages/Pos";
-import PremiumBilliardTV from "./pages/PremiumBilliardTV";
-import PS5StationTVScreen from "./pages/PS5StationTVScreen";
-import RacingSimulatorTV from "./pages/RacingSimulatorTV";
+import PremiumBilliardTV1 from "./pages/PremiumBilliards/PremiumBilliardTV1";
+import PremiumBilliardTV2 from "./pages/PremiumBilliards/PremiumBilliardTV2";
+import PremiumBilliardTV3 from "./pages/PremiumBilliards/PremiumBilliardTV3";
+import PS5Station1TVScreen from "./pages/PS5Stations/PS5Station1TVScreen";
+import PS5Station2TVScreen from "./pages/PS5Stations/PS5Station2TVScreen";
+import PS5Station3TVScreen from "./pages/PS5Stations/PS5Station3TVScreen";
+import PS5Station4TVScreen from "./pages/PS5Stations/PS5Station4TVScreen";
+import PS5Station5TVScreen from "./pages/PS5Stations/PS5Station5TVScreen";
+import RacingSimulatorTV1 from "./pages/RacingSimulators/RacingSimulatorTV1";
+import RacingSimulatorTV2 from "./pages/RacingSimulators/RacingSimulatorTV2";
+import RacingSimulatorTV3 from "./pages/RacingSimulators/RacingSimulatorTV3";
+import RacingSimulatorTV4 from "./pages/RacingSimulators/RacingSimulatorTV4";
 import Station from "./pages/Station";
-import SupremeBilliardTV from "./pages/SupremeBilliardTV";
+import SupremeBilliardTV1 from "./pages/SupremeBilliards/SupremeBilliardTV1";
+import SupremeBilliardTV2 from "./pages/SupremeBilliards/SupremeBilliardTV2";
 import TVOffers from "./pages/TVOffers";
 import ValuableOffersScreen from "./pages/ValuableOffersScreen";
 import TVScreenControl from "./pages/TVScreenControl";
@@ -50,10 +60,20 @@ function App() {
             
             {/* TV Screens Routes */}
             <Route path="/tv-screens" element={<TVScreenControl />} />
-            <Route path="/ps5-station" element={<PS5StationTVScreen />} />
-            <Route path="/racing-simulator" element={<RacingSimulatorTV />} />
-            <Route path="/supreme-billiard" element={<SupremeBilliardTV />} />
-            <Route path="/premium-billiard" element={<PremiumBilliardTV />} />
+            <Route path="/ps5-station1" element={<PS5Station1TVScreen />} />
+            <Route path="/ps5-station2" element={<PS5Station2TVScreen />} />
+            <Route path="/ps5-station3" element={<PS5Station3TVScreen />} />
+            <Route path="/ps5-station4" element={<PS5Station4TVScreen />} />
+            <Route path="/ps5-station5" element={<PS5Station5TVScreen />} />
+            <Route path="/racing-simulator1" element={<RacingSimulatorTV1 />} />
+            <Route path="/racing-simulator2" element={<RacingSimulatorTV2 />} />
+            <Route path="/racing-simulator3" element={<RacingSimulatorTV3 />} />
+            <Route path="/racing-simulator4" element={<RacingSimulatorTV4 />} />
+            <Route path="/supreme-billiard1" element={<SupremeBilliardTV1 />} />
+            <Route path="/supreme-billiard2" element={<SupremeBilliardTV2 />} />
+            <Route path="/premium-billiard1" element={<PremiumBilliardTV1 />} />
+            <Route path="/premium-billiard2" element={<PremiumBilliardTV2 />} />
+            <Route path="/premium-billiard3" element={<PremiumBilliardTV3 />} />
             {/* <Route path="/tv-screens/offers" element={<TVOffers />} /> */}
             <Route path="/valuable-offers" element={<ValuableOffersScreen />} />
             <Route
