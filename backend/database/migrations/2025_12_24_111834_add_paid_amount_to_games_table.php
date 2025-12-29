@@ -6,17 +6,23 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * Run the migrations.
+     */
     public function up(): void
     {
         Schema::table('games', function (Blueprint $table) {
-            $table->boolean('team_game')->default(false)->after('price');
+            $table->decimal('paid_amount', 10, 2)->default(0)->after('price');
         });
     }
 
+    /**
+     * Reverse the migrations.
+     */
     public function down(): void
     {
         Schema::table('games', function (Blueprint $table) {
-            $table->dropColumn('team_game');
+            $table->dropColumn('paid_amount');
         });
     }
 };

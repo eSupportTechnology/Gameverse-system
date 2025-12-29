@@ -15,6 +15,7 @@ class Game extends Model
         'method',
         'price',
         'balance',
+        'discount',
         'team_game',
     ];
 

@@ -166,3 +166,7 @@ Route::prefix('cart')->group(function () {
     Route::post('/clear', [CartController::class, 'clear']); // clear cart
 
 });
+
+Route::get('/reports/new-customers', [ReportsController::class, 'newCustomersCount']);
+Route::get('/reports/total-bookings', [ReportsController::class, 'totalBookingsCount']);
+
