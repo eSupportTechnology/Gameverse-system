@@ -89,11 +89,14 @@ class GameController extends Controller
     {
         $request->validate([
             'balance' => 'required|numeric|min:0',
+            'discount' => 'nullable|numeric|min:0',
         ]);
 
         $game = Game::findOrFail($id);
 
-        $game->paid_amount = $request->balance;
+        // Set the balance and discount from the checkout form
+        $game->balance = $request->balance;
+        $game->discount = $request->discount ?? 0;
         $game->save();
 
         return response()->json([
