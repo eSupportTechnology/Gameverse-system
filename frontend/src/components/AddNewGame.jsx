@@ -30,14 +30,21 @@ const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmi
   const [price, setPrice] = useState("");
   const [saving, setSaving] = useState(false);
 
+
   useEffect(() => {
     if (open) {
       if (mode === "edit" && initialData) {
         setTitle(initialData.title ?? "");
         setTeamGame(initialData.team_game ?? null); // sync with backend
         setLocation(initialData.location ?? "");
-        setMethod(initialData.method ?? "Coin");
         setPrice(initialData.price ?? "");
+
+        if (typeof initialData.method === "object") {
+        setMethod(initialData.method.type);
+      } else {
+        setMethod(initialData.method || "Coin");
+      }
+
       } else {
         setTitle("");
         setTeamGame(null);
@@ -94,7 +101,7 @@ const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmi
       title: trimmedTitle,
       team_game: teamGame, // match backend
       location: trimmedLocation,
-      method: trimmedMethod,
+      method: method,
       price: Number(price),
     };
     const token = localStorage.getItem("aToken");
