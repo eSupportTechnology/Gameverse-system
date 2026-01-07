@@ -53,7 +53,7 @@ const BookingForm = ({
     vrPlay: "",
     startTime: "",
     duration: "",
-    amount: 400,
+    amount: 0,
   });
   useEffect(() => {
     if (existingBooking) {
@@ -337,6 +337,24 @@ const BookingForm = ({
   );
 
   const showVRPlay = selectedStation?.vrPrice && selectedStation?.vrTime;
+
+  useEffect(() => {
+    if (!formData.station || !formData.duration) return;
+
+    const stationData = stations.find((s) => s.name === formData.station);
+    if (!stationData) return;
+
+    const basePrice = Number(stationData.price) || 0;
+    const baseMinutes = Number(stationData.time) || 60;
+
+    const durationMinutes = parseDurationToMinutes(formData.duration);
+    const normalAmount = (basePrice / baseMinutes) * durationMinutes;
+
+    const vrPrice =
+      formData.vrPlay === "yes" ? Number(stationData.vrPrice || 0) : 0;
+    const finalAmount = normalAmount + vrPrice;
+    setFormData((prev) => ({ ...prev, amount: Math.round(finalAmount) }));
+  }, [formData.station, formData.duration, formData.vrPlay, stations]);
 
   return (
     <>
@@ -825,7 +843,7 @@ const BookingForm = ({
               Amount
             </Typography>
             <Typography variant="h6" color="cyan">
-              LKR 400
+              LKR {formData.amount}
             </Typography>
           </Box>
         </DialogContent>
