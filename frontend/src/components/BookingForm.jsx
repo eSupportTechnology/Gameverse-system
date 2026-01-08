@@ -20,7 +20,6 @@ import { useEffect, useState } from "react";
 import AddNFCUserDialog from "./AddNFCUserDialog";
 import CreateSuccessDialog from "./CreateSuccessDialog";
 import UpdateSuccessDialog from "./UpdateSuccess";
-import { parseDurationToMinutes } from "./BookingManagement";
 
 const BookingForm = ({
   open,
@@ -43,7 +42,7 @@ const BookingForm = ({
     nicNumber: "",
     activeUser: true,
   });
-  console.log("station", existingBooking);
+
   const [formData, setFormData] = useState({
     nfcCardNumber: "",
     customerName: "",
@@ -66,12 +65,10 @@ const BookingForm = ({
         vrPlay: existingBooking.vr_play || "",
         startTime: existingBooking.start_time || "",
         duration: existingBooking.duration || "",
-        amount: existingBooking.amount || 400,
+        amount: existingBooking.amount || 0,
       });
     }
   }, [existingBooking]);
-
-  console.log("Form station:", formData.station);
 
   const handleOpenNfcDialog = () => {
     setNfcDialogOpen(true);
@@ -92,7 +89,6 @@ const BookingForm = ({
     }));
 
     setNfcDialogOpen(false);
-    console.log("NFC User created:", nfcData);
   };
 
   const handleInputChange = (field, value) => {
@@ -118,7 +114,7 @@ const BookingForm = ({
       vrPlay: "",
       startTime: "",
       duration: "",
-      amount: 400,
+      amount: 0,
     });
   };
 
@@ -319,7 +315,7 @@ const BookingForm = ({
           vrPlay: "",
           startTime: "",
           duration: "",
-          amount: 400,
+          amount: 0,
         });
       }
 
