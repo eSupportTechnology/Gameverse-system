@@ -296,6 +296,7 @@ const BookingManagement = () => {
     "11:00",
     "11:15",
     "11:30",
+    "11:45",
   ];
 
   const statusColors = {
@@ -588,7 +589,7 @@ const BookingManagement = () => {
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        minWidth: 56,
+                        minWidth: 57.5,
                         textAlign: "center",
                         mr: 1,
                       }}

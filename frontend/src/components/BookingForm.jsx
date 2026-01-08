@@ -361,7 +361,7 @@ const BookingForm = ({
     let slots = [];
 
     let start = 12 * 60;
-    let end = 19 * 60 + 30;
+    let end = 19 * 60 + 45;
 
     for (let minutes = start; minutes <= end; minutes += interval) {
       const h24 = Math.floor(minutes / 60);
