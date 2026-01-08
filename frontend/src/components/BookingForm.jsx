@@ -356,6 +356,37 @@ const BookingForm = ({
     setFormData((prev) => ({ ...prev, amount: Math.round(finalAmount) }));
   }, [formData.station, formData.duration, formData.vrPlay, stations]);
 
+  const generateTimeSlots = () => {
+    const selected = stations.find((s) => s.name === formData.station);
+
+    const isPool = selected?.type === "Pool";
+    const interval = isPool ? 30 : 15;
+
+    let slots = [];
+
+    let start = 12 * 60;
+    let end = 19 * 60 + 30;
+
+    for (let minutes = start; minutes <= end; minutes += interval) {
+      const h24 = Math.floor(minutes / 60);
+      const m = minutes % 60;
+
+      const h12 = h24 > 12 ? h24 - 12 : h24;
+
+      const label = `${h12.toString().padStart(2, "0")}.${m
+        .toString()
+        .padStart(2, "0")}`;
+
+      const value = `${h12.toString().padStart(2, "0")}:${m
+        .toString()
+        .padStart(2, "0")}`;
+
+      slots.push({ label, value });
+    }
+
+    return slots;
+  };
+
   return (
     <>
       <Dialog
@@ -774,10 +805,11 @@ const BookingForm = ({
                     Select time
                   </em>
                 </MenuItem>
-                <MenuItem value="12:00">12.00</MenuItem>
-                <MenuItem value="01:00">01.00</MenuItem>
-                <MenuItem value="01:30">01.30</MenuItem>
-                <MenuItem value="02:00">02.00</MenuItem>
+                {generateTimeSlots().map((t, i) => (
+                  <MenuItem key={i} value={t.value}>
+                    {t.label}
+                  </MenuItem>
+                ))}
               </Select>
             </Box>
 
@@ -823,9 +855,13 @@ const BookingForm = ({
                   </em>
                 </MenuItem>
                 <MenuItem value="30m">30 min</MenuItem>
+                <MenuItem value="1h">1 hour</MenuItem>
                 <MenuItem value="1h 30m">1 hour 30 min</MenuItem>
                 <MenuItem value="2h">2 hour</MenuItem>
                 <MenuItem value="2h 30m">2 hour 30 min</MenuItem>
+                <MenuItem value="3h">3 hour</MenuItem>
+                <MenuItem value="3h 30m">3 hour 30 min</MenuItem>
+                <MenuItem value="4h">4 hour</MenuItem>
               </Select>
             </Box>
           </Box>
