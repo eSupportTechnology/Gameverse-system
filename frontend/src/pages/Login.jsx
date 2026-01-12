@@ -5,17 +5,16 @@ import { toast } from "react-toastify";
 import { AdminContext } from "../context/AdminContext";
 import { useNavigate } from "react-router-dom";
 import { AppContext } from "../context/AppContext";
-
-
+import { API_BASE_URL } from "../apiConfig";
 
 const Login = () => {
-  
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const {loginUser} = useContext(AppContext)
+  const { loginUser } = useContext(AppContext);
 
-  const { setAToken, setOToken,loginRole, setLoginRole } = useContext(AdminContext)
+  const { setAToken, setOToken, loginRole, setLoginRole } =
+    useContext(AdminContext);
 
   const onSubmitHandler = async (e) => {
     e.preventDefault();
@@ -23,22 +22,22 @@ const Login = () => {
       let res;
 
       if (loginRole === "admin") {
-        res = await axios.post("http://127.0.0.1:8000/api/admin/login", {
+        res = await axios.post(`${API_BASE_URL}/api/admin/login`, {
           email,
           password,
         });
         localStorage.setItem("aToken", res.data.token);
         setAToken(res.data.token);
-        localStorage.setItem("loginRole", res.data.user.role); 
+        localStorage.setItem("loginRole", res.data.user.role);
         setLoginRole(res.data.user.role);
       } else if (loginRole === "operator") {
-        res = await axios.post("http://127.0.0.1:8000/api/operator/login", {
+        res = await axios.post(`${API_BASE_URL}/api/operator/login`, {
           email,
           password,
         });
-        localStorage.setItem("oToken", res.data.token); 
+        localStorage.setItem("oToken", res.data.token);
         setOToken(res.data.token);
-        localStorage.setItem("loginRole", res.data.user.role); 
+        localStorage.setItem("loginRole", res.data.user.role);
         setLoginRole(res.data.user.role);
       }
 
@@ -59,9 +58,8 @@ const Login = () => {
     }
   };
 
-
   return (
-    <div style={{ background: '#0B0B0F' }}>
+    <div style={{ background: "#0B0B0F" }}>
       <Box
         sx={{
           maxWidth: 400,
@@ -85,21 +83,29 @@ const Login = () => {
             p: 2,
             borderRadius: 3,
             boxShadow: 6,
-
           }}
         >
-          <Typography variant="h5" fontWeight="600" align="center"
+          <Typography
+            variant="h5"
+            fontWeight="600"
+            align="center"
             sx={{
               mb: 1,
               background: "linear-gradient(90deg, #00C6FF, #FF00CC)",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
-            }}>
+            }}
+          >
             {loginRole} Login
           </Typography>
 
           <Box>
-            <Typography fontSize={14} fontWeight={500} color="#FFFFFF" gutterBottom>
+            <Typography
+              fontSize={14}
+              fontWeight={500}
+              color="#FFFFFF"
+              gutterBottom
+            >
               Email
             </Typography>
             <TextField
@@ -126,7 +132,12 @@ const Login = () => {
           </Box>
 
           <Box>
-            <Typography fontSize={14} fontWeight={500} color="#FFFFFF" gutterBottom>
+            <Typography
+              fontSize={14}
+              fontWeight={500}
+              color="#FFFFFF"
+              gutterBottom
+            >
               Password
             </Typography>
             <TextField
@@ -160,12 +171,14 @@ const Login = () => {
             sx={{
               textTransform: "none",
               fontSize: 14,
-              fontWeight: 'bold',
+              fontWeight: "bold",
               mt: 1,
               py: 1,
               borderRadius: 2,
               background: "linear-gradient(to right, #0CD7FF, #8A38F5)",
-              "&:hover": { background: "linear-gradient(to right, #0bbfe0, #732ed1)" },
+              "&:hover": {
+                background: "linear-gradient(to right, #0bbfe0, #732ed1)",
+              },
             }}
           >
             Login
@@ -182,7 +195,11 @@ const Login = () => {
               Operator Login?{" "}
               <span
                 onClick={() => setLoginRole("operator")}
-                style={{ cursor: "pointer", color: "#0CD7FF", textDecoration: "underline" }}
+                style={{
+                  cursor: "pointer",
+                  color: "#0CD7FF",
+                  textDecoration: "underline",
+                }}
               >
                 Click here
               </span>
@@ -197,7 +214,11 @@ const Login = () => {
               Admin Login?{" "}
               <span
                 onClick={() => setLoginRole("admin")}
-                style={{ cursor: "pointer", color: "#0CD7FF", textDecoration: "underline" }}
+                style={{
+                  cursor: "pointer",
+                  color: "#0CD7FF",
+                  textDecoration: "underline",
+                }}
               >
                 Click here
               </span>
@@ -206,7 +227,7 @@ const Login = () => {
         </Box>
       </Box>
     </div>
-  )
-}
+  );
+};
 
-export default Login
+export default Login;

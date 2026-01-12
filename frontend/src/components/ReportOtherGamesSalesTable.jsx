@@ -1,22 +1,22 @@
 import React, { useEffect, useState } from "react";
 import { Box, Typography } from "@mui/material";
 import axios from "axios";
+import { API_BASE_URL } from "../apiConfig";
 
-const ReportOtherGamesSalesTable = ({date}) => {
-    const [games, setGames] = useState([]);
-    const [loading, setLoading] = useState(false);
+const ReportOtherGamesSalesTable = ({ date }) => {
+  const [games, setGames] = useState([]);
+  const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    fetchGames();
+  }, [date]);
 
-useEffect(() => {
-  fetchGames();
-}, [date]);  
-
-const fetchGames = async () => {
+  const fetchGames = async () => {
     try {
       setLoading(true);
       const token = localStorage.getItem("aToken");
 
-      const res = await axios.get("http://127.0.0.1:8000/api/games", {
+      const res = await axios.get(`${API_BASE_URL}/api/games`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -26,11 +26,8 @@ const fetchGames = async () => {
         ? res.data
         : [];
 
-      
       const filteredGames = apiData.filter((game) => {
-        const gameDate = new Date(game.created_at)
-          .toISOString()
-          .split("T")[0];
+        const gameDate = new Date(game.created_at).toISOString().split("T")[0];
         return gameDate === date;
       });
 
@@ -58,8 +55,6 @@ const fetchGames = async () => {
     fontSize: "14px",
     borderBottom: "1px solid #1f2937",
   };
-
-
 
   return (
     <Box
@@ -103,7 +98,7 @@ const fetchGames = async () => {
         </Box>
 
         {/* Table Rows */}
-         {games.map((game) => (
+        {games.map((game) => (
           <Box
             key={game.id}
             sx={{
@@ -118,7 +113,9 @@ const fetchGames = async () => {
               },
             }}
           >
-            <Box sx={tableRowStyle}>{new Date(game.created_at).toTimeString().slice(0, 5)}</Box>
+            <Box sx={tableRowStyle}>
+              {new Date(game.created_at).toTimeString().slice(0, 5)}
+            </Box>
             <Box sx={tableRowStyle}>{game.method}</Box>
             <Box sx={tableRowStyle}>{game.quantity}</Box>
             <Box sx={tableRowStyle}>{game.price}</Box>

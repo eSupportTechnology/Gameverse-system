@@ -9,17 +9,18 @@ import {
   Box,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import upload from '../assets/upload.png';
+import upload from "../assets/upload.png";
 import UpdateSuccessDialog from "./UpdateSuccess";
 import CancelPopup from "./CancelPopup";
 import axios from "axios";
 import { toast } from "react-toastify";
 
 // Import your default images
-import arcadeImage from '../assets/arcade_machine.png';
-import archeryImage from '../assets/archery_gaming.png';
-import carromImage from '../assets/carom_gaming.png';
-import poolImage from '../assets/pool_gaming.jpg';
+import arcadeImage from "../assets/arcade_machine.png";
+import archeryImage from "../assets/archery_gaming.png";
+import carromImage from "../assets/carom_gaming.png";
+import poolImage from "../assets/pool_gaming.jpg";
+import { API_BASE_URL } from "../apiConfig";
 
 // Map game names to their default images
 const defaultGameImages = {
@@ -115,7 +116,7 @@ const AddGameDialog = ({ open, onClose, initialData, onRefresh }) => {
 
     try {
       const formData = new FormData();
-      
+
       // Always append title and description
       formData.append("title", title.trim());
       formData.append("desc", desc.trim());
@@ -123,24 +124,25 @@ const AddGameDialog = ({ open, onClose, initialData, onRefresh }) => {
       // Handle thumbnail - only append if we have one
       if (file) {
         formData.append("thumbnail", file);
-      } else if (autoThumbnail && defaultGameImages[title] && !initialData?.id) {
+      } else if (
+        autoThumbnail &&
+        defaultGameImages[title] &&
+        !initialData?.id
+      ) {
         // Only use default image for NEW games, not when editing existing ones
         const imageFile = await urlToFile(
           defaultGameImages[title],
-          `${title.toLowerCase().replace(/\s+/g, '-')}.png`,
-          'image/png'
+          `${title.toLowerCase().replace(/\s+/g, "-")}.png`,
+          "image/png"
         );
         formData.append("thumbnail", imageFile);
       }
       // If editing existing game and no new thumbnail provided, backend keeps existing thumbnail
 
       // Determine URL - both create and update use POST now
-      const url = initialData?.id 
-        ? `http://127.0.0.1:8000/api/portal_games/${initialData.id}`
-        : "http://127.0.0.1:8000/api/portal_games";
-
-      console.log("Sending request to:", url);
-      console.log("Is edit mode:", !!initialData?.id);
+      const url = initialData?.id
+        ? `${API_BASE_URL}/api/portal_games/${initialData.id}`
+        : `${API_BASE_URL}/api/portal_games`;
 
       const response = await axios.post(url, formData, {
         headers: {
@@ -154,26 +156,30 @@ const AddGameDialog = ({ open, onClose, initialData, onRefresh }) => {
       // Handle response
       if (response.data.success) {
         // Success case
-        toast.success(response.data.message || (initialData?.id ? "Game updated successfully!" : "Game added successfully!"));
-        
+        toast.success(
+          response.data.message ||
+            (initialData?.id
+              ? "Game updated successfully!"
+              : "Game added successfully!")
+        );
+
         if (onRefresh) {
           onRefresh();
         }
-        
+
         onClose(); // Close dialog immediately on success
       } else {
         // Backend returned success: false
         toast.error(response.data.message || "Failed to save game");
       }
-
     } catch (error) {
       console.error("Error details:", error);
-      
+
       // Enhanced error handling
       if (error.response) {
         // Server responded with error status
         const { status, data } = error.response;
-        
+
         if (status === 422 && data.errors) {
           // Validation errors
           const firstError = Object.values(data.errors)[0][0];
@@ -237,7 +243,9 @@ const AddGameDialog = ({ open, onClose, initialData, onRefresh }) => {
         </Box>
 
         <DialogContent>
-          <p style={{ marginBottom: 6, fontSize: "14px", fontWeight: 500 }}>Game Name</p>
+          <p style={{ marginBottom: 6, fontSize: "14px", fontWeight: 500 }}>
+            Game Name
+          </p>
           <TextField
             fullWidth
             placeholder="Enter Game Name"
@@ -250,15 +258,24 @@ const AddGameDialog = ({ open, onClose, initialData, onRefresh }) => {
                 borderRadius: "8px",
                 color: "white",
                 border: "0.5px solid #374151",
-                "& .MuiInputBase-input": { 
-                  padding: "12px 14px", 
-                  fontSize: "14px" 
+                "& .MuiInputBase-input": {
+                  padding: "12px 14px",
+                  fontSize: "14px",
                 },
               },
             }}
           />
 
-          <p style={{ marginTop: 15, marginBottom: 6, fontSize: "14px", fontWeight: 500 }}>Description</p>
+          <p
+            style={{
+              marginTop: 15,
+              marginBottom: 6,
+              fontSize: "14px",
+              fontWeight: 500,
+            }}
+          >
+            Description
+          </p>
           <TextField
             fullWidth
             multiline
@@ -278,7 +295,16 @@ const AddGameDialog = ({ open, onClose, initialData, onRefresh }) => {
             }}
           />
 
-          <p style={{ marginTop: 15, marginBottom: 6, fontSize: "14px", fontWeight: 500 }}>Thumbnail</p>
+          <p
+            style={{
+              marginTop: 15,
+              marginBottom: 6,
+              fontSize: "14px",
+              fontWeight: 500,
+            }}
+          >
+            Thumbnail
+          </p>
           <Box
             sx={{
               backgroundColor: "#171C2D",
@@ -303,16 +329,16 @@ const AddGameDialog = ({ open, onClose, initialData, onRefresh }) => {
               style={{ display: "none" }}
               onChange={handleImageUpload}
             />
-            
+
             {currentThumbnail ? (
               <>
                 <img
                   src={currentThumbnail}
                   alt="Thumbnail"
-                  style={{ 
-                    width: "100%", 
-                    height: "100%", 
-                    objectFit: "cover" 
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
                   }}
                 />
                 <Button
@@ -339,14 +365,24 @@ const AddGameDialog = ({ open, onClose, initialData, onRefresh }) => {
               </>
             ) : (
               <>
-                <img src={upload} style={{ width: 30, marginBottom: 6 }} alt="Upload" />
+                <img
+                  src={upload}
+                  style={{ width: 30, marginBottom: 6 }}
+                  alt="Upload"
+                />
                 Upload thumbnail
               </>
             )}
           </Box>
 
           <Box sx={{ mt: 1 }}>
-            <p style={{ fontSize: "12px", color: "#9CA3AF", marginBottom: "4px" }}>
+            <p
+              style={{
+                fontSize: "12px",
+                color: "#9CA3AF",
+                marginBottom: "4px",
+              }}
+            >
               Available games with default images:
             </p>
             <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
@@ -397,18 +433,20 @@ const AddGameDialog = ({ open, onClose, initialData, onRefresh }) => {
               flex: 1,
               textTransform: "none",
               borderRadius: "8px",
-              background: saving ? "#6B7280" : "linear-gradient(to right, #0CD7FF, #8A38F5)",
+              background: saving
+                ? "#6B7280"
+                : "linear-gradient(to right, #0CD7FF, #8A38F5)",
             }}
           >
-            {saving ? "Saving..." : (initialData ? "Update" : "Add")}
+            {saving ? "Saving..." : initialData ? "Update" : "Add"}
           </Button>
         </DialogActions>
       </Dialog>
 
-      <CancelPopup 
-        open={cancelOpen} 
-        handleCancelClose={() => setCancelOpen(false)} 
-        handleConfirm={handleConfirmCancel} 
+      <CancelPopup
+        open={cancelOpen}
+        handleCancelClose={() => setCancelOpen(false)}
+        handleConfirm={handleConfirmCancel}
       />
     </>
   );

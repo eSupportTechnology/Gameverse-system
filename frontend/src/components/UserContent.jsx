@@ -17,6 +17,7 @@ import DeleteSuccessDialog from "./DeleteSuccessDialog";
 import UpdateSuccessDialog from "./UpdateSuccess";
 import CreateSuccessDialog from "./CreateSuccessDialog";
 import axios from "axios";
+import { API_BASE_URL } from "../apiConfig";
 
 export default function UserManagement() {
   const [open, setOpen] = useState(false);
@@ -61,7 +62,7 @@ export default function UserManagement() {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const res = await axios.get("http://localhost:8000/api/users");
+        const res = await axios.get(`${API_BASE_URL}/api/users`);
 
         const formattedUsers = res.data.map((user) => ({
           id: user.id,
@@ -127,7 +128,7 @@ export default function UserManagement() {
     try {
       const token = localStorage.getItem("aToken");
 
-      await axios.delete(`http://localhost:8000/api/delete-user/${userId}`, {
+      await axios.delete(`${API_BASE_URL}/api/delete-user/${userId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

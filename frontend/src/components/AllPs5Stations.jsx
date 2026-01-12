@@ -25,6 +25,7 @@ import { deleteSimulator } from "../api";
 import { toast } from "react-toastify";
 import axios from "axios";
 import ps5Default from "../assets/ps5_station.jpg"; // adjust path if needed
+import { API_BASE_URL } from "../apiConfig";
 
 const AllPs5Stations = () => {
   const navigate = useNavigate();
@@ -86,7 +87,7 @@ const AllPs5Stations = () => {
     setTimeVR(item.vrTime === 60 ? "1 Hour" : "30 Min");
 
     setThumbnail(
-      item.thumbnail ? `http://127.0.0.1:8000/storage/${item.thumbnail}` : null
+      item.thumbnail ? `${API_BASE_URL}/storage/${item.thumbnail}` : null
     );
     setThumbnailFile(null);
 
@@ -100,7 +101,7 @@ const AllPs5Stations = () => {
 
   const fetchStations = async () => {
     try {
-      const res = await fetch("http://127.0.0.1:8000/api/stations");
+      const res = await fetch(`${API_BASE_URL}/api/stations`);
       if (!res.ok) throw new Error("Failed to fetch stations");
       const data = await res.json();
       setStations(data.filter((s) => s.type === "PlayStation")); // filter by category if needed
@@ -154,12 +155,12 @@ const AllPs5Stations = () => {
     }
 
     try {
-      let url = "http://127.0.0.1:8000/api/stations";
+      let url = `${API_BASE_URL}/api/stations`;
       let method = "POST";
 
       if (dialogMode === "edit") {
         const id = stations[editIndex].id;
-        url = `http://127.0.0.1:8000/api/stations/${id}`;
+        url = `${API_BASE_URL}/api/stations/${id}`;
         form.append("_method", "PUT"); // for Laravel to handle PUT
         method = "POST";
       }
@@ -428,7 +429,7 @@ const AllPs5Stations = () => {
                     <img
                       src={
                         item.thumbnail
-                          ? `http://127.0.0.1:8000/storage/${item.thumbnail}`
+                          ? `${API_BASE_URL}/storage/${item.thumbnail}`
                           : ps5Default
                       }
                       alt={item.name || "Station Image"}

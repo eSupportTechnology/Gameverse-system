@@ -24,6 +24,7 @@ import SuccessPopup from "./ItemAddSuccessPopup";
 import PaymentSuccessPopup from "./paymentsuccess";
 import RightSection from "./RightSectionPos";
 import UpdateSuccessDialog from "./UpdateSuccess";
+import { API_BASE_URL } from "../apiConfig";
 
 const initialCategories = ["All", "Drinks", "Snacks", "Dessert", "Ice Cream"];
 
@@ -83,7 +84,7 @@ const PosSystem = () => {
   // Cart operations
   const fetchCart = async () => {
     try {
-      const res = await axios.get("http://localhost:8000/api/cart");
+      const res = await axios.get(`${API_BASE_URL}/api/cart`);
 
       if (res.data.success) {
         setCart(
@@ -107,7 +108,7 @@ const PosSystem = () => {
 
   const addToCart = async (item) => {
     try {
-      await axios.post("http://localhost:8000/api/cart/add", {
+      await axios.post(`${API_BASE_URL}/api/cart/add`, {
         pos_item_id: item.id,
       });
 
@@ -121,7 +122,7 @@ const PosSystem = () => {
   };
 
   const removeFromCart = async (item) => {
-    await axios.post("http://localhost:8000/api/cart/decrease", {
+    await axios.post(`${API_BASE_URL}/api/cart/decrease`, {
       pos_item_id: item.id,
     });
 
@@ -129,7 +130,7 @@ const PosSystem = () => {
     fetchCart();
   };
   const handleDeleteCart = async (item) => {
-    await axios.post("http://localhost:8000/api/cart/remove", {
+    await axios.post(`${API_BASE_URL}/api/cart/remove`, {
       pos_item_id: item.id,
     });
 
@@ -196,7 +197,7 @@ const PosSystem = () => {
 
       // Call backend API
       const response = await axios.post(
-        "http://localhost:8000/api/pos/add-items",
+        `${API_BASE_URL}/api/pos/add-items`,
         payload,
         {
           headers: {
@@ -230,14 +231,11 @@ const PosSystem = () => {
     try {
       const token = localStorage.getItem("aToken");
 
-      const response = await axios.get(
-        "http://localhost:8000/api/pos/get-items",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await axios.get(`${API_BASE_URL}/api/pos/get-items`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       if (response.data.success) {
         setProducts(response.data.data);
@@ -262,7 +260,7 @@ const PosSystem = () => {
       };
 
       const response = await axios.put(
-        `http://localhost:8000/api/pos/update-item/${selectedItem.id}`,
+        `${API_BASE_URL}/api/pos/update-item/${selectedItem.id}`,
         payload,
         {
           headers: {
@@ -321,7 +319,7 @@ const PosSystem = () => {
       };
 
       const response = await axios.post(
-        "http://localhost:8000/api/nfc-users",
+        `${API_BASE_URL}/api/nfc-users`,
         payload,
         { headers: { Authorization: `Bearer ${aToken}` } }
       );
@@ -365,7 +363,7 @@ const PosSystem = () => {
 
   const handlePayNow = async () => {
     try {
-      await axios.post("http://localhost:8000/api/pos/checkout", {
+      await axios.post(`${API_BASE_URL}/api/pos/checkout`, {
         customer_name: customerName,
         customer_id: customerId,
         discount: discount,

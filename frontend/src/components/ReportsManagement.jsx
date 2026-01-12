@@ -14,6 +14,7 @@ import SalesChart from "./ReportSalesChart";
 import QuickActions from "./ReportQuickActions";
 import ReportBookingSalesTable from "./ReportBookingSalesTable";
 import axios from "axios";
+import { API_BASE_URL } from "../apiConfig";
 
 const ReportsManagement = () => {
   const [dateFilter, setDateFilter] = useState("today");
@@ -59,7 +60,7 @@ const ReportsManagement = () => {
     const fetchNewCustomers = async () => {
       try {
         const res = await axios.get(
-          "http://localhost:8000/api/reports/new-customers"
+          `${API_BASE_URL}/api/reports/new-customers`
         );
 
         if (res.data.success) {
@@ -79,7 +80,7 @@ const ReportsManagement = () => {
     const fetchTotalBookings = async () => {
       try {
         const res = await axios.get(
-          "http://localhost:8000/api/reports/total-bookings"
+          `${API_BASE_URL}/api/reports/total-bookings`
         );
 
         if (res.data.success) {

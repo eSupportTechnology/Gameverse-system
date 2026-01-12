@@ -14,6 +14,7 @@ import { toast } from "react-toastify";
 import AddNewGame from "./AddNewGame";
 import GameCard from "./GameCard.jsx";
 import CheckoutGame from "./CheckoutGame.jsx";
+import { API_BASE_URL } from "../apiConfig.js";
 
 const GamesManagement = () => {
   const [openAddGame, setOpenAddGame] = useState(false);
@@ -29,7 +30,7 @@ const GamesManagement = () => {
   const fetchGames = useCallback(async () => {
     console.log(" Fetch.........");
     try {
-      const res = await axios.get("http://127.0.0.1:8000/api/games", {
+      const res = await axios.get(`${API_BASE_URL}/api/games`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = Array.isArray(res.data.data)
@@ -71,7 +72,7 @@ const GamesManagement = () => {
   const handleDeleteGame = async (gameId) => {
     if (!window.confirm("Are you sure you want to delete this game?")) return;
     try {
-      await axios.delete(`http://127.0.0.1:8000/api/games/${gameId}`, {
+      await axios.delete(`${API_BASE_URL}/api/games/${gameId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       toast.success("Game deleted successfully!");
@@ -82,19 +83,11 @@ const GamesManagement = () => {
     }
   };
 
-
-const handlePlayUpdate = (gameId, updatedMethod) => {
-  setGames(prev =>
-    prev.map(g =>
-      g.id === gameId
-        ? { ...g, method: updatedMethod }
-        : g
-    )
-  );
-};
-
-
-
+  const handlePlayUpdate = (gameId, updatedMethod) => {
+    setGames((prev) =>
+      prev.map((g) => (g.id === gameId ? { ...g, method: updatedMethod } : g))
+    );
+  };
 
   return (
     <Box sx={{ p: 2, bgcolor: "#1E1E1E", color: "#fff", minHeight: "100vh" }}>
@@ -265,8 +258,7 @@ const handlePlayUpdate = (gameId, updatedMethod) => {
           <CheckoutGame
             game={selectedGame}
             handleClose={() => setSelectedGame(null)}
-            onPlayUpdate={handlePlayUpdate} 
-
+            onPlayUpdate={handlePlayUpdate}
           />
         )}
       </Box>

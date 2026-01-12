@@ -12,6 +12,7 @@ import {
 import FilterListIcon from "@mui/icons-material/FilterList";
 import AddStationDialog from "./AddStationDialog";
 import StationsGrid from "./StationsGrid";
+import { API_BASE_URL } from "../apiConfig";
 
 export default function StationManagement() {
   const [tab, setTab] = useState(0);
@@ -41,7 +42,7 @@ export default function StationManagement() {
 
   const fetchStations = async () => {
     try {
-      const res = await axios.get("http://localhost:8000/api/stations");
+      const res = await axios.get(`${API_BASE_URL}/api/stations`);
       setStations(res.data);
     } catch (err) {
       console.error("Failed to fetch stations", err);
@@ -50,7 +51,7 @@ export default function StationManagement() {
 
   const fetchBookings = async () => {
     try {
-      const res = await axios.get("http://localhost:8000/api/bookings");
+      const res = await axios.get(`${API_BASE_URL}/api/bookings`);
       setBookings(res.data);
     } catch (err) {
       console.error("Failed to fetch stations", err);
@@ -135,7 +136,7 @@ export default function StationManagement() {
       const token = localStorage.getItem("aToken");
 
       const response = await axios.put(
-        `http://localhost:8000/api/stations/${stationId}`,
+        `${API_BASE_URL}/api/stations/${stationId}`,
         { status: newStatus },
         { headers: { Authorization: `Bearer ${token}` } }
       );

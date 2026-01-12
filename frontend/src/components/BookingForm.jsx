@@ -20,6 +20,7 @@ import { useEffect, useState } from "react";
 import AddNFCUserDialog from "./AddNFCUserDialog";
 import CreateSuccessDialog from "./CreateSuccessDialog";
 import UpdateSuccessDialog from "./UpdateSuccess";
+import { API_BASE_URL } from "../apiConfig";
 
 const BookingForm = ({
   open,
@@ -287,7 +288,7 @@ const BookingForm = ({
       if (existingBooking) {
         // Update booking
         await axios.put(
-          `http://127.0.0.1:8000/api/bookings/${existingBooking.id}`,
+          `${API_BASE_URL}/api/bookings/${existingBooking.id}`,
           payload,
           {
             headers: {
@@ -299,7 +300,7 @@ const BookingForm = ({
         setUpdateSuccess(true); // show update dialog
       } else {
         // Create new booking
-        await axios.post("http://127.0.0.1:8000/api/bookings", payload, {
+        await axios.post(`${API_BASE_URL}/api/bookings`, payload, {
           headers: {
             Authorization: token ? `Bearer ${token}` : "",
             "Content-Type": "application/json",

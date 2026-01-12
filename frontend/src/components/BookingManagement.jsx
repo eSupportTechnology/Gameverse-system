@@ -16,6 +16,7 @@ import BookingDialog from "./BookingDialog"; // For Upcoming
 import SessionDialog from "./SessionDialog"; // For In Progress
 import CompletedBookingDialog from "./CompletedBookingDialog"; // For Completed
 import axios from "axios";
+import { API_BASE_URL } from "../apiConfig";
 
 export const parseDurationToMinutes = (duration) => {
   if (!duration) return 60;
@@ -55,7 +56,7 @@ const BookingManagement = () => {
 
   const fetchStations = async () => {
     try {
-      const response = await axios.get("http://127.0.0.1:8000/api/stations");
+      const response = await axios.get(`${API_BASE_URL}/api/stations`);
       const mappedStations = response.data.map((s) => ({
         ...s,
         displayPrice: s.price ? `$${s.price}/hr` : "$0/hr",
@@ -123,7 +124,7 @@ const BookingManagement = () => {
 
   const autoUpdateStatuses = async () => {
     try {
-      await axios.post("http://127.0.0.1:8000/api/auto-update-bookings");
+      await axios.post(`${API_BASE_URL}/api/auto-update-bookings`);
       fetchBookings(); // Refresh bookings after updating
     } catch (error) {
       console.error("Error auto-updating statuses:", error);
@@ -141,7 +142,7 @@ const BookingManagement = () => {
   const fetchBookings = async () => {
     setLoading(true);
     try {
-      const response = await axios.get("http://127.0.0.1:8000/api/bookings");
+      const response = await axios.get(`${API_BASE_URL}/api/bookings`);
 
       if (response.data.success) {
         const mapBooking = (b) => {
