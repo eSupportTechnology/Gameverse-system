@@ -6,7 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Booking;
 use Illuminate\Http\Request;
-
+use App\Models\PosSale;
+use App\Models\SaleItem;
 class ReportsController extends Controller
 {
     // NEW CUSTOMERS 
@@ -24,6 +25,21 @@ class ReportsController extends Controller
         return response()->json([
             'success' => true,
             'count' => Booking::count()
+        ]);
+    }
+    public function totalSales()
+    {
+        return response()->json([
+            'success' => true,
+            'total_sales' => PosSale::sum('total')
+        ]);
+    }
+
+    public function productsSold()
+    {
+        return response()->json([
+            'success' => true,
+            'products_sold' => SaleItem::sum('quantity')
         ]);
     }
 }
