@@ -30,7 +30,7 @@ jobs:
         run: npm run build
         env:
           CI: false
-          # REACT_APP_API_BASE_URL: ${{ vars.REACT_APP_API_BASE_URL }}
+          REACT_APP_API_BASE_URL: ${{ vars.REACT_APP_API_URL }}
 
       - name: Install lftp
         run: sudo apt-get update && sudo apt-get install -y lftp
