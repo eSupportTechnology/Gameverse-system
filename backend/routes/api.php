@@ -170,3 +170,5 @@ Route::prefix('cart')->group(function () {
 Route::get('/reports/new-customers', [ReportsController::class, 'newCustomersCount']);
 Route::get('/reports/total-bookings', [ReportsController::class, 'totalBookingsCount']);
 
+Route::get('/reports/total-sales', [ReportsController::class, 'totalSales']);
+Route::get('/reports/products-sold', [ReportsController::class, 'productsSold']);

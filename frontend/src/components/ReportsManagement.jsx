@@ -20,6 +20,46 @@ const ReportsManagement = () => {
   const [dateFilter, setDateFilter] = useState("today");
   const [viewMode, setViewMode] = useState("overview");
   const [openTab, setOpenTab] = useState(1);
+  const [totalSales, setTotalSales] = useState(0);
+  const [productsSold, setProductsSold] = useState(0);
+
+//Fetched Total Sales
+  useEffect(() => {
+  const fetchTotalSales = async () => {
+    try {
+      const res = await axios.get(
+        `${API_BASE_URL}/api/reports/total-sales`
+      );
+
+      if (res.data.success) {
+        setTotalSales(res.data.total_sales);
+      }
+    } catch (error) {
+      console.error("Error fetching total sales", error);
+    }
+  };
+
+  fetchTotalSales();
+}, []);
+
+//To fetch Products SOld
+useEffect(() => {
+  const fetchProductsSold = async () => {
+    try {
+      const res = await axios.get(
+        `${API_BASE_URL}/api/reports/products-sold`
+      );
+
+      if (res.data.success) {
+        setProductsSold(res.data.products_sold);
+      }
+    } catch (error) {
+      console.error("Error fetching products sold", error);
+    }
+  };
+
+  fetchProductsSold();
+}, []);
 
   // Handle date filter changes
   const handleDateFilterChange = (newFilter) => {
@@ -100,8 +140,8 @@ const ReportsManagement = () => {
       id: 1,
       label: "Total Sales",
       icon: <img src="/images/report Icon/salesIcon.png" width={28} />,
-      value: "LKR 15,800",
-      // value: `LKR ${currentData.totalRevenue.toLocaleString()}`,
+      // value: "LKR 15,800",
+       value: `LKR ${currentData.totalRevenue.toLocaleString()}`,
       changePositive: true,
       iconBgColor: "#ff6b81",
     },
@@ -117,8 +157,8 @@ const ReportsManagement = () => {
       id: 3,
       label: "Products Sold",
       icon: <img src="/images/report Icon/vector.png" width={28} />,
-      value: "60",
-      // value: currentData.totalSales.toString(),
+      // value: "60",
+      value: currentData.totalSales.toString(),
       changePositive: true,
       iconBgColor: "#2bdc65",
     },
