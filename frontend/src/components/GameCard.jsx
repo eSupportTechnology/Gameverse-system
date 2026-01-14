@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import {
   Card,
@@ -12,6 +11,9 @@ import {
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import AddNewGame from "./AddNewGame";
+import axios from "axios";
+import { toast } from "react-toastify";
+import { API_BASE_URL } from "../apiConfig";
 
 const methodValue = { Coin: 100, Arrow: 150, "Per Hour": 75 };
 
@@ -26,7 +28,29 @@ const GameCard = ({ game: initialGame, onPlay, onUpdate }) => {
   // Prevent undefined access
   if (!game || !game.title) return null;
 
-  const quantity = Math.floor((game.price || 0) / (methodValue[game.method] || 1));
+  const quantity = Math.floor(
+    (game.price || 0) / (methodValue[game.method] || 1)
+  );
+
+  const handlePlayClick = async () => {
+    const hours = parseInt(prompt("Enter hours", game.method.hours || 1));
+    const players = parseInt(prompt("Enter players", game.method.players || 1));
+
+    if (!hours || !players) return;
+
+    await axios.post(`${API_BASE_URL}/api/games/${game.id}/play`, {
+      hours,
+      players,
+    });
+
+    // toast.success("Play updated successfully");
+
+    // Update local state
+    setGame((prev) => ({
+      ...prev,
+      method: { ...prev.method, hours, players },
+    }));
+  };
 
   return (
     <Card
@@ -62,7 +86,12 @@ const GameCard = ({ game: initialGame, onPlay, onUpdate }) => {
         <Divider sx={{ backgroundColor: "#2E3350", my: 1 }} />
 
         {/* Team Game */}
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={0.4}>
+        <Box
+          display="flex"
+          justifyContent="space-between"
+          alignItems="center"
+          mb={0.4}
+        >
           <Typography fontSize={13} color="#FFFFFF">
             Team Game
           </Typography>
@@ -72,7 +101,12 @@ const GameCard = ({ game: initialGame, onPlay, onUpdate }) => {
         </Box>
 
         {/* Location */}
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={0.4}>
+        <Box
+          display="flex"
+          justifyContent="space-between"
+          alignItems="center"
+          mb={0.4}
+        >
           <Typography fontSize={13} color="#FFFFFF">
             Location
           </Typography>
@@ -82,12 +116,38 @@ const GameCard = ({ game: initialGame, onPlay, onUpdate }) => {
         </Box>
 
         {/* Method + Price */}
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={1.5}>
+        <Box
+          display="flex"
+          justifyContent="space-between"
+          alignItems="center"
+          mb={1.5}
+        >
           <Typography fontSize={13} color="#FFFFFF">
-            {game.method === "Per Hour"
-              ? "1 Hour"
-              : `${quantity} ${game.method}${quantity > 1 ? "s" : ""}`}
+            {(() => {
+              const method = game.method;
+
+              if (typeof method === "string") {
+                return method;
+              }
+
+              if (method?.type === "Per Hour") {
+                return `Per Hour [hours: ${method.hours ?? 0}, players: ${
+                  method.players ?? 0
+                }]`;
+              }
+
+              if (method?.type === "Coin") {
+                return ` Coins: ${method.coins ?? 0}`;
+              }
+
+              if (method?.type === "Arrow") {
+                return `Arrows: ${method.arrows ?? 0}`;
+              }
+
+              return "-";
+            })()}
           </Typography>
+
           <Typography fontSize={13} color="#0CD7FF" fontWeight={600}>
             LKR {game.price || 0}
           </Typography>

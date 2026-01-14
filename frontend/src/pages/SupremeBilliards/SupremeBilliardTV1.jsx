@@ -1,7 +1,7 @@
 import React from "react";
 import { Box, Typography, LinearProgress } from "@mui/material";
 
-export default function PremiumBilliardTV() {
+export default function SupremeBilliardTV() {
   const currentPlayer = {
     name: "Lahiru Lakshitha",
     id: "12345",
@@ -59,7 +59,7 @@ export default function PremiumBilliardTV() {
               fontSize: "3rem",
             }}
           >
-            Premium Billiard Table
+            Supreme Billiard Table 1
           </Typography>
         </Box>
 
@@ -104,8 +104,8 @@ export default function PremiumBilliardTV() {
                 }}
               >
                 <img
-                  src="../images/premiumbtable.png"
-                  alt="Premium Billiard Table"
+                  src="../images/supremebtable.png"
+                  alt="Supreme Billiard Table"
                   style={{
                     width: "100%",
                     height: "100%",

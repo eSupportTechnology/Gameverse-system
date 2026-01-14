@@ -1,31 +1,30 @@
 import React, { useContext, useState } from "react";
-import { Box, Button, TextField, Typography} from "@mui/material";
+import { Box, Button, TextField, Typography } from "@mui/material";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { AdminContext } from "../context/AdminContext";
+import { API_BASE_URL } from "../apiConfig";
 
 const LoginForm = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const {setAToken} = useContext(AdminContext)
+  const { setAToken } = useContext(AdminContext);
 
   const onSubmitHandler = async (e) => {
     e.preventDefault();
-   try {
-    const res = await axios.post("http://127.0.0.1:8000/api/admin/login", {
-      email,
-      password,
-    });
+    try {
+      const res = await axios.post(`${API_BASE_URL}/api/admin/login`, {
+        email,
+        password,
+      });
 
-    localStorage.setItem("aToken", res.data.token);
-    setAToken(res.data.token);
-    toast.success("Login successful!");
-    
-
-  } catch (error) {
-    toast.error("Invalid credentials");
-  }
+      localStorage.setItem("aToken", res.data.token);
+      setAToken(res.data.token);
+      toast.success("Login successful!");
+    } catch (error) {
+      toast.error("Invalid credentials");
+    }
   };
 
   return (
@@ -33,20 +32,29 @@ const LoginForm = () => {
       <Box
         component="form"
         onSubmit={onSubmitHandler}
-        sx={{ display: "flex", flexDirection: "column", gap: 2, }}
+        sx={{ display: "flex", flexDirection: "column", gap: 2 }}
       >
-        <Typography variant="h5" fontWeight="600" align="center"
+        <Typography
+          variant="h5"
+          fontWeight="600"
+          align="center"
           sx={{
             mb: 1,
             background: "linear-gradient(90deg, #00C6FF, #FF00CC)",
             WebkitBackgroundClip: "text",
             WebkitTextFillColor: "transparent",
-          }}>
+          }}
+        >
           Admin Login
         </Typography>
 
         <Box>
-          <Typography fontSize={14} fontWeight={500} color="#FFFFFF" gutterBottom>
+          <Typography
+            fontSize={14}
+            fontWeight={500}
+            color="#FFFFFF"
+            gutterBottom
+          >
             Email
           </Typography>
           <TextField
@@ -73,7 +81,12 @@ const LoginForm = () => {
         </Box>
 
         <Box>
-          <Typography fontSize={14} fontWeight={500} color="#FFFFFF" gutterBottom>
+          <Typography
+            fontSize={14}
+            fontWeight={500}
+            color="#FFFFFF"
+            gutterBottom
+          >
             Password
           </Typography>
           <TextField
@@ -107,20 +120,21 @@ const LoginForm = () => {
           sx={{
             textTransform: "none",
             fontSize: 14,
-            fontWeight: 'bold',
+            fontWeight: "bold",
             mt: 1,
             py: 1,
             borderRadius: 2,
             background: "linear-gradient(to right, #0CD7FF, #8A38F5)",
-            "&:hover": { background: "linear-gradient(to right, #0bbfe0, #732ed1)" },
+            "&:hover": {
+              background: "linear-gradient(to right, #0bbfe0, #732ed1)",
+            },
           }}
         >
           Login
         </Button>
       </Box>
-
     </div>
-  )
-}
+  );
+};
 
-export default LoginForm
+export default LoginForm;

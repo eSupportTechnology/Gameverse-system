@@ -16,6 +16,26 @@ import BookingDialog from "./BookingDialog"; // For Upcoming
 import SessionDialog from "./SessionDialog"; // For In Progress
 import CompletedBookingDialog from "./CompletedBookingDialog"; // For Completed
 import axios from "axios";
+import { API_BASE_URL } from "../apiConfig";
+
+export const parseDurationToMinutes = (duration) => {
+  if (!duration) return 60;
+  let hours = 0,
+    minutes = 0;
+
+  const hourMatch = duration.match(/(\d+)h/);
+  const minMatch = duration.match(/(\d+)m/);
+
+  if (hourMatch) hours = parseInt(hourMatch[1]);
+  if (minMatch) minutes = parseInt(minMatch[1]);
+
+  return hours * 60 + minutes;
+};
+
+export const formatBookingDate = (bookingDate) => {
+  if (!bookingDate) return "";
+  return bookingDate.split("T")[0];
+};
 
 const BookingManagement = () => {
   const [view, setView] = React.useState("timeline");
@@ -36,7 +56,7 @@ const BookingManagement = () => {
 
   const fetchStations = async () => {
     try {
-      const response = await axios.get("http://127.0.0.1:8000/api/stations");
+      const response = await axios.get(`${API_BASE_URL}/api/stations`);
       const mappedStations = response.data.map((s) => ({
         ...s,
         displayPrice: s.price ? `$${s.price}/hr` : "$0/hr",
@@ -102,34 +122,9 @@ const BookingManagement = () => {
     return timeString;
   };
 
-  const matchStation = (apiName, uiName, stationsList = stations) => {
-    if (!apiName || !uiName) return false;
-
-    const clean = (str) =>
-      str
-        .toLowerCase()
-        .replace(/\s+/g, "")
-        .replace(/[^a-z0-9]/g, "");
-
-    const uiClean = clean(uiName);
-
-    return stationsList.some((s) => {
-      const apiClean = clean(s.name);
-      return (
-        apiClean === uiClean ||
-        apiClean.includes(uiClean) ||
-        uiClean.includes(apiClean)
-      );
-    });
-  };
-  const formatBookingDate = (bookingDate) => {
-    if (!bookingDate) return "";
-    return bookingDate.split("T")[0]; // Extract YYYY-MM-DD
-  };
-
   const autoUpdateStatuses = async () => {
     try {
-      await axios.post("http://127.0.0.1:8000/api/auto-update-bookings");
+      await axios.post(`${API_BASE_URL}/api/auto-update-bookings`);
       fetchBookings(); // Refresh bookings after updating
     } catch (error) {
       console.error("Error auto-updating statuses:", error);
@@ -147,7 +142,7 @@ const BookingManagement = () => {
   const fetchBookings = async () => {
     setLoading(true);
     try {
-      const response = await axios.get("http://127.0.0.1:8000/api/bookings");
+      const response = await axios.get(`${API_BASE_URL}/api/bookings`);
 
       if (response.data.success) {
         const mapBooking = (b) => {
@@ -199,7 +194,7 @@ const BookingManagement = () => {
       setLoading(false);
     }
   };
-  
+
   useEffect(() => {
     fetchBookings();
   }, [refreshTrigger]);
@@ -256,35 +251,84 @@ const BookingManagement = () => {
 
   const timeSlots = [
     "12:00",
+    "12:15",
     "12:30",
+    "12:45",
     "01:00",
+    "01:15",
     "01:30",
+    "01:45",
     "02:00",
+    "02:15",
     "02:30",
+    "02:45",
     "03:00",
+    "03:15",
     "03:30",
+    "03:45",
     "04:00",
+    "04:15",
     "04:30",
+    "04:45",
     "05:00",
+    "05:15",
     "05:30",
+    "05:45",
     "06:00",
+    "06:15",
     "06:30",
+    "06:45",
     "07:00",
+    "07:15",
     "07:30",
+    "07:45",
     "08:00",
+    "08:15",
     "08:30",
+    "08:45",
     "09:00",
+    "09:15",
     "09:30",
+    "09:45",
     "10:00",
+    "10:15",
     "10:30",
+    "10:45",
     "11:00",
+    "11:15",
     "11:30",
+    "11:45",
   ];
 
   const statusColors = {
     upcoming: "#0CD7FF",
     inprogress: "#9A60E8",
     completed: "#FD00B5",
+  };
+
+  const getOccupiedSlots = (startTime, durationMinutes) => {
+    const slots = [];
+    if (!startTime) return slots;
+
+    let [startHour, startMin] = startTime.split(":").map(Number);
+    let totalMinutes = startHour * 60 + startMin;
+    const endMinutes = totalMinutes + durationMinutes;
+
+    while (totalMinutes < endMinutes) {
+      const hour24 = Math.floor(totalMinutes / 60);
+      const min = totalMinutes % 60;
+
+      const hour12 = hour24 % 12 === 0 ? 12 : hour24 % 12;
+      const slot = `${String(hour12).padStart(2, "0")}:${String(min).padStart(
+        2,
+        "0"
+      )}`;
+
+      slots.push(slot);
+      totalMinutes += 15;
+    }
+
+    return slots;
   };
 
   return (
@@ -546,7 +590,7 @@ const BookingManagement = () => {
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        minWidth: 56,
+                        minWidth: 57.5,
                         textAlign: "center",
                         mr: 1,
                       }}
@@ -561,12 +605,21 @@ const BookingManagement = () => {
                 {stations.map((station, i) => (
                   <Box key={i} sx={{ display: "flex", mb: 2 }}>
                     {timeSlots.map((slot) => {
-                      const bookingsForSlot = apiBookings.filter(
-                        (b) =>
-                          b.station === station.name &&
-                          b.start_time === slot &&
-                          formatBookingDate(b.booking_date) === date
-                      );
+                      const bookingsForSlot = apiBookings.filter((b) => {
+                        if (b.station !== station.name) return false;
+                        if (formatBookingDate(b.booking_date) !== date)
+                          return false;
+
+                        const durationMinutes = parseDurationToMinutes(
+                          b.duration
+                        );
+                        const occupiedSlots = getOccupiedSlots(
+                          b.start_time,
+                          durationMinutes
+                        );
+
+                        return occupiedSlots.includes(slot);
+                      });
 
                       return (
                         <Box

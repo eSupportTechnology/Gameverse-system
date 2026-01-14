@@ -15,11 +15,13 @@ class Game extends Model
         'method',
         'price',
         'balance',
+        'discount',
         'team_game',
     ];
 
     // Ensure team_game is always a boolean
     protected $casts = [
         'team_game' => 'boolean',
+        'method' => 'array',
     ];
 }

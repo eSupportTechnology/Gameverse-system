@@ -1,6 +1,5 @@
 import axios from "axios";
-
-const API_BASE_URL = "http://127.0.0.1:8000/api";
+import { API_BASE_URL } from "./apiConfig";
 
 // Use a function to get token fresh each time
 export const getAxiosInstance = () => {
@@ -13,12 +12,12 @@ export const getAxiosInstance = () => {
   });
 };
 
-//  Events API 
+//  Events API
 
 // Get all events
 export const getEvents = async () => {
   try {
-    const res = await getAxiosInstance().get("/events");
+    const res = await getAxiosInstance().get("/api/events");
     return res.data; // array of events
   } catch (err) {
     console.error("Failed to fetch events:", err);
@@ -34,7 +33,7 @@ export const createEvent = async (data) => {
     formData.append("date", data.date);
     if (data.thumbnail) formData.append("thumbnail", data.thumbnail); // File object
 
-    const res = await getAxiosInstance().post("/events", formData, {
+    const res = await getAxiosInstance().post("/api/events", formData, {
       headers: { "Content-Type": "multipart/form-data" }, // important
     });
 
@@ -53,9 +52,13 @@ export const updateEvent = async (id, data) => {
     if (data.date) formData.append("date", data.date);
     if (data.thumbnail) formData.append("thumbnail", data.thumbnail);
 
-    const res = await getAxiosInstance().post(`/events/${id}?_method=PUT`, formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
+    const res = await getAxiosInstance().post(
+      `/api/events/${id}?_method=PUT`,
+      formData,
+      {
+        headers: { "Content-Type": "multipart/form-data" },
+      }
+    );
 
     return res.data;
   } catch (err) {
@@ -67,7 +70,7 @@ export const updateEvent = async (id, data) => {
 // Delete event
 export const deleteEvent = async (id) => {
   try {
-    const res = await getAxiosInstance().delete(`/events/${id}`);
+    const res = await getAxiosInstance().delete(`/api/events/${id}`);
     return res.data;
   } catch (err) {
     console.error("Failed to delete event:", err.response?.data || err);
@@ -75,16 +78,15 @@ export const deleteEvent = async (id) => {
   }
 };
 
-
 // Gallery Section
 
 export const getGallery = async () => {
   try {
-    const res = await getAxiosInstance().get("/gallery");
+    const res = await getAxiosInstance().get("/api/gallery");
     // Map to match frontend structure
     return res.data.map((item) => ({
       id: item.id,
-      image: item.image ? `http://127.0.0.1:8000/storage/${item.image}` : "",
+      image: item.image ? `${API_BASE_URL}/storage/${item.image}` : "",
     }));
   } catch (err) {
     console.error("Failed to fetch gallery:", err);
@@ -97,14 +99,12 @@ export const addGalleryPhoto = async (file) => {
     const formData = new FormData();
     formData.append("image", file);
 
-    const res = await getAxiosInstance().post("/gallery", formData, {
+    const res = await getAxiosInstance().post("/api/gallery", formData, {
       headers: { "Content-Type": "multipart/form-data" },
     });
     return {
       id: res.data.id,
-      image: res.data.image
-        ? `http://127.0.0.1:8000/storage/${res.data.image}`
-        : "",
+      image: res.data.image ? `${API_BASE_URL}/storage/${res.data.image}` : "",
     };
   } catch (err) {
     console.error("Failed to add photo:", err);
@@ -114,7 +114,7 @@ export const addGalleryPhoto = async (file) => {
 
 export const deleteGalleryPhoto = async (id) => {
   try {
-    const res = await getAxiosInstance().delete(`/gallery/${id}`);
+    const res = await getAxiosInstance().delete(`/api/gallery/${id}`);
     return res.data;
   } catch (err) {
     console.error("Failed to delete photo:", err);
@@ -122,11 +122,10 @@ export const deleteGalleryPhoto = async (id) => {
   }
 };
 
-
-// Simulators API 
+// Simulators API
 export const deleteSimulator = async (id) => {
   try {
-    const res = await getAxiosInstance().delete(`/stations/${id}`);
+    const res = await getAxiosInstance().delete(`/api/stations/${id}`);
     return res.data;
   } catch (err) {
     console.error("Failed to delete simulator:", err.response?.data || err);
@@ -134,8 +133,7 @@ export const deleteSimulator = async (id) => {
   }
 };
 
-
-// Pool Tables API 
+// Pool Tables API
 
 // Create a new pool table
 export const addPoolTable = async (data) => {
@@ -149,7 +147,7 @@ export const addPoolTable = async (data) => {
     formData.append("type", "Pool");
     if (data.thumbnail) formData.append("thumbnail", data.thumbnail);
 
-    const res = await getAxiosInstance().post("/stations", formData, {
+    const res = await getAxiosInstance().post("/api/stations", formData, {
       headers: { "Content-Type": "multipart/form-data" },
     });
 
@@ -165,7 +163,7 @@ export const addPoolTable = async (data) => {
 export const updatePoolTable = async (id, data) => {
   try {
     const formData = new FormData();
-    
+
     // Append only if values exist
     if (data.name) formData.append("name", data.name);
     if (data.description) formData.append("description", data.description);
@@ -175,9 +173,13 @@ export const updatePoolTable = async (id, data) => {
     if (data.thumbnail) formData.append("thumbnail", data.thumbnail);
 
     // Use POST with ?_method=PUT for Laravel/method override
-    const res = await getAxiosInstance().post(`/stations/${id}?_method=PUT`, formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
+    const res = await getAxiosInstance().post(
+      `/api/stations/${id}?_method=PUT`,
+      formData,
+      {
+        headers: { "Content-Type": "multipart/form-data" },
+      }
+    );
 
     return res.data;
   } catch (err) {
@@ -189,13 +191,13 @@ export const updatePoolTable = async (id, data) => {
 // Tv Screen API
 export const getTvScreens = async () => {
   try {
-    const res = await getAxiosInstance().get("/tv-screen");
+    const res = await getAxiosInstance().get("/api/tv-screen");
     return res.data.map((item) => ({
       id: item.id,
       fileType: item.file_type,
       status: item.status,
       fileUrl: item.file_path
-        ? `http://127.0.0.1:8000/storage/${item.file_path}`
+        ? `${API_BASE_URL}/storage/${item.file_path}`
         : "",
     }));
   } catch (err) {
@@ -209,7 +211,7 @@ export const uploadTvScreen = async (file) => {
   formData.append("file", file);
 
   try {
-    const res = await getAxiosInstance().post("/tv-screen", formData);
+    const res = await getAxiosInstance().post("/api/tv-screen", formData);
     return res.data;
   } catch (err) {
     console.error("Upload failed:", err.response?.data);
@@ -217,23 +219,22 @@ export const uploadTvScreen = async (file) => {
   }
 };
 
-
-
 export const toggleTvScreenStatus = async (id) => {
   try {
-    const res = await getAxiosInstance().patch(`/tv-screen/${id}/toggle`);
+    const res = await getAxiosInstance().patch(`/api/tv-screen/${id}/toggle`);
     return res.data;
   } catch (err) {
-    console.error("Failed to toggle TV screen status:", err.response?.data || err);
+    console.error(
+      "Failed to toggle TV screen status:",
+      err.response?.data || err
+    );
     throw err;
   }
 };
 
-
-
 export const deleteTvScreen = async (id) => {
   try {
-    const res = await getAxiosInstance().delete(`/tv-screen/${id}`);
+    const res = await getAxiosInstance().delete(`/api/tv-screen/${id}`);
     return res.data;
   } catch (err) {
     console.error("Failed to delete TV screen:", err.response?.data || err);

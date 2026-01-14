@@ -88,17 +88,57 @@ class GameController extends Controller
     public function checkout(Request $request, $id)
     {
         $request->validate([
-            'balance' => 'required|integer|min:0',
+            'balance' => 'required|numeric|min:0',
+            'discount' => 'nullable|numeric|min:0',
         ]);
 
         $game = Game::findOrFail($id);
 
+        // Set the balance and discount from the checkout form
         $game->balance = $request->balance;
+        $game->discount = $request->discount ?? 0;
         $game->save();
 
         return response()->json([
-            'message' => 'Balance updated successfully',
+            'success' => true,
+            'message' => 'Payment successful',
             'data' => $game
         ]);
     }
+
+    // Update game method based on play type
+ public function play(Request $request, $id)
+{
+    $game = Game::findOrFail($id);
+ 
+    if ($request->type === 'Per Hour') {
+        $game->method = [
+            'type' => 'Per Hour',
+            'hours' => (int) $request->hours,
+            'players' => (int) $request->players,
+        ];
+    }
+  
+    if ($request->type === 'Coin') {
+        $game->method = [
+            'type' => 'Coin',
+            'coins' => (int) $request->coins,
+        ];
+    }
+
+    if ($request->type === 'Arrow') {
+        $game->method = [
+            'type' => 'Arrow',
+            'arrows' => (int) $request->arrows,
+        ];
+    }
+
+    $game->save();
+
+    return response()->json([
+        'message' => 'Method updated',
+        'method' => $game->method,
+    ]);
+}
+
 }

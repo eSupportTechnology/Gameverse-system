@@ -21,6 +21,7 @@ import endSessionIcon from "../assets/q.png";
 import EndSessionPopup from "../components/Endsession";
 import UpdateSuccessDialog from "../components/UpdateSuccess";
 import { calculateEndTime } from "./BookingDialog";
+import { API_BASE_URL } from "../apiConfig";
 
 // --- helpers ---
 const pad2 = (n) => String(n).padStart(2, "0");
@@ -158,7 +159,7 @@ const SessionDialog = ({ open, onClose, onEndSession, bookings = [] }) => {
         );
 
       const updatePromises = slotBookings.map((b) =>
-        axios.put(`http://127.0.0.1:8000/api/bookings/${b.id}`, {
+        axios.put(`${API_BASE_URL}/api/bookings/${b.id}`, {
           extended_time: String(updatedExtendedTime),
         })
       );
@@ -204,7 +205,7 @@ const SessionDialog = ({ open, onClose, onEndSession, bookings = [] }) => {
 
     try {
       const response = await axios.put(
-        `http://127.0.0.1:8000/api/bookings/${activeBooking.id}`,
+        `${API_BASE_URL}/api/bookings/${activeBooking.id}`,
         {
           status: "completed",
           end_time: endTime, // store the current time

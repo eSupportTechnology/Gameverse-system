@@ -20,6 +20,7 @@ import { useEffect, useState } from "react";
 import AddNFCUserDialog from "./AddNFCUserDialog";
 import CreateSuccessDialog from "./CreateSuccessDialog";
 import UpdateSuccessDialog from "./UpdateSuccess";
+import { API_BASE_URL } from "../apiConfig";
 
 const BookingForm = ({
   open,
@@ -42,7 +43,7 @@ const BookingForm = ({
     nicNumber: "",
     activeUser: true,
   });
-  console.log("station", existingBooking);
+
   const [formData, setFormData] = useState({
     nfcCardNumber: "",
     customerName: "",
@@ -52,7 +53,7 @@ const BookingForm = ({
     vrPlay: "",
     startTime: "",
     duration: "",
-    amount: 400,
+    amount: 0,
   });
   useEffect(() => {
     if (existingBooking) {
@@ -65,12 +66,10 @@ const BookingForm = ({
         vrPlay: existingBooking.vr_play || "",
         startTime: existingBooking.start_time || "",
         duration: existingBooking.duration || "",
-        amount: existingBooking.amount || 400,
+        amount: existingBooking.amount || 0,
       });
     }
   }, [existingBooking]);
-
-  console.log("Form station:", formData.station);
 
   const handleOpenNfcDialog = () => {
     setNfcDialogOpen(true);
@@ -91,7 +90,6 @@ const BookingForm = ({
     }));
 
     setNfcDialogOpen(false);
-    console.log("NFC User created:", nfcData);
   };
 
   const handleInputChange = (field, value) => {
@@ -117,7 +115,7 @@ const BookingForm = ({
       vrPlay: "",
       startTime: "",
       duration: "",
-      amount: 400,
+      amount: 0,
     });
   };
 
@@ -130,29 +128,86 @@ const BookingForm = ({
     setUpdateSuccess(false);
     handleClose();
   };
-  const isSlotFull = () => {
+
+  const parse12HourTimeToMinutes = (timeStr) => {
+    if (!timeStr) return 0;
+    let [hour, min] = timeStr.split(":").map(Number);
+    // Assuming all times are PM except 12 (like your earlier example)
+    if (hour !== 12) hour += 12;
+    return hour * 60 + min;
+  };
+
+  const parseDurationToMinutes = (duration) => {
+    if (!duration) return 0;
+    let mins = 0;
+    const hourMatch = duration.match(/(\d+)h/);
+    const minMatch = duration.match(/(\d+)m/);
+    if (hourMatch) mins += parseInt(hourMatch[1], 10) * 60;
+    if (minMatch) mins += parseInt(minMatch[1], 10);
+    return mins;
+  };
+
+  const isTimeOverlap = (start1, duration1, start2, duration2) => {
+    const s1 = parse12HourTimeToMinutes(start1);
+    const e1 = s1 + parseDurationToMinutes(duration1);
+    const s2 = parse12HourTimeToMinutes(start2);
+    const e2 = s2 + parseDurationToMinutes(duration2);
+    return s1 < e2 && s2 < e1;
+  };
+  const isSameStartTime = (t1, t2) => {
+    return t1?.trim() === t2?.trim();
+  };
+
+  const validateSlot = () => {
     const formStation = formData.station?.trim();
-    const formTime = formData.startTime?.trim();
     const formDate = formData.bookingDate?.trim();
+    const formStartTime = formData.startTime?.trim();
+    const formDuration = formData.duration;
 
-    // Ensure bookings is an array
-    const allBookings = Array.isArray(bookings) ? bookings : [];
+    if (!formStation || !formDate || !formStartTime || !formDuration)
+      return { valid: true };
 
-    const matchedBookings = allBookings.filter((b) => {
-      const bookingStation = b.station?.trim();
-      const bookingTime = b.start_time?.trim();
-      const bookingDate = b.booking_date?.split("T")[0];
+    const relevantBookings = bookings.filter(
+      (b) =>
+        b.station?.trim() === formStation &&
+        b.booking_date?.split("T")[0] === formDate &&
+        (!existingBooking || b.id !== existingBooking.id)
+    );
 
-      if (existingBooking && b.id === existingBooking.id) return false;
+    let sameStartCount = 0;
 
-      return (
-        bookingStation === formStation &&
-        bookingTime === formTime &&
-        bookingDate === formDate
+    for (let b of relevantBookings) {
+      const overlaps = isTimeOverlap(
+        formStartTime,
+        formDuration,
+        b.start_time,
+        b.duration
       );
-    });
 
-    return matchedBookings.length >= 4;
+      if (!overlaps) continue;
+
+      // 🔴 CASE 1: overlaps but different start time → BLOCK
+      if (!isSameStartTime(formStartTime, b.start_time)) {
+        return {
+          valid: false,
+          message:
+            "This time falls within an existing booking. Please choose another time.",
+        };
+      }
+
+      // 🟢 CASE 2: same start time → count for capacity
+      sameStartCount++;
+    }
+
+    // 🔴 Capacity rule
+    if (sameStartCount >= 4) {
+      return {
+        valid: false,
+        message: "This slot already has 4 bookings.",
+      };
+    }
+
+    return { valid: true };
   };
 
   // Auto-set slot duration if already exists
@@ -207,11 +262,11 @@ const BookingForm = ({
       !formData.duration
     )
       return alert("Please fill in all required fields");
+    const result = validateSlot();
 
-    if (!existingBooking && isSlotFull()) {
-      return alert(
-        "This time slot is already full (maximum 4 bookings allowed)."
-      );
+    if (!result.valid) {
+      alert(result.message);
+      return;
     }
 
     setLoading(true);
@@ -233,7 +288,7 @@ const BookingForm = ({
       if (existingBooking) {
         // Update booking
         await axios.put(
-          `http://127.0.0.1:8000/api/bookings/${existingBooking.id}`,
+          `${API_BASE_URL}/api/bookings/${existingBooking.id}`,
           payload,
           {
             headers: {
@@ -245,7 +300,7 @@ const BookingForm = ({
         setUpdateSuccess(true); // show update dialog
       } else {
         // Create new booking
-        await axios.post("http://127.0.0.1:8000/api/bookings", payload, {
+        await axios.post(`${API_BASE_URL}/api/bookings`, payload, {
           headers: {
             Authorization: token ? `Bearer ${token}` : "",
             "Content-Type": "application/json",
@@ -261,7 +316,7 @@ const BookingForm = ({
           vrPlay: "",
           startTime: "",
           duration: "",
-          amount: 400,
+          amount: 0,
         });
       }
 
@@ -279,6 +334,55 @@ const BookingForm = ({
   );
 
   const showVRPlay = selectedStation?.vrPrice && selectedStation?.vrTime;
+
+  useEffect(() => {
+    if (!formData.station || !formData.duration) return;
+
+    const stationData = stations.find((s) => s.name === formData.station);
+    if (!stationData) return;
+
+    const basePrice = Number(stationData.price) || 0;
+    const baseMinutes = Number(stationData.time) || 60;
+
+    const durationMinutes = parseDurationToMinutes(formData.duration);
+    const normalAmount = (basePrice / baseMinutes) * durationMinutes;
+
+    const vrPrice =
+      formData.vrPlay === "yes" ? Number(stationData.vrPrice || 0) : 0;
+    const finalAmount = normalAmount + vrPrice;
+    setFormData((prev) => ({ ...prev, amount: Math.round(finalAmount) }));
+  }, [formData.station, formData.duration, formData.vrPlay, stations]);
+
+  const generateTimeSlots = () => {
+    const selected = stations.find((s) => s.name === formData.station);
+
+    const isPool = selected?.type === "Pool";
+    const interval = isPool ? 30 : 15;
+
+    let slots = [];
+
+    let start = 12 * 60;
+    let end = 19 * 60 + 45;
+
+    for (let minutes = start; minutes <= end; minutes += interval) {
+      const h24 = Math.floor(minutes / 60);
+      const m = minutes % 60;
+
+      const h12 = h24 > 12 ? h24 - 12 : h24;
+
+      const label = `${h12.toString().padStart(2, "0")}.${m
+        .toString()
+        .padStart(2, "0")}`;
+
+      const value = `${h12.toString().padStart(2, "0")}:${m
+        .toString()
+        .padStart(2, "0")}`;
+
+      slots.push({ label, value });
+    }
+
+    return slots;
+  };
 
   return (
     <>
@@ -698,10 +802,11 @@ const BookingForm = ({
                     Select time
                   </em>
                 </MenuItem>
-                <MenuItem value="12:00">12.00</MenuItem>
-                <MenuItem value="01:00">01.00</MenuItem>
-                <MenuItem value="01:30">01.30</MenuItem>
-                <MenuItem value="02:00">02.00</MenuItem>
+                {generateTimeSlots().map((t, i) => (
+                  <MenuItem key={i} value={t.value}>
+                    {t.label}
+                  </MenuItem>
+                ))}
               </Select>
             </Box>
 
@@ -747,9 +852,13 @@ const BookingForm = ({
                   </em>
                 </MenuItem>
                 <MenuItem value="30m">30 min</MenuItem>
+                <MenuItem value="1h">1 hour</MenuItem>
                 <MenuItem value="1h 30m">1 hour 30 min</MenuItem>
                 <MenuItem value="2h">2 hour</MenuItem>
                 <MenuItem value="2h 30m">2 hour 30 min</MenuItem>
+                <MenuItem value="3h">3 hour</MenuItem>
+                <MenuItem value="3h 30m">3 hour 30 min</MenuItem>
+                <MenuItem value="4h">4 hour</MenuItem>
               </Select>
             </Box>
           </Box>
@@ -767,7 +876,7 @@ const BookingForm = ({
               Amount
             </Typography>
             <Typography variant="h6" color="cyan">
-              LKR 400
+              LKR {formData.amount}
             </Typography>
           </Box>
         </DialogContent>

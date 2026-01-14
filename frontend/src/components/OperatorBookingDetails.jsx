@@ -19,6 +19,7 @@ import sucessicon from "../assets/sucessicon.png";
 import CancelPopup from "../components/CancelPopup";
 import EditOperatorBookingForm from "./EditOperatorBookingForm";
 import axios from "axios";
+import { API_BASE_URL } from "../apiConfig";
 
 // status colors mapping
 const statusColors = {
@@ -27,7 +28,12 @@ const statusColors = {
   completed: "#FD00B5",
 };
 
-const OperatorBookingDetails = ({ open, handleClose, booking, onBookingUpdated }) => {
+const OperatorBookingDetails = ({
+  open,
+  handleClose,
+  booking,
+  onBookingUpdated,
+}) => {
   const [cancelOpen, setcancelOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [time, setTime] = useState(15);
@@ -43,7 +49,7 @@ const OperatorBookingDetails = ({ open, handleClose, booking, onBookingUpdated }
   const handleCancelClose = () => setcancelOpen(false);
 
   // Cancel Booking
-   const handleConfirm = async () => {
+  const handleConfirm = async () => {
     if (!booking || !booking.id) {
       console.log("No booking ID available for cancellation");
       setcancelOpen(false);
@@ -53,25 +59,28 @@ const OperatorBookingDetails = ({ open, handleClose, booking, onBookingUpdated }
     try {
       // Update booking status to cancelled
       const response = await axios.put(
-        `http://127.0.0.1:8000/api/operator-bookings/${booking.id}`,{
-          status: 'cancelled'
-        }, {
+        `${API_BASE_URL}/api/operator-bookings/${booking.id}`,
+        {
+          status: "cancelled",
+        },
+        {
           headers: {
             "Content-Type": "application/json",
             Authorization: localStorage.getItem("aToken")
               ? `Bearer ${localStorage.getItem("aToken")}`
               : "",
-          }
-        });
+          },
+        }
+      );
 
       if (response.data.success) {
         console.log("Booking cancelled successfully:", response.data);
         setcancelOpen(false);
         handleClose(false);
         // Call parent refresh callback instead of page reload
-         if (onBookingUpdated) {
+        if (onBookingUpdated) {
           onBookingUpdated();
-        } 
+        }
       }
     } catch (error) {
       console.error("Cancel error:", error.response?.data || error);
@@ -93,7 +102,7 @@ const OperatorBookingDetails = ({ open, handleClose, booking, onBookingUpdated }
 
       // Update booking duration
       const response = await axios.put(
-        `http://127.0.0.1:8000/api/operator-bookings/${booking.id}`,
+        `${API_BASE_URL}/api/operator-bookings/${booking.id}`,
         { duration: updatedDuration },
         {
           headers: {
@@ -101,8 +110,9 @@ const OperatorBookingDetails = ({ open, handleClose, booking, onBookingUpdated }
             Authorization: localStorage.getItem("aToken")
               ? `Bearer ${localStorage.getItem("aToken")}`
               : "",
-          }
-        });
+          },
+        }
+      );
 
       if (response.data.success) {
         console.log("Time updated successfully:", response.data);
@@ -116,7 +126,10 @@ const OperatorBookingDetails = ({ open, handleClose, booking, onBookingUpdated }
         }, 2000);
       }
     } catch (error) {
-      console.error("Error updating booking time:",error.response?.data || error);
+      console.error(
+        "Error updating booking time:",
+        error.response?.data || error
+      );
       alert(error.response?.data?.message || "Failed to update booking time");
     }
   };

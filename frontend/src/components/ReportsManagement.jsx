@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -13,6 +13,8 @@ import ReportCards from "./ReportCards";
 import SalesChart from "./ReportSalesChart";
 import QuickActions from "./ReportQuickActions";
 import ReportBookingSalesTable from "./ReportBookingSalesTable";
+import axios from "axios";
+import { API_BASE_URL } from "../apiConfig";
 
 const ReportsManagement = () => {
   const [dateFilter, setDateFilter] = useState("today");
@@ -52,6 +54,46 @@ const ReportsManagement = () => {
 
   const currentData = getCurrentData();
 
+  const [newCustomersCount, setNewCustomersCount] = useState(0);
+
+  useEffect(() => {
+    const fetchNewCustomers = async () => {
+      try {
+        const res = await axios.get(
+          `${API_BASE_URL}/api/reports/new-customers`
+        );
+
+        if (res.data.success) {
+          setNewCustomersCount(res.data.count);
+        }
+      } catch (error) {
+        console.error("Error fetching new customers count", error);
+      }
+    };
+
+    fetchNewCustomers();
+  }, []);
+
+  const [totalBookings, setTotalBookings] = useState(0);
+
+  useEffect(() => {
+    const fetchTotalBookings = async () => {
+      try {
+        const res = await axios.get(
+          `${API_BASE_URL}/api/reports/total-bookings`
+        );
+
+        if (res.data.success) {
+          setTotalBookings(res.data.count);
+        }
+      } catch (error) {
+        console.error("Error fetching total bookings", error);
+      }
+    };
+
+    fetchTotalBookings();
+  }, []);
+
   // Metric cards data
   const metrics = [
     {
@@ -67,8 +109,7 @@ const ReportsManagement = () => {
       id: 2,
       label: "Total Booking",
       icon: <img src="/images/report Icon/group.png" width={28} />,
-      value: "45",
-      // value: currentData.totalBookings.toString(),
+      value: totalBookings.toString().padStart(2, "0"),
       changePositive: true,
       iconBgColor: "#ffa86b",
     },
@@ -85,9 +126,8 @@ const ReportsManagement = () => {
       id: 4,
       label: "New Customers",
       icon: <img src="/images/report Icon/newCostumersIcon.png" width={28} />,
-      value: "10",
-      // value: currentData.rejectedBookings.toString().padStart(2, "0"),
-      changePositive: false,
+      value: newCustomersCount.toString().padStart(2, "0"),
+      changePositive: true,
       iconBgColor: "#b28bff",
     },
   ];
@@ -316,6 +356,7 @@ const ReportsManagement = () => {
       {viewMode === "table" && (
         <Box sx={{ p: 5, minHeight: "100vh", color: "#fff" }}>
           <ReportBookingSalesTable
+            dateFilter={dateFilter}
             activeTabFromParent={openTab}
             onReturnToOverview={() => setViewMode("overview")}
           />

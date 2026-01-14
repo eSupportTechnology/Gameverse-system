@@ -34,6 +34,7 @@ import { getGallery, addGalleryPhoto, deleteGalleryPhoto } from "../api";
 import PS5station from "../assets/ps5_station.jpg";
 import poolTable from "../assets/pool_table.jpg";
 import racingSimulator from "../assets/racing_simulators.jpg";
+import { API_BASE_URL } from "../apiConfig";
 
 const categories = [
   { label: "Booking Games" },
@@ -106,7 +107,7 @@ const WebManagement = () => {
 
   const fetchStations = async () => {
     try {
-      const res = await axios.get("http://127.0.0.1:8000/api/stations");
+      const res = await axios.get(`${API_BASE_URL}/api/stations`);
       const stations = res.data;
 
       // Build unique type categories
@@ -126,7 +127,7 @@ const WebManagement = () => {
               station.description ||
               "Latest PS5 games with 4K graphics and immersive gameplay on premium gaming setups",
             image: station.common_thumbnail
-              ? `http://127.0.0.1:8000/storage/${station.common_thumbnail}`
+              ? `${API_BASE_URL}/storage/${station.common_thumbnail}`
               : defaults.defaultImage,
             route: defaults.route,
             button: defaults.button,
@@ -157,7 +158,7 @@ const WebManagement = () => {
     try {
       // Use selectedCategory.type, NOT title
       await axios.post(
-        `http://127.0.0.1:8000/api/stations/update-category/${selectedCategory.type}`,
+        `${API_BASE_URL}/api/stations/update-category/${selectedCategory.type}`,
         formData,
         {
           headers: { "Content-Type": "multipart/form-data" },
@@ -225,9 +226,9 @@ const WebManagement = () => {
     try {
       let apiUrl = "";
       if (gameToRemove.source === "portable") {
-        apiUrl = `http://127.0.0.1:8000/api/portal_games/${gameToRemove.id}`;
+        apiUrl = `${API_BASE_URL}/api/portal_games/${gameToRemove.id}`;
       } else {
-        apiUrl = `http://127.0.0.1:8000/api/games/${gameToRemove.id}`;
+        apiUrl = `${API_BASE_URL}/api/games/${gameToRemove.id}`;
       }
 
       await axios.delete(apiUrl, {
@@ -274,7 +275,7 @@ const WebManagement = () => {
           name: savedEvent.name,
           date: savedEvent.date,
           image: savedEvent.thumbnail
-            ? `http://127.0.0.1:8000/storage/${savedEvent.thumbnail}`
+            ? `${API_BASE_URL}/storage/${savedEvent.thumbnail}`
             : "",
         },
       ]);
@@ -299,7 +300,7 @@ const WebManagement = () => {
         name: savedEvent.name,
         date: savedEvent.date,
         image: savedEvent.thumbnail
-          ? `http://127.0.0.1:8000/storage/${savedEvent.thumbnail}`
+          ? `${API_BASE_URL}/storage/${savedEvent.thumbnail}`
           : "",
       };
 
@@ -350,9 +351,7 @@ const WebManagement = () => {
         id: e.id,
         name: e.name || "No Name",
         date: e.date || null,
-        image: e.thumbnail
-          ? `http://127.0.0.1:8000/storage/${e.thumbnail}`
-          : "",
+        image: e.thumbnail ? `${API_BASE_URL}/storage/${e.thumbnail}` : "",
       }));
 
       setEvent(mappedEvents);
@@ -429,7 +428,7 @@ const WebManagement = () => {
     if (!token) return;
 
     try {
-      const res = await axios.get("http://127.0.0.1:8000/api/games", {
+      const res = await axios.get(`${API_BASE_URL}/api/games`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -454,7 +453,7 @@ const WebManagement = () => {
     if (!token) return;
 
     try {
-      const res = await axios.get("http://127.0.0.1:8000/api/portal_games", {
+      const res = await axios.get(`${API_BASE_URL}/api/portal_games`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 

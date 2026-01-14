@@ -20,7 +20,10 @@ class PosItemController extends Controller
         ]);
 
         // Automatically link the item to the authenticated user
-        $validated['user_id'] = $request->user()->id;
+        // $validated['user_id'] = $request->user()->id;
+        // For now, we set a default user_id.
+        $validated['user_id'] = 1;
+        $validated['paid_amount'] = 0;
 
         $item = PosItem::create($validated);
 

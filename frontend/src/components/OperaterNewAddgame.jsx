@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -10,18 +10,25 @@ import {
   Typography,
   IconButton,
   MenuItem,
-  Switch
+  Switch,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import CancelPopup from './CancelPopup';
-import gameicon from '../assets/gameicon.png';
-import axios from 'axios';
-import { toast } from 'react-toastify';
-import { useNavigate } from 'react-router-dom';
+import CancelPopup from "./CancelPopup";
+import gameicon from "../assets/gameicon.png";
+import axios from "axios";
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
+import { API_BASE_URL } from "../apiConfig";
 
 const paymentMethods = ["Coin", "Arrow", "Per Hour"];
 
-const AddNewGameOperator = ({ open, handleClose, mode = "add", initialData = {}, onSubmit }) => {
+const AddNewGameOperator = ({
+  open,
+  handleClose,
+  mode = "add",
+  initialData = {},
+  onSubmit,
+}) => {
   const navigate = useNavigate();
 
   const [createSuccess, setCreateSuccess] = useState(false);
@@ -64,7 +71,11 @@ const AddNewGameOperator = ({ open, handleClose, mode = "add", initialData = {},
       toast.warning("⚠️ Archery Machine should use 'Coin' method only.");
       return false;
     }
-    if (lowerTitle.includes("archery") && !lowerTitle.includes("machine") && chosenMethod !== "Arrow") {
+    if (
+      lowerTitle.includes("archery") &&
+      !lowerTitle.includes("machine") &&
+      chosenMethod !== "Arrow"
+    ) {
       toast.warning("⚠️ Archery should use 'Arrow' method only.");
       return false;
     }
@@ -106,17 +117,22 @@ const AddNewGameOperator = ({ open, handleClose, mode = "add", initialData = {},
     try {
       const url =
         mode === "edit"
-          ? `http://127.0.0.1:8000/api/operator/games/${initialData.id}`
-          : "http://127.0.0.1:8000/api/operator/games";
+          ? `${API_BASE_URL}/api/operator/games/${initialData.id}`
+          : `${API_BASE_URL}/api/operator/games`;
 
       await axios({
         method: mode === "edit" ? "put" : "post",
         url,
-        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
         data: gameData,
       });
 
-      toast.success(`Game ${mode === "edit" ? "updated" : "created"} successfully!`);
+      toast.success(
+        `Game ${mode === "edit" ? "updated" : "created"} successfully!`
+      );
       setCreateSuccess(true);
 
       setTimeout(() => {
@@ -126,11 +142,11 @@ const AddNewGameOperator = ({ open, handleClose, mode = "add", initialData = {},
 
       if (onSubmit) onSubmit();
     } catch (err) {
-      console.error('Validation errors:', err.response?.data);
+      console.error("Validation errors:", err.response?.data);
       toast.error(
         err.response?.data?.message ||
-        JSON.stringify(err.response?.data) ||
-        "Failed to save game."
+          JSON.stringify(err.response?.data) ||
+          "Failed to save game."
       );
     }
   };
@@ -147,12 +163,21 @@ const AddNewGameOperator = ({ open, handleClose, mode = "add", initialData = {},
             backgroundColor: "#111827",
             color: "white",
             py: 2,
-            border: '1px solid #374151'
-          }
+            border: "1px solid #374151",
+          },
         }}
       >
-        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", px: 1 }}>
-          <DialogTitle sx={{ color: "#FFFFFF", fontSize: 18, fontWeight: "bold" }}>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            px: 1,
+          }}
+        >
+          <DialogTitle
+            sx={{ color: "#FFFFFF", fontSize: 18, fontWeight: "bold" }}
+          >
             {mode === "edit" ? "Edit Game" : "Add New Game"}
           </DialogTitle>
           <IconButton onClick={handleCancelOpen} sx={{ color: "#FFFFFF" }}>
@@ -163,7 +188,12 @@ const AddNewGameOperator = ({ open, handleClose, mode = "add", initialData = {},
         <DialogContent dividers sx={{ py: 0, pb: 2 }}>
           {/* Game Name */}
           <Box mb={1}>
-            <Typography variant="body2" sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF" }}>Game Name</Typography>
+            <Typography
+              variant="body2"
+              sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF" }}
+            >
+              Game Name
+            </Typography>
             <TextField
               variant="outlined"
               fullWidth
@@ -175,14 +205,14 @@ const AddNewGameOperator = ({ open, handleClose, mode = "add", initialData = {},
                 sx: {
                   backgroundColor: "#1F2937",
                   borderRadius: "6px",
-                  border: '1px solid #374151',
-                  color: "white"
-                }
+                  border: "1px solid #374151",
+                  color: "white",
+                },
               }}
             />
           </Box>
 
-         { /*  
+          {/*  
           <Box mb={2}>
             <Typography
               variant="body2"
@@ -252,123 +282,139 @@ const AddNewGameOperator = ({ open, handleClose, mode = "add", initialData = {},
           </Box>
           */}
           {/* Team Game Section */}
-<Box mb={2}>
-  <Typography
-    variant="body2"
-    sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF", mb: 0.5 }}
-  >
-    Team Game
-  </Typography>
+          <Box mb={2}>
+            <Typography
+              variant="body2"
+              sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF", mb: 0.5 }}
+            >
+              Team Game
+            </Typography>
 
-  <Box display="flex" gap={2}>
-    {/* YES box */}
-    <Box
-      onClick={() => setIsTeamGame(true)}
-      sx={{
-        flex: 1,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        px: 2,
-        py: 1,
-        borderRadius: "8px",
-        border: "1px solid rgba(255, 255, 255, 0.2)",
-        backgroundColor: isTeamGame === true ? "rgba(255, 255, 255, 0.05)" : "transparent",
-        cursor: "pointer",
-        transition: "all 0.3s ease",
-      }}
-    >
-      <Typography
-        sx={{
-          color: isTeamGame === true ? "#ffffff" : "rgba(255, 255, 255, 0.6)",
-          fontSize: 14,
-        }}
-      >
-        Yes
-      </Typography>
+            <Box display="flex" gap={2}>
+              {/* YES box */}
+              <Box
+                onClick={() => setIsTeamGame(true)}
+                sx={{
+                  flex: 1,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  px: 2,
+                  py: 1,
+                  borderRadius: "8px",
+                  border: "1px solid rgba(255, 255, 255, 0.2)",
+                  backgroundColor:
+                    isTeamGame === true
+                      ? "rgba(255, 255, 255, 0.05)"
+                      : "transparent",
+                  cursor: "pointer",
+                  transition: "all 0.3s ease",
+                }}
+              >
+                <Typography
+                  sx={{
+                    color:
+                      isTeamGame === true
+                        ? "#ffffff"
+                        : "rgba(255, 255, 255, 0.6)",
+                    fontSize: 14,
+                  }}
+                >
+                  Yes
+                </Typography>
 
-      {/* Circle on right */}
-      <Box
-        sx={{
-          width: 22,
-          height: 22,
-          borderRadius: "50%",
-          border: "2px solid rgba(255,255,255,0.4)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        {isTeamGame === true && (
-          <Box
-            sx={{
-              width: 10,
-              height: 10,
-              borderRadius: "50%",
-              backgroundColor: "rgba(255,255,255,0.8)",
-            }}
-          />
-        )}
-      </Box>
-    </Box>
+                {/* Circle on right */}
+                <Box
+                  sx={{
+                    width: 22,
+                    height: 22,
+                    borderRadius: "50%",
+                    border: "2px solid rgba(255,255,255,0.4)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  {isTeamGame === true && (
+                    <Box
+                      sx={{
+                        width: 10,
+                        height: 10,
+                        borderRadius: "50%",
+                        backgroundColor: "rgba(255,255,255,0.8)",
+                      }}
+                    />
+                  )}
+                </Box>
+              </Box>
 
-    {/* NO box */}
-    <Box
-      onClick={() => setIsTeamGame(false)}
-      sx={{
-        flex: 1,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        px: 2,
-        py: 1,
-        borderRadius: "8px",
-        border: "1px solid rgba(255, 255, 255, 0.2)",
-        backgroundColor: isTeamGame === false ? "rgba(255, 255, 255, 0.05)" : "transparent",
-        cursor: "pointer",
-        transition: "all 0.3s ease",
-      }}
-    >
-      <Typography
-        sx={{
-          color: isTeamGame === false ? "#ffffff" : "rgba(255, 255, 255, 0.6)",
-          fontSize: 14,
-        }}
-      >
-        No
-      </Typography>
+              {/* NO box */}
+              <Box
+                onClick={() => setIsTeamGame(false)}
+                sx={{
+                  flex: 1,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  px: 2,
+                  py: 1,
+                  borderRadius: "8px",
+                  border: "1px solid rgba(255, 255, 255, 0.2)",
+                  backgroundColor:
+                    isTeamGame === false
+                      ? "rgba(255, 255, 255, 0.05)"
+                      : "transparent",
+                  cursor: "pointer",
+                  transition: "all 0.3s ease",
+                }}
+              >
+                <Typography
+                  sx={{
+                    color:
+                      isTeamGame === false
+                        ? "#ffffff"
+                        : "rgba(255, 255, 255, 0.6)",
+                    fontSize: 14,
+                  }}
+                >
+                  No
+                </Typography>
 
-      {/* Circle on right */}
-      <Box
-        sx={{
-          width: 22,
-          height: 22,
-          borderRadius: "50%",
-          border: "2px solid rgba(255,255,255,0.4)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        {isTeamGame === false && (
-          <Box
-            sx={{
-              width: 10,
-              height: 10,
-              borderRadius: "50%",
-              backgroundColor: "rgba(255,255,255,0.8)",
-            }}
-          />
-        )}
-      </Box>
-    </Box>
-  </Box>
-</Box>
-
+                {/* Circle on right */}
+                <Box
+                  sx={{
+                    width: 22,
+                    height: 22,
+                    borderRadius: "50%",
+                    border: "2px solid rgba(255,255,255,0.4)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  {isTeamGame === false && (
+                    <Box
+                      sx={{
+                        width: 10,
+                        height: 10,
+                        borderRadius: "50%",
+                        backgroundColor: "rgba(255,255,255,0.8)",
+                      }}
+                    />
+                  )}
+                </Box>
+              </Box>
+            </Box>
+          </Box>
 
           {/* Location */}
           <Box mb={1}>
-            <Typography variant="body2" sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF" }}>Location</Typography>
+            <Typography
+              variant="body2"
+              sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF" }}
+            >
+              Location
+            </Typography>
             <TextField
               variant="outlined"
               fullWidth
@@ -380,16 +426,26 @@ const AddNewGameOperator = ({ open, handleClose, mode = "add", initialData = {},
                 sx: {
                   backgroundColor: "#1F2937",
                   borderRadius: "6px",
-                  border: '1px solid #374151',
-                  color: "white"
-                }
+                  border: "1px solid #374151",
+                  color: "white",
+                },
               }}
             />
           </Box>
 
           {/* Pricing Method */}
-          <Typography variant="body2" sx={{ fontSize: 12, color: "#9CA3AF", mb: 0.5 }}>Pricing Method</Typography>
-          <Box display="grid" gridTemplateColumns={{ xs: "1fr", md: "1fr 1fr" }} gap={2} mt={1}>
+          <Typography
+            variant="body2"
+            sx={{ fontSize: 12, color: "#9CA3AF", mb: 0.5 }}
+          >
+            Pricing Method
+          </Typography>
+          <Box
+            display="grid"
+            gridTemplateColumns={{ xs: "1fr", md: "1fr 1fr" }}
+            gap={2}
+            mt={1}
+          >
             <TextField
               select
               fullWidth
@@ -403,13 +459,15 @@ const AddNewGameOperator = ({ open, handleClose, mode = "add", initialData = {},
                 sx: {
                   backgroundColor: "#1F2937",
                   borderRadius: "6px",
-                  border: '1px solid #374151',
-                  color: "white"
-                }
+                  border: "1px solid #374151",
+                  color: "white",
+                },
               }}
             >
               {paymentMethods.map((m) => (
-                <MenuItem key={m} value={m}>{m}</MenuItem>
+                <MenuItem key={m} value={m}>
+                  {m}
+                </MenuItem>
               ))}
             </TextField>
 
@@ -425,53 +483,96 @@ const AddNewGameOperator = ({ open, handleClose, mode = "add", initialData = {},
                 sx: {
                   backgroundColor: "#1F2937",
                   borderRadius: "6px",
-                  border: '1px solid #374151',
-                  color: "white"
-                }
+                  border: "1px solid #374151",
+                  color: "white",
+                },
               }}
             />
           </Box>
         </DialogContent>
 
         <DialogActions sx={{ px: 3 }}>
-          <Button onClick={handleCancelOpen} variant="contained" sx={{ fontSize: 16, fontWeight: 'bold', backgroundColor: "#1F2937", width: '50%', py: 0.5 }}>Cancel</Button>
-          <Button onClick={handleSubmit} variant="contained" sx={{ fontSize: 16, fontWeight: 'bold', width: '50%', py: 0.5, background: "linear-gradient(to right, #0CD7FF, #8A38F5)" }}>
+          <Button
+            onClick={handleCancelOpen}
+            variant="contained"
+            sx={{
+              fontSize: 16,
+              fontWeight: "bold",
+              backgroundColor: "#1F2937",
+              width: "50%",
+              py: 0.5,
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSubmit}
+            variant="contained"
+            sx={{
+              fontSize: 16,
+              fontWeight: "bold",
+              width: "50%",
+              py: 0.5,
+              background: "linear-gradient(to right, #0CD7FF, #8A38F5)",
+            }}
+          >
             {mode === "edit" ? "Update" : "Create"}
           </Button>
         </DialogActions>
 
-        <CancelPopup open={cancelOpen} handleCancelClose={handleCancelClose} handleConfirm={handleConfirmCancel} />
+        <CancelPopup
+          open={cancelOpen}
+          handleCancelClose={handleCancelClose}
+          handleConfirm={handleConfirmCancel}
+        />
       </Dialog>
 
       {/* Create Success Popup */}
-      <Dialog open={createSuccess} PaperProps={{
-        sx: {
-          bgcolor: "#0A192F",
-          borderRadius: "16px",
-          py: 2,
-          px: 8,
-          textAlign: "center",
-          color: "white",
-          border: '1px solid #3B4859'
-        }
-      }}>
+      <Dialog
+        open={createSuccess}
+        PaperProps={{
+          sx: {
+            bgcolor: "#0A192F",
+            borderRadius: "16px",
+            py: 2,
+            px: 8,
+            textAlign: "center",
+            color: "white",
+            border: "1px solid #3B4859",
+          },
+        }}
+      >
         <DialogContent>
-          <Box sx={{ mb: 1 }}><img src={gameicon} alt="" width={80} /></Box>
-          <Typography variant="h6" sx={{
-            background: "linear-gradient(90deg, #00C6FF, #FF00CC)",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-            fontSize: 24,
-            fontWeight: 600,
-            mb: 1
-          }}>
+          <Box sx={{ mb: 1 }}>
+            <img src={gameicon} alt="" width={80} />
+          </Box>
+          <Typography
+            variant="h6"
+            sx={{
+              background: "linear-gradient(90deg, #00C6FF, #FF00CC)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              fontSize: 24,
+              fontWeight: 600,
+              mb: 1,
+            }}
+          >
             {mode === "edit" ? "Update Successful!" : "Create Successful!"}
           </Typography>
-          <Button onClick={() => { setCreateSuccess(false); handleClose(); }} sx={{
-            px: 8, fontSize: 14, borderRadius: "8px",
-            background: "linear-gradient(90deg, rgba(12, 215, 255, 0.4) 0%, rgba(138, 56, 245, 0.4) 73%)",
-            color: "white"
-          }}>
+          <Button
+            onClick={() => {
+              setCreateSuccess(false);
+              handleClose();
+            }}
+            sx={{
+              px: 8,
+              fontSize: 14,
+              borderRadius: "8px",
+              background:
+                "linear-gradient(90deg, rgba(12, 215, 255, 0.4) 0%, rgba(138, 56, 245, 0.4) 73%)",
+              color: "white",
+            }}
+          >
             Ok
           </Button>
         </DialogContent>

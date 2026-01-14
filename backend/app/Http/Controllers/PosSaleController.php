@@ -1,72 +1,87 @@
 <?php
 
-
 namespace App\Http\Controllers;
 
-use App\Models\{PosItem, PosSale, SaleItem};
+use App\Models\{PosItem, PosSale, SaleItem, Cart};
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 
 class PosSaleController extends Controller
 {
-    // ✅ Checkout (Create Sale)
+    // Checkout (create sale)
     public function checkout(Request $request)
     {
-        $validated = $request->validate([
-            'customer_name' => 'nullable|string',
-            'phone' => 'nullable|string',
-            'email' => 'nullable|email',
-            'items' => 'required|array',
-            'items.*.id' => 'required|integer|exists:pos_items,id',
-            'items.*.qty' => 'required|integer|min:1',
-            'subtotal' => 'required|numeric',
-            'discount' => 'nullable|numeric',
-            'total' => 'required|numeric',
-        ]);
-
         DB::beginTransaction();
 
         try {
-            // Create main sale record
+            // Get all cart items (global POS cart)
+            $cartItems = Cart::with('posItem')->get();
+
+            if ($cartItems->isEmpty()) {
+                throw new \Exception('Cart is empty');
+            }
+
+            $subtotal = $cartItems->sum(function ($c) {
+                return $c->posItem->price * $c->quantity;
+            });
+
+            $discount = (float) ($request->discount ?? 0);
+            $total = max($subtotal - $discount, 0);
+
+
+            // Create sale
+            // Prepare items array
+            $itemsArray = $cartItems->map(function ($cart) {
+                return [
+                    'item_id' => $cart->pos_item_id,
+                    'quantity' => $cart->quantity
+                ];
+            })->toArray();
+
+            // Create sale
             $sale = PosSale::create([
-                'customer_name' => $validated['customer_name'] ?? 'Walk-in',
-                'phone' => $validated['phone'] ?? null,
-                'email' => $validated['email'] ?? null,
-                'subtotal' => $validated['subtotal'],
-                'discount' => $validated['discount'] ?? 0,
-                'total' => $validated['total'],
+                'customer_name' => $request->customer_name,
+                'customer_id' => $request->customer_id,
+                'subtotal' => $subtotal,
+                'discount' => $discount,
+                'total' => $total,
+                'items' => json_encode($itemsArray), // <--- important
             ]);
 
-            // Loop through items
-            foreach ($validated['items'] as $item) {
-                $product = PosItem::find($item['id']);
 
-                if ($product->stock < $item['qty']) {
-                    throw new \Exception("Not enough stock for {$product->item_name}");
-                }
 
-                // Decrease stock
-                $product->decrement('stock', $item['qty']);
+            // Create sale items
+            foreach ($cartItems as $cart) {
 
-                // Create sale item
                 SaleItem::create([
                     'sale_id' => $sale->id,
-                    'item_id' => $product->id,
-                    'quantity' => $item['qty'],
-                    'unit_price' => $product->price,
-                    'subtotal' => $product->price * $item['qty'],
+                    'item_id' => $cart->pos_item_id,
+                    'quantity' => $cart->quantity,
+                    'unit_price' => $cart->posItem->price,
+                    'subtotal' => $cart->posItem->price * $cart->quantity,
+                ]);
+
+                // Update paid amount
+                PosItem::where('id', $cart->pos_item_id)->update([
+                    'paid_amount' => DB::raw(
+                        'paid_amount + ' . ($cart->posItem->price * $cart->quantity)
+                    ),
                 ]);
             }
+
+            // Clear cart
+            Cart::query()->delete();
 
             DB::commit();
 
             return response()->json([
                 'success' => true,
-                'message' => 'Checkout completed successfully!',
+                'message' => 'Checkout completed successfully',
                 'data' => $sale->load('items.item'),
             ], 201);
         } catch (\Exception $e) {
             DB::rollBack();
+
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),

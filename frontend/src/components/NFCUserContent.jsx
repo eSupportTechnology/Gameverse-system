@@ -29,6 +29,7 @@ import DeleteConfirmDialog from "./DeleteConfirmDialog";
 import axios from "axios";
 import { toast } from "react-toastify";
 import UpdateSuccessDialog from "./UpdateSuccess";
+import { API_BASE_URL } from "../apiConfig";
 //import { nfcUsers } from "../assets/assets";
 
 export default function NFCUserContent() {
@@ -56,7 +57,7 @@ export default function NFCUserContent() {
   const fetchUsers = async () => {
     try {
       const token = localStorage.getItem("aToken");
-      const res = await axios.get("http://127.0.0.1:8000/api/nfc-users", {
+      const res = await axios.get(`${API_BASE_URL}/api/nfc-users`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -155,7 +156,7 @@ export default function NFCUserContent() {
     try {
       const token = localStorage.getItem("aToken");
       const res = await axios.delete(
-        `http://127.0.0.1:8000/api/nfc-users/${deleteUserId}`,
+        `${API_BASE_URL}/api/nfc-users/${deleteUserId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -184,16 +185,12 @@ export default function NFCUserContent() {
         nic_number: newUserData.nicNumber,
       };
 
-      const res = await axios.post(
-        "http://127.0.0.1:8000/api/nfc-users",
-        payload,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const res = await axios.post(`${API_BASE_URL}/api/nfc-users`, payload, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
 
       if (res.data.success) {
         setAddSuccessDialog(true);
@@ -226,7 +223,7 @@ export default function NFCUserContent() {
       };
 
       const res = await axios.put(
-        `http://127.0.0.1:8000/api/nfc-users/${selectedUser.id}`,
+        `${API_BASE_URL}/api/nfc-users/${selectedUser.id}`,
         payload,
         {
           headers: {
@@ -256,7 +253,7 @@ export default function NFCUserContent() {
     try {
       const token = localStorage.getItem("aToken");
       const res = await axios.patch(
-        `http://127.0.0.1:8000/api/nfc-users/${userId}/toggle-status`,
+        `${API_BASE_URL}/api/nfc-users/${userId}/toggle-status`,
         {},
         {
           headers: {

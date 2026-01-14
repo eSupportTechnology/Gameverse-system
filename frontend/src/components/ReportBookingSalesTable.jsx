@@ -11,12 +11,16 @@ import {
   Popper,
   Paper,
   ClickAwayListener,
+  TextField,
 } from "@mui/material";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import ReportProductSalesTable from "./ReportProductSalesTable";
 import ReportOtherGamesSalesTable from "./ReportOtherGamesSalesTable";
 import ReportNFCcustomersTable from "./ReportNFCcustomersTable";
+import axios from "axios";
+import { formatBookingDate } from "./BookingManagement";
+import { API_BASE_URL } from "../apiConfig";
 
 const ReportBookingSalesTable = ({
   showOnlyBooking = false,
@@ -40,6 +44,36 @@ const ReportBookingSalesTable = ({
   const [anchorEl, setAnchorEl] = useState(null);
   const anchorRef = useRef(null);
   const [selectedStation, setSelectedStation] = useState("PS5 Station 1");
+  const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [date, setDate] = React.useState(
+    new Date().toISOString().split("T")[0]
+  );
+
+  useEffect(() => {
+    const fetchBookings = async () => {
+      try {
+        setLoading(true);
+        const response = await axios.get(`${API_BASE_URL}/api/bookings`);
+
+        if (response.data.success) {
+          const completedBookings = response.data.data.filter(
+            (b) =>
+              b.status === "completed" &&
+              b.station === selectedStation &&
+              formatBookingDate(b.booking_date) === date
+          );
+          setBookings(completedBookings);
+        }
+      } catch (error) {
+        console.error("Failed to fetch bookings", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBookings();
+  }, [selectedStation, date]);
 
   const stations = [
     "PS5 Station 1",
@@ -84,76 +118,10 @@ const ReportBookingSalesTable = ({
     borderBottom: "1px solid #1f2937",
   };
 
-  const bookings = [
-    {
-      name: "Danuka Perera",
-      contact: "0705568923",
-      time: "10.00 AM",
-      duration: "1 Hrs",
-      revenue: "LKR 600",
-    },
-    {
-      name: "Vishwa Pradeep",
-      contact: "0253692548",
-      time: "11.00 AM",
-      duration: "2 Hrs 30 Min",
-      revenue: "LKR 1450",
-    },
-    {
-      name: "Mayumi Lakshika",
-      contact: "0782536598",
-      time: "02.00 PM",
-      duration: "1 Hrs 30 Min",
-      revenue: "LKR 850",
-    },
-    {
-      name: "Udara Devinda",
-      contact: "0774586936",
-      time: "08.30 PM",
-      duration: "30 Min",
-      revenue: "LKR 400",
-    },
-    {
-      name: "Danuka Perera",
-      contact: "0705568923",
-      time: "10.00 AM",
-      duration: "1 Hrs",
-      revenue: "LKR 600",
-    },
-    {
-      name: "Vishwa Pradeep",
-      contact: "0253692548",
-      time: "11.00 AM",
-      duration: "2 Hrs 30 Min",
-      revenue: "LKR 1450",
-    },
-    {
-      name: "Mayumi Lakshika",
-      contact: "0782536598",
-      time: "02.00 PM",
-      duration: "1 Hrs 30 Min",
-      revenue: "LKR 850",
-    },
-    {
-      name: "Udara Devinda",
-      contact: "0774586936",
-      time: "08.30 PM",
-      duration: "30 Min",
-      revenue: "LKR 400",
-    },
-    {
-      name: "Danuka Perera",
-      contact: "0705568923",
-      time: "10.00 AM",
-      duration: "1 Hrs",
-      revenue: "LKR 600",
-    },
-  ];
-
   // Handle export functionality
   const handleExport = () => {
     toast.info("Exporting report data...");
-    // Export logic 
+    // Export logic
     setTimeout(() => {
       toast.success("Report exported successfully!");
     }, 1000);
@@ -317,21 +285,32 @@ const ReportBookingSalesTable = ({
         {/* Right Controls */}
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
           {/* Date Picker */}
-          <Box
-            sx={{
-              px: 2,
-              py: 1,
-              borderRadius: "8px",
-              backgroundColor: "#0F172A",
-              border: "1px solid #1e293b",
-              display: "flex",
-              alignItems: "center",
-              gap: 1,
-              color: "#fff",
+          <TextField
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            InputLabelProps={{ shrink: true }}
+            inputProps={{
+              style: {
+                height: "40px",
+                padding: "0 12px",
+                color: "#fff",
+              },
             }}
-          >
-            11/08/2025 <CalendarMonthIcon />
-          </Box>
+            sx={{
+              bgcolor: "#1F2937",
+              cursor: "pointer",
+              "& .MuiOutlinedInput-root": {
+                "& fieldset": { borderColor: "#555" },
+                "&:hover fieldset": { borderColor: "#888" },
+                "&.Mui-focused fieldset": { borderColor: "#00E5FF" },
+              },
+              "& .MuiInputBase-input": {
+                color: "#fff",
+              },
+              mb: { xs: 2, sm: 2, md: 0 },
+            }}
+          />
 
           {/* Station Dropdown */}
           <Box sx={{ position: "relative" }}>
@@ -378,12 +357,12 @@ const ReportBookingSalesTable = ({
                     sx={{
                       position: "absolute",
                       top: "-10px",
-                      right: "15px",  
+                      right: "15px",
                       width: 0,
                       height: 0,
                       borderLeft: "8px solid transparent",
                       borderRight: "8px solid transparent",
-                      borderBottom: "10px solid #0F172A", 
+                      borderBottom: "10px solid #0F172A",
                       filter: "drop-shadow(0px -2px 2px rgba(0,0,0,0.4))",
                     }}
                   />
@@ -479,15 +458,25 @@ const ReportBookingSalesTable = ({
                 <Box sx={tableHeaderStyle}>Duration</Box>
                 <Box sx={tableHeaderStyle}>Revenue</Box>
               </Box>
+              {loading && (
+                <Box sx={{ p: 2, textAlign: "center", color: "#9ca3af" }}>
+                  Loading bookings...
+                </Box>
+              )}
+
+              {!loading && bookings.length === 0 && (
+                <Box sx={{ p: 2, textAlign: "center", color: "#9ca3af" }}>
+                  No bookings found
+                </Box>
+              )}
 
               {bookings.map((row, i) => (
                 <Box
-                  key={i}
+                  key={row.id}
                   sx={{
                     display: "grid",
                     gridTemplateColumns: "2fr 2fr 1fr 1fr 1fr",
                     borderBottom: "1px solid #1F2937",
-
                     "&:hover": { backgroundColor: "#1a2433" },
                     "& > div": {
                       borderRight: "1px solid #1F2937",
@@ -495,11 +484,13 @@ const ReportBookingSalesTable = ({
                     },
                   }}
                 >
-                  <Box sx={tableRowStyle}>{row.name}</Box>
-                  <Box sx={tableRowStyle}>{row.contact}</Box>
-                  <Box sx={tableRowStyle}>{row.time}</Box>
+                  <Box sx={tableRowStyle}>{row.customer_name}</Box>
+                  <Box sx={tableRowStyle}>{row.phone_number}</Box>
+                  <Box sx={tableRowStyle}>{row.start_time}</Box>
                   <Box sx={tableRowStyle}>{row.duration}</Box>
-                  <Box sx={tableRowStyle}>{row.revenue}</Box>
+                  <Box sx={tableRowStyle}>
+                    LKR {Number(row.amount).toFixed(2)}
+                  </Box>
                 </Box>
               ))}
             </Box>
@@ -508,9 +499,9 @@ const ReportBookingSalesTable = ({
       )}
 
       {/* TABS */}
-      {activeTab === 2 && <ReportProductSalesTable />}
-      {activeTab === 3 && <ReportOtherGamesSalesTable />}
-      {activeTab === 4 && <ReportNFCcustomersTable />}
+      {activeTab === 2 && <ReportProductSalesTable date={date} />}
+      {activeTab === 3 && <ReportOtherGamesSalesTable date={date} />}
+      {activeTab === 4 && <ReportNFCcustomersTable date={date} />}
     </Box>
   );
 };

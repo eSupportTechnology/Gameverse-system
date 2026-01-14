@@ -32,6 +32,7 @@ import PaymentSuccessPopup from "../components/paymentsuccess";
 
 import UpdateSuccessDialog from "../components/UpdateSuccess";
 import BookingForm from "./BookingForm";
+import { API_BASE_URL } from "../apiConfig";
 
 //const [updateSuccessOpen, setUpdateSuccessOpen] = useState(false);
 // const [updateSuccessOpen, setUpdateSuccessOpen] = useState(false);
@@ -97,7 +98,7 @@ const BookingDetails = ({
 
     try {
       const response = await axios.put(
-        `http://127.0.0.1:8000/api/bookings/${booking.id}`,
+        `${API_BASE_URL}/api/bookings/${booking.id}`,
         { status: "cancelled" },
         {
           headers: {
@@ -120,40 +121,6 @@ const BookingDetails = ({
     }
   };
 
-  // Update Time
-
-  /*
-  const handleUpdateTime = async () => {
-    if (!booking?.id) return;
-
-    try {
-      const updatedDuration = `${time} min`;
-
-      const response = await axios.put(
-        `http://127.0.0.1:8000/api/bookings/${booking.id}`,
-        { duration: updatedDuration },
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: localStorage.getItem("aToken")
-              ? `Bearer ${localStorage.getItem("aToken")}`
-              : ""
-          }
-        }
-      );
-
-      if (response.data.success) {
-        setTimeUpdate(true);
-        onBookingUpdated?.();
-        setTimeout(() => setTimeUpdate(false), 2000);
-      }
-
-    } catch (error) {
-      alert("Failed to update booking time");
-    }
-  };
-*/
-
   const handleEndSession = () => {
     setEndSessionOpen(true);
   };
@@ -170,7 +137,7 @@ const BookingDetails = ({
       const updatedDuration = `${time} min`;
 
       const response = await axios.put(
-        `http://127.0.0.1:8000/api/bookings/${booking.id}`,
+        `${API_BASE_URL}/api/bookings/${booking.id}`,
         { duration: updatedDuration },
         {
           headers: {
