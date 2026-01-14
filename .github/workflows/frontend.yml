@@ -1,0 +1,53 @@
+name: Deploy to cPanel
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "frontend/**"
+      - ".github/workflows/**"
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "20.19.0"
+
+      - name: Install dependencies
+        working-directory: ./frontend
+        run: npm install
+
+      - name: Build project
+        working-directory: ./frontend
+        run: npm run build
+        env:
+          CI: false
+          # REACT_APP_API_BASE_URL: ${{ vars.REACT_APP_API_BASE_URL }}
+
+      - name: Install lftp
+        run: sudo apt-get update && sudo apt-get install -y lftp
+
+      - name: Deploy to cPanel via lftp
+        run: |
+          lftp -u '${{ secrets.FTP_USERNAME }},${{ secrets.FTP_PASSWORD }}' \
+            -e "set ssl:verify-certificate no; \
+                set ftp:ssl-allow yes; \
+                set ftp:ssl-protect-data true; \
+                mirror -R ./frontend/build/ / \
+                  --exclude .ftpquota \
+                  --exclude .htaccess \
+                  --exclude robots.txt \
+                  --exclude .cgi-bin/ \
+                  --delete-first \
+                  --verbose \
+                  --parallel=4; \
+                bye" \
+            ftp.futureindustrylk.com
