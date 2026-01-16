@@ -133,6 +133,30 @@ useEffect(() => {
 
     fetchTotalBookings();
   }, []);
+// fetch chart data 
+    const [chartData, setChartData] = useState({
+    bookings: 0,
+    products: 0,
+    games: 0,
+  });
+    useEffect(() => {
+    const fetchChartData = async () => {
+      try {
+        const res = await axios.get(
+          `${API_BASE_URL}/api/reports/sales-chart?filter=${dateFilter}`
+        );
+
+        if (res.data.success) {
+          setChartData(res.data.data);
+        }
+      } catch (err) {
+        console.error("Error fetching chart data", err);
+      }
+    };
+
+    fetchChartData();
+  }, [dateFilter]);
+
 
   // Metric cards data
   const metrics = [
@@ -386,7 +410,7 @@ useEffect(() => {
                 mt: 4,
               }}
             >
-              <SalesChart />
+              <SalesChart data={chartData} />
               <QuickActions onActionClick={handleActionClick} />
             </Box>
           </Box>
