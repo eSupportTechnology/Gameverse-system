@@ -74,6 +74,18 @@ jobs:
 
             php artisan migrate:status
 
+            # Create required storage directories
+            mkdir -p storage/framework/views
+            mkdir -p storage/framework/sessions
+            mkdir -p storage/framework/cache/data
+            mkdir -p storage/logs
+            mkdir -p storage/app/public
+            mkdir -p bootstrap/cache
+
+            # Set ownership
+            chown -R futuwgbp:futuwgbp storage
+            chown -R futuwgbp:futuwgbp bootstrap/cache
+
             chmod 644 /home/futuwgbp/admin-api.gameverse.lk/public/.htaccess
             chmod -R 775 /home/futuwgbp/admin-api.gameverse.lk/storage
             chmod -R 775 /home/futuwgbp/admin-api.gameverse.lk/bootstrap/cache
