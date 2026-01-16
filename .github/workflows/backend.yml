@@ -1,0 +1,90 @@
+name: Deploy to backend to cPanel
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "backend/**"
+      - ".github/workflows/**"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create deployment archive
+        working-directory: ./backend
+        run: |
+          tar -czf ../deployment.tar.gz \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='node_modules' \
+            .
+
+      - name: Deploy to cPanel via SCP
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ vars.CPANEL_HOST }}
+          username: ${{ vars.CPANEL_USERNAME }}
+          key: ${{ secrets.CPANEL_SSH_KEY }}
+          port: ${{ vars.CPANEL_SSH_PORT }}
+          source: "deployment.tar.gz"
+          target: "/home/futuwgbp/temp/"
+
+      - name: Extract and setup on server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ vars.CPANEL_HOST }}
+          username: ${{ vars.CPANEL_USERNAME }}
+          key: ${{ secrets.CPANEL_SSH_KEY }}
+          port: ${{ vars.CPANEL_SSH_PORT }}
+          script: |
+            # Create temp directory if it doesn't exist
+            mkdir -p /home/futuwgbp/temp
+
+            cd /home/futuwgbp/admin-api.gameverse.lk
+
+
+            # Preserve .env file
+            if [ -f ".env" ]; then
+              cp .env /home/futuwgbp/temp/.env.backup
+              echo ".env file backed up"
+            fi
+
+            # Clean current deployment except .htaccess, .well-known, .env, and cgi-bin
+            cd /home/futuwgbp/admin-api.gameverse.lk/ && find . -maxdepth 1 ! -name "." ! -name ".htaccess" ! -name ".well-known" ! -name "cgi-bin" ! -name ".env" -exec rm -rf {} +
+
+            # Extract new deployment
+            tar -xzf /home/futuwgbp/temp/deployment.tar.gz -C /home/futuwgbp/admin-api.gameverse.lk
+
+            # Restore .env file
+            if [ -f "/home/futuwgbp/temp/.env.backup" ]; then
+              cp /home/futuwgbp/temp/.env.backup .env
+              rm /home/futuwgbp/temp/.env.backup
+              echo ".env file restored"
+            fi
+
+            # Remove deployment archive
+            rm /home/futuwgbp/temp/deployment.tar.gz
+
+            composer install
+
+            php artisan migrate:status
+
+            chmod 644 /home/futuwgbp/admin-api.gameverse.lk/public/.htaccess
+            chmod -R 775 /home/futuwgbp/admin-api.gameverse.lk/storage
+            chmod -R 775 /home/futuwgbp/admin-api.gameverse.lk/bootstrap/cache
+
+            # Run migrations
+            php artisan migrate --force
+
+            # Clear all caches
+            php artisan config:clear
+            php artisan cache:clear
+            php artisan route:clear
+
+            echo "Deployment completed successfully!"
+            echo "Site: http://admin-api.gameverse.lk/"
