@@ -172,3 +172,4 @@ Route::get('/reports/total-bookings', [ReportsController::class, 'totalBookingsC
 
 Route::get('/reports/total-sales', [ReportsController::class, 'totalSales']);
 Route::get('/reports/products-sold', [ReportsController::class, 'productsSold']);
+Route::get('/reports/sales-chart', [ReportsController::class, 'salesChart']);
