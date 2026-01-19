@@ -10,7 +10,7 @@ import {
   MenuItem,
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { AllStations } from "../assets/assets";
 import CloseIcon from "@mui/icons-material/Close";
@@ -25,6 +25,7 @@ import { deleteSimulator } from "../api";
 import { toast } from "react-toastify";
 import axios from "axios";
 import ps5Default from "../assets/ps5_station.jpg"; // adjust path if needed
+import { AppContext } from "../context/AppContext";
 
 const AllPs5Stations = () => {
   const navigate = useNavigate();
@@ -32,6 +33,7 @@ const AllPs5Stations = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [dialogMode, setDialogMode] = useState("add"); // add | edit
   const [editIndex, setEditIndex] = useState(null);
+  const { globalSearch } = useContext(AppContext);
 
   // form fields
   const [stationName, setStationName] = useState("");
@@ -226,6 +228,14 @@ const AllPs5Stations = () => {
     const num = parseInt(timeStr);
     return isNaN(num) ? null : num;
   };
+  const filteredStations = stations.filter((station) => {
+  const name = station.name?.toLowerCase() || "";
+  const loc = station.location?.toLowerCase() || "";
+
+  return !globalSearch || 
+         name.includes(globalSearch.toLowerCase()) || 
+         loc.includes(globalSearch.toLowerCase());
+});
 
   return (
     <div>
@@ -371,7 +381,7 @@ const AllPs5Stations = () => {
               alignItems: "stretch",
             }}
           >
-            {stations.map((item, index) => (
+            {filteredStations.map((item, index) => (
               <Box
                 key={index}
                 sx={{

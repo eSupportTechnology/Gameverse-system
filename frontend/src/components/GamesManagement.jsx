@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useContext } from "react";
 import {
   Box,
   Typography,
@@ -14,6 +14,8 @@ import { toast } from "react-toastify";
 import AddNewGame from "./AddNewGame";
 import GameCard from "./GameCard.jsx";
 import CheckoutGame from "./CheckoutGame.jsx";
+import { AppContext } from "../context/AppContext";
+
 
 const GamesManagement = () => {
   const [openAddGame, setOpenAddGame] = useState(false);
@@ -22,7 +24,7 @@ const GamesManagement = () => {
   const [games, setGames] = useState([]);
   const [editGame, setEditGame] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-
+  const { globalSearch } = useContext(AppContext);
   const token = localStorage.getItem("aToken");
 
   // Fetch all games (for admin)
@@ -53,9 +55,18 @@ const GamesManagement = () => {
   const categories = [{ label: "All Games" }];
 
   // Filter with search
-  const filteredGames = games.filter((game) =>
-    game.title?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredGames = games.filter((game) => {
+  const title = game.title?.toLowerCase() || "";
+
+  const matchLocal =
+    !searchTerm || title.includes(searchTerm.toLowerCase());
+
+  const matchGlobal =
+    !globalSearch || title.includes(globalSearch.toLowerCase());
+
+  return matchLocal && matchGlobal;
+});
+
 
   const handleSaveGame = () => {
     setEditGame(null);

@@ -1,12 +1,10 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useState, useEffect } from "react";
 
-
-export const AppContext = createContext()
+export const AppContext = createContext();
 
 const AppContextProvider = (props) => {
-
   const [loggedUser, setLoggedUser] = useState(null);
-  
+  const [globalSearch, setGlobalSearch] = useState("");
 
   // Load user from localStorage when app starts
   useEffect(() => {
@@ -30,8 +28,12 @@ const AppContextProvider = (props) => {
   };
 
   const value = {
-    loggedUser, loginUser, logoutUser
-  }
+    loggedUser,
+    loginUser,
+    logoutUser,
+    globalSearch,
+    setGlobalSearch,
+  };
 
   return (
     <AppContext.Provider value={value}>
