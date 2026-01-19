@@ -54,7 +54,8 @@ class ReportsController extends Controller
     //     ]);
     // }
 
-    public function productsSold(Request $request)
+    
+  public function productsSold(Request $request)
     {
         $query = SaleItem::query();
 
@@ -65,9 +66,11 @@ class ReportsController extends Controller
 
         return response()->json([
             'success' => true,
-            'products_sold' => $query->sum('quantity')
+            'products_sold' => $query->sum('quantity') 
         ]);
+
     }
+
 
     public function salesChart(Request $request)
     {
