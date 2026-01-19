@@ -11,15 +11,15 @@ import {
   CartesianGrid,
 } from "recharts";
 
-const data = [
-  { day: "Monday", bookings: 20000, products: 12000, games: 8000 },
-  { day: "Tuesday", bookings: 22000, products: 13000, games: 11000 },
-  { day: "Wednesday", bookings: 16000, products: 14000, games: 5000 },
-  { day: "Thursday", bookings: 20000, products: 8000, games: 17000 },
-  { day: "Friday", bookings: 15000, products: 11000, games: 9000 },
-  { day: "Saturday", bookings: 22000, products: 16000, games: 12000 },
-  { day: "Sunday", bookings: 14000, products: 9000, games: 7000 },
-];
+// const data = [
+//   { day: "Monday", bookings: 20000, products: 12000, games: 8000 },
+//   { day: "Tuesday", bookings: 22000, products: 13000, games: 11000 },
+//   { day: "Wednesday", bookings: 16000, products: 14000, games: 5000 },
+//   { day: "Thursday", bookings: 20000, products: 8000, games: 17000 },
+//   { day: "Friday", bookings: 15000, products: 11000, games: 9000 },
+//   { day: "Saturday", bookings: 22000, products: 16000, games: 12000 },
+//   { day: "Sunday", bookings: 14000, products: 9000, games: 7000 },
+// ];
 
 // Custom Legend 
 const CustomLegend = () => {
@@ -59,7 +59,15 @@ const CustomLegend = () => {
 //   padding: "10px",
 // };
 
-const ReportSalesChart = () => {
+const ReportSalesChart = ({data}) => {
+   const chartData = [
+    {
+      day: "Today",
+      bookings: data?.bookings || 0,
+      products: data?.products || 0,
+      games: data?.games || 0,
+    },
+  ];
   return (
     <Card
       sx={{
@@ -95,7 +103,7 @@ const ReportSalesChart = () => {
 
         {/* Chart */}
         <ResponsiveContainer width="100%" height={260}>
-          <BarChart data={data} barGap={6} barSize={22}>
+          <BarChart data={chartData} barGap={6} barSize={22}>
             <CartesianGrid stroke="#1f2937" vertical={false} />
 
             <XAxis

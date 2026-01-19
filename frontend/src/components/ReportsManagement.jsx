@@ -133,6 +133,30 @@ useEffect(() => {
 
     fetchTotalBookings();
   }, []);
+// fetch chart data 
+    const [chartData, setChartData] = useState({
+    bookings: 0,
+    products: 0,
+    games: 0,
+  });
+    useEffect(() => {
+    const fetchChartData = async () => {
+      try {
+        const res = await axios.get(
+          `${API_BASE_URL}/api/reports/sales-chart?filter=${dateFilter}`
+        );
+
+        if (res.data.success) {
+          setChartData(res.data.data);
+        }
+      } catch (err) {
+        console.error("Error fetching chart data", err);
+      }
+    };
+
+    fetchChartData();
+  }, [dateFilter]);
+
 
   // Metric cards data
   const metrics = [
@@ -141,7 +165,7 @@ useEffect(() => {
       label: "Total Sales",
       icon: <img src="/images/report Icon/salesIcon.png" width={28} />,
       // value: "LKR 15,800",
-       value: `LKR ${currentData.totalRevenue.toLocaleString()}`,
+      value: `LKR ${totalSales.toLocaleString()}`,
       changePositive: true,
       iconBgColor: "#ff6b81",
     },
@@ -158,7 +182,7 @@ useEffect(() => {
       label: "Products Sold",
       icon: <img src="/images/report Icon/vector.png" width={28} />,
       // value: "60",
-      value: currentData.totalSales.toString(),
+      value: productsSold.toString(),
       changePositive: true,
       iconBgColor: "#2bdc65",
     },
@@ -386,7 +410,7 @@ useEffect(() => {
                 mt: 4,
               }}
             >
-              <SalesChart />
+              <SalesChart data={chartData} />
               <QuickActions onActionClick={handleActionClick} />
             </Box>
           </Box>
