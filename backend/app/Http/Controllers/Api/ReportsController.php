@@ -61,7 +61,7 @@ class ReportsController extends Controller
 
         $bookingsAmount = Booking::where('created_at', '>=', $start)->sum('amount');
         $productsAmount = PosSale::where('created_at', '>=', $start)->sum('total');
-        $GamesAmount = Game::where('created_at', '>=', $start)->sum('balance');
+        $GamesAmount = Game::where('created_at', '>=', $start)->sum('price');
 
         return response()->json([
             'success' => true,
@@ -98,7 +98,7 @@ class ReportsController extends Controller
             $query->where('created_at', '>=', $start);
         }
 
-        $total = $query->sum('balance'); // or 'price' depending on your schema
+        $total = $query->sum('price'); // or 'price' depending on your schema
         return response()->json(['success' => true, 'total' => $total]);
     }
 
