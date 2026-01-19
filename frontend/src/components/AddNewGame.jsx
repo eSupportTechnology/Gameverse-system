@@ -16,10 +16,17 @@ import CancelPopup from "./CancelPopup";
 import gameicon from "../assets/gameicon.png";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { API_BASE_URL } from "../apiConfig";
 
 const paymentMethods = ["Coin", "Arrow", "Per Hour"];
 
-const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmit, }) => {
+const AddNewGame = ({
+  open,
+  handleClose,
+  mode = "add",
+  initialData = {},
+  onSubmit,
+}) => {
   const [createSuccess, setCreateSuccess] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
 
@@ -30,7 +37,6 @@ const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmi
   const [price, setPrice] = useState("");
   const [saving, setSaving] = useState(false);
 
-
   useEffect(() => {
     if (open) {
       if (mode === "edit" && initialData) {
@@ -40,11 +46,10 @@ const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmi
         setPrice(initialData.price ?? "");
 
         if (typeof initialData.method === "object") {
-        setMethod(initialData.method.type);
-      } else {
-        setMethod(initialData.method || "Coin");
-      }
-
+          setMethod(initialData.method.type);
+        } else {
+          setMethod(initialData.method || "Coin");
+        }
       } else {
         setTitle("");
         setTeamGame(null);
@@ -68,7 +73,11 @@ const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmi
       toast.warning("⚠️ Archery Machine should use 'Coin' method only.");
       return false;
     }
-    if (lowerTitle.includes("archery") && !lowerTitle.includes("machine") && chosenMethod !== "Arrow") {
+    if (
+      lowerTitle.includes("archery") &&
+      !lowerTitle.includes("machine") &&
+      chosenMethod !== "Arrow"
+    ) {
       toast.warning("⚠️ Archery should use 'Arrow' method only.");
       return false;
     }
@@ -109,13 +118,16 @@ const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmi
     try {
       const url =
         mode === "edit"
-          ? `http://127.0.0.1:8000/api/games/${initialData.id}`
-          : "http://127.0.0.1:8000/api/games";
+          ? `${API_BASE_URL}/api/games/${initialData.id}`
+          : `${API_BASE_URL}/api/games`;
 
       const response = await axios({
         method: mode === "edit" ? "put" : "post",
         url,
-        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
         data: gameData,
       });
 
@@ -127,7 +139,6 @@ const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmi
       // }, 1500);
 
       if (onSubmit) onSubmit(response.data); // send updated game back
-
     } catch (err) {
       console.error("Validation errors:", err.response?.data);
       toast.error(err.response?.data?.message || "Failed to save game.");
@@ -150,11 +161,23 @@ const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmi
           },
         }}
       >
-        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", px: 1 }}>
-          <DialogTitle sx={{ color: "#FFFFFF", fontSize: 18, fontWeight: "bold" }}>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            px: 1,
+          }}
+        >
+          <DialogTitle
+            sx={{ color: "#FFFFFF", fontSize: 18, fontWeight: "bold" }}
+          >
             {mode === "edit" ? "Edit Game" : "Add New Game"}
           </DialogTitle>
-          <IconButton onClick={()=>handleClose(false)} sx={{ color: "#FFFFFF" }}>
+          <IconButton
+            onClick={() => handleClose(false)}
+            sx={{ color: "#FFFFFF" }}
+          >
             <CloseIcon />
           </IconButton>
         </Box>
@@ -162,7 +185,10 @@ const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmi
         <DialogContent dividers sx={{ py: 0, pb: 2 }}>
           {/* Game Name */}
           <Box mb={1}>
-            <Typography variant="body2" sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF" }}>
+            <Typography
+              variant="body2"
+              sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF" }}
+            >
               Game Name
             </Typography>
             <TextField
@@ -185,7 +211,10 @@ const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmi
 
           {/* Team Game Toggle */}
           <Box mb={2}>
-            <Typography variant="body2" sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF", mb: 0.5 }}>
+            <Typography
+              variant="body2"
+              sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF", mb: 0.5 }}
+            >
               Team Game
             </Typography>
             <Box display="flex" gap={2}>
@@ -200,15 +229,31 @@ const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmi
                   py: 1,
                   borderRadius: "8px",
                   border: "1px solid rgba(255, 255, 255, 0.2)",
-                  backgroundColor: teamGame === true ? "rgba(255, 255, 255, 0.05)" : "transparent",
+                  backgroundColor:
+                    teamGame === true
+                      ? "rgba(255, 255, 255, 0.05)"
+                      : "transparent",
                   cursor: "pointer",
                 }}
               >
-                <Typography sx={{ color: teamGame === true ? "#ffffff" : "rgba(255,255,255,0.6)", fontSize: 14 }}>
+                <Typography
+                  sx={{
+                    color:
+                      teamGame === true ? "#ffffff" : "rgba(255,255,255,0.6)",
+                    fontSize: 14,
+                  }}
+                >
                   Yes
                 </Typography>
                 {teamGame === true && (
-                  <Box sx={{ width: 10, height: 10, borderRadius: "50%", backgroundColor: "rgba(255,255,255,0.8)" }} />
+                  <Box
+                    sx={{
+                      width: 10,
+                      height: 10,
+                      borderRadius: "50%",
+                      backgroundColor: "rgba(255,255,255,0.8)",
+                    }}
+                  />
                 )}
               </Box>
 
@@ -223,15 +268,31 @@ const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmi
                   py: 1,
                   borderRadius: "8px",
                   border: "1px solid rgba(255, 255, 255, 0.2)",
-                  backgroundColor: teamGame === false ? "rgba(255, 255, 255, 0.05)" : "transparent",
+                  backgroundColor:
+                    teamGame === false
+                      ? "rgba(255, 255, 255, 0.05)"
+                      : "transparent",
                   cursor: "pointer",
                 }}
               >
-                <Typography sx={{ color: teamGame === false ? "#ffffff" : "rgba(255,255,255,0.6)", fontSize: 14 }}>
+                <Typography
+                  sx={{
+                    color:
+                      teamGame === false ? "#ffffff" : "rgba(255,255,255,0.6)",
+                    fontSize: 14,
+                  }}
+                >
                   No
                 </Typography>
                 {teamGame === false && (
-                  <Box sx={{ width: 10, height: 10, borderRadius: "50%", backgroundColor: "rgba(255,255,255,0.8)" }} />
+                  <Box
+                    sx={{
+                      width: 10,
+                      height: 10,
+                      borderRadius: "50%",
+                      backgroundColor: "rgba(255,255,255,0.8)",
+                    }}
+                  />
                 )}
               </Box>
             </Box>
@@ -239,7 +300,12 @@ const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmi
 
           {/* Location */}
           <Box mb={1}>
-            <Typography variant="body2" sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF" }}>Location</Typography>
+            <Typography
+              variant="body2"
+              sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF" }}
+            >
+              Location
+            </Typography>
             <TextField
               variant="outlined"
               fullWidth
@@ -259,8 +325,18 @@ const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmi
           </Box>
 
           {/* Method + Price */}
-          <Typography variant="body2" sx={{ fontSize: 12, color: "#9CA3AF", mb: 0.5 }}>Pricing Method</Typography>
-          <Box display="grid" gridTemplateColumns={{ xs: "1fr", md: "1fr 1fr" }} gap={2} mt={1}>
+          <Typography
+            variant="body2"
+            sx={{ fontSize: 12, color: "#9CA3AF", mb: 0.5 }}
+          >
+            Pricing Method
+          </Typography>
+          <Box
+            display="grid"
+            gridTemplateColumns={{ xs: "1fr", md: "1fr 1fr" }}
+            gap={2}
+            mt={1}
+          >
             <TextField
               select
               fullWidth
@@ -277,7 +353,9 @@ const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmi
               }}
             >
               {paymentMethods.map((m) => (
-                <MenuItem key={m} value={m}>{m}</MenuItem>
+                <MenuItem key={m} value={m}>
+                  {m}
+                </MenuItem>
               ))}
             </TextField>
 
@@ -302,15 +380,39 @@ const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmi
         </DialogContent>
 
         <DialogActions sx={{ px: 3 }}>
-          <Button onClick={handleCancelOpen} variant="contained" sx={{ fontSize: 16, fontWeight: "bold", backgroundColor: "#1F2937", width: "50%", py: 0.5 }}>
+          <Button
+            onClick={handleCancelOpen}
+            variant="contained"
+            sx={{
+              fontSize: 16,
+              fontWeight: "bold",
+              backgroundColor: "#1F2937",
+              width: "50%",
+              py: 0.5,
+            }}
+          >
             Cancel
           </Button>
-          <Button onClick={handleSubmit} variant="contained" sx={{ fontSize: 16, fontWeight: "bold", width: "50%", py: 0.5, background: "linear-gradient(to right, #0CD7FF, #8A38F5)" }}>
+          <Button
+            onClick={handleSubmit}
+            variant="contained"
+            sx={{
+              fontSize: 16,
+              fontWeight: "bold",
+              width: "50%",
+              py: 0.5,
+              background: "linear-gradient(to right, #0CD7FF, #8A38F5)",
+            }}
+          >
             {mode === "edit" ? "Update" : "Create"}
           </Button>
         </DialogActions>
 
-        <CancelPopup open={cancelOpen} handleCancelClose={handleCancelClose} handleConfirm={handleConfirmCancel} />
+        <CancelPopup
+          open={cancelOpen}
+          handleCancelClose={handleCancelClose}
+          handleConfirm={handleConfirmCancel}
+        />
       </Dialog>
 
       {/* create Success Popup */}
@@ -324,25 +426,40 @@ const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmi
             px: 8,
             textAlign: "center",
             color: "white",
-            border: '1px solid #3B4859'
+            border: "1px solid #3B4859",
           },
         }}
       >
         <DialogContent>
-          <Box sx={{ mb: 1, display: 'flex', justifyContent: 'center' }}>
-            <Box sx={{
-              width: 80,
-              height: 80,
-              borderRadius: '50%',
-              border: '3px solid',
-              borderColor: 'transparent',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              background: 'linear-gradient(#0A192F, #0A192F) padding-box, linear-gradient(90deg, #00C6FF, #FF00CC) border-box',
-            }}>
-              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M5 13l4 4L19 7" stroke="url(#gradient)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+          <Box sx={{ mb: 1, display: "flex", justifyContent: "center" }}>
+            <Box
+              sx={{
+                width: 80,
+                height: 80,
+                borderRadius: "50%",
+                border: "3px solid",
+                borderColor: "transparent",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                background:
+                  "linear-gradient(#0A192F, #0A192F) padding-box, linear-gradient(90deg, #00C6FF, #FF00CC) border-box",
+              }}
+            >
+              <svg
+                width="40"
+                height="40"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M5 13l4 4L19 7"
+                  stroke="url(#gradient)"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
                 <defs>
                   <linearGradient id="gradient" x1="5" y1="12" x2="19" y2="12">
                     <stop offset="0%" stopColor="#00C6FF" />
@@ -360,19 +477,20 @@ const AddNewGame = ({ open, handleClose, mode = "add", initialData = {}, onSubmi
               WebkitTextFillColor: "transparent",
               fontSize: 24,
               fontWeight: 600,
-              mb: 1
+              mb: 1,
             }}
           >
-            {mode === 'edit' ? 'Update Successful!' : 'Create Successful!'}
+            {mode === "edit" ? "Update Successful!" : "Create Successful!"}
           </Typography>
           <Button
             onClick={handleSuccessOk}
             sx={{
               px: 8,
               fontSize: 14,
-              textTransform: 'capitalize',
+              textTransform: "capitalize",
               borderRadius: "8px",
-              background: "linear-gradient(90deg, rgba(12, 215, 255, 0.4) 0%, rgba(138, 56, 245, 0.4) 73%)",
+              background:
+                "linear-gradient(90deg, rgba(12, 215, 255, 0.4) 0%, rgba(138, 56, 245, 0.4) 73%)",
               color: "white",
               "&:hover": {
                 background: "linear-gradient(90deg, #0CD7FF 0%, #8A38F5 73%)",

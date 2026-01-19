@@ -13,6 +13,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import AddNewGameOperator from "./OperaterNewAddgame";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { API_BASE_URL } from "../apiConfig";
 
 const methodValue = { Coin: 100, Arrow: 150, "Per Hour": 75 };
 
@@ -24,7 +25,7 @@ const OperatorGameCard = ({ game, onPlay, onUpdate }) => {
   const handleDelete = async () => {
     try {
       const token = localStorage.getItem("oToken");
-      await axios.delete(`http://127.0.0.1:8000/api/operator/games/${game.id}`, {
+      await axios.delete(`${API_BASE_URL}/api/operator/games/${game.id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       toast.success("Game deleted successfully!");
@@ -68,7 +69,12 @@ const OperatorGameCard = ({ game, onPlay, onUpdate }) => {
         <Divider sx={{ backgroundColor: "#2E3350", my: 1 }} />
 
         {/* Team Game */}
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={0.4}>
+        <Box
+          display="flex"
+          justifyContent="space-between"
+          alignItems="center"
+          mb={0.4}
+        >
           <Typography fontSize={13} color="#FFFFFF">
             Team Game
           </Typography>
@@ -78,7 +84,12 @@ const OperatorGameCard = ({ game, onPlay, onUpdate }) => {
         </Box>
 
         {/* Location */}
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={0.4}>
+        <Box
+          display="flex"
+          justifyContent="space-between"
+          alignItems="center"
+          mb={0.4}
+        >
           <Typography fontSize={13} color="#FFFFFF">
             Location
           </Typography>
@@ -88,7 +99,12 @@ const OperatorGameCard = ({ game, onPlay, onUpdate }) => {
         </Box>
 
         {/* Method + Price */}
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={1.5}>
+        <Box
+          display="flex"
+          justifyContent="space-between"
+          alignItems="center"
+          mb={1.5}
+        >
           <Typography fontSize={13} color="#FFFFFF">
             {game.method === "Per Hour"
               ? "1 Hour"

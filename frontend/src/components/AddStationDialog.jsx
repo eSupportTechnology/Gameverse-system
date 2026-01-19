@@ -17,6 +17,7 @@ import AddIcon from "@mui/icons-material/Add";
 import CancelPopup from "./CancelPopup";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { API_BASE_URL } from "../apiConfig";
 
 export default function AddStationDialog({
   open,
@@ -36,7 +37,7 @@ export default function AddStationDialog({
 
   const handleConfirmCancel = () => {
     setOpenCancelPopup(false);
-    onClose(); 
+    onClose();
   };
 
   // Direct close without popup for close icon
@@ -71,10 +72,10 @@ export default function AddStationDialog({
   const toggleVRPricing = () => {
     if (showVRPricing) {
       // Clear VR fields when hiding
-      setFormData((prev) => ({ 
-        ...prev, 
-        vrTime: "", 
-        vrPrice: "" 
+      setFormData((prev) => ({
+        ...prev,
+        vrTime: "",
+        vrPrice: "",
       }));
     }
     setShowVRPricing(!showVRPricing);
@@ -82,7 +83,7 @@ export default function AddStationDialog({
 
   const handleSubmit = async () => {
     const timePattern = /^([0-1]?[0-9]|2[0-3]):([0-5][0-9])$/;
-    
+
     if (formData.time && !timePattern.test(formData.time)) {
       alert("Please enter valid time in HH:MM format (e.g., 00:30)");
       return;
@@ -105,11 +106,11 @@ export default function AddStationDialog({
       vrTotalMinutes = vrHours * 60 + vrMinutes;
     }
 
-    const payload = { 
-      ...formData, 
+    const payload = {
+      ...formData,
       time: formData.time ? totalMinutes : null,
       vrTime: formData.vrTime ? vrTotalMinutes : null,
-      vrPrice: formData.vrPrice || null
+      vrPrice: formData.vrPrice || null,
     };
 
     setPendingPayload({ payload, isEditing });
@@ -124,8 +125,8 @@ export default function AddStationDialog({
     try {
       const token = localStorage.getItem("aToken");
       const url = editing
-        ? `http://127.0.0.1:8000/api/stations/${formData.id}`
-        : "http://127.0.0.1:8000/api/stations";
+        ? `${API_BASE_URL}/api/stations/${formData.id}`
+        : `${API_BASE_URL}/api/stations`;
 
       const method = editing ? "put" : "post";
 
@@ -158,7 +159,7 @@ export default function AddStationDialog({
         status: "Available",
         bookings: 0,
       });
-      
+
       setCreateSuccess(false);
       setPendingPayload(null);
       setShowVRPricing(true);
@@ -166,7 +167,8 @@ export default function AddStationDialog({
     } catch (err) {
       console.log(err);
       toast.error(
-        err.response?.data?.message || "Failed to save station. Make sure you are logged in."
+        err.response?.data?.message ||
+          "Failed to save station. Make sure you are logged in."
       );
       setCreateSuccess(false);
       setPendingPayload(null);
@@ -200,16 +202,19 @@ export default function AddStationDialog({
           }}
         >
           {isEditing ? "Edit Station" : "Add New Station"}
-          <CloseIcon 
+          <CloseIcon
             onClick={handleDirectClose} // Direct close without popup
-            sx={{ color: "#94a3b8", cursor: "pointer" }} 
+            sx={{ color: "#94a3b8", cursor: "pointer" }}
           />
         </DialogTitle>
 
         <DialogContent sx={{ py: 1 }}>
           {/* Station Name */}
           <Box sx={{ mb: 1.5 }}>
-            <Typography variant="subtitle2" sx={{ color: "#94a3b8", mb: 0.5, fontSize: "0.8rem" }}>
+            <Typography
+              variant="subtitle2"
+              sx={{ color: "#94a3b8", mb: 0.5, fontSize: "0.8rem" }}
+            >
               Station name
             </Typography>
             <TextField
@@ -259,7 +264,9 @@ export default function AddStationDialog({
               }}
             >
               <MenuItem value="" disabled>
-                <em style={{ color: "#94a3b8", fontStyle: "normal" }}>Select Station</em>
+                <em style={{ color: "#94a3b8", fontStyle: "normal" }}>
+                  Select Station
+                </em>
               </MenuItem>
               {/* PS5 Stations */}
               <MenuItem value="PS5 Station 1">PS5 Station 1</MenuItem>
@@ -267,34 +274,43 @@ export default function AddStationDialog({
               <MenuItem value="PS5 Station 3">PS5 Station 3</MenuItem>
               <MenuItem value="PS5 Station 4">PS5 Station 4</MenuItem>
               <MenuItem value="PS5 Station 5">PS5 Station 5</MenuItem>
-              
+
               {/* Racing Simulators */}
               <MenuItem value="Racing Simulator 1">Racing Simulator 1</MenuItem>
               <MenuItem value="Racing Simulator 2">Racing Simulator 2</MenuItem>
               <MenuItem value="Racing Simulator 3">Racing Simulator 3</MenuItem>
               <MenuItem value="Racing Simulator 4">Racing Simulator 4</MenuItem>
-              
+
               {/* Supreme Billiards */}
               <MenuItem value="Supreme Billiard 1">Supreme Billiard 1</MenuItem>
               <MenuItem value="Supreme Billiard 2">Supreme Billiard 2</MenuItem>
-              
+
               {/* Premium Billiards */}
               <MenuItem value="Premium Billiard 1">Premium Billiard 1</MenuItem>
               <MenuItem value="Premium Billiard 2">Premium Billiard 2</MenuItem>
               <MenuItem value="Premium Billiard 3">Premium Billiard 3</MenuItem>
-              
+
               {/* Additional options from original code */}
               <MenuItem value="PS5+VR">PS5+VR</MenuItem>
-              <MenuItem value="8 Ball Pool (Supreme)">8 Ball Pool (Supreme)</MenuItem>
-              <MenuItem value="8 Ball Pool (Premium)">8 Ball Pool (Premium)</MenuItem>
+              <MenuItem value="8 Ball Pool (Supreme)">
+                8 Ball Pool (Supreme)
+              </MenuItem>
+              <MenuItem value="8 Ball Pool (Premium)">
+                8 Ball Pool (Premium)
+              </MenuItem>
               <MenuItem value="CRS+VR (PS V R2)">CRS+VR (PS V R2)</MenuItem>
-              <MenuItem value="Car Racing Simulator">Car Racing Simulator</MenuItem>
+              <MenuItem value="Car Racing Simulator">
+                Car Racing Simulator
+              </MenuItem>
             </TextField>
           </Box>
 
           {/* Category - Updated to be like Station Name */}
           <Box sx={{ mb: 1.5 }}>
-            <Typography variant="subtitle2" sx={{ color: "#94a3b8", mb: 0.5, fontSize: "0.8rem" }}>
+            <Typography
+              variant="subtitle2"
+              sx={{ color: "#94a3b8", mb: 0.5, fontSize: "0.8rem" }}
+            >
               Category
             </Typography>
             <TextField
@@ -344,7 +360,9 @@ export default function AddStationDialog({
               }}
             >
               <MenuItem value="" disabled>
-                <em style={{ color: "#94a3b8", fontStyle: "normal" }}>Select Category</em>
+                <em style={{ color: "#94a3b8", fontStyle: "normal" }}>
+                  Select Category
+                </em>
               </MenuItem>
               <MenuItem value="PlayStation">PlayStation</MenuItem>
               <MenuItem value="Pool">Pool</MenuItem>
@@ -354,7 +372,10 @@ export default function AddStationDialog({
 
           {/* Location - Fixed placeholder visibility */}
           <Box sx={{ mb: 2 }}>
-            <Typography variant="subtitle2" sx={{ color: "#94a3b8", mb: 0.5, fontSize: "0.8rem" }}>
+            <Typography
+              variant="subtitle2"
+              sx={{ color: "#94a3b8", mb: 0.5, fontSize: "0.8rem" }}
+            >
               Location
             </Typography>
             <TextField
@@ -379,14 +400,17 @@ export default function AddStationDialog({
                 },
               }}
               inputProps={{
-                style: { color: 'white' },
+                style: { color: "white" },
               }}
             />
           </Box>
 
           {/* Pricing Details (Normal) */}
           <Box sx={{ mb: 1.5 }}>
-            <Typography variant="subtitle2" sx={{ color: "#94a3b8", fontSize: "0.8rem" }}>
+            <Typography
+              variant="subtitle2"
+              sx={{ color: "#94a3b8", fontSize: "0.8rem" }}
+            >
               Pricing Details (Normal)
             </Typography>
           </Box>
@@ -394,7 +418,10 @@ export default function AddStationDialog({
           <Box display="flex" gap={1.5} mb={2.5}>
             {/* Time */}
             <Box flex={1}>
-              <Typography variant="subtitle2" sx={{ color: "#f3f4f5ff", mb: 0.5, fontSize: "0.8rem" }}>
+              <Typography
+                variant="subtitle2"
+                sx={{ color: "#f3f4f5ff", mb: 0.5, fontSize: "0.8rem" }}
+              >
                 Time
               </Typography>
               <TextField
@@ -445,7 +472,9 @@ export default function AddStationDialog({
                 }}
               >
                 <MenuItem value="" disabled>
-                  <em style={{ color: "#94a3b8", fontStyle: "normal" }}>30 Min</em>
+                  <em style={{ color: "#94a3b8", fontStyle: "normal" }}>
+                    30 Min
+                  </em>
                 </MenuItem>
                 <MenuItem value="00:30">30 Min</MenuItem>
                 <MenuItem value="01:00">1 Hour</MenuItem>
@@ -456,7 +485,10 @@ export default function AddStationDialog({
 
             {/* Price - Fixed placeholder visibility */}
             <Box flex={1}>
-              <Typography variant="subtitle2" sx={{ color: "#f3f4f5ff", mb: 0.5, fontSize: "0.8rem" }}>
+              <Typography
+                variant="subtitle2"
+                sx={{ color: "#f3f4f5ff", mb: 0.5, fontSize: "0.8rem" }}
+              >
                 Price
               </Typography>
               <TextField
@@ -482,15 +514,25 @@ export default function AddStationDialog({
                   },
                 }}
                 inputProps={{
-                  style: { color: 'white' },
+                  style: { color: "white" },
                 }}
               />
             </Box>
           </Box>
 
           {/* VR Pricing Section */}
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-            <Typography variant="subtitle2" sx={{ color: "#94a3b8", fontSize: "0.8rem" }}>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              mb: 1,
+            }}
+          >
+            <Typography
+              variant="subtitle2"
+              sx={{ color: "#94a3b8", fontSize: "0.8rem" }}
+            >
               Pricing Details (+VR)
             </Typography>
             <IconButton
@@ -519,7 +561,10 @@ export default function AddStationDialog({
             <Box display="flex" gap={1.5} mb={1}>
               {/* VR Time */}
               <Box flex={1}>
-                <Typography variant="subtitle2" sx={{ color: "#f3f4f5ff", mb: 0.5, fontSize: "0.8rem" }}>
+                <Typography
+                  variant="subtitle2"
+                  sx={{ color: "#f3f4f5ff", mb: 0.5, fontSize: "0.8rem" }}
+                >
                   Time
                 </Typography>
                 <TextField
@@ -570,7 +615,9 @@ export default function AddStationDialog({
                   }}
                 >
                   <MenuItem value="" disabled>
-                    <em style={{ color: "#94a3b8", fontStyle: "normal" }}>30 Min</em>
+                    <em style={{ color: "#94a3b8", fontStyle: "normal" }}>
+                      30 Min
+                    </em>
                   </MenuItem>
                   <MenuItem value="00:30">30 Min</MenuItem>
                   <MenuItem value="01:00">1 Hour</MenuItem>
@@ -581,7 +628,10 @@ export default function AddStationDialog({
 
               {/* VR Price - Fixed placeholder visibility */}
               <Box flex={1}>
-                <Typography variant="subtitle2" sx={{ color: "#f3f4f5ff", mb: 0.5, fontSize: "0.8rem" }}>
+                <Typography
+                  variant="subtitle2"
+                  sx={{ color: "#f3f4f5ff", mb: 0.5, fontSize: "0.8rem" }}
+                >
                   Price
                 </Typography>
                 <TextField
@@ -607,7 +657,7 @@ export default function AddStationDialog({
                     },
                   }}
                   inputProps={{
-                    style: { color: 'white' },
+                    style: { color: "white" },
                   }}
                 />
               </Box>
@@ -616,7 +666,12 @@ export default function AddStationDialog({
         </DialogContent>
 
         <DialogActions
-          sx={{ px: 3, pb: 2, display: "flex", justifyContent: "space-between" }}
+          sx={{
+            px: 3,
+            pb: 2,
+            display: "flex",
+            justifyContent: "space-between",
+          }}
         >
           <Button
             onClick={handleOpenCancelPopup}
@@ -672,29 +727,44 @@ export default function AddStationDialog({
             px: 8,
             textAlign: "center",
             color: "white",
-            border: '1px solid #3B4859'
+            border: "1px solid #3B4859",
           },
         }}
       >
         <DialogContent>
-          <Box sx={{ mb: 1, display: 'flex', justifyContent: 'center' }}>
-            <Box sx={{
-              width: 80,
-              height: 80,
-              borderRadius: '50%',
-              border: '3px solid',
-              borderColor: 'transparent',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              background: 'linear-gradient(#0A192F, #0A192F) padding-box, linear-gradient(90deg, #00C6FF, #FF00CC) border-box',
-            }}>
-              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M5 13l4 4L19 7" stroke="url(#gradient)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+          <Box sx={{ mb: 1, display: "flex", justifyContent: "center" }}>
+            <Box
+              sx={{
+                width: 80,
+                height: 80,
+                borderRadius: "50%",
+                border: "3px solid",
+                borderColor: "transparent",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                background:
+                  "linear-gradient(#0A192F, #0A192F) padding-box, linear-gradient(90deg, #00C6FF, #FF00CC) border-box",
+              }}
+            >
+              <svg
+                width="40"
+                height="40"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M5 13l4 4L19 7"
+                  stroke="url(#gradient)"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
                 <defs>
                   <linearGradient id="gradient" x1="5" y1="12" x2="19" y2="12">
-                    <stop offset="0%" stopColor="#00C6FF"/>
-                    <stop offset="100%" stopColor="#FF00CC"/>
+                    <stop offset="0%" stopColor="#00C6FF" />
+                    <stop offset="100%" stopColor="#FF00CC" />
                   </linearGradient>
                 </defs>
               </svg>
@@ -708,19 +778,22 @@ export default function AddStationDialog({
               WebkitTextFillColor: "transparent",
               fontSize: 24,
               fontWeight: 600,
-              mb: 1
+              mb: 1,
             }}
           >
-            {pendingPayload?.isEditing ? "Update Successful !" : "Create Successful !"}
+            {pendingPayload?.isEditing
+              ? "Update Successful !"
+              : "Create Successful !"}
           </Typography>
           <Button
             onClick={handleSuccessOk}
             sx={{
               px: 8,
               fontSize: 14,
-              textTransform: 'capitalize',
+              textTransform: "capitalize",
               borderRadius: "8px",
-              background: "linear-gradient(90deg, rgba(12, 215, 255, 0.4) 0%, rgba(138, 56, 245, 0.4) 73%)",
+              background:
+                "linear-gradient(90deg, rgba(12, 215, 255, 0.4) 0%, rgba(138, 56, 245, 0.4) 73%)",
               color: "white",
               "&:hover": {
                 background: "linear-gradient(90deg, #0CD7FF 0%, #8A38F5 73%)",

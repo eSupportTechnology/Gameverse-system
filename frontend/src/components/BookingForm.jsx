@@ -20,7 +20,7 @@ import { useEffect, useState } from "react";
 import AddNFCUserDialog from "./AddNFCUserDialog";
 import CreateSuccessDialog from "./CreateSuccessDialog";
 import UpdateSuccessDialog from "./UpdateSuccess";
-import { parseDurationToMinutes } from "./BookingManagement";
+import { API_BASE_URL } from "../apiConfig";
 
 const BookingForm = ({
   open,
@@ -43,7 +43,7 @@ const BookingForm = ({
     nicNumber: "",
     activeUser: true,
   });
-  console.log("station", existingBooking);
+
   const [formData, setFormData] = useState({
     nfcCardNumber: "",
     customerName: "",
@@ -53,7 +53,7 @@ const BookingForm = ({
     vrPlay: "",
     startTime: "",
     duration: "",
-    amount: 400,
+    amount: 0,
   });
   useEffect(() => {
     if (existingBooking) {
@@ -66,12 +66,10 @@ const BookingForm = ({
         vrPlay: existingBooking.vr_play || "",
         startTime: existingBooking.start_time || "",
         duration: existingBooking.duration || "",
-        amount: existingBooking.amount || 400,
+        amount: existingBooking.amount || 0,
       });
     }
   }, [existingBooking]);
-
-  console.log("Form station:", formData.station);
 
   const handleOpenNfcDialog = () => {
     setNfcDialogOpen(true);
@@ -92,7 +90,6 @@ const BookingForm = ({
     }));
 
     setNfcDialogOpen(false);
-    console.log("NFC User created:", nfcData);
   };
 
   const handleInputChange = (field, value) => {
@@ -118,7 +115,7 @@ const BookingForm = ({
       vrPlay: "",
       startTime: "",
       duration: "",
-      amount: 400,
+      amount: 0,
     });
   };
 
@@ -291,7 +288,7 @@ const BookingForm = ({
       if (existingBooking) {
         // Update booking
         await axios.put(
-          `http://127.0.0.1:8000/api/bookings/${existingBooking.id}`,
+          `${API_BASE_URL}/api/bookings/${existingBooking.id}`,
           payload,
           {
             headers: {
@@ -303,7 +300,7 @@ const BookingForm = ({
         setUpdateSuccess(true); // show update dialog
       } else {
         // Create new booking
-        await axios.post("http://127.0.0.1:8000/api/bookings", payload, {
+        await axios.post(`${API_BASE_URL}/api/bookings`, payload, {
           headers: {
             Authorization: token ? `Bearer ${token}` : "",
             "Content-Type": "application/json",
@@ -319,7 +316,7 @@ const BookingForm = ({
           vrPlay: "",
           startTime: "",
           duration: "",
-          amount: 400,
+          amount: 0,
         });
       }
 
@@ -337,6 +334,55 @@ const BookingForm = ({
   );
 
   const showVRPlay = selectedStation?.vrPrice && selectedStation?.vrTime;
+
+  useEffect(() => {
+    if (!formData.station || !formData.duration) return;
+
+    const stationData = stations.find((s) => s.name === formData.station);
+    if (!stationData) return;
+
+    const basePrice = Number(stationData.price) || 0;
+    const baseMinutes = Number(stationData.time) || 60;
+
+    const durationMinutes = parseDurationToMinutes(formData.duration);
+    const normalAmount = (basePrice / baseMinutes) * durationMinutes;
+
+    const vrPrice =
+      formData.vrPlay === "yes" ? Number(stationData.vrPrice || 0) : 0;
+    const finalAmount = normalAmount + vrPrice;
+    setFormData((prev) => ({ ...prev, amount: Math.round(finalAmount) }));
+  }, [formData.station, formData.duration, formData.vrPlay, stations]);
+
+  const generateTimeSlots = () => {
+    const selected = stations.find((s) => s.name === formData.station);
+
+    const isPool = selected?.type === "Pool";
+    const interval = isPool ? 30 : 15;
+
+    let slots = [];
+
+    let start = 12 * 60;
+    let end = 19 * 60 + 45;
+
+    for (let minutes = start; minutes <= end; minutes += interval) {
+      const h24 = Math.floor(minutes / 60);
+      const m = minutes % 60;
+
+      const h12 = h24 > 12 ? h24 - 12 : h24;
+
+      const label = `${h12.toString().padStart(2, "0")}.${m
+        .toString()
+        .padStart(2, "0")}`;
+
+      const value = `${h12.toString().padStart(2, "0")}:${m
+        .toString()
+        .padStart(2, "0")}`;
+
+      slots.push({ label, value });
+    }
+
+    return slots;
+  };
 
   return (
     <>
@@ -756,10 +802,11 @@ const BookingForm = ({
                     Select time
                   </em>
                 </MenuItem>
-                <MenuItem value="12:00">12.00</MenuItem>
-                <MenuItem value="01:00">01.00</MenuItem>
-                <MenuItem value="01:30">01.30</MenuItem>
-                <MenuItem value="02:00">02.00</MenuItem>
+                {generateTimeSlots().map((t, i) => (
+                  <MenuItem key={i} value={t.value}>
+                    {t.label}
+                  </MenuItem>
+                ))}
               </Select>
             </Box>
 
@@ -805,9 +852,13 @@ const BookingForm = ({
                   </em>
                 </MenuItem>
                 <MenuItem value="30m">30 min</MenuItem>
+                <MenuItem value="1h">1 hour</MenuItem>
                 <MenuItem value="1h 30m">1 hour 30 min</MenuItem>
                 <MenuItem value="2h">2 hour</MenuItem>
                 <MenuItem value="2h 30m">2 hour 30 min</MenuItem>
+                <MenuItem value="3h">3 hour</MenuItem>
+                <MenuItem value="3h 30m">3 hour 30 min</MenuItem>
+                <MenuItem value="4h">4 hour</MenuItem>
               </Select>
             </Box>
           </Box>
@@ -825,7 +876,7 @@ const BookingForm = ({
               Amount
             </Typography>
             <Typography variant="h6" color="cyan">
-              LKR 400
+              LKR {formData.amount}
             </Typography>
           </Box>
         </DialogContent>

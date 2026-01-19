@@ -25,6 +25,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import axios from "axios";
 import { AdminContext } from "../context/AdminContext";
 import { toast } from "react-toastify";
+import { API_BASE_URL } from "../apiConfig";
 
 
 const initialCategories = ["All", "Drinks", "Snacks", "Dessert", "Faluda"];
@@ -168,7 +169,7 @@ const OperatorPosSystem = () => {
 
       // Call backend API
       const response = await axios.post(
-        "http://localhost:8000/api/operator/items",
+        `${API_BASE_URL}/api/operator/items`,
         payload,
         {
           headers: {
@@ -201,7 +202,7 @@ const OperatorPosSystem = () => {
   const fetchItems = async () => {
     try {
       const token = localStorage.getItem("oToken"); // your Sanctum token or similar
-      const response = await axios.get("http://localhost:8000/api/operator/items", {
+      const response = await axios.get(`${API_BASE_URL}/api/operator/items`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -235,7 +236,7 @@ const OperatorPosSystem = () => {
       };
 
       const response = await axios.put(
-        `http://localhost:8000/api/operator/items/${selectedItem.id}`,
+        `${API_BASE_URL}/api/operator/items/${selectedItem.id}`,
         payload,
         {
           headers: {
@@ -273,7 +274,7 @@ const OperatorPosSystem = () => {
       };
 
       const response = await axios.post(
-        "http://localhost:8000/api/operator/checkout",
+        `${API_BASE_URL}/api/operator/checkout`,
         payload,
         {
           headers: {

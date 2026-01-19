@@ -12,6 +12,7 @@ import {
 import OperatorBookingForm from "./OperatorBookingForm";
 import OperatorBookingGrid from "./OperatorBookingGrid";
 import axios from "axios";
+import { API_BASE_URL } from "../apiConfig";
 //import { bookings as dummyBookings } from "../assets/assets.js";
 // import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 
@@ -96,7 +97,7 @@ const OperatorBookingManagement = () => {
     setLoading(true);
     try {
       const response = await axios.get(
-        "http://127.0.0.1:8000/api/operator-bookings"
+        `${API_BASE_URL}/api/operator-bookings`
       );
 
       if (response.data.success) {

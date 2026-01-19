@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { Box, Typography } from "@mui/material";
 import axios from "axios";
+import { API_BASE_URL } from "../apiConfig";
 
-const ReportNFCcustomersTable = ({date}) => {
-
-const [customers, setCustomers] = useState([]);
-const [loading, setLoading] = useState(false);
+const ReportNFCcustomersTable = ({ date }) => {
+  const [customers, setCustomers] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   const tableHeaderStyle = {
     backgroundColor: "#0E4450",
@@ -23,50 +23,49 @@ const [loading, setLoading] = useState(false);
     borderBottom: "1px solid #1f2937",
   };
 
-   useEffect(() => {
+  useEffect(() => {
     fetchNFCUsers();
   }, [date]);
 
   const fetchNFCUsers = async () => {
-  try {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    const token = localStorage.getItem("aToken");
+      const token = localStorage.getItem("aToken");
 
-    const res = await axios.get("http://127.0.0.1:8000/api/nfc-users", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+      const res = await axios.get(`${API_BASE_URL}/api/nfc-users`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-    const apiData = Array.isArray(res.data?.data)
-      ? res.data.data
-      : Array.isArray(res.data)
-      ? res.data
-      : [];
+      const apiData = Array.isArray(res.data?.data)
+        ? res.data.data
+        : Array.isArray(res.data)
+        ? res.data
+        : [];
 
-    // filter by selected date
-    const filteredData = date
-      ? apiData.filter((item) => {
-          if (!item.created_at) return false;
+      // filter by selected date
+      const filteredData = date
+        ? apiData.filter((item) => {
+            if (!item.created_at) return false;
 
-          const itemDate = new Date(item.created_at)
-            .toISOString()
-            .split("T")[0];
+            const itemDate = new Date(item.created_at)
+              .toISOString()
+              .split("T")[0];
 
-          return itemDate === date;
-        })
-      : apiData;
+            return itemDate === date;
+          })
+        : apiData;
 
-    setCustomers(filteredData);
-  } catch (error) {
-    console.error("Failed to fetch NFC users", error);
-    setCustomers([]);
-  } finally {
-    setLoading(false);
-  }
-};
-
+      setCustomers(filteredData);
+    } catch (error) {
+      console.error("Failed to fetch NFC users", error);
+      setCustomers([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <Box
@@ -119,7 +118,6 @@ const [loading, setLoading] = useState(false);
             No customers found
           </Typography>
         )}
-
 
         {/* Table Rows */}
         {customers.map((item, i) => (

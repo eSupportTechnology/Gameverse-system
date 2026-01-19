@@ -25,6 +25,7 @@ import { addPoolTable, updatePoolTable, deleteSimulator } from "../api";
 import { toast } from "react-toastify";
 import axios from "axios";
 import poolImg from "../assets/superme_billiard_1.jpg";
+import { API_BASE_URL } from "../apiConfig";
 import { AppContext } from "../context/AppContext";
 
 const AllPoolTabels = () => {
@@ -68,7 +69,7 @@ const AllPoolTabels = () => {
 
   const fetchPools = async () => {
     try {
-      const res = await fetch("http://127.0.0.1:8000/api/stations");
+      const res = await fetch(`${API_BASE_URL}/api/stations`);
       if (!res.ok) throw new Error("Failed to fetch stations");
       const data = await res.json();
       setPools(data.filter((s) => s.type === "Pool"));
@@ -101,7 +102,7 @@ const AllPoolTabels = () => {
     setPrice(item.price);
     setTime(item.time === 60 ? "1 Hour" : "30 Min");
     setThumbnail(
-      item.thumbnail ? `http://127.0.0.1:8000/storage/${item.thumbnail}` : null
+      item.thumbnail ? `${API_BASE_URL}/storage/${item.thumbnail}` : null
     );
     setThumbnailFile(null);
 
@@ -143,12 +144,12 @@ const AllPoolTabels = () => {
     }
 
     try {
-      let url = "http://127.0.0.1:8000/api/stations";
+      let url = `${API_BASE_URL}/api/stations`;
       let method = "POST";
 
       if (dialogMode === "edit") {
         const id = pools[editIndex].id;
-        url = `http://127.0.0.1:8000/api/stations/${id}`;
+        url = `${API_BASE_URL}/api/stations/${id}`;
         form.append("_method", "PUT"); // for Laravel to handle PUT
         method = "POST";
       }
@@ -415,7 +416,7 @@ const AllPoolTabels = () => {
                     <img
                       src={
                         item.thumbnail
-                          ? `http://127.0.0.1:8000/storage/${item.thumbnail}`
+                          ? `${API_BASE_URL}/storage/${item.thumbnail}`
                           : poolImg
                       }
                       alt={item.name || "Pool Image"}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   Box,
   Dialog,
@@ -7,13 +7,14 @@ import {
   DialogActions,
   Button,
   Typography,
-  IconButton
+  IconButton,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import PaymentSuccess from '../assets/PaymentSuccess.png';
-import CancelPopup from './CancelPopup';
-import axios from 'axios';
-import { toast } from 'react-toastify';
+import PaymentSuccess from "../assets/PaymentSuccess.png";
+import CancelPopup from "./CancelPopup";
+import axios from "axios";
+import { toast } from "react-toastify";
+import { API_BASE_URL } from "../apiConfig";
 
 // Define per-method unit prices
 const methodUnitPrice = {
@@ -49,7 +50,7 @@ const CheckoutGameOperator = ({ game, handleClose, onCheckoutComplete }) => {
 
       // Example API endpoint for operator checkout
       await axios.post(
-        `http://127.0.0.1:8000/api/operator/games/${game.id}/checkout`,
+        `${API_BASE_URL}/api/operator/games/${game.id}/checkout`,
         { amount: balance },
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -62,7 +63,6 @@ const CheckoutGameOperator = ({ game, handleClose, onCheckoutComplete }) => {
 
       // Refresh parent data if provided
       if (onCheckoutComplete) onCheckoutComplete();
-
     } catch (err) {
       setLoading(false);
       console.error(err);
@@ -84,13 +84,22 @@ const CheckoutGameOperator = ({ game, handleClose, onCheckoutComplete }) => {
             px: 2,
             pb: 2,
             width: "360px",
-            maxWidth: "90vw"
-          }
+            maxWidth: "90vw",
+          },
         }}
       >
         {/* Header */}
-        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", pb: 0 }}>
-          <DialogTitle sx={{ color: "#FFFFFF", fontSize: 18, fontWeight: "bold" }}>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            pb: 0,
+          }}
+        >
+          <DialogTitle
+            sx={{ color: "#FFFFFF", fontSize: 18, fontWeight: "bold" }}
+          >
             Operator Checkout
           </DialogTitle>
           <IconButton onClick={handleClose} sx={{ color: "#374151" }}>
@@ -101,23 +110,47 @@ const CheckoutGameOperator = ({ game, handleClose, onCheckoutComplete }) => {
         {/* Details */}
         <DialogContent sx={{ py: 1 }}>
           <Box display="flex" justifyContent="space-between" mb={1.5}>
-            <Typography fontSize={14} color="#FFFFFF">Game:</Typography>
-            <Typography fontSize={14} color="#0CD7FF">{game.title}</Typography>
+            <Typography fontSize={14} color="#FFFFFF">
+              Game:
+            </Typography>
+            <Typography fontSize={14} color="#0CD7FF">
+              {game.title}
+            </Typography>
           </Box>
 
           <Box display="flex" justifyContent="space-between" mb={1.5}>
-            <Typography fontSize={14} color="#FFFFFF">Location:</Typography>
-            <Typography fontSize={14} color="#9CA3AF">{game.location}</Typography>
+            <Typography fontSize={14} color="#FFFFFF">
+              Location:
+            </Typography>
+            <Typography fontSize={14} color="#9CA3AF">
+              {game.location}
+            </Typography>
           </Box>
 
           <Box display="flex" justifyContent="space-between" mb={1.5}>
-            <Typography fontSize={14} color="#FFFFFF">Unit Price:</Typography>
-            <Typography fontSize={14} color="#FFFFFF">LKR {unitPrice}</Typography>
+            <Typography fontSize={14} color="#FFFFFF">
+              Unit Price:
+            </Typography>
+            <Typography fontSize={14} color="#FFFFFF">
+              LKR {unitPrice}
+            </Typography>
           </Box>
 
           <Box display="flex" justifyContent="space-between" mb={1.5}>
-            <Typography fontSize={14} color="#FFFFFF">{game.method}:</Typography>
-            <Typography fontSize={13} color="#9CA3AF" sx={{ border: '1px solid #374151', py: 0.2, px: 2, minWidth: 50, textAlign: "center" }}>
+            <Typography fontSize={14} color="#FFFFFF">
+              {game.method}:
+            </Typography>
+            <Typography
+              fontSize={13}
+              color="#9CA3AF"
+              sx={{
+                border: "1px solid #374151",
+                py: 0.2,
+                px: 2,
+                minWidth: 50,
+                textAlign: "center",
+              }}
+            >
               {units}
             </Typography>
           </Box>
@@ -125,8 +158,12 @@ const CheckoutGameOperator = ({ game, handleClose, onCheckoutComplete }) => {
           <hr style={{ border: "none", borderTop: "1px solid #374151" }} />
 
           <Box display="flex" justifyContent="space-between" mb={1.5}>
-            <Typography fontSize={16} fontWeight='bold' color="#FFFFFF">Total:</Typography>
-            <Typography fontSize={16} fontWeight='bold' color="#0CD7FF">LKR {balance}</Typography>
+            <Typography fontSize={16} fontWeight="bold" color="#FFFFFF">
+              Total:
+            </Typography>
+            <Typography fontSize={16} fontWeight="bold" color="#0CD7FF">
+              LKR {balance}
+            </Typography>
           </Box>
         </DialogContent>
 
@@ -137,10 +174,10 @@ const CheckoutGameOperator = ({ game, handleClose, onCheckoutComplete }) => {
             variant="contained"
             sx={{
               fontSize: 16,
-              fontWeight: 'bold',
+              fontWeight: "bold",
               backgroundColor: "#1F2937",
-              width: '50%',
-              py: 0.5
+              width: "50%",
+              py: 0.5,
             }}
           >
             Cancel
@@ -152,10 +189,10 @@ const CheckoutGameOperator = ({ game, handleClose, onCheckoutComplete }) => {
             disabled={loading}
             sx={{
               fontSize: 16,
-              fontWeight: 'bold',
-              width: '50%',
+              fontWeight: "bold",
+              width: "50%",
               py: 0.5,
-              background: "linear-gradient(to right, #0CD7FF, #8A38F5)"
+              background: "linear-gradient(to right, #0CD7FF, #8A38F5)",
             }}
           >
             {loading ? "Processing..." : "Pay Now"}
@@ -173,8 +210,8 @@ const CheckoutGameOperator = ({ game, handleClose, onCheckoutComplete }) => {
               px: 8,
               textAlign: "center",
               color: "white",
-              border: '1px solid #3B4859'
-            }
+              border: "1px solid #3B4859",
+            },
           }}
         >
           <DialogContent>
@@ -189,7 +226,7 @@ const CheckoutGameOperator = ({ game, handleClose, onCheckoutComplete }) => {
                 WebkitTextFillColor: "transparent",
                 fontSize: 24,
                 fontWeight: 600,
-                mb: 1
+                mb: 1,
               }}
             >
               Payment Successful!
@@ -203,8 +240,9 @@ const CheckoutGameOperator = ({ game, handleClose, onCheckoutComplete }) => {
                 px: 8,
                 fontSize: 14,
                 borderRadius: "8px",
-                background: "linear-gradient(90deg, rgba(12, 215, 255, 0.4) 0%, rgba(138, 56, 245, 0.4) 73%)",
-                color: "white"
+                background:
+                  "linear-gradient(90deg, rgba(12, 215, 255, 0.4) 0%, rgba(138, 56, 245, 0.4) 73%)",
+                color: "white",
               }}
             >
               Ok

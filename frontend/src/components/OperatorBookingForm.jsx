@@ -15,6 +15,7 @@ import {
 import CloseIcon from "@mui/icons-material/Close";
 import gameicon from "../assets/gameicon.png";
 import axios from "axios";
+import { API_BASE_URL } from "../apiConfig";
 
 const OperatorBookingForm = ({ open, handleClose, onBookingCreated }) => {
   const [createSuccess, setcreateSuccess] = useState(false);
@@ -134,7 +135,7 @@ const OperatorBookingForm = ({ open, handleClose, onBookingCreated }) => {
       const token = localStorage.getItem("aToken"); // optional if auth is used
 
       const response = await axios.post(
-        "http://127.0.0.1:8000/api/operator-bookings", // Laravel API endpoint
+        `${API_BASE_URL}/api/operator-bookings`,
         payload,
         {
           headers: {

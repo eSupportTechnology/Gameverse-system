@@ -18,6 +18,7 @@ import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import CancelPopup from "./CancelPopup";
 import { toast } from "react-toastify";
 import axios from "axios";
+import { API_BASE_URL } from "../apiConfig";
 
 export default function AddUserDialog({
   open,
@@ -110,7 +111,7 @@ export default function AddUserDialog({
         data.append("_method", "PUT");
 
         response = await axios.post(
-          `http://localhost:8000/api/update-user/${formData.id}`,
+          `${API_BASE_URL}/api/update-user/${formData.id}`,
           data,
           {
             headers: {
@@ -122,16 +123,12 @@ export default function AddUserDialog({
       } else {
         // Add user
         console.table(Object.fromEntries(data.entries()));
-        response = await axios.post(
-          "http://localhost:8000/api/add-user",
-          data,
-          {
-            headers: {
-              "Content-Type": "multipart/form-data",
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        response = await axios.post(`${API_BASE_URL}/api/add-user`, data, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`,
+          },
+        });
       }
       setLoading(false);
       setMessage(response.data.message || "User saved");
@@ -300,16 +297,8 @@ export default function AddUserDialog({
             "& .MuiSelect-select:empty": { color: "#0008130c" },
           }}
         >
-          <MenuItem
-            value="admin"
-          >
-            Admin
-          </MenuItem>
-          <MenuItem
-            value="operator"
-          >
-            Operator
-          </MenuItem>
+          <MenuItem value="admin">Admin</MenuItem>
+          <MenuItem value="operator">Operator</MenuItem>
         </TextField>
 
         <Typography variant="subtitle2">User Name</Typography>

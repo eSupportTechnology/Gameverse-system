@@ -14,11 +14,52 @@ import SalesChart from "./ReportSalesChart";
 import QuickActions from "./ReportQuickActions";
 import ReportBookingSalesTable from "./ReportBookingSalesTable";
 import axios from "axios";
+import { API_BASE_URL } from "../apiConfig";
 
 const ReportsManagement = () => {
   const [dateFilter, setDateFilter] = useState("today");
   const [viewMode, setViewMode] = useState("overview");
   const [openTab, setOpenTab] = useState(1);
+  const [totalSales, setTotalSales] = useState(0);
+  const [productsSold, setProductsSold] = useState(0);
+
+//Fetched Total Sales
+  useEffect(() => {
+  const fetchTotalSales = async () => {
+    try {
+      const res = await axios.get(
+        `${API_BASE_URL}/api/reports/total-sales`
+      );
+
+      if (res.data.success) {
+        setTotalSales(res.data.total_sales);
+      }
+    } catch (error) {
+      console.error("Error fetching total sales", error);
+    }
+  };
+
+  fetchTotalSales();
+}, []);
+
+//To fetch Products SOld
+useEffect(() => {
+  const fetchProductsSold = async () => {
+    try {
+      const res = await axios.get(
+        `${API_BASE_URL}/api/reports/products-sold`
+      );
+
+      if (res.data.success) {
+        setProductsSold(res.data.products_sold);
+      }
+    } catch (error) {
+      console.error("Error fetching products sold", error);
+    }
+  };
+
+  fetchProductsSold();
+}, []);
 
   // Handle date filter changes
   const handleDateFilterChange = (newFilter) => {
@@ -59,7 +100,7 @@ const ReportsManagement = () => {
     const fetchNewCustomers = async () => {
       try {
         const res = await axios.get(
-          "http://localhost:8000/api/reports/new-customers"
+          `${API_BASE_URL}/api/reports/new-customers`
         );
 
         if (res.data.success) {
@@ -79,7 +120,7 @@ const ReportsManagement = () => {
     const fetchTotalBookings = async () => {
       try {
         const res = await axios.get(
-          "http://localhost:8000/api/reports/total-bookings"
+          `${API_BASE_URL}/api/reports/total-bookings`
         );
 
         if (res.data.success) {
@@ -92,6 +133,30 @@ const ReportsManagement = () => {
 
     fetchTotalBookings();
   }, []);
+// fetch chart data 
+    const [chartData, setChartData] = useState({
+    bookings: 0,
+    products: 0,
+    games: 0,
+  });
+    useEffect(() => {
+    const fetchChartData = async () => {
+      try {
+        const res = await axios.get(
+          `${API_BASE_URL}/api/reports/sales-chart?filter=${dateFilter}`
+        );
+
+        if (res.data.success) {
+          setChartData(res.data.data);
+        }
+      } catch (err) {
+        console.error("Error fetching chart data", err);
+      }
+    };
+
+    fetchChartData();
+  }, [dateFilter]);
+
 
   // Metric cards data
   const metrics = [
@@ -99,8 +164,8 @@ const ReportsManagement = () => {
       id: 1,
       label: "Total Sales",
       icon: <img src="/images/report Icon/salesIcon.png" width={28} />,
-      value: "LKR 15,800",
-      // value: `LKR ${currentData.totalRevenue.toLocaleString()}`,
+      // value: "LKR 15,800",
+      value: `LKR ${totalSales.toLocaleString()}`,
       changePositive: true,
       iconBgColor: "#ff6b81",
     },
@@ -116,8 +181,8 @@ const ReportsManagement = () => {
       id: 3,
       label: "Products Sold",
       icon: <img src="/images/report Icon/vector.png" width={28} />,
-      value: "60",
-      // value: currentData.totalSales.toString(),
+      // value: "60",
+      value: productsSold.toString(),
       changePositive: true,
       iconBgColor: "#2bdc65",
     },
@@ -345,7 +410,7 @@ const ReportsManagement = () => {
                 mt: 4,
               }}
             >
-              <SalesChart />
+              <SalesChart data={chartData} />
               <QuickActions onActionClick={handleActionClick} />
             </Box>
           </Box>

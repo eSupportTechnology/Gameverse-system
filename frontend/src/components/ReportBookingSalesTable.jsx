@@ -20,6 +20,7 @@ import ReportOtherGamesSalesTable from "./ReportOtherGamesSalesTable";
 import ReportNFCcustomersTable from "./ReportNFCcustomersTable";
 import axios from "axios";
 import { formatBookingDate } from "./BookingManagement";
+import { API_BASE_URL } from "../apiConfig";
 
 const ReportBookingSalesTable = ({
   showOnlyBooking = false,
@@ -53,7 +54,7 @@ const ReportBookingSalesTable = ({
     const fetchBookings = async () => {
       try {
         setLoading(true);
-        const response = await axios.get("http://localhost:8000/api/bookings");
+        const response = await axios.get(`${API_BASE_URL}/api/bookings`);
 
         if (response.data.success) {
           const completedBookings = response.data.data.filter(
@@ -499,7 +500,7 @@ const ReportBookingSalesTable = ({
 
       {/* TABS */}
       {activeTab === 2 && <ReportProductSalesTable date={date} />}
-{activeTab === 3 && <ReportOtherGamesSalesTable date={date} />}
+      {activeTab === 3 && <ReportOtherGamesSalesTable date={date} />}
       {activeTab === 4 && <ReportNFCcustomersTable date={date} />}
     </Box>
   );

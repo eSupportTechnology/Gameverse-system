@@ -40,7 +40,7 @@ class PosSaleController extends Controller
 
             // Create sale
             $sale = PosSale::create([
-                'customer_name' => $request->customer_name ?: 'Walk-in',
+                'customer_name' => $request->customer_name,
                 'customer_id' => $request->customer_id,
                 'subtotal' => $subtotal,
                 'discount' => $discount,

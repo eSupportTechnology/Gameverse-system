@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import {
   Drawer,
   List,
@@ -10,6 +10,7 @@ import {
   Divider,
 } from "@mui/material";
 import { useNavigate, useLocation } from "react-router-dom";
+import { AdminContext } from "../context/AdminContext";
 import Stations from "../pages/Station";
 
 // Dummy Components
@@ -81,6 +82,7 @@ const menuItems = [
       />
     ),
     component: <UsersRoles />,
+    adminOnly: true,
   },
   {
     text: "NFC Customers",
@@ -122,23 +124,22 @@ const menuItems = [
     icon: (
       <img
         src="../images/webportal.png"
-        alt="TV Screens"
+        alt="Web Portal"
         style={{ width: 20, height: 20 }}
       />
     ),
   },
-  // {
-  //   text: "Settings",
-  //   path: "/settings",
-  //   icon: <img src="../images/set.png" alt="Settings" style={{ width: 20, height: 20 }} />,
-  //   component: <SettingsPage />,
-  // },
 ];
 
 export default function SidebarLayout() {
   const [open, setOpen] = useState(true);
   const navigate = useNavigate();
-  const location = useLocation(); // track current route
+  const location = useLocation();
+  const { loginRole } = useContext(AdminContext);
+
+  const filteredMenuItems = menuItems.filter(
+    (item) => !(item.adminOnly && loginRole === "operator")
+  );
 
   return (
     <Box sx={{ display: "flex" }}>
@@ -149,7 +150,7 @@ export default function SidebarLayout() {
           flexShrink: 0,
           "& .MuiDrawer-paper": {
             width: open ? expandedWidth : collapsedWidth,
-            transition: "width 0.s",
+            transition: "width 0.2s",
             overflowX: "hidden",
             backgroundColor: "#000000ff",
             color: "#9CA3AF",
@@ -181,7 +182,7 @@ export default function SidebarLayout() {
 
         {/* Menu */}
         <List>
-          {menuItems.map((item) => {
+          {filteredMenuItems.map((item) => {
             const isActive = location.pathname === item.path;
             return (
               <Tooltip
@@ -201,10 +202,8 @@ export default function SidebarLayout() {
                     background: isActive
                       ? "linear-gradient(90deg, #09375089, #520b5aff)"
                       : "transparent",
-                    transition: "background 0.2s ease-in-out", // smooth quick change
-                    "&:hover": {
-                      backgroundColor: "rgba(255,255,255,0.1)",
-                    },
+                    transition: "background 0.2s ease-in-out",
+                    "&:hover": { backgroundColor: "rgba(255,255,255,0.1)" },
                   }}
                 >
                   <ListItemIcon
