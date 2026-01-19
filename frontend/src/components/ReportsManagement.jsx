@@ -25,22 +25,32 @@ const ReportsManagement = () => {
 
 //Fetched Total Sales
   useEffect(() => {
-  const fetchTotalSales = async () => {
+  const fetchAllTotals = async () => {
     try {
-      const res = await axios.get(
-        `${API_BASE_URL}/api/reports/total-sales`
+      const bookingsRes = await axios.get(
+        `${API_BASE_URL}/api/reports/total-bookings-amount?filter=${dateFilter}`
+      );
+      const gamesRes = await axios.get(
+        `${API_BASE_URL}/api/reports/total-games-amount?filter=${dateFilter}`
+      );
+      const posRes = await axios.get(
+        `${API_BASE_URL}/api/reports/total-pos-amount?filter=${dateFilter}`
       );
 
-      if (res.data.success) {
-        setTotalSales(res.data.total_sales);
-      }
+      const bookingsTotal = bookingsRes.data.success ? Number(bookingsRes.data.total) : 0;
+      const gamesTotal = gamesRes.data.success ? Number(gamesRes.data.total) : 0;
+      const posTotal = posRes.data.success ? Number(posRes.data.total) : 0;
+
+      setTotalSales(bookingsTotal + gamesTotal + posTotal);
+
     } catch (error) {
       console.error("Error fetching total sales", error);
     }
   };
 
-  fetchTotalSales();
-}, []);
+  fetchAllTotals();
+}, [dateFilter]);
+
 
 //To fetch Products SOld
 useEffect(() => {
