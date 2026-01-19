@@ -11,25 +11,41 @@ use App\Models\SaleItem;
 use Carbon\Carbon;
 use App\Models\Game;;
 use Illuminate\Support\Facades\DB;
+use App\Models\NfcUser;
 class ReportsController extends Controller
 {
     // NEW CUSTOMERS 
-    public function newCustomersCount()
+    public function newCustomersCount(Request $request)
     {
+        $query = NfcUser::query();
+
+        if ($request->has('filter')) {
+            $start = $this->getStartDate($request->filter);
+            $query->where('created_at', '>=', $start);
+        }
+
         return response()->json([
             'success' => true,
-            'count' => User::count()
+            'count' => $query->count()
         ]);
     }
 
     // ✅ TOTAL BOOKINGS COUNT
-    public function totalBookingsCount()
+    public function totalBookingsCount(Request $request)
     {
+        $query = Booking::query();
+
+        if ($request->has('filter')) {
+            $start = $this->getStartDate($request->filter);
+            $query->where('created_at', '>=', $start);
+        }
+
         return response()->json([
             'success' => true,
-            'count' => Booking::count()
+            'count' => $query->count()
         ]);
     }
+
     // public function totalSales()
     // {
     //     return response()->json([
@@ -38,14 +54,21 @@ class ReportsController extends Controller
     //     ]);
     // }
 
-    public function productsSold()
+    public function productsSold(Request $request)
     {
+        $query = SaleItem::query();
+
+        if ($request->has('filter')) {
+            $start = $this->getStartDate($request->filter);
+            $query->where('created_at', '>=', $start);
+        }
+
         return response()->json([
             'success' => true,
-            'products_sold' => SaleItem::sum('quantity')
+            'products_sold' => $query->sum('quantity')
         ]);
-        
     }
+
     public function salesChart(Request $request)
     {
         $filter = $request->query('filter', 'today');
@@ -98,7 +121,7 @@ class ReportsController extends Controller
             $query->where('created_at', '>=', $start);
         }
 
-        $total = $query->sum('balance'); // or 'price' depending on your schema
+        $total = $query->sum('balance');
         return response()->json(['success' => true, 'total' => $total]);
     }
 
