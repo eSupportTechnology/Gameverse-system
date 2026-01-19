@@ -1,5 +1,5 @@
 // BookingManagement.jsx (Updated)
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import {
   Box,
   Typography,
@@ -17,6 +17,7 @@ import SessionDialog from "./SessionDialog"; // For In Progress
 import CompletedBookingDialog from "./CompletedBookingDialog"; // For Completed
 import axios from "axios";
 import { API_BASE_URL } from "../apiConfig";
+import { AppContext } from "../context/AppContext";
 
 export const parseDurationToMinutes = (duration) => {
   if (!duration) return 60;
@@ -53,6 +54,8 @@ const BookingManagement = () => {
   const [inProgressDialogOpen, setInProgressDialogOpen] = useState(false);
   const [completedDialogOpen, setCompletedDialogOpen] = useState(false);
   const [stations, setStations] = useState([]);
+
+  const { globalSearch } = useContext(AppContext);
 
   const fetchStations = async () => {
     try {
@@ -330,6 +333,12 @@ const BookingManagement = () => {
 
     return slots;
   };
+  // Filter bookings part
+   const filteredBookings = apiBookings.filter((b) =>
+  globalSearch
+    ? b.customer_name.toLowerCase().includes(globalSearch.toLowerCase())
+    : true
+);
 
   return (
     <Box
@@ -605,7 +614,7 @@ const BookingManagement = () => {
                 {stations.map((station, i) => (
                   <Box key={i} sx={{ display: "flex", mb: 2 }}>
                     {timeSlots.map((slot) => {
-                      const bookingsForSlot = apiBookings.filter((b) => {
+                      const bookingsForSlot = filteredBookings.filter((b) => {
                         if (b.station !== station.name) return false;
                         if (formatBookingDate(b.booking_date) !== date)
                           return false;
@@ -698,7 +707,7 @@ const BookingManagement = () => {
       {view === "grid" && (
         <Box sx={scrollbarStyles}>
           <BookingGrid
-            apiBookings={apiBookings}
+            apiBookings={filteredBookings}
             loading={loading}
             onBookingUpdated={refreshBookings}
             stations={stations}

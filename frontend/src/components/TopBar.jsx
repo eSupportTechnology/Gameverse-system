@@ -20,7 +20,7 @@ import { AppContext } from "../context/AppContext";
 
 const TopBar = ({ sidebarOpen }) => {
 
-  const { loggedUser, logoutUser } = useContext(AppContext)
+  const { loggedUser, logoutUser, globalSearch, setGlobalSearch } = useContext(AppContext);
 
   const [anchorEl, setAnchorEl] = useState(null);
 
@@ -66,10 +66,13 @@ const TopBar = ({ sidebarOpen }) => {
             }}
           >
             <SearchIcon sx={{ mr: 1 }} />
-            <InputBase
-              placeholder="Search…"
-              sx={{ color: "white", width: "100%" }}
-            />
+           <InputBase
+  placeholder="Search…"
+  sx={{ color: "white", width: "100%" }}
+  value={globalSearch}
+  onChange={(e) => setGlobalSearch(e.target.value)}
+/>
+
           </Box>
 
           {/* Right Section */}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import {
   Box,
   Typography,
@@ -30,6 +30,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import UpdateSuccessDialog from "./UpdateSuccess";
 import { API_BASE_URL } from "../apiConfig";
+import { AppContext } from "../context/AppContext";
 //import { nfcUsers } from "../assets/assets";
 
 export default function NFCUserContent() {
@@ -42,6 +43,7 @@ export default function NFCUserContent() {
   const [deleteUserId, setDeleteUserId] = useState(null);
   const [successDialogOpen, setSuccessDialogOpen] = useState(false);
   const [addSuccessDialog, setAddSuccessDialog] = useState(false);
+  const {globalSearch} = useContext(AppContext);
 
   const [formData, setFormData] = useState({
     fullName: "",
@@ -116,12 +118,26 @@ export default function NFCUserContent() {
     setSearchQuery(e.target.value);
   };
 
-  const filteredUsers = users.filter(
-    (user) =>
-      user.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.cardNo.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.phoneNo.includes(searchQuery)
-  );
+  const filteredUsers = users.filter((user) => {
+    const name = user.fullName?.toLowerCase() || "";
+    const card = user.cardNo?.toLowerCase() || "";
+    const phone = user.phoneNo?.toLowerCase() || "";
+
+    const matchLocal =
+      !searchQuery ||
+      name.includes(searchQuery.toLowerCase()) ||
+      card.includes(searchQuery.toLowerCase()) ||
+      phone.includes(searchQuery.toLowerCase());
+
+    const matchGlobal =
+      !globalSearch ||
+      name.includes(globalSearch.toLowerCase()) ||
+      card.includes(globalSearch.toLowerCase()) ||
+      phone.includes(globalSearch.toLowerCase());
+
+    return matchLocal && matchGlobal;
+  });
+
 
   const handleAddUser = () => {
     setFormData({

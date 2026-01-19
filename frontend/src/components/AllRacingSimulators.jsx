@@ -10,7 +10,7 @@ import {
   MenuItem,
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { AllRacing } from "../assets/assets";
 import CloseIcon from "@mui/icons-material/Close";
@@ -26,6 +26,7 @@ import simulatorImg from "../assets/racing1.jpg";
 import { toast } from "react-toastify";
 import axios from "axios";
 import { API_BASE_URL } from "../apiConfig";
+import { AppContext } from "../context/AppContext";
 
 const AllRacingSimulators = () => {
   const navigate = useNavigate();
@@ -33,6 +34,7 @@ const AllRacingSimulators = () => {
   const [openAddRacing, setOpenAddRacing] = useState(false);
   const [dialogMode, setDialogMode] = useState("add"); // add | edit
   const [editIndex, setEditIndex] = useState(null);
+  const { globalSearch } = useContext(AppContext);
 
   // form fields
   const [simulatorName, setSimulatorName] = useState("");
@@ -219,6 +221,14 @@ const AllRacingSimulators = () => {
     setRemoveSimulator(false);
     setSimulatorToRemove(null);
   };
+  const filteredSimulators = simulators.filter((sim) => {
+  const name = sim.name?.toLowerCase() || "";
+  const loc = sim.location?.toLowerCase() || "";
+
+  return !globalSearch || 
+         name.includes(globalSearch.toLowerCase()) || 
+         loc.includes(globalSearch.toLowerCase());
+  });
 
   return (
     <div>
@@ -359,7 +369,7 @@ const AllRacingSimulators = () => {
               alignItems: "stretch",
             }}
           >
-            {simulators.map((item, index) => (
+            {filteredSimulators.map((item, index) => (
               <Box
                 key={index}
                 sx={{

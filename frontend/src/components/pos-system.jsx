@@ -25,6 +25,7 @@ import PaymentSuccessPopup from "./paymentsuccess";
 import RightSection from "./RightSectionPos";
 import UpdateSuccessDialog from "./UpdateSuccess";
 import { API_BASE_URL } from "../apiConfig";
+import { AppContext } from "../context/AppContext";
 
 const initialCategories = ["All", "Drinks", "Snacks", "Dessert", "Ice Cream"];
 
@@ -42,6 +43,8 @@ const textFieldSx = {
 
 const PosSystem = () => {
   const { aToken } = useContext(AdminContext);
+  const { globalSearch } = useContext(AppContext);
+
 
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -342,10 +345,17 @@ const PosSystem = () => {
   };
 
   // Search filter
-  const searchedProducts = products.filter((p) => {
-    const title = p.item_name || p.name || "";
-    return title.toLowerCase().includes(searchTerm.toLowerCase());
-  });
+ const searchedProducts = products.filter((p) => {
+  const title = (p.item_name || "").toLowerCase();
+
+  const matchLocal =
+    !searchTerm || title.includes(searchTerm.toLowerCase());
+
+  const matchGlobal =
+    !globalSearch || title.includes(globalSearch.toLowerCase());
+
+  return matchLocal && matchGlobal;
+});
 
   // Category filter
   const filteredProducts =

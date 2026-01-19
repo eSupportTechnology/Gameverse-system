@@ -10,7 +10,7 @@ import {
   MenuItem,
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { AllPool } from "../assets/assets";
 import CloseIcon from "@mui/icons-material/Close";
@@ -26,6 +26,7 @@ import { toast } from "react-toastify";
 import axios from "axios";
 import poolImg from "../assets/superme_billiard_1.jpg";
 import { API_BASE_URL } from "../apiConfig";
+import { AppContext } from "../context/AppContext";
 
 const AllPoolTabels = () => {
   const navigate = useNavigate();
@@ -33,6 +34,8 @@ const AllPoolTabels = () => {
   const [openAddPool, setOpenAddPool] = useState(false);
   const [dialogMode, setDialogMode] = useState("add"); // add | edit
   const [editIndex, setEditIndex] = useState(null);
+  const {globalSearch} =useContext(AppContext);
+
 
   // form fields
   const [tableName, setTableName] = useState("");
@@ -206,6 +209,16 @@ const AllPoolTabels = () => {
     setRemovePool(false);
     setPoolToRemove(null);
   };
+  // Add this after your other hooks (e.g., after fetchPools effect)
+  const filteredPools = pools.filter((pool) => {
+  const name = pool.name?.toLowerCase() || "";
+  const loc = pool.location?.toLowerCase() || "";
+
+  return !globalSearch || 
+         name.includes(globalSearch.toLowerCase()) || 
+         loc.includes(globalSearch.toLowerCase());
+});
+
 
   return (
     <div>
@@ -346,7 +359,7 @@ const AllPoolTabels = () => {
               alignItems: "stretch",
             }}
           >
-            {pools.map((item, index) => (
+            {filteredPools.map((item, index) => (
               <Box
                 key={index}
                 sx={{

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import axios from "axios";
 import {
   Box,
@@ -13,6 +13,7 @@ import FilterListIcon from "@mui/icons-material/FilterList";
 import AddStationDialog from "./AddStationDialog";
 import StationsGrid from "./StationsGrid";
 import { API_BASE_URL } from "../apiConfig";
+import {AppContext} from "../context/AppContext";
 
 export default function StationManagement() {
   const [tab, setTab] = useState(0);
@@ -23,6 +24,7 @@ export default function StationManagement() {
   const [isEditing, setIsEditing] = useState(false);
   const [editStation, setEditStation] = useState(null);
   const [anchorEl, setAnchorEl] = useState(null);
+  const { globalSearch } = useContext(AppContext);
   const [formData, setFormData] = useState({
     name: "",
     type: "",
@@ -152,9 +154,14 @@ export default function StationManagement() {
   // Filter stations based on selected tab and status
   const filteredStations = stations.filter((s) => {
     const typeMatch = tab === 0 ? true : s.type === stationTypes[tab];
-    const statusMatch =
-      statusFilter === "All" ? true : s.status === statusFilter;
-    return typeMatch && statusMatch;
+    const statusMatch = statusFilter === "All" ? true : s.status === statusFilter;
+    
+    // Step 4: global search filter
+    const searchMatch = globalSearch
+      ? s.name.toLowerCase().includes(globalSearch.toLowerCase())
+      : true;
+
+    return typeMatch && statusMatch && searchMatch;
   });
 
   return (

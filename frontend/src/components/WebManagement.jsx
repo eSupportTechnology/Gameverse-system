@@ -12,7 +12,7 @@ import {
   TextField,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import AddGameDialog from "./AddGameDialog";
 import AddEventDialog from "./AddEventDialog";
@@ -35,6 +35,7 @@ import PS5station from "../assets/ps5_station.jpg";
 import poolTable from "../assets/pool_table.jpg";
 import racingSimulator from "../assets/racing_simulators.jpg";
 import { API_BASE_URL } from "../apiConfig";
+import { AppContext } from "../context/AppContext";
 
 const categories = [
   { label: "Booking Games" },
@@ -104,6 +105,8 @@ const WebManagement = () => {
   const [openCategoryUpdate, setOpenCategoryUpdate] = useState(false);
   const [thumbUpdateSuccess, setThumbUpdateSuccess] = useState(false);
   const [dbGames, setDbGames] = useState([]);
+
+  const { globalSearch } = useContext(AppContext);
 
   const fetchStations = async () => {
     try {
@@ -479,6 +482,35 @@ const WebManagement = () => {
     setOpenAddGame(false);
     fetchDbGames();
   };
+    // Booking Games
+const filteredBookingGames = bookingGames.filter((item) => {
+  const title = item.title?.toLowerCase() || "";
+  const desc = item.desc?.toLowerCase() || "";
+  return !globalSearch || title.includes(globalSearch.toLowerCase()) || desc.includes(globalSearch.toLowerCase());
+});
+
+// Other Games (portal + DB games combined if needed)
+const filteredGames = games.filter((game) => {
+  const title = game.title?.toLowerCase() || "";
+  return !globalSearch || title.includes(globalSearch.toLowerCase());
+});
+const filteredDbGames = dbGames.filter((game) => {
+  const title = game.title?.toLowerCase() || "";
+  return !globalSearch || title.includes(globalSearch.toLowerCase());
+});
+
+// Event & Tournaments
+const filteredEvents = event.filter((e) => {
+  const name = e.name?.toLowerCase() || "";
+  return !globalSearch || name.includes(globalSearch.toLowerCase());
+});
+
+// Gallery
+const filteredGallery = gallery.filter((g) => {
+  const title = g.title?.toLowerCase() || "";
+  return !globalSearch || title.includes(globalSearch.toLowerCase());
+});
+
 
   return (
     <div>
@@ -663,7 +695,7 @@ const WebManagement = () => {
           >
             {/* Booking Games section */}
             {activeCategory === "Booking Games" &&
-              bookingGames.map((item, index) => (
+              filteredBookingGames.map((item, index) => (
                 <Box
                   key={index}
                   sx={{
@@ -793,8 +825,8 @@ const WebManagement = () => {
               ))}
             {activeCategory === "Other Games" && (
               <OtherGamesSection
-                games={games}
-                dbGames={dbGames}
+                games={filteredGames}
+                dbGames={filteredDbGames}
                 handleRemoveGame={handleRemoveGame}
                 setEditData={setEditData}
                 setOpenEditGame={setOpenEditGame}
@@ -805,7 +837,7 @@ const WebManagement = () => {
 
             {/* Event & Tournaments section */}
             {activeCategory === "Event & Tournaments" &&
-              event.map((item, index) => (
+              filteredEvents.map((item, index) => (
                 <Box
                   key={index}
                   sx={{
@@ -918,7 +950,7 @@ const WebManagement = () => {
 
             {/* Gallery section */}
             {activeCategory === "Gallery" &&
-              gallery.map((item, index) => (
+              filteredGallery.map((item, index) => (
                 <Box
                   key={index}
                   sx={{

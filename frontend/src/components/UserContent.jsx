@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import {
   Box,
   Typography,
@@ -18,12 +18,15 @@ import UpdateSuccessDialog from "./UpdateSuccess";
 import CreateSuccessDialog from "./CreateSuccessDialog";
 import axios from "axios";
 import { API_BASE_URL } from "../apiConfig";
+import { AppContext } from "../context/AppContext";
 
 export default function UserManagement() {
   const [open, setOpen] = useState(false);
   const [updateSuccessOpen, setUpdateSuccessOpen] = useState(false);
   const [createSuccessOpen, setCreateSuccessOpen] = useState(false);
   const [users, setUsers] = useState([]);
+  const { globalSearch } = useContext(AppContext);
+
 
   const [formData, setFormData] = useState({
     fullname: "",
@@ -292,9 +295,18 @@ export default function UserManagement() {
 
           {/* Table Rows */}
           {users
-            .filter((user) =>
-              user.fullName.toLowerCase().includes(searchQuery.toLowerCase())
-            )
+            .filter((user) => {
+              const name = user.fullName?.toLowerCase() || "";
+
+              const matchLocal =
+                !searchQuery || name.includes(searchQuery.toLowerCase());
+
+              const matchGlobal =
+                !globalSearch || name.includes(globalSearch.toLowerCase());
+
+              return matchLocal && matchGlobal;
+            })
+
             .map((user, idx) => (
               <Box
                 key={idx}
