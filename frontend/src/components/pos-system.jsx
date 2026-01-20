@@ -485,7 +485,7 @@ const PosSystem = () => {
               width: 487,
               bgcolor: "#1E293B",
               borderRadius: "8px",
-              "& input": { color: "A1A1A1", paddingLeft: "8px" },
+              "& input": { color: "white", paddingLeft: "8px" },
               "& fieldset": { borderColor: "#374151" },
             }}
             InputProps={{
