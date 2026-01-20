@@ -57,7 +57,7 @@ useEffect(() => {
   const fetchProductsSold = async () => {
     try {
       const res = await axios.get(
-        `${API_BASE_URL}/api/reports/products-sold`
+        `${API_BASE_URL}/api/reports/products-sold?filter=${dateFilter}`
       );
 
       if (res.data.success) {
@@ -69,7 +69,7 @@ useEffect(() => {
   };
 
   fetchProductsSold();
-}, []);
+}, [dateFilter]);
 
   // Handle date filter changes
   const handleDateFilterChange = (newFilter) => {
@@ -110,7 +110,7 @@ useEffect(() => {
     const fetchNewCustomers = async () => {
       try {
         const res = await axios.get(
-          `${API_BASE_URL}/api/reports/new-customers`
+          `${API_BASE_URL}/api/reports/new-customers?filter=${dateFilter}`
         );
 
         if (res.data.success) {
@@ -122,7 +122,7 @@ useEffect(() => {
     };
 
     fetchNewCustomers();
-  }, []);
+  }, [dateFilter]);
 
   const [totalBookings, setTotalBookings] = useState(0);
 
@@ -130,7 +130,7 @@ useEffect(() => {
     const fetchTotalBookings = async () => {
       try {
         const res = await axios.get(
-          `${API_BASE_URL}/api/reports/total-bookings`
+          `${API_BASE_URL}/api/reports/total-bookings?filter=${dateFilter}`
         );
 
         if (res.data.success) {
@@ -142,7 +142,7 @@ useEffect(() => {
     };
 
     fetchTotalBookings();
-  }, []);
+  }, [dateFilter]);
 // fetch chart data 
     const [chartData, setChartData] = useState({
     bookings: 0,
