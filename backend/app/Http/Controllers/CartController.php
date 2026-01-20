@@ -25,29 +25,21 @@ class CartController extends Controller
             'pos_item_id' => 'required|exists:pos_items,id'
         ]);
 
-        DB::transaction(function () use ($request) {
+        $userId = 1; // Replace with auth()->id() later
 
-            $item = PosItem::lockForUpdate()->findOrFail($request->pos_item_id);
+        $cart = Cart::firstOrCreate(
+            [
+                'user_id' => $userId,
+                'pos_item_id' => $request->pos_item_id
+            ],
+            [
+                'quantity' => 0
+            ]
+        );
 
-            if ($item->stock <= 0) {
-                abort(400, 'Out of stock');
-            }
+        $cart->increment('quantity');
 
-            $cart = Cart::where('pos_item_id', $item->id)->first();
-
-            if ($cart) {
-                $cart->increment('quantity');
-            } else {
-                Cart::create([
-                    'pos_item_id' => $item->id,
-                    'quantity' => 1
-                ]);
-            }
-
-            $item->decrement('stock');
-        });
-
-        return response()->json(['success' => true]);
+        return response()->json(['success' => true, 'data' => $cart]);
     }
 
     public function decrease(Request $request)

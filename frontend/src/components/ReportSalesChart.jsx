@@ -59,15 +59,23 @@ const CustomLegend = () => {
 //   padding: "10px",
 // };
 
-const ReportSalesChart = ({data}) => {
+const ReportSalesChart = ({data, filter}) => {
+
+  const labelMap = {
+    day: "Today",
+    week: "This Week",
+    month: "This Month",
+    year: "This Year",
+  };
    const chartData = [
     {
-      day: "Today",
+      day: labelMap[filter] || "Today",
       bookings: data?.bookings || 0,
       products: data?.products || 0,
       games: data?.games || 0,
     },
   ];
+  
   return (
     <Card
       sx={{
@@ -84,6 +92,7 @@ const ReportSalesChart = ({data}) => {
             Total Sales
           </Typography>
 
+        
           <Box
             sx={{
               background: "#D9D9D9",
@@ -97,7 +106,7 @@ const ReportSalesChart = ({data}) => {
               alignItems: "center", 
             }}
           >
-            Weekly
+            {labelMap[filter] || "Today"}
           </Box>
         </Box>
 

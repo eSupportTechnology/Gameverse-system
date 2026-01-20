@@ -178,3 +178,5 @@ Route::get('/reports/total-bookings-amount', [ReportsController::class, 'totalBo
 Route::get('/reports/total-games-amount', [ReportsController::class, 'totalGamesAmount']);
 Route::get('/reports/total-pos-amount', [ReportsController::class, 'totalPosAmount']);
 
+Route::get('/reports/export-doc', [ReportsController::class, 'exportDoc']);
+
