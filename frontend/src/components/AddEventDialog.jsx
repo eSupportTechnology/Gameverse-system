@@ -156,6 +156,9 @@ useEffect(() => {
                 },
                 "& input::-webkit-datetime-edit": { color: "#9CA3AF" },
               },
+              inputProps: {
+                min: new Date().toISOString().split("T")[0], // set min date to today
+              },
             }}
           />
 
