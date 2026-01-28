@@ -15,6 +15,8 @@ import QuickActions from "./ReportQuickActions";
 import ReportBookingSalesTable from "./ReportBookingSalesTable";
 import axios from "axios";
 import { API_BASE_URL } from "../apiConfig";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
 
 const ReportsManagement = () => {
   const [dateFilter, setDateFilter] = useState("today");
@@ -22,6 +24,7 @@ const ReportsManagement = () => {
   const [openTab, setOpenTab] = useState(1);
   const [totalSales, setTotalSales] = useState(0);
   const [productsSold, setProductsSold] = useState(0);
+  
 
 //Fetched Total Sales
   useEffect(() => {
@@ -78,12 +81,33 @@ useEffect(() => {
   };
 
   // Handle export functionality
-  const handleExport = () => {
-    toast.info("Exporting report data...");
-    // Export logic
-    setTimeout(() => {
+  const handleExport = async () => {
+    try {
+      const response = await axios.get(
+        `${API_BASE_URL}/api/reports/export-doc?filter=${dateFilter}`,
+        {
+          responseType: "blob",
+        }
+      );
+
+      // Create a URL for the blob
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+
+      const filename = `report_${dateFilter}_${new Date().toISOString().split("T")[0]}.docx`;
+      link.setAttribute("download", filename);
+
+      // Trigger download
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+
       toast.success("Report exported successfully!");
-    }, 1000);
+    } catch (error) {
+      console.error("Error exporting report:", error);
+      toast.error("Failed to export report.");
+    }
   };
 
   // Get current data based on date filter
@@ -226,7 +250,7 @@ useEffect(() => {
   };
 
   return (
-    <>
+    <div id="exportableReports">
       {viewMode === "overview" && (
         <Box
           sx={{
@@ -420,7 +444,7 @@ useEffect(() => {
                 mt: 4,
               }}
             >
-              <SalesChart data={chartData} />
+              <SalesChart data={chartData}  filter={dateFilter} />
               <QuickActions onActionClick={handleActionClick} />
             </Box>
           </Box>
@@ -436,7 +460,7 @@ useEffect(() => {
           />
         </Box>
       )}
-    </>
+    </div>
   );
 };
 

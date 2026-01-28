@@ -116,7 +116,11 @@ const ReportOtherGamesSalesTable = ({ date }) => {
             <Box sx={tableRowStyle}>
               {new Date(game.created_at).toTimeString().slice(0, 5)}
             </Box>
-            <Box sx={tableRowStyle}>{game.method}</Box>
+            <Box sx={tableRowStyle}>
+            {typeof game.method === "object"
+              ? `${game.method.type} ` : game.method}
+            </Box>
+
             <Box sx={tableRowStyle}>{game.quantity}</Box>
             <Box sx={tableRowStyle}>{game.price}</Box>
           </Box>

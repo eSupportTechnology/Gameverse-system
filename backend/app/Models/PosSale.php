@@ -23,4 +23,7 @@ class PosSale extends Model
     {
         return $this->hasMany(SaleItem::class, 'sale_id'); // foreign key specified
     }
+    protected $casts = [
+    'items' => 'array',
+    ];
 }

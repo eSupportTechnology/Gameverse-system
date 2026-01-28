@@ -1,30 +1,150 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Box, Typography, LinearProgress } from "@mui/material";
 import PersonIcon from "@mui/icons-material/Person";
+import axios from "axios";
+import { API_BASE_URL } from "../../apiConfig";
 
 export default function TVScreens() {
-  const currentPlayers = [
-    { name: "Lahiru Lakshitha", id: "123456", image: "../images/ps51.png" },
-    { name: "Kavindu Malshan", id: "123457", image: "../images/ps52.png" },
-    { name: "Prasad Isuru", id: "123458", image: "../images/ps53.png" },
-    { name: "Sanka Dineth", id: "123459", image: "../images/ps54.png" },
-  ];
+  const [currentPlayers, setCurrentPlayers] = useState([]);
+  const [nextInLine, setNextInLine] = useState([]);
 
-  const progress = 65;
-  const startTime = "12:30";
-  const endTime = "13:30";
-  const timeLeft = "30:29";
+  const stationName = "PS5 Station 3";
 
-  const nextInLine = [
-    {
-      id: "12346",
-      name: "Isuru Pradep",
-      players: "12347 - Kavindu Malshan ....",
-      timeSlot: "12:30 - 13:30",
-    },
-    { id: "12347", name: "Raveen Kanishka", players: "", timeSlot: "14:30 - 15:30" },
-    { id: "12348", name: "Muditha Dilshan", players: "", timeSlot: "15:30 - 16:30" },
-  ];
+  // Helper to parse duration string like {1h 30m} to minutes
+  const parseDuration = (dur) => {
+    if (!dur) return 0;
+    const match = dur.match(/(?:(\d+)h)?\s*(?:(\d+)m)?/);
+    const hours = match[1] ? parseInt(match[1]) : 0;
+    const minutes = match[2] ? parseInt(match[2]) : 0;
+    return hours * 60 + minutes;
+  };
+
+  const formatTime = (date) =>
+    date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+useEffect(() => {
+  let interval;
+
+  const fetchBookings = async () => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}/api/bookings`);
+      const bookings = res.data.data;
+
+      // current players
+      const current = bookings
+        .filter((b) => b.station === stationName && b.status === "confirmed")
+        .map((b, index) => {
+          if (!b.start_time) return null;
+
+          const [hourStr, minStr] = b.start_time.split(":");
+          const hours = parseInt(hourStr, 10);
+          const minutes = parseInt(minStr, 10);
+          if (isNaN(hours) || isNaN(minutes)) return null;
+
+          const start = new Date();
+          start.setHours(hours, minutes, 0, 0);
+
+          const durationMinutes =
+            (parseDuration(b.duration) || 0) + (parseDuration(b.extended_time) || 0);
+          const end = new Date(start.getTime() + durationMinutes * 60000);
+
+          return {
+            id: b.id,
+            name: b.customer_name,
+            image: `../images/ps5${index + 1}.png`,
+            startTime: b.start_time,
+            endTime: formatTime(end),
+            durationMinutes,
+            startDate: start,
+            endDate: end,
+            index,
+            timeLeft: "",
+            progress: 0,
+          };
+        })
+        .filter(Boolean);
+
+      setCurrentPlayers(current);
+
+      // next in line section
+      const next = bookings
+        .filter((b) => b.station === stationName && b.status === "pending")
+        .sort(
+          (a, b) =>
+            new Date(`${a.booking_date}T${a.start_time}:00`) -
+            new Date(`${b.booking_date}T${b.start_time}:00`)
+        )
+        .map((b) => {
+          if (!b.start_time) return null;
+
+          const [hourStr, minStr] = b.start_time.split(":");
+          const hours = parseInt(hourStr, 10);
+          const minutes = parseInt(minStr, 10);
+          if (isNaN(hours) || isNaN(minutes)) return null;
+
+          const start = new Date(b.booking_date);
+          start.setHours(hours, minutes, 0, 0);
+
+          const durationMinutes = parseDuration(b.duration) + parseDuration(b.extended_time || "0m");
+          const end = new Date(start.getTime() + durationMinutes * 60000);
+
+          return {
+            id: b.id,
+            name: b.customer_name,
+            players: "",
+            timeSlot: `${b.start_time} - ${formatTime(end)}`,
+          };
+        })
+        .filter(Boolean);
+
+      setNextInLine(next);
+
+      // progress and time left updater
+      interval = setInterval(() => {
+        setCurrentPlayers((players) =>
+          players.map((p) => {
+            const now = new Date();
+            const totalSeconds = p.durationMinutes * 60;
+
+            // elapsed time in seconds
+            let elapsed = (now - p.startDate) / 1000;
+
+            // booking hasn't started yet
+            if (elapsed < 0) elapsed = 0; 
+
+            // booking finished
+            if (elapsed > totalSeconds) elapsed = totalSeconds; 
+
+            // remaining time in seconds
+            const remaining = totalSeconds - elapsed;
+
+            const h = Math.floor(remaining / 3600);
+            const m = Math.floor((remaining % 3600) / 60);
+            const s = Math.floor(remaining % 60);
+
+            // progress percentage 
+            const progress = (elapsed / totalSeconds) * 100;
+
+            return {
+              ...p,
+              timeLeft: `${h > 0 ? h + "h " : ""}${m < 10 ? "0" : ""}${m}:${
+                s < 10 ? "0" : ""
+              }${s}`,
+              progress,
+            };
+          })
+        );
+      }, 1000);
+    } catch (err) {
+      console.error("Failed to fetch bookings:", err);
+    }
+  };
+
+  fetchBookings();
+
+  return () => clearInterval(interval);
+}, []);
+
 
   return (
     <Box
@@ -62,11 +182,11 @@ export default function TVScreens() {
             letterSpacing: 2,
           }}
         >
-          PS5 Station 3
+          {stationName}
         </Typography>
       </Box>
 
-      {/* CURRENT PLAYERS */}
+        {/* //current players section */}
       <Box
         sx={{
           backgroundColor: "rgba(30, 15, 60, 0.6)",
@@ -88,27 +208,9 @@ export default function TVScreens() {
           CURRENT PLAYERS
         </Typography>
 
-        {/* Player Cards */}
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "flex-end",
-            gap: 2,
-            paddingX: 2,
-            marginBottom: 2,
-          }}
-        >
-          {currentPlayers.map((player, index) => (
-            <Box
-              key={player.id}
-              sx={{
-                flex: 1,
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                textAlign: "center",
-              }}
-            >
+        <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2, paddingX: 2, marginBottom: 2 }}>
+          {currentPlayers.map((player) => (
+            <Box key={player.id} sx={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
               <Box
                 sx={{
                   width: 110,
@@ -116,10 +218,7 @@ export default function TVScreens() {
                   borderRadius: 2,
                   overflow: "hidden",
                   marginBottom: 1.5,
-                  border:
-                    index === 2
-                      ? "3px solid rgba(100, 180, 255, 0.8)"
-                      : "3px solid rgba(236, 72, 153, 0.6)",
+                  border: player.index === 2 ? "3px solid rgba(100, 180, 255, 0.8)" : "3px solid rgba(236, 72, 153, 0.6)",
                 }}
               >
                 <img
@@ -129,7 +228,7 @@ export default function TVScreens() {
                     width: "100%",
                     height: "100%",
                     objectFit: "cover",
-                    filter: index === 2 ? "grayscale(100%)" : "none",
+                    filter: player.index === 2 ? "grayscale(100%)" : "none",
                   }}
                 />
               </Box>
@@ -145,12 +244,11 @@ export default function TVScreens() {
           ))}
         </Box>
 
-        {/* Progress + Time Left */}
         <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
           <Box sx={{ flex: 1 }}>
             <LinearProgress
               variant="determinate"
-              value={progress}
+              value={currentPlayers[0]?.progress || 0}
               sx={{
                 height: 8,
                 borderRadius: 2,
@@ -161,39 +259,31 @@ export default function TVScreens() {
               }}
             />
 
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "space-between",
-                marginTop: 0.5,
-              }}
-            >
+            <Box sx={{ display: "flex", justifyContent: "space-between", marginTop: 0.5 }}>
               <Typography sx={{ color: "#fff", fontWeight: "600", fontSize: 16 }}>
-                {startTime}
+                {currentPlayers[0]?.startTime || "--:--"}
               </Typography>
 
               <Typography sx={{ color: "#fff", fontWeight: "600", fontSize: 16 }}>
-                {endTime}
+                {currentPlayers[0]?.endTime || "--:--"}
               </Typography>
             </Box>
           </Box>
 
           <Box sx={{ textAlign: "right" }}>
-            <Typography
-              sx={{ color: "#EC4899", fontSize: 13, fontWeight: "bold", marginBottom: 0.5 }}
-            >
+            <Typography sx={{ color: "#EC4899", fontSize: 13, fontWeight: "bold", marginBottom: 0.5 }}>
               Time Left
             </Typography>
             <Typography sx={{ color: "#fff", fontSize: 34, fontWeight: "bold" }}>
-              {timeLeft}
+              {currentPlayers[0]?.timeLeft || "0 min"}
             </Typography>
           </Box>
         </Box>
       </Box>
 
-      {/* BOTTOM SECTION */}
+      {/* next in line and qr section */}
       <Box sx={{ display: "flex", gap: 2, flex: "0 0 32%", marginTop: 1 }}>
-        {/* NEXT IN LINE */}
+        {/* next in line  */}
         <Box
           sx={{
             backgroundColor: "rgba(30, 15, 60, 0.6)",
@@ -255,7 +345,6 @@ export default function TVScreens() {
           </Box>
         </Box>
 
-        {/* QR Section */}
         <Box
           sx={{
             backgroundColor: "rgba(30, 15, 60, 0.6)",
