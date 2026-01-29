@@ -134,10 +134,9 @@ useEffect(() => {
       }
 
       // update next-in-line
-      if (currentSlot) {
-        const remainingBookings = currentSlot.bookings.slice(1); // skip first
+       if (currentSlot) {
         setNextInLine(
-          remainingBookings.map((b) => ({
+          currentSlot.bookings.map((b) => ({
             id: b.id,
             name: b.customer_name,
             timeSlot: `${b.start_time} - ${formatTime(b.endDate)}`,
