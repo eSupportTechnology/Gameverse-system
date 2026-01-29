@@ -41,11 +41,11 @@ export default function RacingSimulatorTV() {
   const formatTime = (date) =>
     date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
-  useEffect(() => {
+    useEffect(() => {
   let fetchInterval;
   let countdownInterval;
 
-  // 🔒 Track which slot is currently active and its booking count
+  //Track which slot is currently active and its booking count
   const currentSlotRef = { current: null, count: 0 };
 
   // Helper to fetch bookings and update current/next players
@@ -57,7 +57,7 @@ export default function RacingSimulatorTV() {
       const now = new Date();
       const todayStr = now.toISOString().split("T")[0];
 
-      // 1️⃣ Filter today's bookings for this station with confirmed/pending
+      //Filter today's bookings for this station with confirmed/pending
       const todayBookings = bookings.filter(
         (b) =>
           b.station === stationName &&
@@ -66,7 +66,7 @@ export default function RacingSimulatorTV() {
           (b.status === "confirmed" || b.status === "pending")
       );
 
-      // 2️⃣ Group bookings by start_time
+      // Group bookings by start_time
       const slotMap = {};
       todayBookings.forEach((b) => {
         const startDate = new Date(`${b.booking_date} ${b.start_time}`);
@@ -91,17 +91,17 @@ export default function RacingSimulatorTV() {
         });
       });
 
-      // 3️⃣ Sort slots by start time
+      //sort slots by start time
       const slots = Object.values(slotMap).sort(
         (a, b) => a.startDate - b.startDate
       );
 
-      // 4️⃣ Find current slot
+      //find current slot
       const currentSlot = slots.find(
         (s) => now >= s.startDate && now < s.endDate
       );
 
-      // 5️⃣ Update CURRENT PLAYERS if slot OR booking count changed
+      // update CURRENT PLAYERS any changes made
       if (currentSlot) {
         const slotKey = currentSlot.startDate.getTime();
         const bookingCount = currentSlot.bookings.length;
@@ -133,11 +133,10 @@ export default function RacingSimulatorTV() {
         setCurrentPlayers([]);
       }
 
-      // 6️⃣ NEXT IN LINE — only same start time as current slot, skip first player
-      if (currentSlot) {
-        const remainingBookings = currentSlot.bookings.slice(1); // skip first
+      // update next-in-line
+       if (currentSlot) {
         setNextInLine(
-          remainingBookings.map((b) => ({
+          currentSlot.bookings.map((b) => ({
             id: b.id,
             name: b.customer_name,
             timeSlot: `${b.start_time} - ${formatTime(b.endDate)}`,
@@ -150,14 +149,13 @@ export default function RacingSimulatorTV() {
       console.error("Failed to fetch bookings", err);
     }
   };
-
-  // 🚀 Initial fetch
+  // Initial fetch
   fetchBookings();
 
-  // 🔄 Poll backend every 10s (keeps UI in sync)
+  //Poll backend every 10s
   fetchInterval = setInterval(fetchBookings, 10000);
 
-  // ⏱ Countdown & progress updates
+  //timeleft & progress update section
   countdownInterval = setInterval(() => {
     const now = new Date();
 
@@ -173,7 +171,7 @@ export default function RacingSimulatorTV() {
         return [];
       }
 
-      // Update countdown & progress
+      // update timeleft & progress
       return players.map((p) => {
         const remainingSec = Math.max((p.endDate - now) / 1000, 0);
         const totalSec = p.durationMinutes * 60;
@@ -192,8 +190,6 @@ export default function RacingSimulatorTV() {
       });
     });
   }, 1000);
-
-  // Cleanup
   return () => {
     clearInterval(fetchInterval);
     clearInterval(countdownInterval);
