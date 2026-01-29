@@ -2,12 +2,32 @@ import React, { useState, useEffect } from "react";
 import { Box, Typography, LinearProgress } from "@mui/material";
 import axios from "axios";
 import { API_BASE_URL } from "../../apiConfig";
+import { useNavigate } from "react-router-dom";
 
 export default function RacingSimulatorTV() {
   const [currentPlayers, setCurrentPlayers] = useState([]);
   const [nextInLine, setNextInLine] = useState([]);
 
   const stationName = "Supreme Billiard 2";
+  const navigate = useNavigate();
+  
+  // for auto slide
+  const stationOrder = [
+  "/ps5-station1",
+  "/ps5-station2",
+  "/ps5-station3",
+  "/ps5-station4",
+  "/ps5-station5",
+  "/racing-simulator1",
+  "/racing-simulator2",
+  "/racing-simulator3",
+  "/racing-simulator4",
+  "/supreme-billiard1",
+  "/supreme-billiard2",
+  "/premium-billiard1",
+  "/premium-billiard2",
+  "/premium-billiard3",
+];
   const currentPlayer = currentPlayers[0];
 
   const parseDuration = (dur) => {
@@ -22,121 +42,172 @@ export default function RacingSimulatorTV() {
     date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
   useEffect(() => {
-    let interval;
+  let fetchInterval;
+  let countdownInterval;
 
-    const fetchBookings = async () => {
-      try {
-        const res = await axios.get(`${API_BASE_URL}/api/bookings`);
-        const bookings = res.data.data;
+  //Track which slot is currently active and its booking count
+  const currentSlotRef = { current: null, count: 0 };
 
-        // current players
-        const current = bookings
-          .filter((b) => b.station === stationName && b.status === "confirmed")
-          .map((b, index) => {
-            if (!b.start_time) return null;
+  // Helper to fetch bookings and update current/next players
+  const fetchBookings = async () => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}/api/bookings`);
+      const bookings = res.data.data;
 
-            const [hourStr, minStr] = b.start_time.split(":");
-            const hours = parseInt(hourStr, 10);
-            const minutes = parseInt(minStr, 10);
-            if (isNaN(hours) || isNaN(minutes)) return null;
+      const now = new Date();
+      const todayStr = now.toISOString().split("T")[0];
 
-            const start = new Date();
-            start.setHours(hours, minutes, 0, 0);
+      //Filter today's bookings for this station with confirmed/pending
+      const todayBookings = bookings.filter(
+        (b) =>
+          b.station === stationName &&
+          b.booking_date === todayStr &&
+          b.start_time &&
+          (b.status === "confirmed" || b.status === "pending")
+      );
 
-            const durationMinutes =
-              (parseDuration(b.duration) || 0) +
-              (parseDuration(b.extended_time) || 0);
-            const end = new Date(start.getTime() + durationMinutes * 60000);
+      // Group bookings by start_time
+      const slotMap = {};
+      todayBookings.forEach((b) => {
+        const startDate = new Date(`${b.booking_date} ${b.start_time}`);
+        const durationMinutes =
+          (parseDuration(b.duration) || 0) +
+          (parseDuration(b.extended_time || "0m") || 0);
+        const endDate = new Date(startDate.getTime() + durationMinutes * 60000);
 
-            return {
-              id: b.id,
+        if (!slotMap[b.start_time]) {
+          slotMap[b.start_time] = {
+            startDate,
+            endDate,
+            bookings: [],
+          };
+        }
+
+        slotMap[b.start_time].bookings.push({
+          ...b,
+          startDate,
+          endDate,
+          durationMinutes,
+        });
+      });
+
+      //sort slots by start time
+      const slots = Object.values(slotMap).sort(
+        (a, b) => a.startDate - b.startDate
+      );
+
+      //find current slot
+      const currentSlot = slots.find(
+        (s) => now >= s.startDate && now < s.endDate
+      );
+
+      // update CURRENT PLAYERS any changes made
+      if (currentSlot) {
+        const slotKey = currentSlot.startDate.getTime();
+        const bookingCount = currentSlot.bookings.length;
+
+        const slotChanged =
+          currentSlotRef.current !== slotKey ||
+          currentSlotRef.count !== bookingCount;
+
+        if (slotChanged) {
+          currentSlotRef.current = slotKey;
+          currentSlotRef.count = bookingCount;
+
+          setCurrentPlayers(
+            currentSlot.bookings.map((b, idx) => ({
+              ...b,
+              index: idx,
               name: b.customer_name,
-              image: `../images/ps5${index + 1}.png`,
+              image: `../images/ps5${idx + 1}.png`,
               startTime: b.start_time,
-              endTime: formatTime(end),
-              durationMinutes,
-              startDate: start,
-              endDate: end,
-              index,
+              endTime: formatTime(b.endDate),
               timeLeft: "",
               progress: 0,
-            };
-          })
-          .filter(Boolean);
-
-        setCurrentPlayers(current);
-
-        // next in line
-        const next = bookings
-          .filter((b) => b.station === stationName && b.status === "pending")
-          .sort(
-            (a, b) =>
-              new Date(`${a.booking_date}T${a.start_time}:00`) -
-              new Date(`${b.booking_date}T${b.start_time}:00`)
-          )
-          .map((b) => {
-            if (!b.start_time) return null;
-
-            const [hourStr, minStr] = b.start_time.split(":");
-            const hours = parseInt(hourStr, 10);
-            const minutes = parseInt(minStr, 10);
-            if (isNaN(hours) || isNaN(minutes)) return null;
-
-            const start = new Date(b.booking_date);
-            start.setHours(hours, minutes, 0, 0);
-
-            const durationMinutes =
-              parseDuration(b.duration) +
-              parseDuration(b.extended_time || "0m");
-            const end = new Date(start.getTime() + durationMinutes * 60000);
-
-            return {
-              id: b.id,
-              name: b.customer_name,
-              players: "",
-              timeSlot: `${b.start_time} - ${formatTime(end)}`,
-            };
-          })
-          .filter(Boolean);
-
-        setNextInLine(next);
-
-        // live update timer and progress
-        interval = setInterval(() => {
-          setCurrentPlayers((players) =>
-            players.map((p) => {
-              const now = new Date();
-              const totalSeconds = p.durationMinutes * 60;
-
-              let elapsed = (now - p.startDate) / 1000;
-              if (elapsed < 0) elapsed = 0;
-              if (elapsed > totalSeconds) elapsed = totalSeconds;
-
-              const remaining = totalSeconds - elapsed;
-              const h = Math.floor(remaining / 3600);
-              const m = Math.floor((remaining % 3600) / 60);
-              const s = Math.floor(remaining % 60);
-              const progress = (elapsed / totalSeconds) * 100;
-
-              return {
-                ...p,
-                timeLeft: `${h > 0 ? h + "h " : ""}${m < 10 ? "0" : ""}${m}:${
-                  s < 10 ? "0" : ""
-                }${s}`,
-                progress,
-              };
-            })
+            }))
           );
-        }, 1000);
-      } catch (err) {
-        console.error("Failed to fetch bookings:", err);
+        }
+      } else {
+        currentSlotRef.current = null;
+        currentSlotRef.count = 0;
+        setCurrentPlayers([]);
       }
-    };
 
-    fetchBookings();
+      // update next-in-line
+      if (currentSlot) {
+        const remainingBookings = currentSlot.bookings.slice(1); // skip first
+        setNextInLine(
+          remainingBookings.map((b) => ({
+            id: b.id,
+            name: b.customer_name,
+            timeSlot: `${b.start_time} - ${formatTime(b.endDate)}`,
+          }))
+        );
+      } else {
+        setNextInLine([]);
+      }
+    } catch (err) {
+      console.error("Failed to fetch bookings", err);
+    }
+  };
+  // Initial fetch
+  fetchBookings();
 
-    return () => clearInterval(interval);
-  }, []);
+  //Poll backend every 10s
+  fetchInterval = setInterval(fetchBookings, 10000);
+
+  //timeleft & progress update section
+  countdownInterval = setInterval(() => {
+    const now = new Date();
+
+    setCurrentPlayers((players) => {
+      if (players.length === 0) return players;
+
+      // Check if slot ended
+      const slotEnded = players.every((p) => p.endDate && now >= p.endDate);
+      if (slotEnded) {
+        currentSlotRef.current = null;
+        currentSlotRef.count = 0;
+        fetchBookings(); // reload immediately
+        return [];
+      }
+
+      // update timeleft & progress
+      return players.map((p) => {
+        const remainingSec = Math.max((p.endDate - now) / 1000, 0);
+        const totalSec = p.durationMinutes * 60;
+
+        const h = Math.floor(remainingSec / 3600);
+        const m = Math.floor((remainingSec % 3600) / 60);
+        const s = Math.floor(remainingSec % 60);
+
+        return {
+          ...p,
+          timeLeft: `${h ? h + "h " : ""}${m
+            .toString()
+            .padStart(2, "0")}:${s.toString().padStart(2, "0")}`,
+          progress: ((totalSec - remainingSec) / totalSec) * 100,
+        };
+      });
+    });
+  }, 1000);
+  return () => {
+    clearInterval(fetchInterval);
+    clearInterval(countdownInterval);
+  };
+}, []);
+
+useEffect(() => {
+  // Auto-slide to next station 
+  const slideTimer = setInterval(() => {
+    const currentPath = window.location.pathname;
+    const currentIndex = stationOrder.indexOf(currentPath);
+    const nextIndex = (currentIndex + 1) % stationOrder.length;
+    navigate(stationOrder[nextIndex]);
+  }, 15000);
+
+  return () => clearInterval(slideTimer);
+}, [navigate]);
 
   return (
     <Box

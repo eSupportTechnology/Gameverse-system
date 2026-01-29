@@ -34,6 +34,8 @@ import TVScreenControl from "./pages/TVScreenControl";
 import User from "./pages/Users";
 import ValuableOffersScreen from "./pages/ValuableOffersScreen";
 import WebPortal from "./pages/WebPortal";
+import TVAutoSlider from "./pages/TVAutoSlider";
+
 
 function App() {
   const { aToken, oToken, loginRole } = useContext(AdminContext);
@@ -55,8 +57,11 @@ function App() {
             <Route path="/nfc-users" element={<NFCUsers />} />
             <Route path="/reports" element={<Reports />} />
             <Route path="/web-portal/*" element={<WebPortal />} />
+          
+
             {/* TV Screens */}
             <Route path="/tv-screens" element={<TVScreenControl />} />
+            <Route path="/tv-slider" element={<TVAutoSlider />} />
             <Route path="/ps5-station1" element={<PS5Station1TVScreen />} />
             <Route path="/ps5-station2" element={<PS5Station2TVScreen />} />
             <Route path="/ps5-station3" element={<PS5Station3TVScreen />} />

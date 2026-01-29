@@ -16,7 +16,33 @@ class BookingController extends Controller
      */
     public function index(): JsonResponse
     {
-        $bookings = Booking::orderBy('created_at', 'desc')->get();
+        $bookings = Booking::orderBy('created_at', 'desc')->get()->map(function ($b) {
+            // Normalize booking_date: Y-m-d format
+            $bookingDate = $b->booking_date ? $b->booking_date->format('Y-m-d') : null;
+
+            // Normalize start_time: 24h format
+            $startTime = $b->start_time;
+            if ($startTime && !preg_match('/AM|PM/i', $startTime)) {
+                // assume already 24h format
+            } elseif ($startTime) {
+                // convert 12h to 24h
+                $dt = Carbon::createFromFormat('h:i A', $startTime);
+                $startTime = $dt->format('H:i');
+            }
+
+            return [
+                'id' => $b->id,
+                'customer_name' => $b->customer_name,
+                'phone_number' => $b->phone_number,
+                'station' => $b->station,
+                'booking_date' => $bookingDate,
+                'start_time' => $startTime,
+                'duration' => $b->duration,
+                'extended_time' => $b->extended_time ?? '0m',
+                'status' => $b->status,
+                'amount' => $b->amount,
+            ];
+        });
 
         return response()->json([
             'success' => true,
@@ -52,6 +78,9 @@ class BookingController extends Controller
         try {
             $bookingData = $validator->validated();
 
+            // Convert start_time to 12-hour format with PM
+            $bookingData['start_time'] = $this->formatStartTimeWithPM($bookingData['start_time']);
+
             $booking = Booking::create($bookingData);
 
             return response()->json([
@@ -65,50 +94,6 @@ class BookingController extends Controller
                 'message' => 'Failed to create booking',
                 'error' => $e->getMessage()
             ], 500);
-        }
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id): JsonResponse
-    {
-        try {
-            $booking = Booking::findOrFail($id);
-
-            $normalizedBooking = [
-                'id' => $booking->id,
-                'nfc_card_number' => $booking->nfc_card_number,
-                'customer_name' => $booking->customer_name,
-                'phone_number' => $booking->phone_number,
-                'station' => $booking->station,
-                'booking_date' => $booking->booking_date ? $booking->booking_date->format('Y-m-d') : null,
-                'start_time' => $booking->start_time,
-                'duration' => $booking->duration,
-                'amount' => $booking->amount,
-                'status' => $booking->status,
-                'vr_play' => $booking->vr_play,
-                'extended_time' => $booking->extended_time ?? '',
-                'payment_method' => $booking->payment_method ?? '',
-                'created_at' => $booking->created_at,
-                'updated_at' => $booking->updated_at,
-                // Backward compatibility aliases
-                'date' => $booking->booking_date ? $booking->booking_date->format('Y-m-d') : null,
-                'time' => $booking->start_time,
-                'phone' => $booking->phone_number,
-                'user' => $booking->customer_name,
-                'price' => $booking->amount,
-            ];
-
-            return response()->json([
-                'success' => true,
-                'data' => $normalizedBooking
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Booking not found'
-            ], 404);
         }
     }
 
@@ -144,7 +129,14 @@ class BookingController extends Controller
                 ], 422);
             }
 
-            $booking->update($validator->validated());
+            $data = $validator->validated();
+
+            // Convert start_time to 12-hour format with PM if provided
+            if (isset($data['start_time'])) {
+                $data['start_time'] = $this->formatStartTimeWithPM($data['start_time']);
+            }
+
+            $booking->update($data);
 
             return response()->json([
                 'success' => true,
@@ -159,6 +151,121 @@ class BookingController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Private helper to format start_time in 12-hour PM format
+     */
+    private function formatStartTimeWithPM($time)
+    {
+        $time = trim($time);
+        if (!str_contains($time, ':')) {
+            $time .= ':00';
+        }
+
+        [$hour, $minute] = explode(':', $time);
+        $hour = (int)$hour;
+
+        // Since slots start from 12 PM, assume PM
+        if ($hour < 12) {
+            $hour += 12;
+        }
+
+        return Carbon::createFromFormat('H:i', sprintf('%02d:%02d', $hour, $minute))
+                    ->format('h:i A');
+    }
+
+    /**
+     * Display the specified resource.
+     */
+    public function show(string $id): JsonResponse
+    {
+        try {
+            $booking = Booking::findOrFail($id);
+
+            $normalizedBooking = [
+                'id' => $booking->id,
+                'nfc_card_number' => $booking->nfc_card_number,
+                'customer_name' => $booking->customer_name,
+                'phone_number' => $booking->phone_number,
+                'station' => $booking->station,
+                'booking_date' => $booking->booking_date ? $booking->booking_date->format('Y-m-d') : null,
+                'start_time' => $booking->start_time,
+                'duration' => $booking->duration,
+                'amount' => $booking->amount,
+                'status' => $booking->status,
+                'vr_play' => $booking->vr_play,
+                'extended_time' => $booking->extended_time ?? '',
+                'payment_method' => $booking->payment_method ?? '',
+                'created_at' => $booking->created_at,
+                'updated_at' => $booking->updated_at,
+
+                // Backward compatibility aliases
+                'date' => $booking->booking_date ? $booking->booking_date->format('Y-m-d') : null,
+                'time' => $booking->start_time,
+                'phone' => $booking->phone_number,
+                'user' => $booking->customer_name,
+                'price' => $booking->amount,
+            ];
+
+            return response()->json([
+                'success' => true,
+                'data' => $normalizedBooking
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Booking not found'
+            ], 404);
+        }
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    // public function update(Request $request, string $id): JsonResponse
+    // {
+    //     try {
+    //         $booking = Booking::findOrFail($id);
+
+    //         $validator = Validator::make($request->all(), [
+    //             'nfc_card_number' => 'nullable|string|max:255',
+    //             'customer_name' => 'string|max:255',
+    //             'phone_number' => 'string|max:20',
+    //             'station' => 'string|max:255',
+    //             'booking_date' => 'date',
+    //             'start_time' => 'string|max:10',
+    //             'duration' => 'string|max:20',
+    //             'extended_time' => 'nullable|string|max:20',
+    //             'payment_method' => 'nullable|string|max:50',
+    //             'end_time' => 'nullable|string|max:10',
+    //             'amount' => 'numeric|min:0',
+    //             'status' => 'in:pending,confirmed,cancelled,completed',
+    //             'vr_play' => 'nullable|in:yes,no',
+    //         ]);
+
+    //         if ($validator->fails()) {
+    //             return response()->json([
+    //                 'success' => false,
+    //                 'message' => 'Validation failed',
+    //                 'errors' => $validator->errors()
+    //             ], 422);
+    //         }
+
+    //         $booking->update($validator->validated());
+
+    //         return response()->json([
+    //             'success' => true,
+    //             'message' => 'Booking updated successfully',
+    //             'data' => $booking
+    //         ]);
+    //     } catch (\Exception $e) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Failed to update booking',
+    //             'error' => $e->getMessage()
+    //         ], 500);
+    //     }
+    // }
 
     /**
      * Remove the specified resource from storage.
@@ -180,6 +287,7 @@ class BookingController extends Controller
             ], 500);
         }
     }
+
     public function autoUpdateStatuses()
     {
         $bookings = Booking::all();
@@ -187,7 +295,7 @@ class BookingController extends Controller
         $now = Carbon::now($timezone);
 
         Log::info("Server timezone: {$timezone}");
-        Log::info("Carbon now: " . $now->format('h:i A')); // 12-hour format
+        Log::info("Carbon now: " . $now->format('h:i A'));
 
         foreach ($bookings as $booking) {
             try {
@@ -200,9 +308,13 @@ class BookingController extends Controller
                 $startTime = $booking->start_time;
                 if (!preg_match('/AM|PM/i', $startTime)) {
                     $timeParts = explode(':', $startTime);
-                    $hour = (int)$timeParts[0];
+                    $hour = (int) $timeParts[0];
                     $minute = $timeParts[1] ?? '00';
-                    if ($hour < 12) $hour += 12; // convert to PM
+
+                    if ($hour < 12) {
+                        $hour += 12;
+                    }
+
                     $startTime = $hour . ':' . $minute;
                 }
 
@@ -230,11 +342,10 @@ class BookingController extends Controller
 
                 Log::info(
                     "Booking {$booking->id}: start={$start->format('h:i A')}, " .
-                        "end={$end->format('h:i A')}, now={$now->format('h:i A')}, status={$booking->status}"
+                    "end={$end->format('h:i A')}, now={$now->format('h:i A')}, status={$booking->status}"
                 );
             } catch (\Exception $e) {
                 Log::error("Error updating booking {$booking->id}: " . $e->getMessage());
-                continue;
             }
         }
 
@@ -250,8 +361,8 @@ class BookingController extends Controller
 
         preg_match('/(?:(\d+)h)?\s*(?:(\d+)m)?/', $duration, $matches);
 
-        $hours = isset($matches[1]) ? (int)$matches[1] : 0;
-        $minutes = isset($matches[2]) ? (int)$matches[2] : 0;
+        $hours = isset($matches[1]) ? (int) $matches[1] : 0;
+        $minutes = isset($matches[2]) ? (int) $matches[2] : 0;
 
         return ($hours * 60) + $minutes;
     }
