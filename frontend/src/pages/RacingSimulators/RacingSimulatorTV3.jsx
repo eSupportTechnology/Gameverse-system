@@ -2,12 +2,32 @@ import React, { useState, useEffect } from "react";
 import { Box, Typography, LinearProgress } from "@mui/material";
 import axios from "axios";
 import { API_BASE_URL } from "../../apiConfig";
+import { useNavigate } from "react-router-dom";
 
 export default function RacingSimulatorTV() {
   const [currentPlayers, setCurrentPlayers] = useState([]);
   const [nextInLine, setNextInLine] = useState([]);
 
   const stationName = "Racing Simulator 3";
+  const navigate = useNavigate();
+    
+    // for auto slide
+    const stationOrder = [
+    "/ps5-station1",
+    "/ps5-station2",
+    "/ps5-station3",
+    "/ps5-station4",
+    "/ps5-station5",
+    "/racing-simulator1",
+    "/racing-simulator2",
+    "/racing-simulator3",
+    "/racing-simulator4",
+    "/supreme-billiard1",
+    "/supreme-billiard2",
+    "/premium-billiard1",
+    "/premium-billiard2",
+    "/premium-billiard3",
+  ];
   const currentPlayer = currentPlayers[0];
 
   const parseDuration = (dur) => {
@@ -137,6 +157,18 @@ export default function RacingSimulatorTV() {
 
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    // Auto-slide to next station 
+    const slideTimer = setInterval(() => {
+      const currentPath = window.location.pathname;
+      const currentIndex = stationOrder.indexOf(currentPath);
+      const nextIndex = (currentIndex + 1) % stationOrder.length;
+      navigate(stationOrder[nextIndex]);
+    }, 15000);
+  
+    return () => clearInterval(slideTimer);
+  }, [navigate]);
 
   return (
     <Box
