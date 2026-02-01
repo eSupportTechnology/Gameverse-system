@@ -10,25 +10,26 @@ export default function TVScreens() {
   const [nextInLine, setNextInLine] = useState([]);
 
   const stationName = "PS5 Station 3";
-       const navigate = useNavigate();
-  
-  // for auto slide
-  const stationOrder = [
-  "/ps5-station1",
-  "/ps5-station2",
-  "/ps5-station3",
-  "/ps5-station4",
-  "/ps5-station5",
-  "/racing-simulator1",
-  "/racing-simulator2",
-  "/racing-simulator3",
-  "/racing-simulator4",
-  "/supreme-billiard1",
-  "/supreme-billiard2",
-  "/premium-billiard1",
-  "/premium-billiard2",
-  "/premium-billiard3",
-];
+  const navigate = useNavigate();
+    
+    // for auto slide
+    const stationOrder = [
+    "/ps5-station1",
+    "/ps5-station2",
+    "/ps5-station3",
+    "/ps5-station4",
+    "/ps5-station5",
+    "/racing-simulator1",
+    "/racing-simulator2",
+    "/racing-simulator3",
+    "/racing-simulator4",
+    "/supreme-billiard1",
+    "/supreme-billiard2",
+    "/premium-billiard1",
+    "/premium-billiard2",
+    "/premium-billiard3",
+  ];
+
   // Helper to parse duration string like {1h 30m} to minutes
   const parseDuration = (dur) => {
     if (!dur) return 0;
@@ -41,14 +42,22 @@ export default function TVScreens() {
   const formatTime = (date) =>
     date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
+
 useEffect(() => {
   let fetchInterval;
   let countdownInterval;
 
-  //Track which slot is currently active and its booking count
-  const currentSlotRef = { current: null, count: 0 };
+  const currentPlayersRef = { current: [], slotKey: null, bookingIds: null };
 
-  // Helper to fetch bookings and update current/next players
+  const formatTimeLeft = (futureDate) => {
+    const diffMs = futureDate - new Date();
+    if (diffMs <= 0) return "Starting";
+    const totalMinutes = Math.floor(diffMs / 60000);
+    const h = Math.floor(totalMinutes / 60);
+    const m = totalMinutes % 60;
+    return `${h ? h + "h " : ""}${m.toString().padStart(2, "0")}m`;
+  };
+
   const fetchBookings = async () => {
     try {
       const res = await axios.get(`${API_BASE_URL}/api/bookings`);
@@ -57,7 +66,6 @@ useEffect(() => {
       const now = new Date();
       const todayStr = now.toISOString().split("T")[0];
 
-      //Filter today's bookings for this station with confirmed/pending
       const todayBookings = bookings.filter(
         (b) =>
           b.station === stationName &&
@@ -66,7 +74,6 @@ useEffect(() => {
           (b.status === "confirmed" || b.status === "pending")
       );
 
-      // Group bookings by start_time
       const slotMap = {};
       todayBookings.forEach((b) => {
         const startDate = new Date(`${b.booking_date} ${b.start_time}`);
@@ -91,122 +98,117 @@ useEffect(() => {
         });
       });
 
-      //sort slots by start time
-      const slots = Object.values(slotMap).sort(
-        (a, b) => a.startDate - b.startDate
-      );
+      const slots = Object.values(slotMap).sort((a, b) => a.startDate - b.startDate);
 
-      //find current slot
-      const currentSlot = slots.find(
-        (s) => now >= s.startDate && now < s.endDate
-      );
-
-      // update CURRENT PLAYERS any changes made
-      if (currentSlot) {
-        const slotKey = currentSlot.startDate.getTime();
-        const bookingCount = currentSlot.bookings.length;
-
-        const slotChanged =
-          currentSlotRef.current !== slotKey ||
-          currentSlotRef.count !== bookingCount;
-
-        if (slotChanged) {
-          currentSlotRef.current = slotKey;
-          currentSlotRef.count = bookingCount;
-
-          setCurrentPlayers(
-            currentSlot.bookings.map((b, idx) => ({
-              ...b,
-              index: idx,
-              name: b.customer_name,
-              image: `../images/ps5${idx + 1}.png`,
-              startTime: b.start_time,
-              endTime: formatTime(b.endDate),
-              timeLeft: "",
-              progress: 0,
-            }))
-          );
-        }
-      } else {
-        currentSlotRef.current = null;
-        currentSlotRef.count = 0;
-        setCurrentPlayers([]);
-      }
-
-      // update next-in-line
-      if (currentSlot) {
-        setNextInLine(
-          currentSlot.bookings.map((b) => ({
-            id: b.id,
-            name: b.customer_name,
-            timeSlot: `${b.start_time} - ${formatTime(b.endDate)}`,
-          }))
+      // NEXT IN LINE
+      const upcoming = slots
+      .filter(s => s.startDate > now)
+      .map(slot => {
+        const allNames = slot.bookings.map(
+          b => `${b.id}-${b.customer_name}`
         );
-      } else {
-        setNextInLine([]);
-      }
-    } catch (err) {
-      console.error("Failed to fetch bookings", err);
-    }
-  };
-  // Initial fetch
-  fetchBookings();
 
-  //Poll backend every 10s
-  fetchInterval = setInterval(fetchBookings, 10000);
+        const staticNames = allNames.length > 2 ? allNames.slice(0, 2) : allNames;
+        const scrollNames = allNames.length > 2 ? allNames.slice(2) : [];
 
-  //timeleft & progress update section
-  countdownInterval = setInterval(() => {
-    const now = new Date();
-
-    setCurrentPlayers((players) => {
-      if (players.length === 0) return players;
-
-      // Check if slot ended
-      const slotEnded = players.every((p) => p.endDate && now >= p.endDate);
-      if (slotEnded) {
-        currentSlotRef.current = null;
-        currentSlotRef.count = 0;
-        fetchBookings(); // reload immediately
-        return [];
-      }
-
-      // update timeleft & progress
-      return players.map((p) => {
-        const remainingSec = Math.max((p.endDate - now) / 1000, 0);
-        const totalSec = p.durationMinutes * 60;
-
-        const h = Math.floor(remainingSec / 3600);
-        const m = Math.floor((remainingSec % 3600) / 60);
-        const s = Math.floor(remainingSec % 60);
 
         return {
-          ...p,
-          timeLeft: `${h ? h + "h " : ""}${m
-            .toString()
-            .padStart(2, "0")}:${s.toString().padStart(2, "0")}`,
-          progress: ((totalSec - remainingSec) / totalSec) * 100,
+          key: slot.startDate.getTime(),
+          staticNames,   
+          scrollNames, 
+          shouldScroll: scrollNames.length > 0,
+          timeLeft: formatTimeLeft(slot.startDate),
         };
       });
-    });
+
+      setNextInLine(upcoming);
+
+      return slots; // return slots for countdown logic
+    } catch (err) {
+      console.error("Failed to fetch bookings", err);
+      return [];
+    }
+  };
+
+  // Initial fetch
+  let slotsCache = [];
+  fetchBookings().then(slots => slotsCache = slots);
+
+  fetchInterval = setInterval(async () => {
+    slotsCache = await fetchBookings();
+  }, 10000);
+
+  // time left and progress updates
+  countdownInterval = setInterval(() => {
+    const now = new Date();
+    const currentSlot = slotsCache.find(s => now >= s.startDate && now < s.endDate);
+
+    if (currentSlot) {
+      const slotKey = currentSlot.startDate.getTime();
+      const bookingIds = currentSlot.bookings.map(b => b.id).sort().join(",");
+
+      // checks if we need to update current players
+      if (currentPlayersRef.slotKey !== slotKey || currentPlayersRef.bookingIds !== bookingIds) {
+        const updatedPlayers = currentSlot.bookings.map((b, idx) => ({
+          ...b,
+          index: idx,
+          name: b.customer_name,
+          image: `../images/ps5${idx + 1}.png`,
+          startTime: b.start_time,
+          endTime: formatTime(b.endDate),
+          timeLeft: "",
+          progress: 0,
+          endDate: b.endDate,
+          durationMinutes: b.durationMinutes,
+        }));
+
+        currentPlayersRef.current = updatedPlayers;
+        currentPlayersRef.slotKey = slotKey;
+        currentPlayersRef.bookingIds = bookingIds;
+        setCurrentPlayers(updatedPlayers);
+      }
+
+      // timeleft and progress update
+      setCurrentPlayers(players =>
+        players.map(p => {
+          const remainingSec = Math.max((p.endDate - now) / 1000, 0);
+          const totalSec = p.durationMinutes * 60;
+          const h = Math.floor(remainingSec / 3600);
+          const m = Math.floor((remainingSec % 3600) / 60);
+          const s = Math.floor(remainingSec % 60);
+          return {
+            ...p,
+            timeLeft: `${h ? h + "h " : ""}${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`,
+            progress: ((totalSec - remainingSec) / totalSec) * 100,
+          };
+        })
+      );
+    } else {
+      // no current slot
+      currentPlayersRef.current = [];
+      currentPlayersRef.slotKey = null;
+      currentPlayersRef.bookingIds = null;
+      setCurrentPlayers([]);
+    }
   }, 1000);
+
   return () => {
     clearInterval(fetchInterval);
     clearInterval(countdownInterval);
   };
 }, []);
 
-useEffect(() => {
-  // Auto-slide to next station 
-  const slideTimer = setInterval(() => {
-    const currentPath = window.location.pathname;
-    const currentIndex = stationOrder.indexOf(currentPath);
-    const nextIndex = (currentIndex + 1) % stationOrder.length;
-    navigate(stationOrder[nextIndex]);
-  }, 15000);
+  useEffect(() => {
+    // Auto-slide to next station 
+    const slideTimer = setInterval(() => {
+      const currentPath = window.location.pathname;
+      const currentIndex = stationOrder.indexOf(currentPath);
+      const nextIndex = (currentIndex + 1) % stationOrder.length;
+      navigate(stationOrder[nextIndex]);
+    }, 15000);
 
-  return () => clearInterval(slideTimer);
-}, [navigate]);
+    return () => clearInterval(slideTimer);
+  }, [navigate]);
 
 
   return (
@@ -373,7 +375,7 @@ useEffect(() => {
           <Box sx={{ display: "flex", flexDirection: "column", gap: 1.4 }}>
             {nextInLine.map((p) => (
               <Box
-                key={p.id}
+                key={p.key}
                 sx={{
                   backgroundColor: "rgba(139,92,246,0.15)",
                   border: "1px solid rgba(139,92,246,0.4)",
@@ -385,29 +387,59 @@ useEffect(() => {
                   alignItems: "center",
                 }}
               >
-                <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                  <PersonIcon sx={{ color: "#EC4899", fontSize: 24 }} />
-                  <Typography sx={{ color: "#fff", fontSize: 15 }}>
-                    {p.id} – {p.name}
-                    {p.players && ` , ${p.players}`}
-                  </Typography>
-                </Box>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1, maxWidth: 300 }}>
+                  <PersonIcon sx={{ color: "#EC4899", fontSize: 22 }} />
 
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 0.5,
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    maxWidth: 260,
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      color: "#fff",
+                      fontSize: 15,
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      flexShrink: 0,
+                    }}
+                  >
+                    {p.staticNames.join(" , ")}
+                    {p.staticNames.length > 0 && p.shouldScroll ? " , " : ""}
+                  </Typography>
+                    {/* auto scroll */}
+                  {p.shouldScroll && (
+                    <Box className="marquee" sx={{ overflow: "hidden" }}>
+                      <span style={{ color: "#fff", fontSize: 15 }}>
+                        {p.scrollNames.join(" , ")}
+                      </span>
+                    </Box>
+                  )}
+                </Box>
+              </Box>
                 <Typography
                   sx={{
-                    color: "rgba(255,255,255,0.8)",
+                    color: "#00D9FF",
                     fontSize: 14,
                     minWidth: "130px",
                     textAlign: "right",
+                    fontWeight: "bold",
                   }}
                 >
-                  {p.timeSlot}
+                  {p.timeLeft}
                 </Typography>
               </Box>
             ))}
           </Box>
         </Box>
 
+        {/* QR code section */}
         <Box
           sx={{
             backgroundColor: "rgba(30, 15, 60, 0.6)",

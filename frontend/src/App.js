@@ -35,6 +35,8 @@ import User from "./pages/Users";
 import ValuableOffersScreen from "./pages/ValuableOffersScreen";
 import WebPortal from "./pages/WebPortal";
 import TVAutoSlider from "./pages/TVAutoSlider";
+import "./App.css";
+
 
 
 function App() {
