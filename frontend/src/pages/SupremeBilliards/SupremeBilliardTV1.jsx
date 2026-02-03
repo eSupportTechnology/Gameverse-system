@@ -263,6 +263,7 @@ export default function SupremeBilliardTV() {
   
     //   return () => clearInterval(slideTimer);
     // }, [navigate]);
+    const currentPlayer = currentPlayers[0];
   
     if (showOffer && offer) {
       console.log("Rendering TVOfferPlayer with URL:", `${API_BASE_URL}/storage/${offer.file_path}`);

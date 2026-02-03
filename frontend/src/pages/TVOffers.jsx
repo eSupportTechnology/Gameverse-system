@@ -216,7 +216,7 @@ export default function TVOffer() {
 }
 */
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Box, Typography, Card, Grid, Tabs, Tab, Button } from "@mui/material";
 import { CloudUploadOutlined } from "@mui/icons-material";
 import { getTvScreens, uploadTvScreen, toggleTvScreenStatus, deleteTvScreen } from '../api';
@@ -301,6 +301,35 @@ const [posts, setPosts] = useState(
     )
   );
 };
+
+useEffect(() => {
+  const loadScreens = async () => {
+    const data = await getTvScreens();
+
+    setPosts(prev =>
+      prev.map(post => {
+        const match = data.find(
+          d =>
+            d.station_key.toLowerCase().trim() ===
+            post.stationKey.toLowerCase().trim()
+        );
+
+        if (!match) return post;
+
+        return {
+          ...post,
+          posted: true,
+          backendId: match.id,
+          isHeld: match.status === "hold",
+          fileType: match.file_type,
+          fileUrl: `${process.env.REACT_APP_API_URL}/storage/${match.file_path}`,
+        };
+      })
+    );
+  };
+
+  loadScreens();
+}, []);
 
   return (
     <Box sx={{ p: 2, bgcolor: "#000", minHeight: "100vh" }}>
@@ -402,37 +431,38 @@ const [posts, setPosts] = useState(
                       <video
                         src={URL.createObjectURL(post.file)}
                         controls
-                        style={{
-                          width: "100%",
-                          height: "100%",
-                          objectFit: "cover",
-                          borderRadius: "10px",
-                        }}
+                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
                       />
                     ) : (
                       <img
                         src={URL.createObjectURL(post.file)}
-                        alt="Uploaded"
-                        style={{
-                          width: "100%",
-                          height: "100%",
-                          objectFit: "cover",
-                          borderRadius: "10px",
-                        }}
+                        alt=""
+                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                      />
+                    )
+                  ) : post.posted && post.fileUrl ? (
+                    post.fileType === "video" ? (
+                      <video
+                        src={post.fileUrl}
+                        controls
+                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                      />
+                    ) : (
+                      <img
+                        src={post.fileUrl}
+                        alt=""
+                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
                       />
                     )
                   ) : (
                     <Box sx={{ textAlign: "center", color: "#aaa" }}>
-                      <CloudUploadOutlined
-                        sx={{ fontSize: 38, color: "#818586ff" }}
-                      />
-                      <Typography
-                        sx={{ fontSize: "13px", color: "#bbb", mt: 1 }}
-                      >
+                      <CloudUploadOutlined sx={{ fontSize: 38 }} />
+                      <Typography sx={{ fontSize: 13 }}>
                         Upload your post or video
                       </Typography>
                     </Box>
                   )}
+
                 </Box>
 
                 <input

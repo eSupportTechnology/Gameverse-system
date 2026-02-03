@@ -192,13 +192,13 @@ export const updatePoolTable = async (id, data) => {
 export const getTvScreens = async () => {
   try {
     const res = await getAxiosInstance().get("/api/tv-screen");
+
     return res.data.map((item) => ({
       id: item.id,
-      fileType: item.file_type,
+      station_key: item.station_key,    
+      file_type: item.file_type,            
       status: item.status,
-      fileUrl: item.file_path
-        ? `${API_BASE_URL}/storage/${item.file_path}`
-        : "",
+      file_path: item.file_path,        
     }));
   } catch (err) {
     console.error("Failed to fetch TV screens:", err);
