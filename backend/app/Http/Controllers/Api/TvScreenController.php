@@ -21,6 +21,7 @@ class TvScreenController extends Controller
     $request->validate([
         //increased max file to 50mb
         'file' => 'required|file|max:51200', 
+        'station_key' => 'required|string',
     ]);
 
     $file = $request->file('file');
@@ -28,6 +29,7 @@ class TvScreenController extends Controller
     $path = $file->store('tv-screen', 'public');
 
     $tv = TvScreen::create([
+        'station_key' => $request->station_key,
         'file_path' => $path,
         'file_type' => str_contains($file->getMimeType(), 'video') ? 'video' : 'image',
         'status' => 'posted',
@@ -58,4 +60,13 @@ class TvScreenController extends Controller
 
         return response()->json(['message' => 'Deleted successfully']);
     }
+
+    public function getByStation($stationKey)
+    {
+        return TvScreen::where('station_key', $stationKey)
+            ->where('status', 'posted')
+            ->latest()
+            ->first();
+    }
+
 }

@@ -12,6 +12,7 @@ class TvScreen extends Model
     protected $table = 'tv_screen';
 
     protected $fillable = [
+        'station_key',
         'file_path',
         'file_type',
         'status'
