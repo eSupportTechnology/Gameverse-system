@@ -222,15 +222,23 @@ import { CloudUploadOutlined } from "@mui/icons-material";
 import { getTvScreens, uploadTvScreen, toggleTvScreenStatus, deleteTvScreen } from '../api';
 
 export default function TVOffer() {
-  const [posts, setPosts] = useState(
-    Array.from({ length: 8 }, (_, i) => ({
-      id: i + 1,
-      file: null,
-      fileType: null,
-      posted: false,
-      isHeld: false, // <-- new property
-    }))
-  );
+const STATIONS = [
+  "ps5-1","ps5-2","ps5-3","ps5-4","ps5-5",
+  "racing-1","racing-2","racing-3","racing-4",
+  "supreme-1","supreme-2",
+  "premium-1","premium-2","premium-3"
+];
+
+const [posts, setPosts] = useState(
+  STATIONS.map((stationKey, i) => ({
+    id: i + 1,
+    stationKey,
+    file: null,
+    posted: false,
+    isHeld: false
+  }))
+);
+
 
   const handleFileChange = (e, id) => {
     const file = e.target.files[0];
@@ -253,7 +261,8 @@ export default function TVOffer() {
   const post = posts.find(p => p.id === id);
   if (!post.file) return;
 
-  const data = await uploadTvScreen(post.file);
+  const data = await uploadTvScreen(post.file, post.stationKey);
+
 
   setPosts(prev =>
     prev.map(p =>

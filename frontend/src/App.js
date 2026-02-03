@@ -34,7 +34,7 @@ import TVScreenControl from "./pages/TVScreenControl";
 import User from "./pages/Users";
 import ValuableOffersScreen from "./pages/ValuableOffersScreen";
 import WebPortal from "./pages/WebPortal";
-import TVAutoSlider from "./pages/TVAutoSlider";
+
 import "./App.css";
 
 
@@ -63,7 +63,7 @@ function App() {
 
             {/* TV Screens */}
             <Route path="/tv-screens" element={<TVScreenControl />} />
-            <Route path="/tv-slider" element={<TVAutoSlider />} />
+            {/* <Route path="/tv-slider" element={<TVAutoSlider />} /> */}
             <Route path="/ps5-station1" element={<PS5Station1TVScreen />} />
             <Route path="/ps5-station2" element={<PS5Station2TVScreen />} />
             <Route path="/ps5-station3" element={<PS5Station3TVScreen />} />

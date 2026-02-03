@@ -4,211 +4,275 @@ import axios from "axios";
 import { API_BASE_URL } from "../../apiConfig";
 import { useNavigate } from "react-router-dom";
 import PersonIcon from "@mui/icons-material/Person";
+import TVOfferPlayer from "../TVOfferPlayer";
+import { useLocation } from "react-router-dom";
 
-export default function RacingSimulatorTV() {
-  const [currentPlayers, setCurrentPlayers] = useState([]);
+export default function SupremeBilliardTV() {
+ const [currentPlayers, setCurrentPlayers] = useState([]);
   const [nextInLine, setNextInLine] = useState([]);
 
-  const stationName = "Supreme Billiard 1";
-  const navigate = useNavigate();
+  const stationName = "Supreme Billiad 1";
+  const STATION_KEY = "supreme-1";
+  const [offer, setOffer] = useState(null);
+    const [showOffer, setShowOffer] = useState(false);
+    const [offerLoaded, setOfferLoaded] = useState(false);
   
-  // for auto slide
-  const stationOrder = [
-  "/ps5-station1",
-  "/ps5-station2",
-  "/ps5-station3",
-  "/ps5-station4",
-  "/ps5-station5",
-  "/racing-simulator1",
-  "/racing-simulator2",
-  "/racing-simulator3",
-  "/racing-simulator4",
-  "/supreme-billiard1",
-  "/supreme-billiard2",
-  "/premium-billiard1",
-  "/premium-billiard2",
-  "/premium-billiard3",
-];
-  const currentPlayer = currentPlayers[0];
-
-  const parseDuration = (dur) => {
-    if (!dur) return 0;
-    const match = dur.match(/(?:(\d+)h)?\s*(?:(\d+)m)?/);
-    const hours = match[1] ? parseInt(match[1]) : 0;
-    const minutes = match[2] ? parseInt(match[2]) : 0;
-    return hours * 60 + minutes;
+    const navigate = useNavigate();
+    const location = useLocation();
+      
+      // for auto slide
+      const stationOrder = [
+      "/ps5-station1",
+      "/ps5-station2",
+      "/ps5-station3",
+      "/ps5-station4",
+      "/ps5-station5",
+      "/racing-simulator1",
+      "/racing-simulator2",
+      "/racing-simulator3",
+      "/racing-simulator4",
+      "/supreme-billiard1",
+      "/supreme-billiard2",
+      "/premium-billiard1",
+      "/premium-billiard2",
+      "/premium-billiard3",
+    ];
+  
+    const goNext = () => {
+    setShowOffer(false); 
+    const currentIndex = stationOrder.indexOf(location.pathname);
+    navigate(stationOrder[(currentIndex + 1) % stationOrder.length]);
   };
-
-  const formatTime = (date) =>
-    date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-
-    useEffect(() => {
-  let fetchInterval;
-  let countdownInterval;
-
-  const currentPlayersRef = { current: [], slotKey: null, bookingIds: null };
-
-  const formatTimeLeft = (futureDate) => {
-    const diffMs = futureDate - new Date();
-    if (diffMs <= 0) return "Starting";
-    const totalMinutes = Math.floor(diffMs / 60000);
-    const h = Math.floor(totalMinutes / 60);
-    const m = totalMinutes % 60;
-    return `${h ? h + "h " : ""}${m.toString().padStart(2, "0")}m`;
-  };
-
-  const fetchBookings = async () => {
-    try {
-      const res = await axios.get(`${API_BASE_URL}/api/bookings`);
-      const bookings = res.data.data;
-
-      const now = new Date();
-      const todayStr = now.toISOString().split("T")[0];
-
-      const todayBookings = bookings.filter(
-        (b) =>
-          b.station === stationName &&
-          b.booking_date === todayStr &&
-          b.start_time &&
-          (b.status === "confirmed" || b.status === "pending")
-      );
-
-      const slotMap = {};
-      todayBookings.forEach((b) => {
-        const startDate = new Date(`${b.booking_date} ${b.start_time}`);
-        const durationMinutes =
-          (parseDuration(b.duration) || 0) +
-          (parseDuration(b.extended_time || "0m") || 0);
-        const endDate = new Date(startDate.getTime() + durationMinutes * 60000);
-
-        if (!slotMap[b.start_time]) {
-          slotMap[b.start_time] = {
+  
+    // helper for empty slots
+    const placeholderPlayer = (idx) => ({
+      id: "",
+      name: "",
+      index: idx,
+      image: `../images/ps5${idx + 1}.png`, 
+      startTime: "--:--",
+      endTime: "--:--",
+      timeLeft: "0:00",
+      progress: 0,
+      endDate: new Date(),
+      durationMinutes: 0,
+      isPlaceholder: true, 
+    });
+  
+  
+    // Helper to parse duration string like {1h 30m} to minutes
+    const parseDuration = (dur) => {
+      if (!dur) return 0;
+      const match = dur.match(/(?:(\d+)h)?\s*(?:(\d+)m)?/);
+      const hours = match[1] ? parseInt(match[1]) : 0;
+      const minutes = match[2] ? parseInt(match[2]) : 0;
+      return hours * 60 + minutes;
+    };
+  
+    const formatTime = (date) =>
+      date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  
+  useEffect(() => {
+    let fetchInterval;
+    let countdownInterval;
+  
+    const fetchBookings = async () => {
+      try {
+        const res = await axios.get(`${API_BASE_URL}/api/bookings`);
+        const bookings = res.data.data;
+        const now = new Date();
+        const todayStr = now.toISOString().split("T")[0];
+  
+        const todayBookings = bookings.filter(
+          b =>
+            b.station === stationName &&
+            b.booking_date === todayStr &&
+            b.start_time &&
+            (b.status === "confirmed" || b.status === "pending")
+        );
+  
+        const slotMap = {};
+        todayBookings.forEach(b => {
+          const startDate = new Date(`${b.booking_date} ${b.start_time}`);
+          const durationMinutes =
+            (parseDuration(b.duration) || 0) +
+            (parseDuration(b.extended_time || "0m") || 0);
+          const endDate = new Date(startDate.getTime() + durationMinutes * 60000);
+  
+          if (!slotMap[b.start_time]) {
+            slotMap[b.start_time] = { startDate, endDate, bookings: [] };
+          }
+  
+          slotMap[b.start_time].bookings.push({
+            ...b,
             startDate,
             endDate,
-            bookings: [],
-          };
-        }
-
-        slotMap[b.start_time].bookings.push({
-          ...b,
-          startDate,
-          endDate,
-          durationMinutes,
+            durationMinutes,
+          });
         });
-      });
-
-      const slots = Object.values(slotMap).sort((a, b) => a.startDate - b.startDate);
-
-      // NEXT IN LINE
-      const upcoming = slots
-      .filter(s => s.startDate > now)
-      .map(slot => {
-        const allNames = slot.bookings.map(
-          b => `${b.id}-${b.customer_name}`
+  
+        const slots = Object.values(slotMap).sort(
+          (a, b) => a.startDate - b.startDate
         );
-
-        const staticNames = allNames.length > 2 ? allNames.slice(0, 2) : allNames;
-        const scrollNames = allNames.length > 2 ? allNames.slice(2) : [];
-
-
-        return {
-          key: slot.startDate.getTime(),
-          staticNames,   
-          scrollNames, 
-          shouldScroll: scrollNames.length > 0,
-          timeLeft: formatTimeLeft(slot.startDate),
-        };
-      });
-
-      setNextInLine(upcoming);
-
-      return slots; // return slots for countdown logic
-    } catch (err) {
-      console.error("Failed to fetch bookings", err);
-      return [];
-    }
-  };
-
-  // Initial fetch
-  let slotsCache = [];
-  fetchBookings().then(slots => slotsCache = slots);
-
-  fetchInterval = setInterval(async () => {
-    slotsCache = await fetchBookings();
-  }, 10000);
-
-  // time left and progress updates
-  countdownInterval = setInterval(() => {
-    const now = new Date();
-    const currentSlot = slotsCache.find(s => now >= s.startDate && now < s.endDate);
-
-    if (currentSlot) {
-      const slotKey = currentSlot.startDate.getTime();
-      const bookingIds = currentSlot.bookings.map(b => b.id).sort().join(",");
-
-      // checks if we need to update current players
-      if (currentPlayersRef.slotKey !== slotKey || currentPlayersRef.bookingIds !== bookingIds) {
-        const updatedPlayers = currentSlot.bookings.map((b, idx) => ({
-          ...b,
-          index: idx,
-          name: b.customer_name,
-          image: `../images/ps5${idx + 1}.png`,
-          startTime: b.start_time,
-          endTime: formatTime(b.endDate),
-          timeLeft: "",
-          progress: 0,
-          endDate: b.endDate,
-          durationMinutes: b.durationMinutes,
-        }));
-
-        currentPlayersRef.current = updatedPlayers;
-        currentPlayersRef.slotKey = slotKey;
-        currentPlayersRef.bookingIds = bookingIds;
-        setCurrentPlayers(updatedPlayers);
+  
+        const nowSlot = slots.find(
+          s => now >= s.startDate && now < s.endDate
+        );
+  
+        setCurrentPlayers(prevPlayers => {
+          let freshPlayers = [0, 1, 2, 3].map(idx => placeholderPlayer(idx));
+  
+          if (nowSlot) {
+            nowSlot.bookings.forEach((b, idx) => {
+              if (idx < 4) {
+                const existing = prevPlayers[idx] || {};
+                freshPlayers[idx] = {
+                  ...b,
+                  index: idx,
+                  id: b.id,
+                  name: b.customer_name,
+                  image: `../images/ps5${idx + 1}.png`,
+                  startTime: b.start_time,
+                  endTime: formatTime(b.endDate),
+                  //keep existing countdown if present
+                  timeLeft: existing.timeLeft || "0:00",
+                  progress: existing.progress || 0,
+                  endDate: b.endDate,
+                  durationMinutes: b.durationMinutes,
+                  isPlaceholder: false,
+                };
+              }
+            });
+          }
+  
+          return freshPlayers;
+        });
+  
+        // NEXT IN LINE
+        const upcoming = slots
+          .filter(s => s.startDate > now)
+          .map(slot => {
+            const allNames = slot.bookings.map(
+              b => `${b.id}-${b.customer_name}`
+            );
+  
+            const staticNames =
+              allNames.length > 2 ? allNames.slice(0, 2) : allNames;
+  
+            const scrollNames =
+              allNames.length > 2 ? allNames.slice(2) : [];
+  
+            return {
+              key: slot.startDate.getTime(),
+              staticNames,
+              scrollNames,
+              shouldScroll: scrollNames.length > 0,
+              startTime: formatTime(slot.startDate),
+              endTime: formatTime(slot.endDate),
+            };
+          });
+  
+        setNextInLine(upcoming);
+      } catch (err) {
+        console.error(err);
       }
-
-      // timeleft and progress update
+    };
+  
+    fetchBookings();
+    fetchInterval = setInterval(fetchBookings, 1000);
+  
+    //Countdown
+    countdownInterval = setInterval(() => {
+      const now = new Date();
+  
       setCurrentPlayers(players =>
         players.map(p => {
-          const remainingSec = Math.max((p.endDate - now) / 1000, 0);
-          const totalSec = p.durationMinutes * 60;
+          if (p.isPlaceholder) return p;
+  
+          const remainingSec = Math.max(
+            (p.endDate - now) / 1000,
+            0
+          );
+  
+          const totalSec = p.durationMinutes * 60 || 1;
+  
           const h = Math.floor(remainingSec / 3600);
           const m = Math.floor((remainingSec % 3600) / 60);
           const s = Math.floor(remainingSec % 60);
+  
           return {
             ...p,
-            timeLeft: `${h ? h + "h " : ""}${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`,
+            timeLeft: `${h ? h + "h " : ""}${m
+              .toString()
+              .padStart(2, "0")}:${s
+              .toString()
+              .padStart(2, "0")}`,
             progress: ((totalSec - remainingSec) / totalSec) * 100,
           };
         })
       );
-    } else {
-      // no current slot
-      currentPlayersRef.current = [];
-      currentPlayersRef.slotKey = null;
-      currentPlayersRef.bookingIds = null;
-      setCurrentPlayers([]);
+    }, 1000);
+  
+    return () => {
+      clearInterval(fetchInterval);
+      clearInterval(countdownInterval);
+    };
+  }, []);
+  
+    useEffect(() => {
+      axios
+        .get(`${API_BASE_URL}/api/tv-screen`)
+        .then(res => {
+          const stationOffer = res.data.find(o => o.station_key === STATION_KEY);
+          //console.log("OFFER:", stationOffer); 
+  
+          setOffer(stationOffer || null);
+          setOfferLoaded(true);
+        })
+        .catch(err => {
+          //console.error("OFFER ERROR:", err); 
+          setOffer(null);
+          setOfferLoaded(true);
+        });
+    }, []);
+  
+  
+    useEffect(() => {
+      if (!offerLoaded) return;
+      if (showOffer) return; 
+  
+      const timer = setTimeout(() => {
+        if (offer && offer.file_type === "video" && offer.status === "posted") {
+          setShowOffer(true);
+        } else {
+          goNext();
+        }
+      }, 30000);
+  
+      return () => clearTimeout(timer);
+    }, [offerLoaded, offer, showOffer]);
+  
+    // useEffect(() => {
+    //   // Auto-slide to next station 
+    //   const slideTimer = setInterval(() => {
+    //     const currentPath = window.location.pathname;
+    //     const currentIndex = stationOrder.indexOf(currentPath);
+    //     const nextIndex = (currentIndex + 1) % stationOrder.length;
+    //     navigate(stationOrder[nextIndex]);
+    //   }, 15000);
+  
+    //   return () => clearInterval(slideTimer);
+    // }, [navigate]);
+  
+    if (showOffer && offer) {
+      console.log("Rendering TVOfferPlayer with URL:", `${API_BASE_URL}/storage/${offer.file_path}`);
+      return (
+        <TVOfferPlayer
+          videoUrl={`${API_BASE_URL}/storage/${offer.file_path}`}
+          onDone={goNext}
+        />
+      );
     }
-  }, 1000);
-
-  return () => {
-    clearInterval(fetchInterval);
-    clearInterval(countdownInterval);
-  };
-}, []);
-
-  useEffect(() => {
-    // Auto-slide to next station 
-    const slideTimer = setInterval(() => {
-      const currentPath = window.location.pathname;
-      const currentIndex = stationOrder.indexOf(currentPath);
-      const nextIndex = (currentIndex + 1) % stationOrder.length;
-      navigate(stationOrder[nextIndex]);
-    }, 15000);
-
-    return () => clearInterval(slideTimer);
-  }, [navigate]);
-
 
   return (
     <Box

@@ -206,18 +206,22 @@ export const getTvScreens = async () => {
   }
 };
 
-export const uploadTvScreen = async (file) => {
+export const uploadTvScreen = async (file, stationKey) => {
   const formData = new FormData();
   formData.append("file", file);
+  formData.append("station_key", stationKey);
 
   try {
-    const res = await getAxiosInstance().post("/api/tv-screen", formData);
+    const res = await getAxiosInstance().post("/api/tv-screen", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
     return res.data;
   } catch (err) {
     console.error("Upload failed:", err.response?.data);
     throw err;
   }
 };
+
 
 export const toggleTvScreenStatus = async (id) => {
   try {
