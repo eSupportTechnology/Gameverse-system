@@ -36,10 +36,9 @@ const BookingForm = ({
   const [loading, setLoading] = useState(false);
   const [nfcDialogOpen, setNfcDialogOpen] = useState(false);
   const normalizeDate = (date) => {
-  if (!date) return "";
-  return date.split("T")[0].trim();
-};
-
+    if (!date) return "";
+    return date.split("T")[0].trim();
+  };
 
   const [nfcFormData, setNfcFormData] = useState({
     nfcCardNumber: "",
@@ -164,7 +163,7 @@ const BookingForm = ({
   const isSameStartTime = (t1, t2) => {
     return t1?.trim() === t2?.trim();
   };
-    // Get bookings for the selected slot
+  // Get bookings for the selected slot
   const getSlotBookings = () => {
     const formStation = formData.station?.trim();
     const formTime = normalizeTime(formData.startTime);
@@ -183,8 +182,6 @@ const BookingForm = ({
     });
   };
 
-
-
   // Capacity of the slot (defined by the 1st booking)
   const getSlotCapacity = () => {
     const slotBookings = getSlotBookings();
@@ -199,20 +196,22 @@ const BookingForm = ({
 
   const normalizeTime = (time) => {
     if (!time) return "";
-    return time.replace(/\s?(AM|PM)$/i, "").replace(".", ":").trim();
+    return time
+      .replace(/\s?(AM|PM)$/i, "")
+      .replace(".", ":")
+      .trim();
   };
 
-
   const validateSlot = () => {
-  const stationData = stations.find((s) => s.name === formData.station);
-  if (!stationData) return { valid: true };
+    const stationData = stations.find((s) => s.name === formData.station);
+    if (!stationData) return { valid: true };
 
-  const isPlayStation = stationData.type === "PlayStation";
-  if (!isPlayStation) return { valid: true };
+    const isPlayStation = stationData.type === "PlayStation";
+    if (!isPlayStation) return { valid: true };
 
-  const slotBookings = getSlotBookings();
+    const slotBookings = getSlotBookings();
 
-  // 1st booking
+    // 1st booking
     if (slotBookings.length === 0) {
       if (formData.numberOfPlayers > stationData.maxPlayers) {
         return {
@@ -235,8 +234,8 @@ const BookingForm = ({
 
     return { valid: true };
   };
-const slotCapacity = getSlotCapacity();
-const slotBookingsCount = getSlotBookings().length;
+  const slotCapacity = getSlotCapacity();
+  const slotBookingsCount = getSlotBookings().length;
 
   // Auto-set slot duration if already exists
   useEffect(() => {
@@ -255,8 +254,8 @@ const slotBookingsCount = getSlotBookings().length;
 
     const matchedBookings = allBookings.filter((b) => {
       const bookingStation = b.station?.trim();
-     const bookingTime = normalizeTime(b.start_time);
-     const bookingDate = normalizeDate(b.booking_date);
+      const bookingTime = normalizeTime(b.start_time);
+      const bookingDate = normalizeDate(b.booking_date);
 
       if (existingBooking && b.id === existingBooking.id) return false;
 
@@ -277,7 +276,6 @@ const slotBookingsCount = getSlotBookings().length;
     const slotDuration = getSlotDurationFromExistingBookings();
     const finalDuration = slotDuration || formData.duration;
     const finalPlayers = slotCapacity ?? formData.numberOfPlayers;
-
 
     if (!formData.customerName.trim())
       return alert("Customer name is required");
@@ -388,29 +386,20 @@ const slotBookingsCount = getSlotBookings().length;
   }, [formData.station, formData.duration, formData.vrPlay, stations]);
 
   const generateTimeSlots = () => {
-    const selected = stations.find((s) => s.name === formData.station);
+    const slots = [];
 
-    const isPool = selected?.type === "Pool";
-    const interval = isPool ? 30 : 15;
-
-    let slots = [];
-
-    let start = 12 * 60;
-    let end = 19 * 60 + 45;
+    const start = 12 * 60;
+    const end = 23 * 60 + 30;
+    const interval = 30;
 
     for (let minutes = start; minutes <= end; minutes += interval) {
       const h24 = Math.floor(minutes / 60);
       const m = minutes % 60;
 
-      const h12 = h24 > 12 ? h24 - 12 : h24;
-
-      const label = `${h12.toString().padStart(2, "0")}.${m
-        .toString()
-        .padStart(2, "0")}`;
-
-      const value = `${h12.toString().padStart(2, "0")}:${m
-        .toString()
-        .padStart(2, "0")}`;
+      let h12 = h24 > 12 ? h24 - 12 : h24;
+      if (h12 === 0) h12 = 12;
+      const label = `${h12.toString().padStart(2, "0")}.${m.toString().padStart(2, "0")}`;
+      const value = `${h24.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`;
 
       slots.push({ label, value });
     }
@@ -897,54 +886,61 @@ const slotBookingsCount = getSlotBookings().length;
             </Box>
           </Box>
           {allowMultiplePlayers && (
-          <Box mt={2}>
-            <Typography sx={{ color: "#FFFFFF", mb: 1 }}>
-              Number of Players
-            </Typography>
-
-            <TextField
-              type="number"
-              size="small"
-              fullWidth
-              value={isFirstBookingInSlot() ? formData.numberOfPlayers : slotCapacity || 1}
-              disabled={!isFirstBookingInSlot()}
-              onChange={(e) => {
-                if (!isFirstBookingInSlot()) return;
-
-                let value = e.target.value;
-                if (value === "") {
-                  setFormData((prev) => ({ ...prev, numberOfPlayers: value }));
-                  return;
-                }
-
-                if (/^[0-9\b]+$/.test(value)) {
-                  value = Number(value);
-                  // Cap at 4
-                  if (value > 4) value = 4;
-                  setFormData((prev) => ({ ...prev, numberOfPlayers: value }));
-                }
-              }}
-              onBlur={() => {
-                if (!isFirstBookingInSlot()) return;
-                let value = Number(formData.numberOfPlayers);
-                if (isNaN(value) || value < 1) value = 1;
-                else if (value > 4) value = 4;
-                setFormData((prev) => ({ ...prev, numberOfPlayers: value }));
-              }}
-              InputProps={{
-                sx: { backgroundColor: "#1F2937", color: "white" },
-                inputProps: { min: 1, max: 4 },
-              }}
-            />
-
-
-            {!isFirstBookingInSlot() && (
-              <Typography variant="caption" color="#9CA3AF">
+            <Box mt={2}>
+              <Typography sx={{ color: "#FFFFFF", mb: 1 }}>
+                Number of Players
               </Typography>
-            )}
-          </Box>
-        )}
 
+              <TextField
+                type="number"
+                size="small"
+                fullWidth
+                value={
+                  isFirstBookingInSlot()
+                    ? formData.numberOfPlayers
+                    : slotCapacity || 1
+                }
+                disabled={!isFirstBookingInSlot()}
+                onChange={(e) => {
+                  if (!isFirstBookingInSlot()) return;
+
+                  let value = e.target.value;
+                  if (value === "") {
+                    setFormData((prev) => ({
+                      ...prev,
+                      numberOfPlayers: value,
+                    }));
+                    return;
+                  }
+
+                  if (/^[0-9\b]+$/.test(value)) {
+                    value = Number(value);
+                    // Cap at 4
+                    if (value > 4) value = 4;
+                    setFormData((prev) => ({
+                      ...prev,
+                      numberOfPlayers: value,
+                    }));
+                  }
+                }}
+                onBlur={() => {
+                  if (!isFirstBookingInSlot()) return;
+                  let value = Number(formData.numberOfPlayers);
+                  if (isNaN(value) || value < 1) value = 1;
+                  else if (value > 4) value = 4;
+                  setFormData((prev) => ({ ...prev, numberOfPlayers: value }));
+                }}
+                InputProps={{
+                  sx: { backgroundColor: "#1F2937", color: "white" },
+                  inputProps: { min: 1, max: 4 },
+                }}
+              />
+
+              {!isFirstBookingInSlot() && (
+                <Typography variant="caption" color="#9CA3AF"></Typography>
+              )}
+            </Box>
+          )}
 
           {/* Amount */}
           <Box

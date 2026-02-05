@@ -26,11 +26,13 @@ import { API_BASE_URL } from "../apiConfig";
 // --- helpers ---
 const pad2 = (n) => String(n).padStart(2, "0");
 
-export const minutesToHHMMDisplay = (mins) => {
-  const h = Math.floor(mins / 60);
-  const m = mins % 60;
-  return `${pad2(h)}:${pad2(m)}`;
+export const minutesToHHMMDisplay = (minutes) => {
+  const totalMinutes = Number(minutes) || 0;
+  const h = Math.floor(totalMinutes / 60);
+  const m = totalMinutes % 60;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 };
+
 export const formatAmount = (amount) => {
   const num = Math.round(amount);
   return String(num).padStart(3, "0");
@@ -65,7 +67,7 @@ const DetailRow = ({ label, value }) => (
 const SessionDialog = ({ open, onClose, onEndSession, bookings = [] }) => {
   const [players, setPlayers] = useState([]);
   const [activeIndex, setActiveIndex] = useState(-1);
-  const [customMinutes, setCustomMinutes] = useState(0);
+  const [customMinutes, setCustomMinutes] = useState(15);
   const [endSessionOpen, setEndSessionOpen] = useState(false);
   const [updateSuccessOpen, setUpdateSuccessOpen] = useState(false);
 
@@ -124,17 +126,17 @@ const SessionDialog = ({ open, onClose, onEndSession, bookings = [] }) => {
     vr_play: null,
   };
 
+  const adjustBy = (delta) => {
+    setCustomMinutes((prev) => Math.max(0, Number(prev) + delta));
+  };
+
   useEffect(() => {
     if (activeBooking) {
-      setCustomMinutes(activeBooking.extended_time || 0);
+      setCustomMinutes(Number(activeBooking.extended_time) || 15);
     } else {
-      setCustomMinutes(0);
+      setCustomMinutes(15);
     }
   }, [activeIndex, activeBooking]);
-
-  const adjustBy = (delta) => {
-    setCustomMinutes((prev) => Math.max(0, prev + delta));
-  };
 
   const handleCustomChange = (e) => {
     const val = e.target.value.replace(/[^\d]/g, "");
@@ -155,13 +157,13 @@ const SessionDialog = ({ open, onClose, onEndSession, bookings = [] }) => {
             b &&
             b.station === activeBooking.station &&
             b.start_time === activeBooking.start_time &&
-            b.booking_date === activeBooking.booking_date
+            b.booking_date === activeBooking.booking_date,
         );
 
       const updatePromises = slotBookings.map((b) =>
         axios.put(`${API_BASE_URL}/api/bookings/${b.id}`, {
           extended_time: String(updatedExtendedTime),
-        })
+        }),
       );
 
       const responses = await Promise.all(updatePromises);
@@ -180,7 +182,7 @@ const SessionDialog = ({ open, onClose, onEndSession, bookings = [] }) => {
               };
             }
             return p;
-          })
+          }),
         );
         setUpdateSuccessOpen(true);
       } else {
@@ -189,7 +191,7 @@ const SessionDialog = ({ open, onClose, onEndSession, bookings = [] }) => {
     } catch (error) {
       console.error(
         "Error updating slot bookings:",
-        error.response?.data || error
+        error.response?.data || error,
       );
     }
   };
@@ -209,7 +211,7 @@ const SessionDialog = ({ open, onClose, onEndSession, bookings = [] }) => {
         {
           status: "completed",
           end_time: endTime, // store the current time
-        }
+        },
       );
 
       if (response.data.success) {
@@ -332,7 +334,7 @@ const SessionDialog = ({ open, onClose, onEndSession, bookings = [] }) => {
                     {p.name}
                   </Typography>
                 </Box>
-              ) : null
+              ) : null,
             )}
           </Box>
 
@@ -481,7 +483,7 @@ const SessionDialog = ({ open, onClose, onEndSession, bookings = [] }) => {
                   label="Time"
                   value={`${activeBooking.start_time} - ${calculateEndTime(
                     activeBooking.start_time,
-                    activeBooking.duration
+                    activeBooking.duration,
                   )}`}
                 />
                 <DetailRow label="Duration" value={activeBooking.duration} />
