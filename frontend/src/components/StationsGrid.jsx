@@ -7,6 +7,7 @@ const StationsGrid = ({
   onEditStation,
   onToggleStatus,
   bookings = [],
+  onDeleteStation,
 }) => {
   return (
     <Box sx={{ backgroundColor: "#050a16ff", p: 3, borderRadius: 2 }}>
@@ -30,6 +31,7 @@ const StationsGrid = ({
             onEdit={onEditStation}
             onToggleStatus={onToggleStatus}
             bookings={bookings}
+            onDelete={onDeleteStation}
           />
         ))}
       </Box>

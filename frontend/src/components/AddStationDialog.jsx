@@ -168,7 +168,7 @@ export default function AddStationDialog({
       console.log(err);
       toast.error(
         err.response?.data?.message ||
-          "Failed to save station. Make sure you are logged in."
+          "Failed to save station. Make sure you are logged in.",
       );
       setCreateSuccess(false);
       setPendingPayload(null);
@@ -478,8 +478,6 @@ export default function AddStationDialog({
                 </MenuItem>
                 <MenuItem value="00:30">30 Min</MenuItem>
                 <MenuItem value="01:00">1 Hour</MenuItem>
-                <MenuItem value="01:30">1 Hour 30 Min</MenuItem>
-                <MenuItem value="02:00">2 Hours</MenuItem>
               </TextField>
             </Box>
 
@@ -621,8 +619,6 @@ export default function AddStationDialog({
                   </MenuItem>
                   <MenuItem value="00:30">30 Min</MenuItem>
                   <MenuItem value="01:00">1 Hour</MenuItem>
-                  <MenuItem value="01:30">1 Hour 30 Min</MenuItem>
-                  <MenuItem value="02:00">2 Hours</MenuItem>
                 </TextField>
               </Box>
 

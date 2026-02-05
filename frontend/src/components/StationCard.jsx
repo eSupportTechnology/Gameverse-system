@@ -8,8 +8,15 @@ import {
   IconButton,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
 
-const StationCard = ({ station, onEdit, onToggleStatus, bookings = [] }) => {
+const StationCard = ({
+  station,
+  onEdit,
+  onToggleStatus,
+  bookings = [],
+  onDelete,
+}) => {
   const colors = {
     available: {
       bg: "#2A2D3E",
@@ -37,7 +44,7 @@ const StationCard = ({ station, onEdit, onToggleStatus, bookings = [] }) => {
   const bookingArray = Array.isArray(bookings?.data) ? bookings.data : [];
 
   const bookingCount = bookingArray.filter(
-    (b) => b.station === station.name
+    (b) => b.station === station.name,
   ).length;
 
   return (
@@ -104,19 +111,35 @@ const StationCard = ({ station, onEdit, onToggleStatus, bookings = [] }) => {
               </Typography>
             </Box>
 
-            <IconButton
-              size="small"
-              onClick={() => onEdit(station)}
-              sx={{
-                color: "#9CA3AF",
-                "&:hover": {
-                  color: "#fff",
-                  backgroundColor: "rgba(255,255,255,0.08)",
-                },
-              }}
-            >
-              <EditIcon fontSize="small" />
-            </IconButton>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <IconButton
+                size="small"
+                onClick={() => onEdit(station)}
+                sx={{
+                  color: "#9CA3AF",
+                  "&:hover": {
+                    color: "#fff",
+                    backgroundColor: "rgba(255,255,255,0.08)",
+                  },
+                }}
+              >
+                <EditIcon fontSize="small" />
+              </IconButton>
+
+              <IconButton
+                size="small"
+                onClick={() => onDelete(station.id)}
+                sx={{
+                  color: "#EF4444",
+                  "&:hover": {
+                    color: "#fff",
+                    backgroundColor: "rgba(255,0,0,0.2)",
+                  },
+                }}
+              >
+                <DeleteIcon fontSize="small" />
+              </IconButton>
+            </Box>
           </Box>
 
           {/* Name + Type */}

@@ -13,7 +13,7 @@ import FilterListIcon from "@mui/icons-material/FilterList";
 import AddStationDialog from "./AddStationDialog";
 import StationsGrid from "./StationsGrid";
 import { API_BASE_URL } from "../apiConfig";
-import {AppContext} from "../context/AppContext";
+import { AppContext } from "../context/AppContext";
 
 export default function StationManagement() {
   const [tab, setTab] = useState(0);
@@ -93,7 +93,7 @@ export default function StationManagement() {
       const mins = minutes % 60;
       return `${String(hours).padStart(2, "0")}:${String(mins).padStart(
         2,
-        "0"
+        "0",
       )}`;
     };
 
@@ -110,7 +110,7 @@ export default function StationManagement() {
   const handleStationCreatedOrUpdated = (station, updated) => {
     if (updated) {
       setStations((prev) =>
-        prev.map((s) => (s.id === station.id ? station : s))
+        prev.map((s) => (s.id === station.id ? station : s)),
       );
     } else {
       setStations((prev) => [...prev, station]);
@@ -140,28 +140,59 @@ export default function StationManagement() {
       const response = await axios.put(
         `${API_BASE_URL}/api/stations/${stationId}`,
         { status: newStatus },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}` } },
       );
 
       setStations((prev) =>
-        prev.map((s) => (s.id === stationId ? { ...s, status: newStatus } : s))
+        prev.map((s) => (s.id === stationId ? { ...s, status: newStatus } : s)),
       );
     } catch (err) {
       console.error("Failed to update station status", err);
+    }
+  };
+  const handleDeleteStation = async (stationId) => {
+    if (!window.confirm("Are you sure you want to delete this station?"))
+      return;
+
+    try {
+      const token = localStorage.getItem("aToken");
+      await axios.delete(`${API_BASE_URL}/api/stations/${stationId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      setStations((prev) => prev.filter((s) => s.id !== stationId));
+    } catch (err) {
+      console.error("Failed to delete station", err);
     }
   };
 
   // Filter stations based on selected tab and status
   const filteredStations = stations.filter((s) => {
     const typeMatch = tab === 0 ? true : s.type === stationTypes[tab];
-    const statusMatch = statusFilter === "All" ? true : s.status === statusFilter;
-    
+    const statusMatch =
+      statusFilter === "All" ? true : s.status === statusFilter;
+
     // Step 4: global search filter
     const searchMatch = globalSearch
       ? s.name.toLowerCase().includes(globalSearch.toLowerCase())
       : true;
 
     return typeMatch && statusMatch && searchMatch;
+  });
+
+  const categoryOrder = ["PlayStation", "Pool", "Simulator"];
+
+  const sortedStations = filteredStations.sort((a, b) => {
+    const categoryComparison =
+      categoryOrder.indexOf(a.type) - categoryOrder.indexOf(b.type);
+    if (categoryComparison !== 0) return categoryComparison;
+
+    const getNumber = (name) => {
+      const match = name.match(/\d+$/);
+      return match ? parseInt(match[0], 10) : 0;
+    };
+
+    return getNumber(a.name) - getNumber(b.name);
   });
 
   return (
@@ -321,10 +352,11 @@ export default function StationManagement() {
 
         {/* Stations Grid */}
         <StationsGrid
-          stations={filteredStations}
+          stations={sortedStations}
           onEditStation={handleEditStation}
           onToggleStatus={handleToggleStatus}
           bookings={bookings}
+          onDeleteStation={handleDeleteStation}
         />
       </Box>
 
