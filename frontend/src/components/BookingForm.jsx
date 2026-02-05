@@ -35,6 +35,11 @@ const BookingForm = ({
   const [cancelConfirm, setCancelConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [nfcDialogOpen, setNfcDialogOpen] = useState(false);
+  const normalizeDate = (date) => {
+  if (!date) return "";
+  return date.split("T")[0].trim();
+};
+
 
   const [nfcFormData, setNfcFormData] = useState({
     nfcCardNumber: "",
@@ -159,54 +164,79 @@ const BookingForm = ({
   const isSameStartTime = (t1, t2) => {
     return t1?.trim() === t2?.trim();
   };
-  const validateSlot = () => {
+    // Get bookings for the selected slot
+  const getSlotBookings = () => {
     const formStation = formData.station?.trim();
-    const formDate = formData.bookingDate?.trim();
-    const formStartTime = formData.startTime?.trim();
-    const formDuration = formData.duration;
+    const formTime = normalizeTime(formData.startTime);
+    const formDate = normalizeDate(formData.bookingDate);
 
-    if (!formStation || !formDate || !formStartTime || !formDuration)
-      return { valid: true };
+    if (!formStation || !formTime || !formDate) return [];
 
-    const stationData = stations.find((s) => s.name === formStation);
-    const isSingleBookingStation = ["Pool", "Simulator"].includes(
-      stationData?.type,
-    );
+    return (Array.isArray(bookings) ? bookings : []).filter((b) => {
+      if (existingBooking && b.id === existingBooking.id) return false;
 
-    const relevantBookings = bookings.filter(
-      (b) =>
+      return (
         b.station?.trim() === formStation &&
-        b.booking_date?.split("T")[0] === formDate &&
-        b.start_time?.trim() === formStartTime &&
-        (!existingBooking || b.id !== existingBooking.id),
-    );
+        normalizeTime(b.start_time) === formTime &&
+        normalizeDate(b.booking_date) === formDate
+      );
+    });
+  };
 
-    // 🔴 Pool / Simulator → only ONE booking
-    if (isSingleBookingStation && relevantBookings.length > 0) {
-      return {
-        valid: false,
-        message: "This slot is already booked for this station.",
-      };
+
+
+  // Capacity of the slot (defined by the 1st booking)
+  const getSlotCapacity = () => {
+    const slotBookings = getSlotBookings();
+    if (slotBookings.length === 0) return null;
+
+    return slotBookings[0].number_of_players || null;
+  };
+  const isFirstBookingInSlot = () => {
+    const slotBookings = getSlotBookings();
+    return slotBookings.length === 0;
+  };
+
+  const normalizeTime = (time) => {
+    if (!time) return "";
+    return time.replace(/\s?(AM|PM)$/i, "").replace(".", ":").trim();
+  };
+
+
+  const validateSlot = () => {
+  const stationData = stations.find((s) => s.name === formData.station);
+  if (!stationData) return { valid: true };
+
+  const isPlayStation = stationData.type === "PlayStation";
+  if (!isPlayStation) return { valid: true };
+
+  const slotBookings = getSlotBookings();
+
+  // 1st booking
+    if (slotBookings.length === 0) {
+      if (formData.numberOfPlayers > stationData.maxPlayers) {
+        return {
+          valid: false,
+          message: `Maximum ${stationData.maxPlayers} players allowed`,
+        };
+      }
+      return { valid: true };
     }
 
-    // 🟢 Multi-player stations
-    const maxPlayers = stationData?.maxPlayers || 4; // define per station
-    const existingPlayers = relevantBookings.reduce(
-      (sum, b) => sum + (b.number_of_players || 1),
-      0,
-    );
+    // subsequent bookings
+    const capacity = slotBookings[0].number_of_players;
 
-    if (existingPlayers + formData.numberOfPlayers > maxPlayers) {
+    if (slotBookings.length >= capacity) {
       return {
         valid: false,
-        message: `Only ${
-          maxPlayers - existingPlayers
-        } player(s) can be added to this slot.`,
+        message: "This slot is fully booked",
       };
     }
 
     return { valid: true };
   };
+const slotCapacity = getSlotCapacity();
+const slotBookingsCount = getSlotBookings().length;
 
   // Auto-set slot duration if already exists
   useEffect(() => {
@@ -218,15 +248,16 @@ const BookingForm = ({
 
   const getSlotDurationFromExistingBookings = () => {
     const formStation = formData.station?.trim();
-    const formTime = formData.startTime?.trim();
+    const formTime = normalizeTime(formData.startTime);
     const formDate = formData.bookingDate?.trim();
 
     const allBookings = Array.isArray(bookings) ? bookings : [];
 
     const matchedBookings = allBookings.filter((b) => {
       const bookingStation = b.station?.trim();
-      const bookingTime = b.start_time?.trim();
-      const bookingDate = b.booking_date?.split("T")[0];
+     const bookingTime = normalizeTime(b.start_time);
+     const bookingDate = normalizeDate(b.booking_date);
+
       if (existingBooking && b.id === existingBooking.id) return false;
 
       return (
@@ -245,6 +276,8 @@ const BookingForm = ({
   const handleCreateBooking = async () => {
     const slotDuration = getSlotDurationFromExistingBookings();
     const finalDuration = slotDuration || formData.duration;
+    const finalPlayers = slotCapacity ?? formData.numberOfPlayers;
+
 
     if (!formData.customerName.trim())
       return alert("Customer name is required");
@@ -278,7 +311,7 @@ const BookingForm = ({
         vr_play: formData.vrPlay,
         start_time: formData.startTime,
         duration: finalDuration,
-        number_of_players: formData.numberOfPlayers,
+        number_of_players: finalPlayers,
         amount: formData.amount,
       };
 
@@ -864,41 +897,42 @@ const BookingForm = ({
             </Box>
           </Box>
           {allowMultiplePlayers && (
-            <Box mt={2}>
-              <Typography
-                variant="body2"
-                sx={{
-                  fontWeight: 500,
-                  fontSize: 14,
-                  color: "#FFFFFF",
-                  mb: 1,
-                }}
-              >
-                Number of Players
-              </Typography>
+          <Box mt={2}>
+            <Typography sx={{ color: "#FFFFFF", mb: 1 }}>
+              Number of Players
+            </Typography>
 
-              <TextField
-                type="number"
-                size="small"
-                value={formData.numberOfPlayers}
-                onChange={(e) =>
-                  handleInputChange(
-                    "numberOfPlayers",
-                    Math.max(1, Number(e.target.value)),
-                  )
+            <TextField
+              type="number"
+              size="small"
+              fullWidth
+              value={isFirstBookingInSlot() ? formData.numberOfPlayers : slotCapacity || 1}
+              disabled={!isFirstBookingInSlot()}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (isFirstBookingInSlot() && (value === "" || /^[0-9\b]+$/.test(value))) {
+                  setFormData((prev) => ({ ...prev, numberOfPlayers: value }));
                 }
-                inputProps={{ min: 1 }}
-                fullWidth
-                InputProps={{
-                  sx: {
-                    backgroundColor: "#1F2937",
-                    borderRadius: "6px",
-                    color: "white",
-                  },
-                }}
-              />
-            </Box>
-          )}
+              }}
+              onBlur={() => {
+                if (!isFirstBookingInSlot()) return;
+                let value = Number(formData.numberOfPlayers);
+                if (isNaN(value) || value < 1) value = 1;
+                else if (value > 4) value = 4;
+                setFormData((prev) => ({ ...prev, numberOfPlayers: value }));
+              }}
+              InputProps={{
+                sx: { backgroundColor: "#1F2937", color: "white" },
+              }}
+            />
+
+            {!isFirstBookingInSlot() && (
+              <Typography variant="caption" color="#9CA3AF">
+              </Typography>
+            )}
+          </Box>
+        )}
+
 
           {/* Amount */}
           <Box
