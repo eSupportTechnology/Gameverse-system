@@ -183,6 +183,7 @@ const BookingManagement = () => {
             total_amount: b.total_amount || b.amount || 0,
             balance_amount: b.balance_amount || 0,
             vr_play: b.vr_play || "",
+            number_of_players: b.number_of_players,
           };
         };
         const normalized = response.data.data.map(mapBooking);
