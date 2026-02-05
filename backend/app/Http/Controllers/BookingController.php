@@ -41,6 +41,7 @@ class BookingController extends Controller
                 'extended_time' => $b->extended_time ?? '0m',
                 'status' => $b->status,
                 'amount' => $b->amount,
+                'number_of_players' => $b->number_of_players ?? 1,
             ];
         });
 
@@ -65,6 +66,7 @@ class BookingController extends Controller
             'duration' => 'required|string|max:20',
             'amount' => 'required|numeric|min:0',
             'vr_play' => 'nullable|in:yes,no',
+            'number_of_players' => 'nullable|integer|min:1',
         ]);
 
         if ($validator->fails()) {
@@ -119,6 +121,7 @@ class BookingController extends Controller
                 'amount' => 'numeric|min:0',
                 'status' => 'in:pending,confirmed,cancelled,completed',
                 'vr_play' => 'nullable|in:yes,no',
+                'number_of_players' => 'integer|min:1',
             ]);
 
             if ($validator->fails()) {
@@ -171,7 +174,7 @@ class BookingController extends Controller
         }
 
         return Carbon::createFromFormat('H:i', sprintf('%02d:%02d', $hour, $minute))
-                    ->format('h:i A');
+            ->format('h:i A');
     }
 
     /**
@@ -205,6 +208,7 @@ class BookingController extends Controller
                 'phone' => $booking->phone_number,
                 'user' => $booking->customer_name,
                 'price' => $booking->amount,
+                'number_of_players' => $booking->number_of_players ?? 1,
             ];
 
             return response()->json([
@@ -219,57 +223,7 @@ class BookingController extends Controller
         }
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    // public function update(Request $request, string $id): JsonResponse
-    // {
-    //     try {
-    //         $booking = Booking::findOrFail($id);
 
-    //         $validator = Validator::make($request->all(), [
-    //             'nfc_card_number' => 'nullable|string|max:255',
-    //             'customer_name' => 'string|max:255',
-    //             'phone_number' => 'string|max:20',
-    //             'station' => 'string|max:255',
-    //             'booking_date' => 'date',
-    //             'start_time' => 'string|max:10',
-    //             'duration' => 'string|max:20',
-    //             'extended_time' => 'nullable|string|max:20',
-    //             'payment_method' => 'nullable|string|max:50',
-    //             'end_time' => 'nullable|string|max:10',
-    //             'amount' => 'numeric|min:0',
-    //             'status' => 'in:pending,confirmed,cancelled,completed',
-    //             'vr_play' => 'nullable|in:yes,no',
-    //         ]);
-
-    //         if ($validator->fails()) {
-    //             return response()->json([
-    //                 'success' => false,
-    //                 'message' => 'Validation failed',
-    //                 'errors' => $validator->errors()
-    //             ], 422);
-    //         }
-
-    //         $booking->update($validator->validated());
-
-    //         return response()->json([
-    //             'success' => true,
-    //             'message' => 'Booking updated successfully',
-    //             'data' => $booking
-    //         ]);
-    //     } catch (\Exception $e) {
-    //         return response()->json([
-    //             'success' => false,
-    //             'message' => 'Failed to update booking',
-    //             'error' => $e->getMessage()
-    //         ], 500);
-    //     }
-    // }
-
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(string $id): JsonResponse
     {
         try {
@@ -342,7 +296,7 @@ class BookingController extends Controller
 
                 Log::info(
                     "Booking {$booking->id}: start={$start->format('h:i A')}, " .
-                    "end={$end->format('h:i A')}, now={$now->format('h:i A')}, status={$booking->status}"
+                        "end={$end->format('h:i A')}, now={$now->format('h:i A')}, status={$booking->status}"
                 );
             } catch (\Exception $e) {
                 Log::error("Error updating booking {$booking->id}: " . $e->getMessage());

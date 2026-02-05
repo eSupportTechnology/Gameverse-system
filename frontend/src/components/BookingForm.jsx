@@ -53,6 +53,7 @@ const BookingForm = ({
     vrPlay: "",
     startTime: "",
     duration: "",
+    numberOfPlayers: 1,
     amount: 0,
   });
   useEffect(() => {
@@ -66,6 +67,7 @@ const BookingForm = ({
         vrPlay: existingBooking.vr_play || "",
         startTime: existingBooking.start_time || "",
         duration: existingBooking.duration || "",
+        numberOfPlayers: existingBooking.number_of_players || 1,
         amount: existingBooking.amount || 0,
       });
     }
@@ -157,7 +159,6 @@ const BookingForm = ({
   const isSameStartTime = (t1, t2) => {
     return t1?.trim() === t2?.trim();
   };
-
   const validateSlot = () => {
     const formStation = formData.station?.trim();
     const formDate = formData.bookingDate?.trim();
@@ -167,43 +168,40 @@ const BookingForm = ({
     if (!formStation || !formDate || !formStartTime || !formDuration)
       return { valid: true };
 
+    const stationData = stations.find((s) => s.name === formStation);
+    const isSingleBookingStation = ["Pool", "Simulator"].includes(
+      stationData?.type,
+    );
+
     const relevantBookings = bookings.filter(
       (b) =>
         b.station?.trim() === formStation &&
         b.booking_date?.split("T")[0] === formDate &&
-        (!existingBooking || b.id !== existingBooking.id)
+        b.start_time?.trim() === formStartTime &&
+        (!existingBooking || b.id !== existingBooking.id),
     );
 
-    let sameStartCount = 0;
-
-    for (let b of relevantBookings) {
-      const overlaps = isTimeOverlap(
-        formStartTime,
-        formDuration,
-        b.start_time,
-        b.duration
-      );
-
-      if (!overlaps) continue;
-
-      // 🔴 CASE 1: overlaps but different start time → BLOCK
-      if (!isSameStartTime(formStartTime, b.start_time)) {
-        return {
-          valid: false,
-          message:
-            "This time falls within an existing booking. Please choose another time.",
-        };
-      }
-
-      // 🟢 CASE 2: same start time → count for capacity
-      sameStartCount++;
-    }
-
-    // 🔴 Capacity rule
-    if (sameStartCount >= 4) {
+    // 🔴 Pool / Simulator → only ONE booking
+    if (isSingleBookingStation && relevantBookings.length > 0) {
       return {
         valid: false,
-        message: "This slot already has 4 bookings.",
+        message: "This slot is already booked for this station.",
+      };
+    }
+
+    // 🟢 Multi-player stations
+    const maxPlayers = stationData?.maxPlayers || 4; // define per station
+    const existingPlayers = relevantBookings.reduce(
+      (sum, b) => sum + (b.number_of_players || 1),
+      0,
+    );
+
+    if (existingPlayers + formData.numberOfPlayers > maxPlayers) {
+      return {
+        valid: false,
+        message: `Only ${
+          maxPlayers - existingPlayers
+        } player(s) can be added to this slot.`,
       };
     }
 
@@ -280,6 +278,7 @@ const BookingForm = ({
         vr_play: formData.vrPlay,
         start_time: formData.startTime,
         duration: finalDuration,
+        number_of_players: formData.numberOfPlayers,
         amount: formData.amount,
       };
 
@@ -295,7 +294,7 @@ const BookingForm = ({
               Authorization: token ? `Bearer ${token}` : "",
               "Content-Type": "application/json",
             },
-          }
+          },
         );
         setUpdateSuccess(true); // show update dialog
       } else {
@@ -330,8 +329,10 @@ const BookingForm = ({
   };
 
   const selectedStation = stations.find(
-    (station) => station.name === formData.station
+    (station) => station.name === formData.station,
   );
+  const allowMultiplePlayers =
+    selectedStation && !["Pool", "Simulator"].includes(selectedStation.type);
 
   const showVRPlay = selectedStation?.vrPrice && selectedStation?.vrTime;
 
@@ -862,6 +863,42 @@ const BookingForm = ({
               </Select>
             </Box>
           </Box>
+          {allowMultiplePlayers && (
+            <Box mt={2}>
+              <Typography
+                variant="body2"
+                sx={{
+                  fontWeight: 500,
+                  fontSize: 14,
+                  color: "#FFFFFF",
+                  mb: 1,
+                }}
+              >
+                Number of Players
+              </Typography>
+
+              <TextField
+                type="number"
+                size="small"
+                value={formData.numberOfPlayers}
+                onChange={(e) =>
+                  handleInputChange(
+                    "numberOfPlayers",
+                    Math.max(1, Number(e.target.value)),
+                  )
+                }
+                inputProps={{ min: 1 }}
+                fullWidth
+                InputProps={{
+                  sx: {
+                    backgroundColor: "#1F2937",
+                    borderRadius: "6px",
+                    color: "white",
+                  },
+                }}
+              />
+            </Box>
+          )}
 
           {/* Amount */}
           <Box
@@ -920,8 +957,8 @@ const BookingForm = ({
                 ? "Updating..."
                 : "Creating..."
               : existingBooking
-              ? "Update Booking"
-              : "Create Booking"}
+                ? "Update Booking"
+                : "Create Booking"}
           </Button>
         </DialogActions>
 

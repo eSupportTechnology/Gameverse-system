@@ -20,7 +20,8 @@ class Booking extends Model
         'amount',
         'status',
         'end_time',
-        'vr_play'
+        'vr_play',
+        'number_of_players',
     ];
 
 
@@ -30,7 +31,7 @@ class Booking extends Model
     ];
 
     public function station()
-{
-    return $this->belongsTo(\App\Models\Station::class);
-}
+    {
+        return $this->belongsTo(\App\Models\Station::class);
+    }
 }
