@@ -238,43 +238,32 @@ export default function SupremeBilliardTV() {
   
   
     useEffect(() => {
-      if (!offerLoaded) return;
-      if (showOffer) return; 
-  
-      const timer = setTimeout(() => {
-        if (offer && offer.file_type === "video" && offer.status === "posted") {
-          setShowOffer(true);
-        } else {
-          goNext();
-        }
-      }, 30000);
-  
-      return () => clearTimeout(timer);
-    }, [offerLoaded, offer, showOffer]);
-  
-    // useEffect(() => {
-    //   // Auto-slide to next station 
-    //   const slideTimer = setInterval(() => {
-    //     const currentPath = window.location.pathname;
-    //     const currentIndex = stationOrder.indexOf(currentPath);
-    //     const nextIndex = (currentIndex + 1) % stationOrder.length;
-    //     navigate(stationOrder[nextIndex]);
-    //   }, 15000);
-  
-    //   return () => clearInterval(slideTimer);
-    // }, [navigate]);
-    const currentPlayer = currentPlayers[0];
-  
-    if (showOffer && offer) {
-      console.log("Rendering TVOfferPlayer with URL:", `${API_BASE_URL}/storage/${offer.file_path}`);
-      return (
-        <TVOfferPlayer
-          videoUrl={`${API_BASE_URL}/storage/${offer.file_path}`}
-          onDone={goNext}
-        />
-      );
-    }
-
+        if (!offerLoaded) return;
+    
+        const timer = setTimeout(() => {
+          if (offer && offer.status === "posted") {
+            setShowOffer(true);
+          } else {
+            goNext();
+          }
+        }, 30000);
+    
+        return () => clearTimeout(timer);
+      }, [offerLoaded]);
+    
+      // useEffect(() => {
+      //   // Auto-slide to next station 
+      //   const slideTimer = setInterval(() => {
+      //     const currentPath = window.location.pathname;
+      //     const currentIndex = stationOrder.indexOf(currentPath);
+      //     const nextIndex = (currentIndex + 1) % stationOrder.length;
+      //     navigate(stationOrder[nextIndex]);
+      //   }, 15000);
+    
+      //   return () => clearInterval(slideTimer);
+      // }, [navigate]);
+      const currentPlayer = currentPlayers[0];
+    
   return (
     <Box
       sx={{
@@ -625,6 +614,22 @@ export default function SupremeBilliardTV() {
                 }}
               />
             </Box>
+            {showOffer && offer && (
+              <Box
+                sx={{
+                  position: "absolute",
+                  inset: 0,
+                  backgroundColor: "black",
+                  zIndex: 9999,
+                }}
+              >
+                <TVOfferPlayer
+                  url={`${API_BASE_URL}/storage/${offer.file_path}`}
+                  type={offer.file_type}
+                  onDone={goNext}
+                />
+              </Box>
+            )}
           </Box>
         </Box>
       </Box>

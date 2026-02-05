@@ -18,6 +18,7 @@ export default function TVScreens() {
   const [showOffer, setShowOffer] = useState(false);
   const [offerLoaded, setOfferLoaded] = useState(false);
 
+
   const navigate = useNavigate();
   const location = useLocation();
     
@@ -237,21 +238,22 @@ useEffect(() => {
       });
   }, []);
 
+useEffect(() => {
+  if (!offerLoaded) return;
 
-  useEffect(() => {
-    if (!offerLoaded) return;
-    if (showOffer) return; 
+  const timer = setTimeout(() => {
+    if (offer && offer.status === "posted") {
+      setShowOffer(true);  
+    } else {
+      goNext();         
+    }
+  }, 30000); 
 
-    const timer = setTimeout(() => {
-      if (offer && offer.file_type === "video" && offer.status === "posted") {
-        setShowOffer(true);
-      } else {
-        goNext();
-      }
-    }, 30000);
+  return () => clearTimeout(timer);
+}, [offerLoaded]);
 
-    return () => clearTimeout(timer);
-  }, [offerLoaded, offer, showOffer]);
+
+
 
   // useEffect(() => {
   //   // Auto-slide to next station 
@@ -264,16 +266,6 @@ useEffect(() => {
 
   //   return () => clearInterval(slideTimer);
   // }, [navigate]);
-
-  if (showOffer && offer) {
-    console.log("Rendering TVOfferPlayer with URL:", `${API_BASE_URL}/storage/${offer.file_path}`);
-    return (
-      <TVOfferPlayer
-        videoUrl={`${API_BASE_URL}/storage/${offer.file_path}`}
-        onDone={goNext}
-      />
-    );
-  }
 
   return (
     <Box
@@ -548,6 +540,22 @@ useEffect(() => {
               style={{ width: "100%", height: "100%", objectFit: "contain" }}
             />
           </Box>
+          {showOffer && offer && (
+            <Box
+              sx={{
+                position: "absolute",
+                inset: 0,
+                backgroundColor: "black",
+                zIndex: 9999,
+              }}
+            >
+              <TVOfferPlayer
+                url={`${API_BASE_URL}/storage/${offer.file_path}`}
+                type={offer.file_type}
+                onDone={goNext}
+              />
+            </Box>
+          )}
         </Box>
       </Box>
     </Box>
