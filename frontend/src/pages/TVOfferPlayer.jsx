@@ -1,8 +1,13 @@
 import { useRef, useEffect } from "react";
 
-export default function TVOfferPlayer({ videoUrl, onDone }) {
-  const videoRef = useRef(null);
+export default function TVOfferPlayer({
+  url,
+  type,  
+  onDone,
+  duration = 30000,
+}) {
   const timerRef = useRef(null);
+  const videoRef = useRef(null);
 
   const clearTimer = () => {
     if (timerRef.current) {
@@ -11,43 +16,55 @@ export default function TVOfferPlayer({ videoUrl, onDone }) {
     }
   };
 
-  //30s only when video plays
-  const handlePlay = () => {
+  const startTimer = () => {
     clearTimer();
-
     timerRef.current = setTimeout(() => {
-      if (videoRef.current) {
-        videoRef.current.pause();
-      }
-      if (onDone) onDone();
-    }, 30000);
-  };
-
-  const handleVideoEnd = () => {
-    clearTimer();
-    if (onDone) onDone();
-  };
-
-  const handleError = () => {
-    console.error("Video failed to load:", videoUrl);
-    clearTimer();
-    if (onDone) onDone();
+      if (videoRef.current) videoRef.current.pause();
+      onDone && onDone();
+    }, duration);
   };
 
   useEffect(() => {
     return () => clearTimer();
-  }, [videoUrl]);
+  }, [url]);
+
+  if (type === "video") {
+    return (
+      <video
+        ref={videoRef}
+        src={url}
+        autoPlay
+        muted
+        playsInline
+        onPlay={startTimer}
+        onEnded={() => {
+          clearTimer();
+          onDone && onDone();
+        }}
+        onError={() => {
+          console.error("Video failed to load:", url);
+          clearTimer();
+          onDone && onDone();
+        }}
+        style={{
+          width: "100vw",
+          height: "100vh",
+          objectFit: "cover",
+        }}
+      />
+    );
+  }
 
   return (
-    <video
-      ref={videoRef}
-      src={videoUrl}
-      autoPlay
-      muted
-      playsInline
-      onPlay={handlePlay} 
-      onEnded={handleVideoEnd}
-      onError={handleError}
+    <img
+      src={url}
+      alt="TV Offer"
+      onLoad={startTimer}
+      onError={() => {
+        console.error("Image failed to load:", url);
+        clearTimer();
+        onDone && onDone();
+      }}
       style={{
         width: "100vw",
         height: "100vh",

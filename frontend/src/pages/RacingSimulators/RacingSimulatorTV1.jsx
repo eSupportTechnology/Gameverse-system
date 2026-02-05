@@ -240,10 +240,9 @@ useEffect(() => {
 
   useEffect(() => {
     if (!offerLoaded) return;
-    if (showOffer) return; 
 
     const timer = setTimeout(() => {
-      if (offer && offer.file_type === "video" && offer.status === "posted") {
+      if (offer && offer.status === "posted") {
         setShowOffer(true);
       } else {
         goNext();
@@ -251,7 +250,7 @@ useEffect(() => {
     }, 30000);
 
     return () => clearTimeout(timer);
-  }, [offerLoaded, offer, showOffer]);
+  }, [offerLoaded]);
 
   // useEffect(() => {
   //   // Auto-slide to next station 
@@ -265,17 +264,6 @@ useEffect(() => {
   //   return () => clearInterval(slideTimer);
   // }, [navigate]);
   const currentPlayer = currentPlayers[0];
-
-  if (showOffer && offer) {
-    console.log("Rendering TVOfferPlayer with URL:", `${API_BASE_URL}/storage/${offer.file_path}`);
-    return (
-      <TVOfferPlayer
-        videoUrl={`${API_BASE_URL}/storage/${offer.file_path}`}
-        onDone={goNext}
-      />
-    );
-  }
-
 
   return (
     <Box
@@ -627,6 +615,22 @@ useEffect(() => {
                 }}
               />
             </Box>
+            {showOffer && offer && (
+              <Box
+                sx={{
+                  position: "absolute",
+                  inset: 0,
+                  backgroundColor: "black",
+                  zIndex: 9999,
+                }}
+              >
+                <TVOfferPlayer
+                  url={`${API_BASE_URL}/storage/${offer.file_path}`}
+                  type={offer.file_type}
+                  onDone={goNext}
+                />
+              </Box>
+            )}
           </Box>
         </Box>
       </Box>
