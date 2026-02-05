@@ -41,7 +41,7 @@ export const formatBookingDate = (bookingDate) => {
 const BookingManagement = () => {
   const [view, setView] = React.useState("timeline");
   const [date, setDate] = React.useState(
-    new Date().toISOString().split("T")[0]
+    new Date().toISOString().split("T")[0],
   );
   const [openDialog, setOpenDialog] = useState(false);
   const [apiBookings, setApiBookings] = useState([]);
@@ -157,7 +157,7 @@ const BookingManagement = () => {
           };
 
           const normalizedTime = normalizeTimeFormat(
-            b.start_time || b.startTime || b.time || ""
+            b.start_time || b.startTime || b.time || "",
           );
 
           return {
@@ -325,7 +325,7 @@ const BookingManagement = () => {
       const hour12 = hour24 % 12 === 0 ? 12 : hour24 % 12;
       const slot = `${String(hour12).padStart(2, "0")}:${String(min).padStart(
         2,
-        "0"
+        "0",
       )}`;
 
       slots.push(slot);
@@ -335,11 +335,26 @@ const BookingManagement = () => {
     return slots;
   };
   // Filter bookings part
-   const filteredBookings = apiBookings.filter((b) =>
-  globalSearch
-    ? b.customer_name.toLowerCase().includes(globalSearch.toLowerCase())
-    : true
-);
+  const filteredBookings = apiBookings.filter((b) =>
+    globalSearch
+      ? b.customer_name.toLowerCase().includes(globalSearch.toLowerCase())
+      : true,
+  );
+
+  const categoryOrder = ["PlayStation", "Pool", "Simulator"];
+
+  const sortedStations = [...stations].sort((a, b) => {
+    const categoryComparison =
+      categoryOrder.indexOf(a.type) - categoryOrder.indexOf(b.type);
+    if (categoryComparison !== 0) return categoryComparison;
+
+    const getNumber = (name) => {
+      const match = name.match(/\d+$/);
+      return match ? parseInt(match[0], 10) : 0;
+    };
+
+    return getNumber(a.name) - getNumber(b.name);
+  });
 
   return (
     <Box
@@ -553,7 +568,7 @@ const BookingManagement = () => {
               >
                 Stations
               </Typography>
-              {stations.map((station, i) => (
+              {sortedStations.map((station, i) => (
                 <Box
                   key={i}
                   sx={{
@@ -612,7 +627,7 @@ const BookingManagement = () => {
                   ))}
                 </Box>
 
-                {stations.map((station, i) => (
+                {sortedStations.map((station, i) => (
                   <Box key={i} sx={{ display: "flex", mb: 2 }}>
                     {timeSlots.map((slot) => {
                       const bookingsForSlot = filteredBookings.filter((b) => {
@@ -621,11 +636,11 @@ const BookingManagement = () => {
                           return false;
 
                         const durationMinutes = parseDurationToMinutes(
-                          b.duration
+                          b.duration,
                         );
                         const occupiedSlots = getOccupiedSlots(
                           b.start_time,
-                          durationMinutes
+                          durationMinutes,
                         );
 
                         return occupiedSlots.includes(slot);
