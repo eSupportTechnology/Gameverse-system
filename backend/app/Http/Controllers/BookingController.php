@@ -54,47 +54,84 @@ class BookingController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request): JsonResponse
+        public function store(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'nfc_card_number' => 'nullable|string|max:255',
-            'customer_name' => 'required|string|max:255',
-            'phone_number' => 'required|string|max:20',
-            'station' => 'required|string|max:255',
-            'booking_date' => 'required|date',
-            'start_time' => 'required|string|max:10',
-            'duration' => 'required|string|max:20',
-            'amount' => 'required|numeric|min:0',
-            'vr_play' => 'nullable|in:yes,no',
-            'number_of_players' => 'nullable|integer|min:1',
+            'nfc_card_number'   => 'nullable|string|max:255',
+            'customer_name'    => 'required|string|max:255',
+            'phone_number'     => 'required|string|max:20',
+            'station'          => 'required|string|max:255',
+            'booking_date'     => 'required|date',
+            'start_time'       => 'required|string|max:10',
+            'duration'         => 'required|string|max:20',
+            'amount'           => 'required|numeric|min:0',
+            'vr_play'          => 'nullable|in:yes,no',
+            'number_of_players'=> 'nullable|integer|min:1',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Validation failed',
-                'errors' => $validator->errors()
+                'errors'  => $validator->errors()
             ], 422);
         }
 
         try {
-            $bookingData = $validator->validated();
+            $data = $validator->validated();
 
-            // Convert start_time to 12-hour format with PM
-            $bookingData['start_time'] = $this->formatStartTimeWithPM($bookingData['start_time']);
+            // Normalize start_time to 12h PM format
+            $formattedStartTime = $this->formatStartTimeWithPM($data['start_time']);
+            $data['start_time'] = $formattedStartTime;
 
-            $booking = Booking::create($bookingData);
+            
+            // chk the slot (station + date + time)
+            
+            $existingBookings = Booking::where('station', $data['station'])
+                ->whereDate('booking_date', $data['booking_date'])
+                ->where('start_time', $formattedStartTime)
+                ->orderBy('id')
+                ->get();
+
+            // Ps5Station logic applies only if bookings exist
+            if ($existingBookings->count() > 0) {
+                $slotCapacity = $existingBookings->first()->number_of_players;
+                $currentCount = $existingBookings->count();
+
+                // Slot already full
+                if ($currentCount >= $slotCapacity) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'This time slot is fully booked'
+                    ], 409);
+                }
+
+                // Force same number_of_players as first booking
+                $data['number_of_players'] = $slotCapacity;
+            } else {
+                // 1st booking must define capacity
+                if (empty($data['number_of_players'])) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Number of players is required for the first booking'
+                    ], 422);
+                }
+            }
+
+            // Create booking
+            $booking = Booking::create($data);
 
             return response()->json([
                 'success' => true,
                 'message' => 'Booking created successfully',
-                'data' => $booking
+                'data'    => $booking
             ], 201);
+
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to create booking',
-                'error' => $e->getMessage()
+                'error'   => $e->getMessage()
             ], 500);
         }
     }
