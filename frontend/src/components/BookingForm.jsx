@@ -909,8 +909,18 @@ const slotBookingsCount = getSlotBookings().length;
               value={isFirstBookingInSlot() ? formData.numberOfPlayers : slotCapacity || 1}
               disabled={!isFirstBookingInSlot()}
               onChange={(e) => {
-                const value = e.target.value;
-                if (isFirstBookingInSlot() && (value === "" || /^[0-9\b]+$/.test(value))) {
+                if (!isFirstBookingInSlot()) return;
+
+                let value = e.target.value;
+                if (value === "") {
+                  setFormData((prev) => ({ ...prev, numberOfPlayers: value }));
+                  return;
+                }
+
+                if (/^[0-9\b]+$/.test(value)) {
+                  value = Number(value);
+                  // Cap at 4
+                  if (value > 4) value = 4;
                   setFormData((prev) => ({ ...prev, numberOfPlayers: value }));
                 }
               }}
@@ -923,8 +933,10 @@ const slotBookingsCount = getSlotBookings().length;
               }}
               InputProps={{
                 sx: { backgroundColor: "#1F2937", color: "white" },
+                inputProps: { min: 1, max: 4 },
               }}
             />
+
 
             {!isFirstBookingInSlot() && (
               <Typography variant="caption" color="#9CA3AF">
