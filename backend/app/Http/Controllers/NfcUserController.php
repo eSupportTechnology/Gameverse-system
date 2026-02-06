@@ -6,6 +6,7 @@ use App\Models\NfcUser;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class NfcUserController extends Controller
 {
@@ -35,11 +36,13 @@ class NfcUserController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'full_name' => 'required|string|max:255',
-            'phone_no' => 'required|string|regex:/^\d{3}\s\d{7}$/|unique:nfc_users,phone_no',
-            'nic_number' => 'required|string|unique:nfc_users,nic_number'
+            'full_name'  => 'required|string|max:255',
+            'phone_no'   => 'required|string|regex:/^\d{3}\s\d{7}$/|unique:nfc_users,phone_no',
+            'nic_number' => 'required|string|unique:nfc_users,nic_number',
+            'avatar'     => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'status'     => 'nullable|in:active,inactive'
         ], [
-            'phone_no.regex' => 'Phone number format should be XXX XXXXXXX',
+            'phone_no.regex'  => 'Phone number format should be XXX XXXXXXX',
             'phone_no.unique' => 'This phone number is already registered',
             'nic_number.unique' => 'This NIC number is already registered'
         ]);
@@ -54,14 +57,22 @@ class NfcUserController extends Controller
         try {
             $cardNo = NfcUser::generateCardNo();
 
+            // Handle avatar upload
+            $avatarPath = null;
+
+            if ($request->hasFile('avatar')) {
+                $avatarPath = $request->file('avatar')
+                    ->store('avatars/nfc_users', 'public');
+            }
+
             $nfcUser = NfcUser::create([
-                'full_name' => $request->full_name,
-                'card_no' => $cardNo,
-                'phone_no' => $request->phone_no,
+                'full_name'  => $request->full_name,
+                'card_no'    => $cardNo,
+                'phone_no'   => $request->phone_no,
                 'nic_number' => $request->nic_number,
-                'points' => 0,
-                'status' => 'active',
-                'avatar' => '/images/user.png'
+                'points'     => 0,
+                'status'     => $request->status ?? 'active',
+                'avatar'     => $avatarPath
             ]);
 
             return response()->json([
@@ -107,11 +118,13 @@ class NfcUserController extends Controller
             $user = NfcUser::findOrFail($id);
 
             $validator = Validator::make($request->all(), [
-                'full_name' => 'required|string|max:255',
-                'phone_no' => 'required|string|regex:/^\d{3}\s\d{7}$/|unique:nfc_users,phone_no,' . $id,
-                'nic_number' => 'required|string|unique:nfc_users,nic_number,' . $id
+                'full_name'  => 'required|string|max:255',
+                'phone_no'   => 'required|string|regex:/^\d{3}\s\d{7}$/|unique:nfc_users,phone_no,' . $id,
+                'nic_number' => 'required|string|unique:nfc_users,nic_number,' . $id,
+                'avatar'     => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+                'status'     => 'nullable|in:active,inactive'
             ], [
-                'phone_no.regex' => 'Phone number format should be XXX XXXXXXX',
+                'phone_no.regex'  => 'Phone number format should be XXX XXXXXXX',
                 'phone_no.unique' => 'This phone number is already registered',
                 'nic_number.unique' => 'This NIC number is already registered'
             ]);
@@ -123,10 +136,23 @@ class NfcUserController extends Controller
                 ], 422);
             }
 
+            // Handle avatar update
+            if ($request->hasFile('avatar')) {
+                // Delete old avatar if it exists and is a valid storage path
+                if ($user->avatar && str_starts_with($user->avatar, 'avatars/')) {
+                    Storage::disk('public')->delete($user->avatar);
+                }
+
+                $user->avatar = $request->file('avatar')
+                    ->store('avatars/nfc_users', 'public');
+            }
+
             $user->update([
-                'full_name' => $request->full_name,
-                'phone_no' => $request->phone_no,
-                'nic_number' => $request->nic_number
+                'full_name'  => $request->full_name,
+                'phone_no'   => $request->phone_no,
+                'nic_number' => $request->nic_number,
+                'status'     => $request->status ?? $user->status,
+                'avatar'     => $user->avatar
             ]);
 
             return response()->json([
@@ -151,6 +177,12 @@ class NfcUserController extends Controller
     {
         try {
             $user = NfcUser::findOrFail($id);
+
+            // Delete avatar if it exists and is a valid storage path
+            if ($user->avatar && str_starts_with($user->avatar, 'avatars/')) {
+                Storage::disk('public')->delete($user->avatar);
+            }
+
             $user->delete();
 
             return response()->json([
@@ -199,7 +231,7 @@ class NfcUserController extends Controller
     {
         try {
             $query = $request->input('query', '');
-            
+
             $users = NfcUser::where('full_name', 'LIKE', "%{$query}%")
                 ->orWhere('card_no', 'LIKE', "%{$query}%")
                 ->orWhere('phone_no', 'LIKE', "%{$query}%")

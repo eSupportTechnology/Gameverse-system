@@ -49,6 +49,8 @@ export default function NFCUserContent() {
     fullName: "",
     phoneNo: "",
     nicNumber: "",
+    activeUser: true,
+    profileImage: null,
   });
 
   // Fetch users from backend on component mount
@@ -78,6 +80,12 @@ export default function NFCUserContent() {
             }
           }
 
+          // Build avatar URL - only use storage URL for actual uploaded files
+          let avatarUrl = "/images/user.png";
+          if (user.avatar && user.avatar.startsWith('avatars/nfc_users/')) {
+            avatarUrl = `${API_BASE_URL}/storage/${user.avatar}`;
+          }
+
           return {
             id: user.id,
             fullName: user.full_name,
@@ -85,7 +93,7 @@ export default function NFCUserContent() {
             phoneNo: formattedPhone,
             points: user.points,
             status: user.status,
-            avatar: user.avatar || "/images/user.png",
+            avatar: avatarUrl,
             nicNumber: user.nic_number,
             // isDummy: false, // Mark as API user (can be deleted)
           };
@@ -144,16 +152,26 @@ export default function NFCUserContent() {
       fullName: "",
       phoneNo: "",
       nicNumber: "",
+      activeUser: true,
+      profileImage: null,
     });
     setAddDialogOpen(true);
   };
 
   const handleEditUser = (user) => {
     setSelectedUser(user);
+    // Build the full avatar URL for display - only use if it's already a full URL
+    let avatarUrl = null;
+    if (user.avatar && user.avatar.startsWith('http')) {
+      avatarUrl = user.avatar;
+    }
     setFormData({
       fullName: user.fullName,
       phoneNo: user.phoneNo,
       nicNumber: user.nicNumber || "",
+      nfcCardNumber: user.cardNo || "",
+      activeUser: user.status === 'active',
+      profileImage: avatarUrl,
     });
     setEditDialogOpen(true);
   };
@@ -195,16 +213,23 @@ export default function NFCUserContent() {
   const handleCreateUser = async (newUserData) => {
     try {
       const token = localStorage.getItem("aToken");
-      const payload = {
-        full_name: newUserData.fullName,
-        phone_no: newUserData.phoneNo,
-        nic_number: newUserData.nicNumber,
-      };
+      
+      // Use FormData to handle file upload
+      const formDataPayload = new FormData();
+      formDataPayload.append('full_name', newUserData.fullName);
+      formDataPayload.append('phone_no', newUserData.phoneNo);
+      formDataPayload.append('nic_number', newUserData.nicNumber);
+      formDataPayload.append('status', newUserData.activeUser ? 'active' : 'inactive');
+      
+      // Add avatar if provided
+      if (newUserData.profileImage && newUserData.profileImage instanceof File) {
+        formDataPayload.append('avatar', newUserData.profileImage);
+      }
 
-      const res = await axios.post(`${API_BASE_URL}/api/nfc-users`, payload, {
+      const res = await axios.post(`${API_BASE_URL}/api/nfc-users`, formDataPayload, {
         headers: {
           Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
+          "Content-Type": "multipart/form-data",
         },
       });
 
@@ -218,6 +243,8 @@ export default function NFCUserContent() {
           fullName: "",
           phoneNo: "",
           nicNumber: "",
+          activeUser: true,
+          profileImage: null,
         });
       }
     } catch (err) {
@@ -232,19 +259,27 @@ export default function NFCUserContent() {
   const handleUpdateUser = async (updatedUserData) => {
     try {
       const token = localStorage.getItem("aToken");
-      const payload = {
-        full_name: updatedUserData.fullName,
-        phone_no: updatedUserData.phoneNo,
-        nic_number: updatedUserData.nicNumber,
-      };
+      
+      // Use FormData to handle file upload
+      const formDataPayload = new FormData();
+      formDataPayload.append('full_name', updatedUserData.fullName);
+      formDataPayload.append('phone_no', updatedUserData.phoneNo);
+      formDataPayload.append('nic_number', updatedUserData.nicNumber);
+      formDataPayload.append('status', updatedUserData.activeUser ? 'active' : 'inactive');
+      formDataPayload.append('_method', 'PUT'); // Laravel method spoofing for FormData
+      
+      // Add avatar if a new file is provided
+      if (updatedUserData.profileImage && updatedUserData.profileImage instanceof File) {
+        formDataPayload.append('avatar', updatedUserData.profileImage);
+      }
 
-      const res = await axios.put(
+      const res = await axios.post(
         `${API_BASE_URL}/api/nfc-users/${selectedUser.id}`,
-        payload,
+        formDataPayload,
         {
           headers: {
             Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
+            "Content-Type": "multipart/form-data",
           },
         }
       );
