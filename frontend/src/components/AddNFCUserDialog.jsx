@@ -10,8 +10,11 @@ import {
   IconButton,
   Typography,
   Switch,
+  Avatar,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
+import PersonIcon from "@mui/icons-material/Person";
+import CameraAltIcon from "@mui/icons-material/CameraAlt";
 import CancelPopup from "./CancelPopup";
 import scan from '../assets/scan.png'
 
@@ -24,6 +27,7 @@ export default function AddNFCUserDialog({
 }) {
   const [openCancelPopup, setOpenCancelPopup] = useState(false);
   const [errors, setErrors] = useState({});
+  const [imagePreview, setImagePreview] = useState(null);
 
   // Initialize form data with activeUser
   const initializeFormData = () => ({
@@ -32,6 +36,7 @@ export default function AddNFCUserDialog({
     phoneNo: "",
     nicNumber: "",
     activeUser: true,
+    profileImage: null,
   });
 
   // Ensure formData has activeUser property
@@ -83,7 +88,22 @@ export default function AddNFCUserDialog({
     setOpenCancelPopup(false);
     setFormData(initializeFormData());
     setErrors({});
+    setImagePreview(null);
     onClose();
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setImagePreview(reader.result);
+          setFormData((prev) => ({ ...prev, profileImage: file }));
+        };
+        reader.readAsDataURL(file);
+      }
+    }
   };
 
   const validateForm = () => {
@@ -118,6 +138,7 @@ export default function AddNFCUserDialog({
       onCreate(formData);
       setFormData(initializeFormData());
       setErrors({});
+      setImagePreview(null);
     }
   };
 
@@ -170,6 +191,46 @@ export default function AddNFCUserDialog({
         <form onSubmit={handleSubmit}>
           <DialogContent sx={{ py: 1, px: 3 }}>
             <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+              {/* Profile Image */}
+              <Box sx={{ display: 'flex', justifyContent: 'center', mb: 1 }}>
+                <Box sx={{ position: 'relative' }}>
+                  <Avatar
+                    src={imagePreview}
+                    sx={{
+                      width: 100,
+                      height: 100,
+                      backgroundColor: '#1f2937',
+                      border: '2px solid #374151',
+                    }}
+                  >
+                    {!imagePreview && <PersonIcon sx={{ fontSize: 50, color: '#666' }} />}
+                  </Avatar>
+                  <IconButton
+                    component="label"
+                    sx={{
+                      position: 'absolute',
+                      bottom: 0,
+                      right: 0,
+                      backgroundColor: '#00d4ff',
+                      color: '#fff',
+                      width: 32,
+                      height: 32,
+                      '&:hover': {
+                        backgroundColor: '#00b8e6',
+                      },
+                    }}
+                  >
+                    <CameraAltIcon sx={{ fontSize: 18 }} />
+                    <input
+                      type="file"
+                      hidden
+                      accept="image/*"
+                      onChange={handleImageChange}
+                    />
+                  </IconButton>
+                </Box>
+              </Box>
+
               {/* NFC Card Number */}
               <Box>
                 <Typography
