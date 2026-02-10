@@ -37,6 +37,7 @@ class NfcUserController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'full_name'  => 'required|string|max:255',
+            'email'  => 'required|string|max:255',
             'phone_no'   => 'required|string|regex:/^\d{3}\s\d{7}$/|unique:nfc_users,phone_no',
             'nic_number' => 'required|string|unique:nfc_users,nic_number',
             'avatar'     => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
@@ -67,6 +68,7 @@ class NfcUserController extends Controller
 
             $nfcUser = NfcUser::create([
                 'full_name'  => $request->full_name,
+                'email'  => $request->email,
                 'card_no'    => $cardNo,
                 'phone_no'   => $request->phone_no,
                 'nic_number' => $request->nic_number,
@@ -119,6 +121,7 @@ class NfcUserController extends Controller
 
             $validator = Validator::make($request->all(), [
                 'full_name'  => 'required|string|max:255',
+                'email'  => 'required|string|max:255',
                 'phone_no'   => 'required|string|regex:/^\d{3}\s\d{7}$/|unique:nfc_users,phone_no,' . $id,
                 'nic_number' => 'required|string|unique:nfc_users,nic_number,' . $id,
                 'avatar'     => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
@@ -149,6 +152,7 @@ class NfcUserController extends Controller
 
             $user->update([
                 'full_name'  => $request->full_name,
+                'email'  => $request->email,
                 'phone_no'   => $request->phone_no,
                 'nic_number' => $request->nic_number,
                 'status'     => $request->status ?? $user->status,
@@ -234,6 +238,7 @@ class NfcUserController extends Controller
 
             $users = NfcUser::where('full_name', 'LIKE', "%{$query}%")
                 ->orWhere('card_no', 'LIKE', "%{$query}%")
+                ->orWhere('email', 'LIKE', "%{$query}%")
                 ->orWhere('phone_no', 'LIKE', "%{$query}%")
                 ->orderBy('created_at', 'desc')
                 ->get();

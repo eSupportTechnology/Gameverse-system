@@ -13,6 +13,7 @@ class NfcUser extends Model
 
     protected $fillable = [
         'full_name',
+        'email',
         'card_no',
         'phone_no',
         'nic_number',

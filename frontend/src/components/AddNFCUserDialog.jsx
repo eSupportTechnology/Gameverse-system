@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -16,7 +16,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import PersonIcon from "@mui/icons-material/Person";
 import CameraAltIcon from "@mui/icons-material/CameraAlt";
 import CancelPopup from "./CancelPopup";
-import scan from '../assets/scan.png'
+import scan from "../assets/scan.png";
 
 export default function AddNFCUserDialog({
   open,
@@ -33,6 +33,7 @@ export default function AddNFCUserDialog({
   const initializeFormData = () => ({
     nfcCardNumber: "",
     fullName: "",
+    email: "",
     phoneNo: "",
     nicNumber: "",
     activeUser: true,
@@ -42,9 +43,9 @@ export default function AddNFCUserDialog({
   // Ensure formData has activeUser property
   React.useEffect(() => {
     if (formData.activeUser === undefined) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...initializeFormData(),
-        ...prev
+        ...prev,
       }));
     }
   }, [formData.activeUser, setFormData]);
@@ -60,7 +61,8 @@ export default function AddNFCUserDialog({
       // Format: add space after 3rd digit
       let formattedValue = numericValue;
       if (numericValue.length > 3) {
-        formattedValue = numericValue.slice(0, 3) + " " + numericValue.slice(3, 10);
+        formattedValue =
+          numericValue.slice(0, 3) + " " + numericValue.slice(3, 10);
       }
 
       // Limit to 10 digits (excluding space)
@@ -95,7 +97,7 @@ export default function AddNFCUserDialog({
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      if (file.type.startsWith('image/')) {
+      if (file.type.startsWith("image/")) {
         const reader = new FileReader();
         reader.onloadend = () => {
           setImagePreview(reader.result);
@@ -109,12 +111,17 @@ export default function AddNFCUserDialog({
   const validateForm = () => {
     const newErrors = {};
 
-    if (!formData.nfcCardNumber.trim()) {
+    if (!formData.nfcCardNumber?.trim()) {
       newErrors.nfcCardNumber = "NFC Card Number is required";
     }
 
     if (!formData.fullName.trim()) {
       newErrors.fullName = "Full name is required";
+    }
+    if (!formData.email.trim()) {
+      newErrors.email = "Email is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
+      newErrors.email = "Enter a valid email address";
     }
 
     if (!formData.phoneNo.trim()) {
@@ -129,7 +136,7 @@ export default function AddNFCUserDialog({
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  }; 
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -140,7 +147,7 @@ export default function AddNFCUserDialog({
       setErrors({});
       setImagePreview(null);
     }
-  };
+  };console.log(formData)
 
   const handleClose = () => {
     handleOpenCancelPopup();
@@ -175,7 +182,7 @@ export default function AddNFCUserDialog({
         >
           Add New NFC Customer
           <IconButton
-            onClick={()=>onClose()}
+            onClick={() => onClose()}
             sx={{
               color: "#888",
               "&:hover": {
@@ -192,31 +199,33 @@ export default function AddNFCUserDialog({
           <DialogContent sx={{ py: 1, px: 3 }}>
             <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
               {/* Profile Image */}
-              <Box sx={{ display: 'flex', justifyContent: 'center', mb: 1 }}>
-                <Box sx={{ position: 'relative' }}>
+              <Box sx={{ display: "flex", justifyContent: "center", mb: 1 }}>
+                <Box sx={{ position: "relative" }}>
                   <Avatar
                     src={imagePreview}
                     sx={{
                       width: 100,
                       height: 100,
-                      backgroundColor: '#1f2937',
-                      border: '2px solid #374151',
+                      backgroundColor: "#1f2937",
+                      border: "2px solid #374151",
                     }}
                   >
-                    {!imagePreview && <PersonIcon sx={{ fontSize: 50, color: '#666' }} />}
+                    {!imagePreview && (
+                      <PersonIcon sx={{ fontSize: 50, color: "#666" }} />
+                    )}
                   </Avatar>
                   <IconButton
                     component="label"
                     sx={{
-                      position: 'absolute',
+                      position: "absolute",
                       bottom: 0,
                       right: 0,
-                      backgroundColor: '#00d4ff',
-                      color: '#fff',
+                      backgroundColor: "#00d4ff",
+                      color: "#fff",
                       width: 32,
                       height: 32,
-                      '&:hover': {
-                        backgroundColor: '#00b8e6',
+                      "&:hover": {
+                        backgroundColor: "#00b8e6",
                       },
                     }}
                   >
@@ -239,7 +248,7 @@ export default function AddNFCUserDialog({
                     color: "#fff",
                     mb: 1,
                     fontWeight: "500",
-                    fontSize: "14px"
+                    fontSize: "14px",
                   }}
                 >
                   NFC Card Number
@@ -254,7 +263,9 @@ export default function AddNFCUserDialog({
                   helperText={errors.nfcCardNumber}
                   InputProps={{
                     endAdornment: (
-                      <Box sx={{ display: "flex", alignItems: "center", pl: 1 }}>
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", pl: 1 }}
+                      >
                         <img
                           src={scan}
                           alt="NFC"
@@ -312,7 +323,7 @@ export default function AddNFCUserDialog({
                     color: "#fff",
                     mb: 1,
                     fontWeight: "500",
-                    fontSize: "14px"
+                    fontSize: "14px",
                   }}
                 >
                   Full Name
@@ -363,6 +374,61 @@ export default function AddNFCUserDialog({
                   }}
                 />
               </Box>
+              {/* Email */}
+              <Box>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    color: "#fff",
+                    mb: 1,
+                    fontWeight: "500",
+                    fontSize: "14px",
+                  }}
+                >
+                  Email
+                </Typography>
+
+                <TextField
+                  name="email"
+                  value={formData.email || ""}
+                  onChange={handleChange}
+                  placeholder="Enter Email Address"
+                  fullWidth
+                  error={!!errors.email}
+                  helperText={errors.email}
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      backgroundColor: "#0f1322",
+                      border: "1px solid #333",
+                      borderRadius: "8px",
+                      "& fieldset": { border: "none" },
+                      "&:hover fieldset": { border: "none" },
+                      "&.Mui-focused fieldset": {
+                        border: "1px solid #00d4ff",
+                        boxShadow: "0 0 0 2px rgba(0, 212, 255, 0.1)",
+                      },
+                      "&.Mui-error fieldset": {
+                        border: "1px solid #f44336",
+                      },
+                    },
+                    "& .MuiInputBase-input": {
+                      color: "#fff",
+                      padding: "12px 14px",
+                      fontSize: "14px",
+                    },
+                    "& .MuiInputBase-input::placeholder": {
+                      color: "#666",
+                      opacity: 1,
+                    },
+                    "& .MuiFormHelperText-root": {
+                      color: "#f44336",
+                      marginLeft: 0,
+                      marginTop: "4px",
+                      fontSize: "12px",
+                    },
+                  }}
+                />
+              </Box>
 
               {/* Phone Number */}
               <Box>
@@ -372,7 +438,7 @@ export default function AddNFCUserDialog({
                     color: "#fff",
                     mb: 1,
                     fontWeight: "500",
-                    fontSize: "14px"
+                    fontSize: "14px",
                   }}
                 >
                   Phone Number
@@ -432,7 +498,7 @@ export default function AddNFCUserDialog({
                     color: "#fff",
                     mb: 1,
                     fontWeight: "500",
-                    fontSize: "14px"
+                    fontSize: "14px",
                   }}
                 >
                   NIC Number
@@ -485,21 +551,29 @@ export default function AddNFCUserDialog({
               </Box>
 
               {/* Active User Switch - Text and toggle next to each other */}
-              <Box sx={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 2,
-                mt: 0.5
-              }}>
-                <Typography sx={{
-                  color: "#fff",
-                  fontSize: "14px",
-                  fontWeight: "500"
-                }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 2,
+                  mt: 0.5,
+                }}
+              >
+                <Typography
+                  sx={{
+                    color: "#fff",
+                    fontSize: "14px",
+                    fontWeight: "500",
+                  }}
+                >
                   Active User
                 </Typography>
                 <Switch
-                  checked={formData.activeUser !== undefined ? formData.activeUser : true}
+                  checked={
+                    formData.activeUser !== undefined
+                      ? formData.activeUser
+                      : true
+                  }
                   onChange={handleSwitchChange}
                   sx={{
                     "& .MuiSwitch-switchBase": {
@@ -566,7 +640,8 @@ export default function AddNFCUserDialog({
                 width: "48%",
                 // boxShadow: "0 4px 15px rgba(0, 212, 255, 0.3)",
                 "&:hover": {
-                  background: "linear-gradient(90deg, #8A38F5 0%, #00d4ff 100%)",
+                  background:
+                    "linear-gradient(90deg, #8A38F5 0%, #00d4ff 100%)",
                   // boxShadow: "0 6px 20px rgba(0, 212, 255, 0.4)",
                 },
               }}

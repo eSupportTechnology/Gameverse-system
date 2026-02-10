@@ -217,6 +217,7 @@ export default function NFCUserContent() {
       // Use FormData to handle file upload
       const formDataPayload = new FormData();
       formDataPayload.append('full_name', newUserData.fullName);
+      formDataPayload.append('email', newUserData.email);
       formDataPayload.append('phone_no', newUserData.phoneNo);
       formDataPayload.append('nic_number', newUserData.nicNumber);
       formDataPayload.append('status', newUserData.activeUser ? 'active' : 'inactive');
@@ -241,6 +242,7 @@ export default function NFCUserContent() {
         // Reset form
         setFormData({
           fullName: "",
+          email:"",
           phoneNo: "",
           nicNumber: "",
           activeUser: true,
