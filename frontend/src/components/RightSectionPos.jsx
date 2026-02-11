@@ -20,6 +20,8 @@ export default function RightSection({
   handleDeleteCart,
   handleCheckoutOpenWithValidation,
   handleCreateNFCUser,
+  scannedCardNumber,
+  setScannedCardNumber,
 }) {
   return (
     <Box
@@ -65,6 +67,8 @@ export default function RightSection({
           <TextField
             placeholder="Enter NFC Card Number"
             variant="standard"
+            value={scannedCardNumber}
+            onChange={(e) => setScannedCardNumber(e.target.value)}
             InputProps={{ disableUnderline: true }}
             sx={{ flex: 1, input: { color: "#fff" } }}
           />

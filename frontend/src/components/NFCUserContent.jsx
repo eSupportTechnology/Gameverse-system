@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext, useRef } from "react";
 import {
   Box,
   Typography,
@@ -43,7 +43,9 @@ export default function NFCUserContent() {
   const [deleteUserId, setDeleteUserId] = useState(null);
   const [successDialogOpen, setSuccessDialogOpen] = useState(false);
   const [addSuccessDialog, setAddSuccessDialog] = useState(false);
-  const {globalSearch} = useContext(AppContext);
+  const { globalSearch } = useContext(AppContext);
+  const [dialogMode, setDialogMode] = useState("add");
+  const [selectedUserId, setSelectedUserId] = useState(null);
 
   const [formData, setFormData] = useState({
     fullName: "",
@@ -51,6 +53,7 @@ export default function NFCUserContent() {
     nicNumber: "",
     activeUser: true,
     profileImage: null,
+    email: "",
   });
 
   // Fetch users from backend on component mount
@@ -82,7 +85,7 @@ export default function NFCUserContent() {
 
           // Build avatar URL - only use storage URL for actual uploaded files
           let avatarUrl = "/images/user.png";
-          if (user.avatar && user.avatar.startsWith('avatars/nfc_users/')) {
+          if (user.avatar && user.avatar.startsWith("avatars/nfc_users/")) {
             avatarUrl = `${API_BASE_URL}/storage/${user.avatar}`;
           }
 
@@ -95,6 +98,7 @@ export default function NFCUserContent() {
             status: user.status,
             avatar: avatarUrl,
             nicNumber: user.nic_number,
+            email: user.email,
             // isDummy: false, // Mark as API user (can be deleted)
           };
         });
@@ -146,34 +150,36 @@ export default function NFCUserContent() {
     return matchLocal && matchGlobal;
   });
 
-
   const handleAddUser = () => {
     setFormData({
+      nfcCardNumber: "",
       fullName: "",
+      email: "",
       phoneNo: "",
       nicNumber: "",
       activeUser: true,
       profileImage: null,
     });
+
+    setDialogMode("add");
+    setSelectedUserId(null);
     setAddDialogOpen(true);
   };
 
   const handleEditUser = (user) => {
-    setSelectedUser(user);
-    // Build the full avatar URL for display - only use if it's already a full URL
-    let avatarUrl = null;
-    if (user.avatar && user.avatar.startsWith('http')) {
-      avatarUrl = user.avatar;
-    }
     setFormData({
+      nfcCardNumber: user.cardNo || "",
       fullName: user.fullName,
+      email: user.email || "",
       phoneNo: user.phoneNo,
       nicNumber: user.nicNumber || "",
-      nfcCardNumber: user.cardNo || "",
-      activeUser: user.status === 'active',
-      profileImage: avatarUrl,
+      activeUser: user.status === "active",
+      profileImage: user.avatar || null,
     });
-    setEditDialogOpen(true);
+
+    setDialogMode("edit");
+    setSelectedUserId(user.id);
+    setAddDialogOpen(true);
   };
 
   const handleDeleteUser = (user) => {
@@ -195,7 +201,7 @@ export default function NFCUserContent() {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       if (res.data.success) {
@@ -207,96 +213,6 @@ export default function NFCUserContent() {
       console.error("Error deleting user:", err);
       toast.error(err.response?.data?.message || "Failed to delete user");
       setDeleteDialogOpen(false);
-    }
-  };
-
-  const handleCreateUser = async (newUserData) => {
-    try {
-      const token = localStorage.getItem("aToken");
-      
-      // Use FormData to handle file upload
-      const formDataPayload = new FormData();
-      formDataPayload.append('full_name', newUserData.fullName);
-      formDataPayload.append('email', newUserData.email);
-      formDataPayload.append('phone_no', newUserData.phoneNo);
-      formDataPayload.append('nic_number', newUserData.nicNumber);
-      formDataPayload.append('status', newUserData.activeUser ? 'active' : 'inactive');
-      
-      // Add avatar if provided
-      if (newUserData.profileImage && newUserData.profileImage instanceof File) {
-        formDataPayload.append('avatar', newUserData.profileImage);
-      }
-
-      const res = await axios.post(`${API_BASE_URL}/api/nfc-users`, formDataPayload, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "multipart/form-data",
-        },
-      });
-
-      if (res.data.success) {
-        setAddSuccessDialog(true);
-        setAddDialogOpen(false);
-        fetchUsers(); // Refresh the list
-
-        // Reset form
-        setFormData({
-          fullName: "",
-          email:"",
-          phoneNo: "",
-          nicNumber: "",
-          activeUser: true,
-          profileImage: null,
-        });
-      }
-    } catch (err) {
-      console.error("Error creating user:", err);
-      toast.error(
-        err.response?.data?.message ||
-          "Failed to create user. Make sure you are logged in."
-      );
-    }
-  };
-
-  const handleUpdateUser = async (updatedUserData) => {
-    try {
-      const token = localStorage.getItem("aToken");
-      
-      // Use FormData to handle file upload
-      const formDataPayload = new FormData();
-      formDataPayload.append('full_name', updatedUserData.fullName);
-      formDataPayload.append('phone_no', updatedUserData.phoneNo);
-      formDataPayload.append('nic_number', updatedUserData.nicNumber);
-      formDataPayload.append('status', updatedUserData.activeUser ? 'active' : 'inactive');
-      formDataPayload.append('_method', 'PUT'); // Laravel method spoofing for FormData
-      
-      // Add avatar if a new file is provided
-      if (updatedUserData.profileImage && updatedUserData.profileImage instanceof File) {
-        formDataPayload.append('avatar', updatedUserData.profileImage);
-      }
-
-      const res = await axios.post(
-        `${API_BASE_URL}/api/nfc-users/${selectedUser.id}`,
-        formDataPayload,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
-
-      if (res.data.success) {
-        setSuccessDialogOpen(true);
-        setEditDialogOpen(false);
-        fetchUsers(); // Refresh the list
-      }
-    } catch (err) {
-      console.error("Error updating user:", err);
-      toast.error(
-        err.response?.data?.message ||
-          "Failed to update user. Make sure you are logged in."
-      );
     }
   };
 
@@ -312,7 +228,7 @@ export default function NFCUserContent() {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       if (res.data.success) {
@@ -322,7 +238,7 @@ export default function NFCUserContent() {
     } catch (err) {
       console.error("Error toggling user status:", err);
       toast.error(
-        err.response?.data?.message || "Failed to update user status"
+        err.response?.data?.message || "Failed to update user status",
       );
     }
     // } else {
@@ -697,17 +613,11 @@ export default function NFCUserContent() {
       <AddNFCUserDialog
         open={addDialogOpen}
         onClose={() => setAddDialogOpen(false)}
-        onCreate={handleCreateUser}
         formData={formData}
         setFormData={setFormData}
-      />
-
-      <EditNFCUserDialog
-        open={editDialogOpen}
-        onClose={() => setEditDialogOpen(false)}
-        onUpdate={handleUpdateUser}
-        formData={formData}
-        setFormData={setFormData}
+        mode={dialogMode}
+        userId={selectedUserId}
+        refreshUsers={fetchUsers}
       />
 
       <DeleteConfirmDialog

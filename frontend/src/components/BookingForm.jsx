@@ -15,7 +15,7 @@ import {
   Typography,
 } from "@mui/material";
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import AddNFCUserDialog from "./AddNFCUserDialog";
 import CreateSuccessDialog from "./CreateSuccessDialog";
@@ -86,7 +86,6 @@ const BookingForm = ({
     setNfcDialogOpen(false);
   };
 
-  // Handle NFC user creation - auto-fill booking form
   const handleCreateNFCUser = (nfcData) => {
     setFormData((prev) => ({
       ...prev,
@@ -94,7 +93,6 @@ const BookingForm = ({
       customerName: nfcData.fullName,
       phoneNumber: nfcData.phoneNo.replace(/\s/g, ""),
     }));
-
     setNfcDialogOpen(false);
   };
 
@@ -406,6 +404,70 @@ const BookingForm = ({
 
     return slots;
   };
+  const wsRef = useRef(null);
+
+  const fetchUserByCardUID = async (cardUID) => {
+    try {
+      const token = localStorage.getItem("aToken");
+
+      const res = await axios.get(
+        `${API_BASE_URL}/api/nfc-users/by-card/${cardUID}`,
+        { headers: { Authorization: token ? `Bearer ${token}` : "" } },
+      );
+
+      if (res.data.success && res.data.data) {
+        const user = res.data.data;
+        setFormData((prev) => ({
+          ...prev,
+          customerName: user.full_name,
+          phoneNumber: user.phone_no,
+          nfcCardNumber: cardUID,
+        }));
+      } else {
+        setFormData((prev) => ({
+          ...prev,
+          nfcCardNumber: cardUID,
+        }));
+      }
+    } catch (err) {
+      console.error("Failed to fetch NFC user:", err);
+      setFormData((prev) => ({
+        ...prev,
+        nfcCardNumber: cardUID,
+      }));
+    }
+  };
+
+  useEffect(() => {
+    const ws = new WebSocket("ws://localhost:6789");
+    wsRef.current = ws;
+
+    ws.onopen = () => console.log("WebSocket connected (Parent)");
+
+    ws.onmessage = (event) => {
+      const msg = JSON.parse(event.data);
+
+      if (msg.action === "card_detected") {
+        const cardUID = msg.uid.replace(/\s/g, ":");
+
+        fetchUserByCardUID(cardUID);
+      }
+
+      if (msg.action === "write_result") {
+        if (msg.success) {
+          toast.success("Data written to card successfully!");
+          fetchUserByCardUID(msg.userId);
+        } else {
+          toast.error("Failed to write to card");
+        }
+      }
+    };
+
+    ws.onclose = () => console.log("WebSocket disconnected");
+    ws.onerror = (err) => console.error("WebSocket error:", err);
+
+    return () => ws.close();
+  }, []);
 
   return (
     <>
@@ -470,7 +532,6 @@ const BookingForm = ({
                         src="/images/nfc.png"
                         alt="NFC"
                         sx={{ width: 22, height: 22, cursor: "pointer" }}
-                        onClick={() => console.log("NFC icon clicked")}
                       />
                     </InputAdornment>
                   ),

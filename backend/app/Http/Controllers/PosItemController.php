@@ -10,7 +10,6 @@ class PosItemController extends Controller
     // Add a new POS item (Protected by Sanctum)
     public function store(Request $request)
     {
-        // Validate input (no need to send user_id now)
         $validated = $request->validate([
             'category' => 'required|string|max:255',
             'item_name' => 'required|string|max:255',
@@ -19,10 +18,6 @@ class PosItemController extends Controller
             'loyality_price' => 'required|boolean',
         ]);
 
-        // Automatically link the item to the authenticated user
-        // $validated['user_id'] = $request->user()->id;
-        // For now, we set a default user_id.
-        $validated['user_id'] = 1;
         $validated['paid_amount'] = 0;
 
         $item = PosItem::create($validated);

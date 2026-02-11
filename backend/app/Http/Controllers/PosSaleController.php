@@ -42,6 +42,7 @@ class PosSaleController extends Controller
             $sale = PosSale::create([
                 'customer_name' => $request->customer_name,
                 'customer_id' => $request->customer_id,
+                'email' => $request->email,
                 'subtotal' => $subtotal,
                 'discount' => $discount,
                 'total' => $total,

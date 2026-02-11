@@ -25,11 +25,8 @@ class CartController extends Controller
             'pos_item_id' => 'required|exists:pos_items,id'
         ]);
 
-        $userId = 1; // Replace with auth()->id() later
-
         $cart = Cart::firstOrCreate(
             [
-                'user_id' => $userId,
                 'pos_item_id' => $request->pos_item_id
             ],
             [

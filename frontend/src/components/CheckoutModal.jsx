@@ -5,22 +5,21 @@ import {
   Typography,
   IconButton,
   Button,
-  TextField,
+  Avatar,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 
 const CheckoutModal = ({
   open,
   onClose,
-  customerName,
-  setCustomerName,
-  customerId,
-  setCustomerId,
+  customer,
   discount,
   setDiscount,
   subtotal,
   total,
   onPayNow,
+   setCustomerName,
+  setCustomerId,
 }) => {
   return (
     <Modal open={open} onClose={onClose}>
@@ -54,7 +53,8 @@ const CheckoutModal = ({
 
         {/* Customer Info */}
         <Box display="flex" alignItems="center" gap={2} mt={3}>
-          <Box
+          <Avatar
+            src={customer?.avatar || ""}
             sx={{
               bgcolor: "#334155",
               borderRadius: "50%",
@@ -67,8 +67,9 @@ const CheckoutModal = ({
               fontSize: 20,
             }}
           >
-            {customerName?.[0]?.toUpperCase()}
-          </Box>
+            {!customer?.avatar && customer?.name?.[0]?.toUpperCase()}
+          </Avatar>
+
           <Box>
             <Typography
               fontWeight="500"
@@ -83,7 +84,7 @@ const CheckoutModal = ({
                 },
               }}
             >
-              {customerName || "Alex Chen"}
+              {customer?.name || "Guest User"}
             </Typography>
 
             <Typography
@@ -100,7 +101,7 @@ const CheckoutModal = ({
                 },
               }}
             >
-              {customerId || "GV001234"}
+              {customer?.cardNumber || "No Card UID"}
             </Typography>
           </Box>
         </Box>
@@ -113,6 +114,7 @@ const CheckoutModal = ({
               LKR {Number(subtotal).toFixed(2)}
             </Typography>
           </Box>
+
           <Box
             display="flex"
             justifyContent="space-between"
@@ -134,12 +136,8 @@ const CheckoutModal = ({
                 minWidth: 80,
                 textAlign: "right",
                 color: "#94A3B8",
-                "&:focus": {
-                  borderBottom: "1px dashed #38BDF8",
-                },
-                "&:hover": {
-                  backgroundColor: "#1E293B",
-                },
+                "&:focus": { borderBottom: "1px dashed #38BDF8" },
+                "&:hover": { backgroundColor: "#1E293B" },
               }}
             >
               {discount || "0"}

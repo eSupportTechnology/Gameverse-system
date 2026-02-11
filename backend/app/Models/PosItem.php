@@ -14,7 +14,6 @@ class PosItem extends Model
         'price',
         'stock',
         'loyality_price',
-        'user_id',
         'paid_amount'
     ];
 

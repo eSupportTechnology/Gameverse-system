@@ -9,7 +9,7 @@ import {
   Typography,
 } from "@mui/material";
 import axios from "axios";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import EditIcon from "../assets/editicon.png";
 import addIcon from "../assets/plus.png";
@@ -45,7 +45,6 @@ const PosSystem = () => {
   const { aToken } = useContext(AdminContext);
   const { globalSearch } = useContext(AppContext);
 
-
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [cart, setCart] = useState([]);
@@ -73,10 +72,12 @@ const PosSystem = () => {
     fullName: "",
     phoneNo: "",
     nicNumber: "",
+    email: "",
   });
   const [customerName, setCustomerName] = useState("");
   const [customerId, setCustomerId] = useState("");
   const [discount, setDiscount] = useState(0);
+  const [scannedCardNumber, setScannedCardNumber] = useState("");
 
   // NFC Dialog State
   const [openAddNFCUserDialog, setOpenAddNFCUserDialog] = useState(false);
@@ -96,7 +97,7 @@ const PosSystem = () => {
             name: c.pos_item.item_name,
             price: c.pos_item.price,
             qty: c.quantity,
-          }))
+          })),
         );
       }
     } catch (err) {
@@ -115,9 +116,12 @@ const PosSystem = () => {
         pos_item_id: item.id,
       });
 
-      // refresh stock
-      fetchItems();
-      // refresh cart
+      setProducts((prev) =>
+        prev.map((p) =>
+          p.id === item.id ? { ...p, stock: Number(p.stock) - 1 } : p,
+        ),
+      );
+
       fetchCart();
     } catch (err) {
       toast.error(err.response?.data?.message || "Out of stock");
@@ -125,20 +129,41 @@ const PosSystem = () => {
   };
 
   const removeFromCart = async (item) => {
-    await axios.post(`${API_BASE_URL}/api/cart/decrease`, {
-      pos_item_id: item.id,
-    });
+    try {
+      await axios.post(`${API_BASE_URL}/api/cart/decrease`, {
+        pos_item_id: item.id,
+      });
 
-    fetchItems();
-    fetchCart();
+      setProducts((prev) =>
+        prev.map((p) =>
+          p.id === item.id ? { ...p, stock: Number(p.stock) + 1 } : p,
+        ),
+      );
+
+      fetchCart();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to remove from cart");
+    }
   };
-  const handleDeleteCart = async (item) => {
-    await axios.post(`${API_BASE_URL}/api/cart/remove`, {
-      pos_item_id: item.id,
-    });
 
-    fetchItems();
-    fetchCart();
+  const handleDeleteCart = async (item) => {
+    try {
+      await axios.post(`${API_BASE_URL}/api/cart/remove`, {
+        pos_item_id: item.id,
+      });
+
+      setProducts((prev) =>
+        prev.map((p) =>
+          p.id === item.id
+            ? { ...p, stock: Number(p.stock) + Number(item.qty) }
+            : p,
+        ),
+      );
+
+      setCart((prev) => prev.filter((c) => c.id !== item.id));
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to delete cart item");
+    }
   };
 
   const totalPrice = cart.reduce((sum, item) => {
@@ -206,7 +231,7 @@ const PosSystem = () => {
           headers: {
             "Content-Type": "application/json",
           },
-        }
+        },
       );
 
       if (response.status === 201) {
@@ -270,7 +295,7 @@ const PosSystem = () => {
             Authorization: `Bearer ${aToken}`,
             "Content-Type": "application/json",
           },
-        }
+        },
       );
 
       if (response.status === 200) {
@@ -324,7 +349,7 @@ const PosSystem = () => {
       const response = await axios.post(
         `${API_BASE_URL}/api/nfc-users`,
         payload,
-        { headers: { Authorization: `Bearer ${aToken}` } }
+        { headers: { Authorization: `Bearer ${aToken}` } },
       );
 
       if (response.status === 201) {
@@ -345,17 +370,16 @@ const PosSystem = () => {
   };
 
   // Search filter
- const searchedProducts = products.filter((p) => {
-  const title = (p.item_name || "").toLowerCase();
+  const searchedProducts = products.filter((p) => {
+    const title = (p.item_name || "").toLowerCase();
 
-  const matchLocal =
-    !searchTerm || title.includes(searchTerm.toLowerCase());
+    const matchLocal = !searchTerm || title.includes(searchTerm.toLowerCase());
 
-  const matchGlobal =
-    !globalSearch || title.includes(globalSearch.toLowerCase());
+    const matchGlobal =
+      !globalSearch || title.includes(globalSearch.toLowerCase());
 
-  return matchLocal && matchGlobal;
-});
+    return matchLocal && matchGlobal;
+  });
 
   // Category filter
   const filteredProducts =
@@ -364,7 +388,7 @@ const PosSystem = () => {
       : searchedProducts.filter(
           (p) =>
             p.category &&
-            p.category.toLowerCase() === activeCategory.toLowerCase()
+            p.category.toLowerCase() === activeCategory.toLowerCase(),
         );
 
   const subtotal = cart.reduce((acc, item) => acc + item.price * item.qty, 0);
@@ -377,6 +401,7 @@ const PosSystem = () => {
         customer_name: customerName,
         customer_id: customerId,
         discount: discount,
+        email: nfcFormData.email,
       });
 
       setOpenCheckout(false);
@@ -388,6 +413,82 @@ const PosSystem = () => {
       toast.error(err.response?.data?.message || "Checkout failed");
     }
   };
+
+  const wsRef = useRef(null);
+
+  const fetchUserByCardUID = async (cardUID) => {
+    try {
+      const token = localStorage.getItem("aToken");
+
+      const res = await axios.get(
+        `${API_BASE_URL}/api/nfc-users/by-card/${cardUID}`,
+        {
+          headers: { Authorization: token ? `Bearer ${token}` : "" },
+        },
+      );
+
+      if (res.data.success && res.data.data) {
+        const user = res.data.data;
+
+        setNfcFormData({
+          fullName: user.full_name,
+          phoneNo: user.phone_no,
+          nicNumber: user.nic_number,
+          nfcCardNumber: cardUID,
+          email: user.email,
+          avatar: user.avatar ? `${API_BASE_URL}/storage/${user.avatar}` : "",
+        });
+
+        setCustomerName(user.full_name);
+        setCustomerId(user.nfc_card_number || cardUID);
+        setScannedCardNumber(cardUID);
+      } else {
+        setNfcFormData({
+          fullName: "",
+          phoneNo: "",
+          nicNumber: "",
+          nfcCardNumber: cardUID,
+          avatar: "",
+        });
+        setCustomerName("");
+        setCustomerId(cardUID);
+        setScannedCardNumber(cardUID);
+      }
+    } catch (err) {
+      console.error("Failed to fetch NFC user:", err);
+      setScannedCardNumber(cardUID);
+    }
+  };
+  useEffect(() => {
+    const ws = new WebSocket("ws://localhost:6789");
+    wsRef.current = ws;
+
+    ws.onopen = () => console.log("WebSocket connected (Parent)");
+
+    ws.onmessage = (event) => {
+      const msg = JSON.parse(event.data);
+
+      if (msg.action === "card_detected") {
+        const cardUID = msg.uid.replace(/\s/g, ":");
+
+        fetchUserByCardUID(cardUID);
+      }
+
+      if (msg.action === "write_result") {
+        if (msg.success) {
+          toast.success("Data written to card successfully!");
+          fetchUserByCardUID(msg.userId);
+        } else {
+          toast.error("Failed to write to card");
+        }
+      }
+    };
+
+    ws.onclose = () => console.log("WebSocket disconnected");
+    ws.onerror = (err) => console.error("WebSocket error:", err);
+
+    return () => ws.close();
+  }, []);
 
   return (
     <Box
@@ -675,6 +776,8 @@ const PosSystem = () => {
           handleCloseAddNFCUserDialog={handleCloseAddNFCUserDialog}
           nfcFormData={nfcFormData}
           setNfcFormData={setNfcFormData}
+          scannedCardNumber={scannedCardNumber}
+          setScannedCardNumber={setScannedCardNumber}
           cart={cart}
           totalPrice={totalPrice}
           products={products}
@@ -729,15 +832,18 @@ const PosSystem = () => {
       <CheckoutModal
         open={openCheckout}
         onClose={handleCheckoutClose}
-        customerName={customerName}
-        setCustomerName={setCustomerName}
-        customerId={customerId}
-        setCustomerId={setCustomerId}
+        customer={{
+          name: customerName,
+          cardNumber: scannedCardNumber,
+          avatar: nfcFormData.avatar,
+        }}
         discount={discount}
         setDiscount={setDiscount}
         subtotal={subtotal}
         total={total}
         onPayNow={handlePayNow}
+        setCustomerName={setCustomerName}
+        setCustomerId={setCustomerId}
       />
 
       <PaymentSuccessPopup

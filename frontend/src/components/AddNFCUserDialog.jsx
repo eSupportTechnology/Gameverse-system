@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -17,13 +17,18 @@ import PersonIcon from "@mui/icons-material/Person";
 import CameraAltIcon from "@mui/icons-material/CameraAlt";
 import CancelPopup from "./CancelPopup";
 import scan from "../assets/scan.png";
+import axios from "axios";
+import { API_BASE_URL } from "../apiConfig";
+import { toast } from "react-toastify";
 
 export default function AddNFCUserDialog({
   open,
   onClose,
-  onCreate,
   formData,
   setFormData,
+  mode = "add",
+  userId = null,
+  refreshUsers,
 }) {
   const [openCancelPopup, setOpenCancelPopup] = useState(false);
   const [errors, setErrors] = useState({});
@@ -138,20 +143,134 @@ export default function AddNFCUserDialog({
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-
-    if (validateForm()) {
-      onCreate(formData);
-      setFormData(initializeFormData());
-      setErrors({});
-      setImagePreview(null);
-    }
-  };console.log(formData)
-
   const handleClose = () => {
     handleOpenCancelPopup();
   };
+  const wsRef = useRef(null);
+
+  useEffect(() => {
+    const ws = new WebSocket("ws://localhost:6789");
+    wsRef.current = ws;
+
+    ws.onopen = () => console.log("WebSocket connected (Parent)");
+
+    ws.onmessage = (event) => {
+      const msg = JSON.parse(event.data);
+
+      if (msg.action === "card_detected") {
+        setFormData((prev) => ({
+          ...prev,
+          nfcCardNumber: msg.uid.replace(/\s/g, ":"),
+        }));
+      }
+
+      if (msg.action === "write_result") {
+        if (msg.success) {
+          toast.success("Data written to card successfully!");
+        } else {
+          toast.error("Failed to write to card");
+        }
+      }
+    };
+
+    ws.onclose = () => console.log("WebSocket disconnected");
+    ws.onerror = (err) => console.error("WebSocket error:", err);
+
+    return () => ws.close();
+  }, []);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!validateForm()) return;
+
+    try {
+      const token = localStorage.getItem("aToken");
+
+      const formDataPayload = new FormData();
+      formDataPayload.append("full_name", formData.fullName);
+      formDataPayload.append("email", formData.email);
+      formDataPayload.append("phone_no", formData.phoneNo);
+      formDataPayload.append("nic_number", formData.nicNumber);
+      formDataPayload.append("card_no", formData.nfcCardNumber);
+      formDataPayload.append(
+        "status",
+        formData.activeUser ? "active" : "inactive",
+      );
+
+      if (formData.profileImage instanceof File) {
+        formDataPayload.append("avatar", formData.profileImage);
+      }
+
+      let res;
+
+      if (mode === "add") {
+        res = await axios.post(
+          `${API_BASE_URL}/api/nfc-users`,
+          formDataPayload,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "multipart/form-data",
+            },
+          },
+        );
+
+        if (res.data.success) {
+          const createdUser = res.data.data;
+
+          if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+            wsRef.current.send(
+              JSON.stringify({
+                action: "write",
+                data: createdUser.id,
+              }),
+            );
+          }
+
+          toast.success("User created successfully!");
+        }
+      } else {
+        formDataPayload.append("_method", "PUT");
+
+        res = await axios.post(
+          `${API_BASE_URL}/api/nfc-users/${userId}`,
+          formDataPayload,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "multipart/form-data",
+            },
+          },
+        );
+
+        if (res.data.success) {
+          toast.success("User updated successfully!");
+        }
+      }
+      setFormData(initializeFormData());
+      setErrors({});
+      setImagePreview(null);
+
+      if (refreshUsers) refreshUsers();
+      onClose();
+    } catch (err) {
+      console.error("Error submitting user:", err);
+      toast.error(
+        err.response?.data?.message ||
+          `Failed to ${mode === "add" ? "create" : "update"} user`,
+      );
+    }
+  };
+  useEffect(() => {
+    if (mode === "edit") {
+      setImagePreview(formData.profileImage || null);
+    }
+
+    if (mode === "add") {
+      setImagePreview(null);
+    }
+  }, [mode]);
 
   return (
     <>
@@ -180,7 +299,7 @@ export default function AddNFCUserDialog({
             px: 3,
           }}
         >
-          Add New NFC Customer
+          {mode === "add" ? "Add New NFC Customer" : "Edit NFC Customer"}
           <IconButton
             onClick={() => onClose()}
             sx={{
@@ -646,7 +765,7 @@ export default function AddNFCUserDialog({
                 },
               }}
             >
-              Add Customer
+              {mode === "add" ? "Add Customer" : "Update Customer"}
             </Button>
           </DialogActions>
         </form>

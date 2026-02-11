@@ -37,15 +37,17 @@ class NfcUserController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'full_name'  => 'required|string|max:255',
-            'email'  => 'required|string|max:255',
+            'email'      => 'required|string|max:255',
             'phone_no'   => 'required|string|regex:/^\d{3}\s\d{7}$/|unique:nfc_users,phone_no',
             'nic_number' => 'required|string|unique:nfc_users,nic_number',
+            'card_no'    => 'required|string|unique:nfc_users,card_no',
             'avatar'     => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             'status'     => 'nullable|in:active,inactive'
         ], [
             'phone_no.regex'  => 'Phone number format should be XXX XXXXXXX',
             'phone_no.unique' => 'This phone number is already registered',
-            'nic_number.unique' => 'This NIC number is already registered'
+            'nic_number.unique' => 'This NIC number is already registered',
+            'card_no.unique'  => 'This card number is already registered'
         ]);
 
         if ($validator->fails()) {
@@ -56,11 +58,8 @@ class NfcUserController extends Controller
         }
 
         try {
-            $cardNo = NfcUser::generateCardNo();
-
             // Handle avatar upload
             $avatarPath = null;
-
             if ($request->hasFile('avatar')) {
                 $avatarPath = $request->file('avatar')
                     ->store('avatars/nfc_users', 'public');
@@ -68,8 +67,8 @@ class NfcUserController extends Controller
 
             $nfcUser = NfcUser::create([
                 'full_name'  => $request->full_name,
-                'email'  => $request->email,
-                'card_no'    => $cardNo,
+                'email'      => $request->email,
+                'card_no'    => $request->card_no,
                 'phone_no'   => $request->phone_no,
                 'nic_number' => $request->nic_number,
                 'points'     => 0,
@@ -82,7 +81,6 @@ class NfcUserController extends Controller
                 'message' => 'User created successfully',
                 'data' => $nfcUser
             ], 201);
-
         } catch (\Exception $e) {
             Log::error('Error creating NFC user: ' . $e->getMessage());
             return response()->json([
@@ -164,7 +162,6 @@ class NfcUserController extends Controller
                 'message' => 'User updated successfully',
                 'data' => $user
             ], 200);
-
         } catch (\Exception $e) {
             Log::error('Error updating NFC user: ' . $e->getMessage());
             return response()->json([
@@ -193,7 +190,6 @@ class NfcUserController extends Controller
                 'success' => true,
                 'message' => 'User deleted successfully'
             ], 200);
-
         } catch (\Exception $e) {
             Log::error('Error deleting NFC user: ' . $e->getMessage());
             return response()->json([
@@ -218,7 +214,6 @@ class NfcUserController extends Controller
                 'message' => 'User status updated successfully',
                 'data' => $user
             ], 200);
-
         } catch (\Exception $e) {
             Log::error('Error toggling user status: ' . $e->getMessage());
             return response()->json([
@@ -247,12 +242,38 @@ class NfcUserController extends Controller
                 'success' => true,
                 'data' => $users
             ], 200);
-
         } catch (\Exception $e) {
             Log::error('Error searching NFC users: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to search NFC users'
+            ], 500);
+        }
+    }
+    /**
+     * Get NFC user by card number (UID)
+     */
+    public function getByCard($cardNo)
+    {
+        try {
+            $user = NfcUser::where('card_no', $cardNo)->first();
+
+            if ($user) {
+                return response()->json([
+                    'success' => true,
+                    'data' => $user
+                ], 200);
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'User not found'
+                ], 404);
+            }
+        } catch (\Exception $e) {
+            Log::error('Error fetching user by card: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Server error'
             ], 500);
         }
     }

@@ -79,17 +79,17 @@ Route::post('/games/{id}/balance', [GameController::class, 'checkout']);
 // Routes for fetching games
 Route::get('/games', [GameController::class, 'index']);
 Route::get('/games/{id}', [GameController::class, 'show']);
- 
+
 Route::post('/games/{id}/play', [GameController::class, 'play']);
 
 // Pos System  Admin
 
 // Route::middleware('auth:sanctum')->group(function () {
-   Route::post('/pos/add-items', [PosItemController::class, 'store']);
+Route::post('/pos/add-items', [PosItemController::class, 'store']);
 
-    Route::get('/pos/get-items', [PosItemController::class, 'index']);
-    Route::put('/pos/update-item/{id}', [PosItemController::class, 'updateItem']);
-    Route::post('/pos/checkout', [PosSaleController::class, 'checkout']);
+Route::get('/pos/get-items', [PosItemController::class, 'index']);
+Route::put('/pos/update-item/{id}', [PosItemController::class, 'updateItem']);
+Route::post('/pos/checkout', [PosSaleController::class, 'checkout']);
 // });
 
 // Pos System operator
@@ -179,4 +179,4 @@ Route::get('/reports/total-games-amount', [ReportsController::class, 'totalGames
 Route::get('/reports/total-pos-amount', [ReportsController::class, 'totalPosAmount']);
 
 Route::get('/reports/export-doc', [ReportsController::class, 'exportDoc']);
-
+Route::get('/nfc-users/by-card/{cardNo}', [NfcUserController::class, 'getByCard']);
