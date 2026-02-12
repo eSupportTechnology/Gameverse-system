@@ -107,7 +107,7 @@ const AllRacingSimulators = () => {
     setTimeNormal(item.timeNormal);
     setTimeVR(item.timeVR);
     setThumbnail(
-      item.thumbnail ? `${API_BASE_URL}/storage/${item.thumbnail}` : null
+      item.thumbnail ? `${API_BASE_URL}/storage/${item.thumbnail}` : null,
     );
     setThumbnailFile(null);
     setOpenAddRacing(true);
@@ -177,7 +177,7 @@ const AllRacingSimulators = () => {
       toast.success(
         `Simulator ${
           dialogMode === "edit" ? "updated" : "created"
-        } successfully!`
+        } successfully!`,
       );
       setOpenAddRacing(false);
       fetchSimulators(); // refresh list
@@ -185,7 +185,7 @@ const AllRacingSimulators = () => {
       console.error(err);
       toast.error(
         err.response?.data?.message ||
-          "Failed to save station. Make sure you are logged in."
+          "Failed to save station. Make sure you are logged in.",
       );
     }
   };
@@ -208,7 +208,7 @@ const AllRacingSimulators = () => {
     try {
       await deleteSimulator(simulatorToRemove.id);
       setSimulators((prev) =>
-        prev.filter((s) => s.id !== simulatorToRemove.id)
+        prev.filter((s) => s.id !== simulatorToRemove.id),
       );
       setRemoveSimulator(false);
       setSimulatorToRemove(null);
@@ -222,12 +222,14 @@ const AllRacingSimulators = () => {
     setSimulatorToRemove(null);
   };
   const filteredSimulators = simulators.filter((sim) => {
-  const name = sim.name?.toLowerCase() || "";
-  const loc = sim.location?.toLowerCase() || "";
+    const name = sim.name?.toLowerCase() || "";
+    const loc = sim.location?.toLowerCase() || "";
 
-  return !globalSearch || 
-         name.includes(globalSearch.toLowerCase()) || 
-         loc.includes(globalSearch.toLowerCase());
+    return (
+      !globalSearch ||
+      name.includes(globalSearch.toLowerCase()) ||
+      loc.includes(globalSearch.toLowerCase())
+    );
   });
 
   return (
@@ -565,6 +567,17 @@ const AllRacingSimulators = () => {
               <MenuItem value="Premium Billiard 1">Premium Billiard 1</MenuItem>
               <MenuItem value="Premium Billiard 2">Premium Billiard 2</MenuItem>
               <MenuItem value="Premium Billiard 3">Premium Billiard 3</MenuItem>
+              <MenuItem value="PS5+VR">PS5+VR</MenuItem>
+              <MenuItem value="8 Ball Pool (Supreme)">
+                8 Ball Pool (Supreme)
+              </MenuItem>
+              <MenuItem value="8 Ball Pool (Premium)">
+                8 Ball Pool (Premium)
+              </MenuItem>
+              <MenuItem value="CRS+VR (PS V R2)">CRS+VR (PS V R2)</MenuItem>
+              <MenuItem value="Car Racing Simulator">
+                Car Racing Simulator
+              </MenuItem>
             </TextField>
             {/* Location */}
             <p style={{ marginBottom: 6, fontSize: "14px", fontWeight: 500 }}>

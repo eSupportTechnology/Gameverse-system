@@ -19,5 +19,6 @@ class Station extends Model
         'vrTime',
         'vrPrice',
         'thumbnail',
+        'common_thumbnail'
     ];
 }

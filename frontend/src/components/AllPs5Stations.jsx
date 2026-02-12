@@ -89,7 +89,7 @@ const AllPs5Stations = () => {
     setTimeVR(item.vrTime === 60 ? "1 Hour" : "30 Min");
 
     setThumbnail(
-      item.thumbnail ? `${API_BASE_URL}/storage/${item.thumbnail}` : null
+      item.thumbnail ? `${API_BASE_URL}/storage/${item.thumbnail}` : null,
     );
     setThumbnailFile(null);
 
@@ -180,7 +180,7 @@ const AllPs5Stations = () => {
       });
 
       toast.success(
-        `Station ${dialogMode === "edit" ? "updated" : "created"} successfully!`
+        `Station ${dialogMode === "edit" ? "updated" : "created"} successfully!`,
       );
       setOpenDialog(false);
       fetchStations(); // refresh list
@@ -188,7 +188,7 @@ const AllPs5Stations = () => {
       console.error(err);
       toast.error(
         err.response?.data?.message ||
-          "Failed to save station. Make sure you are logged in."
+          "Failed to save station. Make sure you are logged in.",
       );
     }
   };
@@ -230,13 +230,15 @@ const AllPs5Stations = () => {
     return isNaN(num) ? null : num;
   };
   const filteredStations = stations.filter((station) => {
-  const name = station.name?.toLowerCase() || "";
-  const loc = station.location?.toLowerCase() || "";
+    const name = station.name?.toLowerCase() || "";
+    const loc = station.location?.toLowerCase() || "";
 
-  return !globalSearch || 
-         name.includes(globalSearch.toLowerCase()) || 
-         loc.includes(globalSearch.toLowerCase());
-});
+    return (
+      !globalSearch ||
+      name.includes(globalSearch.toLowerCase()) ||
+      loc.includes(globalSearch.toLowerCase())
+    );
+  });
 
   return (
     <div>
@@ -580,6 +582,17 @@ const AllPs5Stations = () => {
             <MenuItem value="Premium Billiard 1">Premium Billiard 1</MenuItem>
             <MenuItem value="Premium Billiard 2">Premium Billiard 2</MenuItem>
             <MenuItem value="Premium Billiard 3">Premium Billiard 3</MenuItem>
+            <MenuItem value="PS5+VR">PS5+VR</MenuItem>
+            <MenuItem value="8 Ball Pool (Supreme)">
+              8 Ball Pool (Supreme)
+            </MenuItem>
+            <MenuItem value="8 Ball Pool (Premium)">
+              8 Ball Pool (Premium)
+            </MenuItem>
+            <MenuItem value="CRS+VR (PS V R2)">CRS+VR (PS V R2)</MenuItem>
+            <MenuItem value="Car Racing Simulator">
+              Car Racing Simulator
+            </MenuItem>
           </TextField>
 
           {/* Location */}

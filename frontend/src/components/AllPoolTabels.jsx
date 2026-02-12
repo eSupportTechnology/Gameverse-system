@@ -34,8 +34,7 @@ const AllPoolTabels = () => {
   const [openAddPool, setOpenAddPool] = useState(false);
   const [dialogMode, setDialogMode] = useState("add"); // add | edit
   const [editIndex, setEditIndex] = useState(null);
-  const {globalSearch} =useContext(AppContext);
-
+  const { globalSearch } = useContext(AppContext);
 
   // form fields
   const [tableName, setTableName] = useState("");
@@ -102,7 +101,7 @@ const AllPoolTabels = () => {
     setPrice(item.price);
     setTime(item.time === 60 ? "1 Hour" : "30 Min");
     setThumbnail(
-      item.thumbnail ? `${API_BASE_URL}/storage/${item.thumbnail}` : null
+      item.thumbnail ? `${API_BASE_URL}/storage/${item.thumbnail}` : null,
     );
     setThumbnailFile(null);
 
@@ -167,7 +166,7 @@ const AllPoolTabels = () => {
       });
 
       toast.success(
-        `Table ${dialogMode === "edit" ? "updated" : "created"} successfully!`
+        `Table ${dialogMode === "edit" ? "updated" : "created"} successfully!`,
       );
       setOpenAddPool(false);
       fetchPools(); // refresh list
@@ -175,7 +174,7 @@ const AllPoolTabels = () => {
       console.error(err);
       toast.error(
         err.response?.data?.message ||
-          "Failed to save table. Make sure you are logged in."
+          "Failed to save table. Make sure you are logged in.",
       );
     }
   };
@@ -211,14 +210,15 @@ const AllPoolTabels = () => {
   };
   // Add this after your other hooks (e.g., after fetchPools effect)
   const filteredPools = pools.filter((pool) => {
-  const name = pool.name?.toLowerCase() || "";
-  const loc = pool.location?.toLowerCase() || "";
+    const name = pool.name?.toLowerCase() || "";
+    const loc = pool.location?.toLowerCase() || "";
 
-  return !globalSearch || 
-         name.includes(globalSearch.toLowerCase()) || 
-         loc.includes(globalSearch.toLowerCase());
-});
-
+    return (
+      !globalSearch ||
+      name.includes(globalSearch.toLowerCase()) ||
+      loc.includes(globalSearch.toLowerCase())
+    );
+  });
 
   return (
     <div>
@@ -556,6 +556,17 @@ const AllPoolTabels = () => {
               <MenuItem value="Premium Billiard 1">Premium Billiard 1</MenuItem>
               <MenuItem value="Premium Billiard 2">Premium Billiard 2</MenuItem>
               <MenuItem value="Premium Billiard 3">Premium Billiard 3</MenuItem>
+              <MenuItem value="PS5+VR">PS5+VR</MenuItem>
+              <MenuItem value="8 Ball Pool (Supreme)">
+                8 Ball Pool (Supreme)
+              </MenuItem>
+              <MenuItem value="8 Ball Pool (Premium)">
+                8 Ball Pool (Premium)
+              </MenuItem>
+              <MenuItem value="CRS+VR (PS V R2)">CRS+VR (PS V R2)</MenuItem>
+              <MenuItem value="Car Racing Simulator">
+                Car Racing Simulator
+              </MenuItem>
             </TextField>
             {/* Location */}
             <p style={{ marginBottom: 6, fontSize: "14px", fontWeight: 500 }}>
