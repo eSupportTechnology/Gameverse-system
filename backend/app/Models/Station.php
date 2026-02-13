@@ -12,12 +12,14 @@ class Station extends Model
         'type',
         'location',
         'description',
-        'price',
         'status',
         'bookings',
-        'time',
-        'vrTime',
-        'vrPrice',
         'thumbnail',
+        'common_thumbnail',
+        'pricing'
+    ];
+
+    protected $casts = [
+        'pricing' => 'array',
     ];
 }

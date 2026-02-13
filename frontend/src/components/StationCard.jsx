@@ -162,51 +162,37 @@ const StationCard = ({
               mb: 1.2,
             }}
           >
-            {/* Normal price or single price */}
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "space-between",
-                mb: station.vrPrice ? 0.6 : 0,
-              }}
-            >
-              <Typography sx={{ color: "#e5e5e6", fontSize: "0.7rem" }}>
-                {station.time} min {station.vrPrice ? "(Normal)" : ""}
-              </Typography>
-
-              <Typography
-                sx={{
-                  color: "#00d7ec",
-                  fontWeight: 700,
-                  fontSize: "0.8rem",
-                }}
-              >
-                LKR {station.price}
-              </Typography>
-            </Box>
-
-            {/* VR price (only if exists) */}
-            {station.vrPrice && (
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                }}
-              >
-                <Typography sx={{ color: "#e5e5e6", fontSize: "0.7rem" }}>
-                  {station.time} min (+ VR)
-                </Typography>
-
-                <Typography
+            {station.pricing && station.pricing.length > 0 ? (
+              station.pricing.map((p, index) => (
+                <Box
+                  key={index}
                   sx={{
-                    color: "#00d7ec",
-                    fontWeight: 700,
-                    fontSize: "0.8rem",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    mb: index !== station.pricing.length - 1 ? 0.6 : 0,
                   }}
                 >
-                  LKR {station.vrPrice}
-                </Typography>
-              </Box>
+                  <Typography sx={{ color: "#e5e5e6", fontSize: "0.7rem" }}>
+                    {p.duration} min ({p.vrPrice ? "Normal + VR" : "Normal"})
+                  </Typography>
+
+                  <Typography
+                    sx={{
+                      color: "#00d7ec",
+                      fontWeight: 700,
+                      fontSize: "0.8rem",
+                    }}
+                  >
+                    {p.vrPrice
+                      ? `${p.price} + ${p.vrPrice} LKR`
+                      : `${p.price} LKR`}
+                  </Typography>
+                </Box>
+              ))
+            ) : (
+              <Typography sx={{ color: "#e5e5e6", fontSize: "0.7rem" }}>
+                No pricing available
+              </Typography>
             )}
           </Box>
 
