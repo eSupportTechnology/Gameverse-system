@@ -19,12 +19,5 @@ class Station extends Model
         'vrTime',
         'vrPrice',
         'thumbnail',
-        'common_thumbnail'
     ];
-    protected $casts = [
-    'price' => 'array',
-    'time' => 'array',
-    'vrPrice' => 'array',
-    'vrTime' => 'array',
-];
 }

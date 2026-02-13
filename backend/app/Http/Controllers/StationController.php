@@ -14,21 +14,16 @@ class StationController extends Controller
     }
     public function store(Request $request)
     {
-       $request->validate([
-    'name'           => 'required|string|max:191',
-    'type'           => 'required|string|max:50',
-    'location'       => 'required|string|max:100',
-    'price'          => 'required|array',       // <-- array
-    'price.*'        => 'numeric|min:0',        // <-- each element numeric
-    'time'           => 'required|array',       // <-- array
-    'time.*'         => 'string|max:5',         // <-- each element like "30" or "60"
-    'vrTime'         => 'nullable|array',
-    'vrTime.*'       => 'string|max:5',
-    'vrPrice'        => 'nullable|array',
-    'vrPrice.*'      => 'numeric|min:0',
-    'thumbnail'      => 'nullable|image|max:2048',
-]);
-
+        $request->validate([
+            'name'      => 'required|string|max:191',
+            'type'      => 'required|string|max:50',
+            'location'  => 'required|string|max:100',
+            'price'     => 'required|numeric',
+            'time'      => 'required|integer|min:1',
+            'vrTime'    => 'nullable|integer|min:1',
+            'vrPrice'   => 'nullable|numeric',
+            'thumbnail' => 'nullable|image|max:2048', // allows any valid image type
+        ]);
 
         // Handle thumbnail upload
         $thumbnailPath = null;
@@ -36,20 +31,18 @@ class StationController extends Controller
             $thumbnailPath = $request->file('thumbnail')->store('stations', 'public');
         }
 
-     $station = Station::create([
-    'name'      => $request->name,
-    'type'      => $request->type,
-    'location'  => $request->location,
-    'price'     => $request->price,      // array stored as JSON
-    'time'      => $request->time,       // array stored as JSON
-    'vrPrice'   => $request->vrPrice ?? null,
-    'vrTime'    => $request->vrTime ?? null,
-    'status'    => $request->status ?? 'Available',
-    'bookings'  => $request->bookings ?? 0,
-    'thumbnail' => $thumbnailPath,
-]);
-
-
+        $station = Station::create([
+            'name'        => $request->name,
+            'type'        => $request->type,
+            'location'    => $request->location,
+            'price'       => $request->price,
+            'time'        => $request->time,
+            'vrTime'      => $request->vrTime,
+            'vrPrice'     => $request->vrPrice,
+            'status'      => $request->status ?? 'Available',
+            'bookings'    => $request->bookings ?? 0,
+            'thumbnail'   => $thumbnailPath,
+        ]);
 
         return response()->json($station, 201);
     }
@@ -59,18 +52,18 @@ class StationController extends Controller
     {
         $station = Station::findOrFail($id);
 
-       $station->update($request->only([
-    'name',
-    'type',
-    'location',
-    'price',
-    'time',
-    'status',
-    'bookings',
-    'vrPrice',
-    'vrTime',
-]));
-
+        $request->validate([
+            'name'        => 'sometimes|required|string|max:191',
+            'type'        => 'sometimes|required|string|max:50',
+            'location'    => 'sometimes|required|string|max:100',
+            'price'       => 'sometimes|required|numeric',
+            'time'        => 'sometimes|required|integer|min:1',
+            'vrTime'      => 'nullable|integer|min:1',
+            'vrPrice'     => 'nullable|numeric',
+            'status'      => 'sometimes|string|max:20',
+            'bookings'    => 'sometimes|integer|min:0',
+            'thumbnail' => 'nullable|image|max:2048', // allows any valid image type
+        ]);
 
         // Handle thumbnail upload
         if ($request->hasFile('thumbnail')) {
