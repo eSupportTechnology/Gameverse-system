@@ -363,7 +363,8 @@ const BookingForm = ({
   const allowMultiplePlayers =
     selectedStation && !["Pool", "Simulator"].includes(selectedStation.type);
 
-  const showVRPlay = selectedStation?.vrPrice && selectedStation?.vrTime;
+    const showVRPlay =
+    selectedStation?.pricing?.some((p) => p.vrPrice && p.vrPrice > 0) || false;
 
   useEffect(() => {
     if (!formData.station || !formData.duration) return;
