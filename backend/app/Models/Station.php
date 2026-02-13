@@ -20,4 +20,10 @@ class Station extends Model
         'vrPrice',
         'thumbnail',
     ];
+    protected $casts = [
+    'price' => 'array',
+    'time' => 'array',
+    'vrPrice' => 'array',
+    'vrTime' => 'array',
+];
 }
