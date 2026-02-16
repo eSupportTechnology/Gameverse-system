@@ -12,10 +12,19 @@ return new class extends Migration
     public function up(): void
     {
        Schema::table('stations', function (Blueprint $table) {
-        $table->decimal('vr_price_30', 8, 2)->nullable();
-        $table->decimal('vr_price_60', 8, 2)->nullable();
+        if (!Schema::hasColumn('stations', 'vr_price_30')) {
+            $table->decimal('vr_price_30', 8, 2)->nullable();
+        }
+        if (!Schema::hasColumn('stations', 'vr_price_60')) {
+            $table->decimal('vr_price_60', 8, 2)->nullable();
+        }
 
-        $table->dropColumn(['vrTime', 'vrPrice']);
+        if (Schema::hasColumn('stations', 'vrTime')) {
+            $table->dropColumn('vrTime');
+        }
+        if (Schema::hasColumn('stations', 'vrPrice')) {
+            $table->dropColumn('vrPrice');
+        }
     });
     }
 

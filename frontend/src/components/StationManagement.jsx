@@ -39,15 +39,16 @@ export default function StationManagement() {
   // Extract unique station types dynamically
   const stationTypes = [
     "All Stations",
-    ...Array.from(new Set(stations.map((s) => s.type))),
+    ...Array.from(new Set(Array.isArray(stations) ? stations.map((s) => s.type) : [])),
   ];
 
   const fetchStations = async () => {
     try {
       const res = await axios.get(`${API_BASE_URL}/api/stations`);
-      setStations(res.data);
+      setStations(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       console.error("Failed to fetch stations", err);
+      setStations([]);
     }
   };
 
@@ -129,7 +130,7 @@ export default function StationManagement() {
   };
 
   const handleToggleStatus = async (stationId) => {
-    const station = stations.find((s) => s.id === stationId);
+    const station = (Array.isArray(stations) ? stations : []).find((s) => s.id === stationId);
     if (!station) return;
 
     const newStatus = station.status === "Available" ? "Offline" : "Available";
@@ -167,7 +168,7 @@ export default function StationManagement() {
   };
 
   // Filter stations based on selected tab and status
-  const filteredStations = stations.filter((s) => {
+  const filteredStations = (Array.isArray(stations) ? stations : []).filter((s) => {
     const typeMatch = tab === 0 ? true : s.type === stationTypes[tab];
     const statusMatch =
       statusFilter === "All" ? true : s.status === statusFilter;

@@ -7,8 +7,23 @@ return new class extends Migration {
   public function up()
 {
     Schema::table('stations', function (Blueprint $table) {
-        $table->json('pricing')->nullable()->after('bookings');
-        $table->dropColumn(['time', 'price', 'vrTime', 'vrPrice']); // remove old fields
+        if (!Schema::hasColumn('stations', 'pricing')) {
+            $table->json('pricing')->nullable()->after('bookings');
+        }
+        
+        // Drop old pricing columns if they exist
+        if (Schema::hasColumn('stations', 'time')) {
+            $table->dropColumn('time');
+        }
+        if (Schema::hasColumn('stations', 'price')) {
+            $table->dropColumn('price');
+        }
+        if (Schema::hasColumn('stations', 'vrTime')) {
+            $table->dropColumn('vrTime');
+        }
+        if (Schema::hasColumn('stations', 'vrPrice')) {
+            $table->dropColumn('vrPrice');
+        }
     });
 }
 

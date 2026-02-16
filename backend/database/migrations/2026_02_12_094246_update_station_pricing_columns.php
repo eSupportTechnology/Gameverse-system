@@ -12,11 +12,19 @@ return new class extends Migration
     public function up(): void
     {
          Schema::table('stations', function (Blueprint $table) {
-        $table->dropColumn(['price', 'time']);
+        if (Schema::hasColumn('stations', 'price')) {
+            $table->dropColumn('price');
+        }
+        if (Schema::hasColumn('stations', 'time')) {
+            $table->dropColumn('time');
+        }
 
-        $table->decimal('price_30', 8, 2);
-        $table->decimal('price_60', 8, 2);
-
+        if (!Schema::hasColumn('stations', 'price_30')) {
+            $table->decimal('price_30', 8, 2);
+        }
+        if (!Schema::hasColumn('stations', 'price_60')) {
+            $table->decimal('price_60', 8, 2);
+        }
          });
     }
 
