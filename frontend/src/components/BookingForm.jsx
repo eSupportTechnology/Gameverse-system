@@ -363,8 +363,39 @@ const BookingForm = ({
   const allowMultiplePlayers =
     selectedStation && !["Pool", "Simulator"].includes(selectedStation.type);
 
-    const showVRPlay =
+  const showVRPlay =
     selectedStation?.pricing?.some((p) => p.vrPrice && p.vrPrice > 0) || false;
+
+  const calculateAmount = (station, selectedDuration, vrPlay) => {
+    if (!station || !selectedDuration || !station.pricing?.length) return 0;
+
+    const durationMinutes = parseDurationToMinutes(selectedDuration);
+
+    const pricingSorted = [...station.pricing].sort(
+      (a, b) => a.duration - b.duration,
+    );
+
+    let remaining = durationMinutes;
+    let total = 0;
+
+    while (remaining > 0) {
+      const priceEntry = [...pricingSorted]
+        .reverse()
+        .find((p) => p.duration <= remaining);
+
+      if (!priceEntry) break;
+
+      const times = Math.floor(remaining / priceEntry.duration);
+      const priceToUse =
+        vrPlay === "yes" ? priceEntry.vrPrice || 0 : priceEntry.price || 0;
+
+      total += priceToUse * times;
+
+      remaining -= priceEntry.duration * times;
+    }
+
+    return total;
+  };
 
   useEffect(() => {
     if (!formData.station || !formData.duration) return;
@@ -372,16 +403,13 @@ const BookingForm = ({
     const stationData = stations.find((s) => s.name === formData.station);
     if (!stationData) return;
 
-    const basePrice = Number(stationData.price) || 0;
-    const baseMinutes = Number(stationData.time) || 60;
+    const finalAmount = calculateAmount(
+      stationData,
+      formData.duration,
+      formData.vrPlay,
+    );
 
-    const durationMinutes = parseDurationToMinutes(formData.duration);
-    const normalAmount = (basePrice / baseMinutes) * durationMinutes;
-
-    const vrPrice =
-      formData.vrPlay === "yes" ? Number(stationData.vrPrice || 0) : 0;
-    const finalAmount = normalAmount + vrPrice;
-    setFormData((prev) => ({ ...prev, amount: Math.round(finalAmount) }));
+    setFormData((prev) => ({ ...prev, amount: finalAmount }));
   }, [formData.station, formData.duration, formData.vrPlay, stations]);
 
   const generateTimeSlots = () => {
