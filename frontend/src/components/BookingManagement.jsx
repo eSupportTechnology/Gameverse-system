@@ -544,34 +544,43 @@ const BookingManagement = () => {
               >
                 Stations
               </Typography>
-              {sortedStations.map((station, i) => (
-                <Box
-                  key={i}
-                  sx={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: 0.2,
-                    width: "100%",
-                    maxWidth: 185,
-                    height: 50,
-                    py: 1,
-                    px: 2,
-                    bgcolor: "#171E2A",
-                    mb: 1,
-                    borderRadius: "10px",
-                  }}
-                >
-                  <Typography fontWeight="bold" color="#FFFFFF" fontSize={12}>
-                    {station.name}
-                  </Typography>
-                  <Typography fontWeight={500} color="#9CA3AF" fontSize={12}>
-                    {station.type}
-                  </Typography>
-                  <Typography variant="caption" color="#0CD7FF" fontSize={12}>
-                    {station.price}
-                  </Typography>
-                </Box>
-              ))}
+              {sortedStations.map((station, i) => {
+                const oneHourPricing = station.pricing?.find(
+                  (p) => p.duration === 60,
+                );
+                const oneHourPrice = oneHourPricing
+                  ? `$${oneHourPricing.price}/hr`
+                  : "$0/hr";
+
+                return (
+                  <Box
+                    key={i}
+                    sx={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 0.2,
+                      width: "100%",
+                      maxWidth: 185,
+                      height: 50,
+                      py: 1,
+                      px: 2,
+                      bgcolor: "#171E2A",
+                      mb: 1,
+                      borderRadius: "10px",
+                    }}
+                  >
+                    <Typography fontWeight="bold" color="#FFFFFF" fontSize={12}>
+                      {station.name}
+                    </Typography>
+                    <Typography fontWeight={500} color="#9CA3AF" fontSize={12}>
+                      {station.type}
+                    </Typography>
+                    <Typography variant="caption" color="#0CD7FF" fontSize={12}>
+                      {oneHourPrice}
+                    </Typography>
+                  </Box>
+                );
+              })}
             </Box>
 
             {/* Right Column */}

@@ -54,19 +54,19 @@ class BookingController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-        public function store(Request $request): JsonResponse
+    public function store(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
             'nfc_card_number'   => 'nullable|string|max:255',
-            'customer_name'    => 'required|string|max:255',
-            'phone_number'     => 'required|string|max:20',
-            'station'          => 'required|string|max:255',
-            'booking_date'     => 'required|date',
-            'start_time'       => 'required|string|max:10',
-            'duration'         => 'required|string|max:20',
-            'amount'           => 'required|numeric|min:0',
-            'vr_play'          => 'nullable|in:yes,no',
-            'number_of_players'=> 'nullable|integer|min:1',
+            'customer_name'     => 'required|string|max:255',
+            'phone_number'      => 'required|string|max:20',
+            'station'           => 'required|string|max:255',
+            'booking_date'      => 'required|date',
+            'start_time'        => 'required|string|max:10',
+            'duration'          => 'required|string|max:20',
+            'amount'            => 'required|numeric|min:0',
+            'vr_play'           => 'nullable|in:yes,no',
+            'number_of_players' => 'nullable|integer|min:1',
         ]);
 
         if ($validator->fails()) {
@@ -78,47 +78,70 @@ class BookingController extends Controller
         }
 
         try {
+
             $data = $validator->validated();
+            $timezone = 'Asia/Colombo';
 
-            // Normalize start_time to 12h PM format
-            $formattedStartTime = $this->formatStartTimeWithPM($data['start_time']);
-            $data['start_time'] = $formattedStartTime;
+            // Convert start time to 12h format
+            $data['start_time'] = $this->formatStartTimeWithPM($data['start_time']);
 
-            
-            // chk the slot (station + date + time)
-            
+            $newStart = Carbon::createFromFormat(
+                'Y-m-d h:i A',
+                $data['booking_date'] . ' ' . $data['start_time'],
+                $timezone
+            );
+
+            $newEnd = $newStart->copy()->addMinutes(
+                $this->convertDurationToMinutes($data['duration'])
+            );
+
             $existingBookings = Booking::where('station', $data['station'])
                 ->whereDate('booking_date', $data['booking_date'])
-                ->where('start_time', $formattedStartTime)
-                ->orderBy('id')
                 ->get();
 
-            // Ps5Station logic applies only if bookings exist
-            if ($existingBookings->count() > 0) {
-                $slotCapacity = $existingBookings->first()->number_of_players;
-                $currentCount = $existingBookings->count();
+            foreach ($existingBookings as $booking) {
 
-                // Slot already full
-                if ($currentCount >= $slotCapacity) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'This time slot is fully booked'
-                    ], 409);
-                }
+                $existingStart = Carbon::createFromFormat(
+                    'Y-m-d h:i A',
+                    $booking->booking_date->format('Y-m-d') . ' ' . $booking->start_time,
+                    $timezone
+                );
 
-                // Force same number_of_players as first booking
-                $data['number_of_players'] = $slotCapacity;
-            } else {
-                // 1st booking must define capacity
-                if (empty($data['number_of_players'])) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Number of players is required for the first booking'
-                    ], 422);
+                $existingEnd = $existingStart->copy()->addMinutes(
+                    $this->convertDurationToMinutes($booking->duration)
+                );
+
+                // OVERLAP CHECK
+                if ($newStart < $existingEnd && $newEnd > $existingStart) {
+
+                    // Capacity logic
+                    $slotCapacity = $booking->number_of_players;
+                    $currentCount = $existingBookings
+                        ->filter(function ($b) use ($existingStart) {
+                            return $b->start_time === $existingStart->format('h:i A');
+                        })
+                        ->count();
+
+                    if ($currentCount >= $slotCapacity) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'This time slot is fully booked'
+                        ], 409);
+                    }
+
+                    // Force same number_of_players
+                    $data['number_of_players'] = $slotCapacity;
                 }
             }
 
-            // Create booking
+            // First booking must define capacity
+            if ($existingBookings->count() === 0 && empty($data['number_of_players'])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Number of players required for first booking'
+                ], 422);
+            }
+
             $booking = Booking::create($data);
 
             return response()->json([
@@ -126,7 +149,6 @@ class BookingController extends Controller
                 'message' => 'Booking created successfully',
                 'data'    => $booking
             ], 201);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -136,13 +158,16 @@ class BookingController extends Controller
         }
     }
 
+
     /**
      * Update the specified resource in storage.
      */
     public function update(Request $request, string $id): JsonResponse
     {
         try {
+
             $booking = Booking::findOrFail($id);
+            $timezone = 'Asia/Colombo';
 
             $validator = Validator::make($request->all(), [
                 'nfc_card_number' => 'nullable|string|max:255',
@@ -171,9 +196,52 @@ class BookingController extends Controller
 
             $data = $validator->validated();
 
-            // Convert start_time to 12-hour format with PM if provided
             if (isset($data['start_time'])) {
                 $data['start_time'] = $this->formatStartTimeWithPM($data['start_time']);
+            }
+
+            // Overlap validation (excluding self)
+            if (isset($data['station']) || isset($data['booking_date']) || isset($data['start_time'])) {
+
+                $station = $data['station'] ?? $booking->station;
+                $date = $data['booking_date'] ?? $booking->booking_date->format('Y-m-d');
+                $startTime = $data['start_time'] ?? $booking->start_time;
+                $duration = $data['duration'] ?? $booking->duration;
+
+                $newStart = Carbon::createFromFormat(
+                    'Y-m-d h:i A',
+                    $date . ' ' . $startTime,
+                    $timezone
+                );
+
+                $newEnd = $newStart->copy()->addMinutes(
+                    $this->convertDurationToMinutes($duration)
+                );
+
+                $existingBookings = Booking::where('station', $station)
+                    ->whereDate('booking_date', $date)
+                    ->where('id', '!=', $booking->id)
+                    ->get();
+
+                foreach ($existingBookings as $b) {
+
+                    $existingStart = Carbon::createFromFormat(
+                        'Y-m-d h:i A',
+                        $b->booking_date->format('Y-m-d') . ' ' . $b->start_time,
+                        $timezone
+                    );
+
+                    $existingEnd = $existingStart->copy()->addMinutes(
+                        $this->convertDurationToMinutes($b->duration)
+                    );
+
+                    if ($newStart < $existingEnd && $newEnd > $existingStart) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'This time range overlaps with another booking'
+                        ], 409);
+                    }
+                }
             }
 
             $booking->update($data);
@@ -191,6 +259,7 @@ class BookingController extends Controller
             ], 500);
         }
     }
+
 
     /**
      * Private helper to format start_time in 12-hour PM format

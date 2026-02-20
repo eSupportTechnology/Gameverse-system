@@ -412,9 +412,31 @@ const BookingForm = ({
     setFormData((prev) => ({ ...prev, amount: finalAmount }));
   }, [formData.station, formData.duration, formData.vrPlay, stations]);
 
+  const isSlotOverlapping = (slotTime) => {
+    if (!formData.station || !formData.bookingDate) return false;
+
+    const slotStart = parse12HourTimeToMinutes(slotTime);
+    const slotEnd = slotStart + 30;
+
+    return (bookings || []).some((b) => {
+      if (existingBooking && b.id === existingBooking.id) return false;
+
+      const bookingStation = b.station?.trim();
+      const bookingDate = normalizeDate(b.booking_date);
+      const bookingStart = parse12HourTimeToMinutes(b.start_time);
+      const bookingEnd = bookingStart + parseDurationToMinutes(b.duration);
+
+      return (
+        bookingStation === formData.station?.trim() &&
+        bookingDate === normalizeDate(formData.bookingDate) &&
+        slotStart < bookingEnd &&
+        slotEnd > bookingStart
+      );
+    });
+  };
+
   const generateTimeSlots = () => {
     const slots = [];
-
     const start = 12 * 60;
     const end = 23 * 60 + 30;
     const interval = 30;
@@ -425,8 +447,11 @@ const BookingForm = ({
 
       let h12 = h24 > 12 ? h24 - 12 : h24;
       if (h12 === 0) h12 = 12;
-      const label = `${h12.toString().padStart(2, "0")}.${m.toString().padStart(2, "0")}`;
-      const value = `${h24.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`;
+
+      const label = `${h12.toString().padStart(2, "0")}:${m
+        .toString()
+        .padStart(2, "0")}`;
+      const value = label;
 
       slots.push({ label, value });
     }
@@ -916,7 +941,11 @@ const BookingForm = ({
                   </em>
                 </MenuItem>
                 {generateTimeSlots().map((t, i) => (
-                  <MenuItem key={i} value={t.value}>
+                  <MenuItem
+                    key={i}
+                    value={t.value}
+                    disabled={isSlotOverlapping(t.value)}
+                  >
                     {t.label}
                   </MenuItem>
                 ))}
