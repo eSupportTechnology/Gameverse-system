@@ -58,27 +58,14 @@ export default function AddNFCUserDialog({
   const handleChange = (e) => {
     const { name, value } = e.target;
 
-    // For phone number, format automatically
     if (name === "phoneNo") {
-      // Remove all non-numeric characters
-      const numericValue = value.replace(/\D/g, "");
-
-      // Format: add space after 3rd digit
-      let formattedValue = numericValue;
-      if (numericValue.length > 3) {
-        formattedValue =
-          numericValue.slice(0, 3) + " " + numericValue.slice(3, 10);
-      }
-
-      // Limit to 10 digits (excluding space)
-      if (numericValue.length <= 10) {
-        setFormData((prev) => ({ ...prev, [name]: formattedValue }));
-      }
+      // Just set the value as-is, no formatting
+      setFormData((prev) => ({ ...prev, [name]: value }));
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
     }
 
-    // Clear error when user starts typing
+    // Clear error when user types
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: "" }));
     }
@@ -131,8 +118,8 @@ export default function AddNFCUserDialog({
 
     if (!formData.phoneNo.trim()) {
       newErrors.phoneNo = "Phone number is required";
-    } else if (!/^\d{3}\s\d{7}$/.test(formData.phoneNo.trim())) {
-      newErrors.phoneNo = "Phone number format should be 'XXX XXXXXXX'";
+    } else if (!/^\+?[0-9]{7,15}$/.test(formData.phoneNo.trim())) {
+      newErrors.phoneNo = "Enter a valid phone number";
     }
 
     if (!formData.nicNumber.trim()) {

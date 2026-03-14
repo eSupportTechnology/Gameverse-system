@@ -38,16 +38,20 @@ class NfcUserController extends Controller
         $validator = Validator::make($request->all(), [
             'full_name'  => 'required|string|max:255',
             'email'      => 'required|string|max:255',
-            'phone_no'   => 'required|string|regex:/^\d{3}\s\d{7}$/|unique:nfc_users,phone_no',
+            'phone_no' => [
+                'required',
+                'string',
+                'regex:/^\+?[0-9]{7,15}$/',
+                'unique:nfc_users,phone_no,' . $request->id
+            ],
             'nic_number' => 'required|string|unique:nfc_users,nic_number',
             'card_no'    => 'required|string|unique:nfc_users,card_no',
             'avatar'     => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             'status'     => 'nullable|in:active,inactive'
         ], [
-            'phone_no.regex'  => 'Phone number format should be XXX XXXXXXX',
+            'phone_no.regex'  => 'Enter a valid phone number',
             'phone_no.unique' => 'This phone number is already registered',
-            'nic_number.unique' => 'This NIC number is already registered',
-            'card_no.unique'  => 'This card number is already registered'
+            'nic_number.unique' => 'This NIC number is already registered'
         ]);
 
         if ($validator->fails()) {
@@ -120,12 +124,12 @@ class NfcUserController extends Controller
             $validator = Validator::make($request->all(), [
                 'full_name'  => 'required|string|max:255',
                 'email'  => 'required|string|max:255',
-                'phone_no'   => 'required|string|regex:/^\d{3}\s\d{7}$/|unique:nfc_users,phone_no,' . $id,
+                'phone_no'   => 'required|string|regex:/^\+?[0-9]{7,15}$/|unique:nfc_users,phone_no',
                 'nic_number' => 'required|string|unique:nfc_users,nic_number,' . $id,
                 'avatar'     => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
                 'status'     => 'nullable|in:active,inactive'
             ], [
-                'phone_no.regex'  => 'Phone number format should be XXX XXXXXXX',
+                'phone_no.regex'  => 'Enter a valid phone number',
                 'phone_no.unique' => 'This phone number is already registered',
                 'nic_number.unique' => 'This NIC number is already registered'
             ]);

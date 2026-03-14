@@ -537,7 +537,7 @@ export default function NFCUserContent() {
                       pl: 4,
                     }}
                   >
-                    {user.points}
+                    {user.points?.points || 0}
                   </TableCell>
                   <TableCell
                     onClick={() => toggleUserStatus(user.id)}
