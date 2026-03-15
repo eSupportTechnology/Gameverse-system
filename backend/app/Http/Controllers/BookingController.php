@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Booking;
+use App\Models\NfcUser;
 use App\Models\Station;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -189,7 +190,10 @@ class BookingController extends Controller
             }
             // Create booking
             $booking = Booking::create($data);
-
+            // Update NFC points and gifts
+            if (!empty($data['nfc_card_number'])) {
+                $this->updateNfcPointsAndGifts($data['nfc_card_number'], $data['station']);
+            }
             return response()->json([
                 'success' => true,
                 'message' => 'Booking created successfully',
@@ -334,7 +338,10 @@ class BookingController extends Controller
 
             // Update booking
             $booking->update($data);
-
+            // Update NFC points and gifts if NFC card provided
+            if (!empty($data['nfc_card_number'])) {
+                $this->updateNfcPointsAndGifts($data['nfc_card_number'], $stationName);
+            }
             return response()->json([
                 'success' => true,
                 'message' => 'Booking updated successfully',
@@ -348,8 +355,90 @@ class BookingController extends Controller
             ], 500);
         }
     }
+    private function updateNfcPointsAndGifts($cardNumber, $station)
+    {
+        $nfcUser = NfcUser::where('card_no', $cardNumber)->first();
 
+        if (!$nfcUser) return;
 
+        // Safely decode points & gift arrays
+        $points = is_array($nfcUser->points)
+            ? $nfcUser->points
+            : (json_decode($nfcUser->points, true) ?? []);
+
+        $gift = is_array($nfcUser->gift)
+            ? $nfcUser->gift
+            : (json_decode($nfcUser->gift, true) ?? []);
+
+        // Increment point for this station
+        $points[$station] = ($points[$station] ?? 0) + 1;
+
+        // Define reward rules
+        $rewardRules = [
+            'PlayStation' => [
+                'stations' => ['PS5 Station 1', 'PS5 Station 2', 'PS5 Station 3', 'PS5 Station 4', 'PS5 Station 5'],
+                'rewards' => [
+                    '1 hour free PlayStation (VR not included)',
+                    '1 hour free Racing Simulator (VR not included)'
+                ]
+            ],
+            'Racing Simulator' => [
+                'stations' => ['Racing Simulator 1', 'Racing Simulator 2', 'Racing Simulator 3', 'Racing Simulator 4'],
+                'rewards' => [
+                    '1 hour free Racing Simulator (VR not included)',
+                    '1 hour free PlayStation (VR not included)'
+                ]
+            ],
+            'Supreme Billiard' => [
+                'stations' => ['Supreme Billiard 1', 'Supreme Billiard 2'],
+                'rewards' => [
+                    '1 hour free Billiards (Supreme zones) (Free coffee/drinks not included)',
+                    '1 hour free PlayStation (VR not included)',
+                    '1 hour free Racing Simulator (VR not included)'
+                ]
+            ],
+            'Premium Billiard' => [
+                'stations' => ['Premium Billiard 1', 'Premium Billiard 2', 'Premium Billiard 3'],
+                'rewards' => [
+                    '1 hour free Billiards (Premium zones)',
+                    '1 hour free PlayStation (VR not included)',
+                    '30 min free Racing Simulator (VR not included)'
+                ]
+            ]
+        ];
+
+        // Check each reward group
+        foreach ($rewardRules as $type => $rule) {
+            // Calculate total points across all stations in this group
+            $totalPoints = 0;
+            foreach ($rule['stations'] as $s) {
+                $totalPoints += $points[$s] ?? 0;
+            }
+
+            if ($totalPoints >= 10) {
+                // Determine next reward_count for this type
+                $existingRewards = array_filter($gift, fn($g) => $g['type'] === "$type Reward");
+                $rewardCount = count($existingRewards) + 1;
+
+                // Add new reward entry
+                $gift[] = [
+                    'type' => "$type Reward",
+                    'rewards' => $rule['rewards'],
+                    'reward_count' => $rewardCount
+                ];
+
+                // Reset points for this group's stations
+                foreach ($rule['stations'] as $s) {
+                    $points[$s] = 0;
+                }
+            }
+        }
+
+        // Save back to user
+        $nfcUser->points = $points;
+        $nfcUser->gift = $gift;
+        $nfcUser->save();
+    }
     /**
      * Private helper to format start_time in 12-hour PM format
      */
