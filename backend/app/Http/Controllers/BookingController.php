@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Booking;
+use App\Models\Station;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -82,9 +83,10 @@ class BookingController extends Controller
             $data = $validator->validated();
             $timezone = 'Asia/Colombo';
 
-            // Convert start time to 12h format
+            // Format start time
             $data['start_time'] = $this->formatStartTimeWithPM($data['start_time']);
 
+            // Calculate new booking start & end
             $newStart = Carbon::createFromFormat(
                 'Y-m-d h:i A',
                 $data['booking_date'] . ' ' . $data['start_time'],
@@ -95,9 +97,22 @@ class BookingController extends Controller
                 $this->convertDurationToMinutes($data['duration'])
             );
 
+            // Get station info
+            $station = Station::where('name', $data['station'])->first();
+
+            if (!$station) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Station not found'
+                ], 404);
+            }
+
+            // Get existing bookings for that station and date
             $existingBookings = Booking::where('station', $data['station'])
                 ->whereDate('booking_date', $data['booking_date'])
                 ->get();
+
+            $slotBookings = collect();
 
             foreach ($existingBookings as $booking) {
 
@@ -111,37 +126,68 @@ class BookingController extends Controller
                     $this->convertDurationToMinutes($booking->duration)
                 );
 
-                // OVERLAP CHECK
                 if ($newStart < $existingEnd && $newEnd > $existingStart) {
-
-                    // Capacity logic
-                    $slotCapacity = $booking->number_of_players;
-                    $currentCount = $existingBookings
-                        ->filter(function ($b) use ($existingStart) {
-                            return $b->start_time === $existingStart->format('h:i A');
-                        })
-                        ->count();
-
-                    if ($currentCount >= $slotCapacity) {
-                        return response()->json([
-                            'success' => false,
-                            'message' => 'This time slot is fully booked'
-                        ], 409);
-                    }
-
-                    // Force same number_of_players
-                    $data['number_of_players'] = $slotCapacity;
+                    $slotBookings->push($booking);
                 }
             }
 
-            // First booking must define capacity
-            if ($existingBookings->count() === 0 && empty($data['number_of_players'])) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Number of players required for first booking'
-                ], 422);
+            $stationType = $station->type;
+
+            /*
+        |--------------------------------------------------------------------------
+        | POOL / SIMULATOR
+        |--------------------------------------------------------------------------
+        */
+
+            if (in_array($stationType, ['Pool', 'Simulator'])) {
+
+                if ($slotBookings->count() > 0) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'This station is already booked for this time'
+                    ], 409);
+                }
             }
 
+            /*
+        |--------------------------------------------------------------------------
+        | PLAYSTATION
+        |--------------------------------------------------------------------------
+        */
+
+            if ($stationType === 'PlayStation') {
+
+                // Get bookings only for same slot
+                $slotBookings = Booking::where('station', $data['station'])
+                    ->whereDate('booking_date', $data['booking_date'])
+                    ->where('start_time', $data['start_time'])
+                    ->get();
+
+                // FIRST BOOKING
+                if ($slotBookings->count() === 0) {
+
+                    if (empty($data['number_of_players'])) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'First PlayStation booking must define number of players'
+                        ], 422);
+                    }
+                } else {
+
+                    $capacity = $slotBookings->first()->number_of_players;
+
+                    if ($slotBookings->count() >= $capacity) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'This slot is fully booked'
+                        ], 409);
+                    }
+
+                    // Force same capacity
+                    $data['number_of_players'] = $capacity;
+                }
+            }
+            // Create booking
             $booking = Booking::create($data);
 
             return response()->json([
@@ -150,6 +196,7 @@ class BookingController extends Controller
                 'data'    => $booking
             ], 201);
         } catch (\Exception $e) {
+
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to create booking',
@@ -165,24 +212,22 @@ class BookingController extends Controller
     public function update(Request $request, string $id): JsonResponse
     {
         try {
-
             $booking = Booking::findOrFail($id);
             $timezone = 'Asia/Colombo';
 
             $validator = Validator::make($request->all(), [
-                'nfc_card_number' => 'nullable|string|max:255',
-                'customer_name' => 'string|max:255',
-                'phone_number' => 'string|max:20',
-                'station' => 'string|max:255',
-                'booking_date' => 'date',
-                'start_time' => 'string|max:10',
-                'duration' => 'string|max:20',
-                'extended_time' => 'nullable|string|max:20',
-                'payment_method' => 'nullable|string|max:50',
-                'end_time' => 'nullable|string|max:10',
-                'amount' => 'numeric|min:0',
-                'status' => 'in:pending,confirmed,cancelled,completed',
-                'vr_play' => 'nullable|in:yes,no',
+                'nfc_card_number'   => 'nullable|string|max:255',
+                'customer_name'     => 'string|max:255',
+                'phone_number'      => 'string|max:20',
+                'station'           => 'string|max:255',
+                'booking_date'      => 'date',
+                'start_time'        => 'string|max:10',
+                'duration'          => 'string|max:20',
+                'extended_time'     => 'nullable|string|max:20',
+                'payment_method'    => 'nullable|string|max:50',
+                'amount'            => 'numeric|min:0',
+                'status'            => 'in:pending,confirmed,cancelled,completed',
+                'vr_play'           => 'nullable|in:yes,no',
                 'number_of_players' => 'integer|min:1',
             ]);
 
@@ -190,7 +235,7 @@ class BookingController extends Controller
                 return response()->json([
                     'success' => false,
                     'message' => 'Validation failed',
-                    'errors' => $validator->errors()
+                    'errors'  => $validator->errors()
                 ], 422);
             }
 
@@ -200,50 +245,94 @@ class BookingController extends Controller
                 $data['start_time'] = $this->formatStartTimeWithPM($data['start_time']);
             }
 
-            // Overlap validation (excluding self)
-            if (isset($data['station']) || isset($data['booking_date']) || isset($data['start_time'])) {
+            // Use updated or existing values
+            $stationName = $data['station'] ?? $booking->station;
+            $bookingDate = $data['booking_date'] ?? $booking->booking_date->format('Y-m-d');
+            $startTime   = $data['start_time'] ?? $booking->start_time;
+            $duration    = $data['duration'] ?? $booking->duration;
 
-                $station = $data['station'] ?? $booking->station;
-                $date = $data['booking_date'] ?? $booking->booking_date->format('Y-m-d');
-                $startTime = $data['start_time'] ?? $booking->start_time;
-                $duration = $data['duration'] ?? $booking->duration;
+            $newStart = Carbon::createFromFormat('Y-m-d h:i A', $bookingDate . ' ' . $startTime, $timezone);
+            $newEnd   = $newStart->copy()->addMinutes($this->convertDurationToMinutes($duration));
 
-                $newStart = Carbon::createFromFormat(
+            // Get station info
+            $station = Station::where('name', $stationName)->first();
+            if (!$station) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Station not found'
+                ], 404);
+            }
+
+            $stationType = $station->type;
+
+            // Get all existing bookings for the same station and date, excluding current booking
+            $existingBookings = Booking::where('station', $stationName)
+                ->whereDate('booking_date', $bookingDate)
+                ->where('id', '!=', $booking->id)
+                ->get();
+
+            $slotBookings = collect();
+            foreach ($existingBookings as $b) {
+                $existingStart = Carbon::createFromFormat(
                     'Y-m-d h:i A',
-                    $date . ' ' . $startTime,
+                    $b->booking_date->format('Y-m-d') . ' ' . $b->start_time,
                     $timezone
                 );
+                $existingEnd = $existingStart->copy()->addMinutes($this->convertDurationToMinutes($b->duration));
 
-                $newEnd = $newStart->copy()->addMinutes(
-                    $this->convertDurationToMinutes($duration)
-                );
-
-                $existingBookings = Booking::where('station', $station)
-                    ->whereDate('booking_date', $date)
-                    ->where('id', '!=', $booking->id)
-                    ->get();
-
-                foreach ($existingBookings as $b) {
-
-                    $existingStart = Carbon::createFromFormat(
-                        'Y-m-d h:i A',
-                        $b->booking_date->format('Y-m-d') . ' ' . $b->start_time,
-                        $timezone
-                    );
-
-                    $existingEnd = $existingStart->copy()->addMinutes(
-                        $this->convertDurationToMinutes($b->duration)
-                    );
-
-                    if ($newStart < $existingEnd && $newEnd > $existingStart) {
-                        return response()->json([
-                            'success' => false,
-                            'message' => 'This time range overlaps with another booking'
-                        ], 409);
-                    }
+                if ($newStart < $existingEnd && $newEnd > $existingStart) {
+                    $slotBookings->push($b);
                 }
             }
 
+            // -----------------------------------
+            // Pool / Simulator logic
+            // -----------------------------------
+            if (in_array($stationType, ['Pool', 'Simulator'])) {
+                if ($slotBookings->count() > 0) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'This station is already booked for this time'
+                    ], 409);
+                }
+            }
+
+            // -----------------------------------
+            // PlayStation logic
+            // -----------------------------------
+            if ($stationType === 'PlayStation') {
+
+                // Filter for exact start time
+                $slotBookings = Booking::where('station', $stationName)
+                    ->whereDate('booking_date', $bookingDate)
+                    ->where('start_time', $startTime)
+                    ->where('id', '!=', $booking->id)
+                    ->get();
+
+                if ($slotBookings->count() === 0) {
+                    // First booking
+                    if (empty($data['number_of_players'])) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'First PlayStation booking must define number of players'
+                        ], 422);
+                    }
+                } else {
+                    $capacity = $slotBookings->first()->number_of_players;
+
+                    if ($slotBookings->count() >= $capacity) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'This slot is fully booked'
+                        ], 409);
+                    }
+
+                    // Force same capacity for consistency
+                    $data['number_of_players'] = $capacity;
+                }
+            }
+
+            // Update booking
             $booking->update($data);
 
             return response()->json([

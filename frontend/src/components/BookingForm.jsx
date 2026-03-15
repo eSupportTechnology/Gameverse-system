@@ -415,24 +415,55 @@ const BookingForm = ({
   const isSlotOverlapping = (slotTime) => {
     if (!formData.station || !formData.bookingDate) return false;
 
+    const stationData = stations.find((s) => s.name === formData.station);
+    if (!stationData) return false;
+
+    const allBookings = Array.isArray(bookings) ? bookings : [];
+
+    // Convert slotTime to minutes
     const slotStart = parse12HourTimeToMinutes(slotTime);
-    const slotEnd = slotStart + 30;
 
-    return (bookings || []).some((b) => {
-      if (existingBooking && b.id === existingBooking.id) return false;
-
-      const bookingStation = b.station?.trim();
-      const bookingDate = normalizeDate(b.booking_date);
-      const bookingStart = parse12HourTimeToMinutes(b.start_time);
-      const bookingEnd = bookingStart + parseDurationToMinutes(b.duration);
-
-      return (
-        bookingStation === formData.station?.trim() &&
-        bookingDate === normalizeDate(formData.bookingDate) &&
-        slotStart < bookingEnd &&
-        slotEnd > bookingStart
+    if (stationData.type === "PlayStation") {
+      // Filter bookings for same station and date
+      const slotBookings = allBookings.filter(
+        (b) =>
+          b.station?.trim() === formData.station?.trim() &&
+          normalizeDate(b.booking_date) === normalizeDate(formData.bookingDate),
       );
-    });
+
+      for (let booking of slotBookings) {
+        const bookingStart = parse12HourTimeToMinutes(booking.start_time);
+        const bookingEnd =
+          bookingStart + parseDurationToMinutes(booking.duration);
+        const capacity = booking.number_of_players || 1;
+
+        // Count how many bookings exist in this time slot
+        const overlappingBookings = slotBookings.filter((b2) => {
+          const b2Start = parse12HourTimeToMinutes(b2.start_time);
+          const b2End = b2Start + parseDurationToMinutes(b2.duration);
+          return slotStart >= b2Start && slotStart < b2End;
+        });
+
+        // Disable if fully booked
+        if (overlappingBookings.length >= capacity) return true;
+      }
+
+      return false;
+    } else {
+      // Pool / Simulator → block all slots overlapping with any booking
+      return allBookings.some((b) => {
+        if (b.station?.trim() !== formData.station?.trim()) return false;
+        if (
+          normalizeDate(b.booking_date) !== normalizeDate(formData.bookingDate)
+        )
+          return false;
+
+        const bookingStart = parse12HourTimeToMinutes(b.start_time);
+        const bookingEnd = bookingStart + parseDurationToMinutes(b.duration);
+
+        return slotStart >= bookingStart && slotStart < bookingEnd;
+      });
+    }
   };
 
   const generateTimeSlots = () => {
