@@ -33,6 +33,11 @@ const CheckoutGame = ({ game, handleClose, onPlayUpdate }) => {
   const [discount, setDiscount] = useState(0);
   const [unitPrice, setUnitPrice] = useState(game.price);
 
+  // Customer info fields
+  const [nfcCardNumber, setNfcCardNumber] = useState("");
+  const [customerName, setCustomerName] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+
   const handleCancelOpen = () => setCancelOpen(true);
   const handleCancelClose = () => setCancelOpen(false);
   const handleConfirm = () => {
@@ -94,7 +99,13 @@ const CheckoutGame = ({ game, handleClose, onPlayUpdate }) => {
       // Update balance
       const balanceRes = await axios.post(
         `${API_BASE_URL}/api/games/${gameId}/balance`,
-        { balance: Number(balance), discount: Number(discount) },
+        {
+          balance: Number(balance),
+          discount: Number(discount),
+          nfc_card_number: nfcCardNumber,
+          customer_name: customerName,
+          phone_number: phoneNumber,
+        },
 
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -153,6 +164,89 @@ const CheckoutGame = ({ game, handleClose, onPlayUpdate }) => {
         </Box>
 
         <DialogContent sx={{ py: 1 }}>
+          {/* NFC Card Number */}
+          <Box mb={1.5}>
+            <Typography fontSize={12} color="#9CA3AF" mb={0.5}>
+              NFC Card Number
+            </Typography>
+            <TextField
+              fullWidth
+              placeholder="Scan or enter NFC card number"
+              value={nfcCardNumber}
+              onChange={(e) => setNfcCardNumber(e.target.value)}
+              variant="outlined"
+              size="small"
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  color: "#FFFFFF",
+                  fontSize: 13,
+                  backgroundColor: "#1F2937",
+                  borderRadius: "8px",
+                  "& fieldset": { borderColor: "#374151" },
+                  "&:hover fieldset": { borderColor: "#0CD7FF" },
+                  "&.Mui-focused fieldset": { borderColor: "#0CD7FF" },
+                },
+                "& input::placeholder": { color: "#6B7280", opacity: 1 },
+              }}
+            />
+          </Box>
+
+          {/* Customer Name */}
+          <Box mb={1.5}>
+            <Typography fontSize={12} color="#9CA3AF" mb={0.5}>
+              Customer Name
+            </Typography>
+            <TextField
+              fullWidth
+              placeholder="Enter customer name"
+              value={customerName}
+              onChange={(e) => setCustomerName(e.target.value)}
+              variant="outlined"
+              size="small"
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  color: "#FFFFFF",
+                  fontSize: 13,
+                  backgroundColor: "#1F2937",
+                  borderRadius: "8px",
+                  "& fieldset": { borderColor: "#374151" },
+                  "&:hover fieldset": { borderColor: "#0CD7FF" },
+                  "&.Mui-focused fieldset": { borderColor: "#0CD7FF" },
+                },
+                "& input::placeholder": { color: "#6B7280", opacity: 1 },
+              }}
+            />
+          </Box>
+
+          {/* Phone Number */}
+          <Box mb={2}>
+            <Typography fontSize={12} color="#9CA3AF" mb={0.5}>
+              Phone Number
+            </Typography>
+            <TextField
+              fullWidth
+              placeholder="Enter phone number"
+              value={phoneNumber}
+              onChange={(e) => setPhoneNumber(e.target.value)}
+              variant="outlined"
+              size="small"
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  color: "#FFFFFF",
+                  fontSize: 13,
+                  backgroundColor: "#1F2937",
+                  borderRadius: "8px",
+                  "& fieldset": { borderColor: "#374151" },
+                  "&:hover fieldset": { borderColor: "#0CD7FF" },
+                  "&.Mui-focused fieldset": { borderColor: "#0CD7FF" },
+                },
+                "& input::placeholder": { color: "#6B7280", opacity: 1 },
+              }}
+            />
+          </Box>
+
+          <hr style={{ border: "none", borderTop: "1px solid #374151", marginBottom: "12px" }} />
+
           {/* Unit Price */}
           <Box display="flex" justifyContent="space-between" mb={1.5}>
             <Typography fontSize={14} color="#FFFFFF">
