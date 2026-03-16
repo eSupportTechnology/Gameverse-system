@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Booking;
+use App\Models\NfcUser;
+use App\Models\Station;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -54,19 +56,19 @@ class BookingController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-        public function store(Request $request): JsonResponse
+    public function store(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
             'nfc_card_number'   => 'nullable|string|max:255',
-            'customer_name'    => 'required|string|max:255',
-            'phone_number'     => 'required|string|max:20',
-            'station'          => 'required|string|max:255',
-            'booking_date'     => 'required|date',
-            'start_time'       => 'required|string|max:10',
-            'duration'         => 'required|string|max:20',
-            'amount'           => 'required|numeric|min:0',
-            'vr_play'          => 'nullable|in:yes,no',
-            'number_of_players'=> 'nullable|integer|min:1',
+            'customer_name'     => 'required|string|max:255',
+            'phone_number'      => 'required|string|max:20',
+            'station'           => 'required|string|max:255',
+            'booking_date'      => 'required|date',
+            'start_time'        => 'required|string|max:10',
+            'duration'          => 'required|string|max:20',
+            'amount'            => 'required|numeric|min:0',
+            'vr_play'           => 'nullable|in:yes,no',
+            'number_of_players' => 'nullable|integer|min:1',
         ]);
 
         if ($validator->fails()) {
@@ -78,56 +80,127 @@ class BookingController extends Controller
         }
 
         try {
+
             $data = $validator->validated();
+            $timezone = 'Asia/Colombo';
 
-            // Normalize start_time to 12h PM format
-            $formattedStartTime = $this->formatStartTimeWithPM($data['start_time']);
-            $data['start_time'] = $formattedStartTime;
+            // Format start time
+            $data['start_time'] = $this->formatStartTimeWithPM($data['start_time']);
 
-            
-            // chk the slot (station + date + time)
-            
+            // Calculate new booking start & end
+            $newStart = Carbon::createFromFormat(
+                'Y-m-d h:i A',
+                $data['booking_date'] . ' ' . $data['start_time'],
+                $timezone
+            );
+
+            $newEnd = $newStart->copy()->addMinutes(
+                $this->convertDurationToMinutes($data['duration'])
+            );
+
+            // Get station info
+            $station = Station::where('name', $data['station'])->first();
+
+            if (!$station) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Station not found'
+                ], 404);
+            }
+
+            // Get existing bookings for that station and date
             $existingBookings = Booking::where('station', $data['station'])
                 ->whereDate('booking_date', $data['booking_date'])
-                ->where('start_time', $formattedStartTime)
-                ->orderBy('id')
                 ->get();
 
-            // Ps5Station logic applies only if bookings exist
-            if ($existingBookings->count() > 0) {
-                $slotCapacity = $existingBookings->first()->number_of_players;
-                $currentCount = $existingBookings->count();
+            $slotBookings = collect();
 
-                // Slot already full
-                if ($currentCount >= $slotCapacity) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'This time slot is fully booked'
-                    ], 409);
-                }
+            foreach ($existingBookings as $booking) {
 
-                // Force same number_of_players as first booking
-                $data['number_of_players'] = $slotCapacity;
-            } else {
-                // 1st booking must define capacity
-                if (empty($data['number_of_players'])) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Number of players is required for the first booking'
-                    ], 422);
+                $existingStart = Carbon::createFromFormat(
+                    'Y-m-d h:i A',
+                    $booking->booking_date->format('Y-m-d') . ' ' . $booking->start_time,
+                    $timezone
+                );
+
+                $existingEnd = $existingStart->copy()->addMinutes(
+                    $this->convertDurationToMinutes($booking->duration)
+                );
+
+                if ($newStart < $existingEnd && $newEnd > $existingStart) {
+                    $slotBookings->push($booking);
                 }
             }
 
+            $stationType = $station->type;
+
+            /*
+        |--------------------------------------------------------------------------
+        | POOL / SIMULATOR
+        |--------------------------------------------------------------------------
+        */
+
+            if (in_array($stationType, ['Pool', 'Simulator'])) {
+
+                if ($slotBookings->count() > 0) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'This station is already booked for this time'
+                    ], 409);
+                }
+            }
+
+            /*
+        |--------------------------------------------------------------------------
+        | PLAYSTATION
+        |--------------------------------------------------------------------------
+        */
+
+            if ($stationType === 'PlayStation') {
+
+                // Get bookings only for same slot
+                $slotBookings = Booking::where('station', $data['station'])
+                    ->whereDate('booking_date', $data['booking_date'])
+                    ->where('start_time', $data['start_time'])
+                    ->get();
+
+                // FIRST BOOKING
+                if ($slotBookings->count() === 0) {
+
+                    if (empty($data['number_of_players'])) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'First PlayStation booking must define number of players'
+                        ], 422);
+                    }
+                } else {
+
+                    $capacity = $slotBookings->first()->number_of_players;
+
+                    if ($slotBookings->count() >= $capacity) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'This slot is fully booked'
+                        ], 409);
+                    }
+
+                    // Force same capacity
+                    $data['number_of_players'] = $capacity;
+                }
+            }
             // Create booking
             $booking = Booking::create($data);
-
+            // Update NFC points and gifts
+            if (!empty($data['nfc_card_number'])) {
+                $this->updateNfcPointsAndGifts($data['nfc_card_number'], $data['station']);
+            }
             return response()->json([
                 'success' => true,
                 'message' => 'Booking created successfully',
                 'data'    => $booking
             ], 201);
-
         } catch (\Exception $e) {
+
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to create booking',
@@ -136,6 +209,7 @@ class BookingController extends Controller
         }
     }
 
+
     /**
      * Update the specified resource in storage.
      */
@@ -143,21 +217,21 @@ class BookingController extends Controller
     {
         try {
             $booking = Booking::findOrFail($id);
+            $timezone = 'Asia/Colombo';
 
             $validator = Validator::make($request->all(), [
-                'nfc_card_number' => 'nullable|string|max:255',
-                'customer_name' => 'string|max:255',
-                'phone_number' => 'string|max:20',
-                'station' => 'string|max:255',
-                'booking_date' => 'date',
-                'start_time' => 'string|max:10',
-                'duration' => 'string|max:20',
-                'extended_time' => 'nullable|string|max:20',
-                'payment_method' => 'nullable|string|max:50',
-                'end_time' => 'nullable|string|max:10',
-                'amount' => 'numeric|min:0',
-                'status' => 'in:pending,confirmed,cancelled,completed',
-                'vr_play' => 'nullable|in:yes,no',
+                'nfc_card_number'   => 'nullable|string|max:255',
+                'customer_name'     => 'string|max:255',
+                'phone_number'      => 'string|max:20',
+                'station'           => 'string|max:255',
+                'booking_date'      => 'date',
+                'start_time'        => 'string|max:10',
+                'duration'          => 'string|max:20',
+                'extended_time'     => 'nullable|string|max:20',
+                'payment_method'    => 'nullable|string|max:50',
+                'amount'            => 'numeric|min:0',
+                'status'            => 'in:pending,confirmed,cancelled,completed',
+                'vr_play'           => 'nullable|in:yes,no',
                 'number_of_players' => 'integer|min:1',
             ]);
 
@@ -165,19 +239,109 @@ class BookingController extends Controller
                 return response()->json([
                     'success' => false,
                     'message' => 'Validation failed',
-                    'errors' => $validator->errors()
+                    'errors'  => $validator->errors()
                 ], 422);
             }
 
             $data = $validator->validated();
 
-            // Convert start_time to 12-hour format with PM if provided
             if (isset($data['start_time'])) {
                 $data['start_time'] = $this->formatStartTimeWithPM($data['start_time']);
             }
 
-            $booking->update($data);
+            // Use updated or existing values
+            $stationName = $data['station'] ?? $booking->station;
+            $bookingDate = $data['booking_date'] ?? $booking->booking_date->format('Y-m-d');
+            $startTime   = $data['start_time'] ?? $booking->start_time;
+            $duration    = $data['duration'] ?? $booking->duration;
 
+            $newStart = Carbon::createFromFormat('Y-m-d h:i A', $bookingDate . ' ' . $startTime, $timezone);
+            $newEnd   = $newStart->copy()->addMinutes($this->convertDurationToMinutes($duration));
+
+            // Get station info
+            $station = Station::where('name', $stationName)->first();
+            if (!$station) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Station not found'
+                ], 404);
+            }
+
+            $stationType = $station->type;
+
+            // Get all existing bookings for the same station and date, excluding current booking
+            $existingBookings = Booking::where('station', $stationName)
+                ->whereDate('booking_date', $bookingDate)
+                ->where('id', '!=', $booking->id)
+                ->get();
+
+            $slotBookings = collect();
+            foreach ($existingBookings as $b) {
+                $existingStart = Carbon::createFromFormat(
+                    'Y-m-d h:i A',
+                    $b->booking_date->format('Y-m-d') . ' ' . $b->start_time,
+                    $timezone
+                );
+                $existingEnd = $existingStart->copy()->addMinutes($this->convertDurationToMinutes($b->duration));
+
+                if ($newStart < $existingEnd && $newEnd > $existingStart) {
+                    $slotBookings->push($b);
+                }
+            }
+
+            // -----------------------------------
+            // Pool / Simulator logic
+            // -----------------------------------
+            if (in_array($stationType, ['Pool', 'Simulator'])) {
+                if ($slotBookings->count() > 0) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'This station is already booked for this time'
+                    ], 409);
+                }
+            }
+
+            // -----------------------------------
+            // PlayStation logic
+            // -----------------------------------
+            if ($stationType === 'PlayStation') {
+
+                // Filter for exact start time
+                $slotBookings = Booking::where('station', $stationName)
+                    ->whereDate('booking_date', $bookingDate)
+                    ->where('start_time', $startTime)
+                    ->where('id', '!=', $booking->id)
+                    ->get();
+
+                if ($slotBookings->count() === 0) {
+                    // First booking
+                    if (empty($data['number_of_players'])) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'First PlayStation booking must define number of players'
+                        ], 422);
+                    }
+                } else {
+                    $capacity = $slotBookings->first()->number_of_players;
+
+                    if ($slotBookings->count() >= $capacity) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'This slot is fully booked'
+                        ], 409);
+                    }
+
+                    // Force same capacity for consistency
+                    $data['number_of_players'] = $capacity;
+                }
+            }
+
+            // Update booking
+            $booking->update($data);
+            // Update NFC points and gifts if NFC card provided
+            if (!empty($data['nfc_card_number'])) {
+                $this->updateNfcPointsAndGifts($data['nfc_card_number'], $stationName);
+            }
             return response()->json([
                 'success' => true,
                 'message' => 'Booking updated successfully',
@@ -191,7 +355,90 @@ class BookingController extends Controller
             ], 500);
         }
     }
+    private function updateNfcPointsAndGifts($cardNumber, $station)
+    {
+        $nfcUser = NfcUser::where('card_no', $cardNumber)->first();
 
+        if (!$nfcUser) return;
+
+        // Safely decode points & gift arrays
+        $points = is_array($nfcUser->points)
+            ? $nfcUser->points
+            : (json_decode($nfcUser->points, true) ?? []);
+
+        $gift = is_array($nfcUser->gift)
+            ? $nfcUser->gift
+            : (json_decode($nfcUser->gift, true) ?? []);
+
+        // Increment point for this station
+        $points[$station] = ($points[$station] ?? 0) + 1;
+
+        // Define reward rules
+        $rewardRules = [
+            'PlayStation' => [
+                'stations' => ['PS5 Station 1', 'PS5 Station 2', 'PS5 Station 3', 'PS5 Station 4', 'PS5 Station 5'],
+                'rewards' => [
+                    '1 hour free PlayStation (VR not included)',
+                    '1 hour free Racing Simulator (VR not included)'
+                ]
+            ],
+            'Racing Simulator' => [
+                'stations' => ['Racing Simulator 1', 'Racing Simulator 2', 'Racing Simulator 3', 'Racing Simulator 4'],
+                'rewards' => [
+                    '1 hour free Racing Simulator (VR not included)',
+                    '1 hour free PlayStation (VR not included)'
+                ]
+            ],
+            'Supreme Billiard' => [
+                'stations' => ['Supreme Billiard 1', 'Supreme Billiard 2'],
+                'rewards' => [
+                    '1 hour free Billiards (Supreme zones) (Free coffee/drinks not included)',
+                    '1 hour free PlayStation (VR not included)',
+                    '1 hour free Racing Simulator (VR not included)'
+                ]
+            ],
+            'Premium Billiard' => [
+                'stations' => ['Premium Billiard 1', 'Premium Billiard 2', 'Premium Billiard 3'],
+                'rewards' => [
+                    '1 hour free Billiards (Premium zones)',
+                    '1 hour free PlayStation (VR not included)',
+                    '30 min free Racing Simulator (VR not included)'
+                ]
+            ]
+        ];
+
+        // Check each reward group
+        foreach ($rewardRules as $type => $rule) {
+            // Calculate total points across all stations in this group
+            $totalPoints = 0;
+            foreach ($rule['stations'] as $s) {
+                $totalPoints += $points[$s] ?? 0;
+            }
+
+            if ($totalPoints >= 10) {
+                // Determine next reward_count for this type
+                $existingRewards = array_filter($gift, fn($g) => $g['type'] === "$type Reward");
+                $rewardCount = count($existingRewards) + 1;
+
+                // Add new reward entry
+                $gift[] = [
+                    'type' => "$type Reward",
+                    'rewards' => $rule['rewards'],
+                    'reward_count' => $rewardCount
+                ];
+
+                // Reset points for this group's stations
+                foreach ($rule['stations'] as $s) {
+                    $points[$s] = 0;
+                }
+            }
+        }
+
+        // Save back to user
+        $nfcUser->points = $points;
+        $nfcUser->gift = $gift;
+        $nfcUser->save();
+    }
     /**
      * Private helper to format start_time in 12-hour PM format
      */

@@ -363,8 +363,39 @@ const BookingForm = ({
   const allowMultiplePlayers =
     selectedStation && !["Pool", "Simulator"].includes(selectedStation.type);
 
-    const showVRPlay =
+  const showVRPlay =
     selectedStation?.pricing?.some((p) => p.vrPrice && p.vrPrice > 0) || false;
+
+  const calculateAmount = (station, selectedDuration, vrPlay) => {
+    if (!station || !selectedDuration || !station.pricing?.length) return 0;
+
+    const durationMinutes = parseDurationToMinutes(selectedDuration);
+
+    const pricingSorted = [...station.pricing].sort(
+      (a, b) => a.duration - b.duration,
+    );
+
+    let remaining = durationMinutes;
+    let total = 0;
+
+    while (remaining > 0) {
+      const priceEntry = [...pricingSorted]
+        .reverse()
+        .find((p) => p.duration <= remaining);
+
+      if (!priceEntry) break;
+
+      const times = Math.floor(remaining / priceEntry.duration);
+      const priceToUse =
+        vrPlay === "yes" ? priceEntry.vrPrice || 0 : priceEntry.price || 0;
+
+      total += priceToUse * times;
+
+      remaining -= priceEntry.duration * times;
+    }
+
+    return total;
+  };
 
   useEffect(() => {
     if (!formData.station || !formData.duration) return;
@@ -372,21 +403,71 @@ const BookingForm = ({
     const stationData = stations.find((s) => s.name === formData.station);
     if (!stationData) return;
 
-    const basePrice = Number(stationData.price) || 0;
-    const baseMinutes = Number(stationData.time) || 60;
+    const finalAmount = calculateAmount(
+      stationData,
+      formData.duration,
+      formData.vrPlay,
+    );
 
-    const durationMinutes = parseDurationToMinutes(formData.duration);
-    const normalAmount = (basePrice / baseMinutes) * durationMinutes;
-
-    const vrPrice =
-      formData.vrPlay === "yes" ? Number(stationData.vrPrice || 0) : 0;
-    const finalAmount = normalAmount + vrPrice;
-    setFormData((prev) => ({ ...prev, amount: Math.round(finalAmount) }));
+    setFormData((prev) => ({ ...prev, amount: finalAmount }));
   }, [formData.station, formData.duration, formData.vrPlay, stations]);
+
+  const isSlotOverlapping = (slotTime) => {
+    if (!formData.station || !formData.bookingDate) return false;
+
+    const stationData = stations.find((s) => s.name === formData.station);
+    if (!stationData) return false;
+
+    const allBookings = Array.isArray(bookings) ? bookings : [];
+
+    // Convert slotTime to minutes
+    const slotStart = parse12HourTimeToMinutes(slotTime);
+
+    if (stationData.type === "PlayStation") {
+      // Filter bookings for same station and date
+      const slotBookings = allBookings.filter(
+        (b) =>
+          b.station?.trim() === formData.station?.trim() &&
+          normalizeDate(b.booking_date) === normalizeDate(formData.bookingDate),
+      );
+
+      for (let booking of slotBookings) {
+        const bookingStart = parse12HourTimeToMinutes(booking.start_time);
+        const bookingEnd =
+          bookingStart + parseDurationToMinutes(booking.duration);
+        const capacity = booking.number_of_players || 1;
+
+        // Count how many bookings exist in this time slot
+        const overlappingBookings = slotBookings.filter((b2) => {
+          const b2Start = parse12HourTimeToMinutes(b2.start_time);
+          const b2End = b2Start + parseDurationToMinutes(b2.duration);
+          return slotStart >= b2Start && slotStart < b2End;
+        });
+
+        // Disable if fully booked
+        if (overlappingBookings.length >= capacity) return true;
+      }
+
+      return false;
+    } else {
+      // Pool / Simulator → block all slots overlapping with any booking
+      return allBookings.some((b) => {
+        if (b.station?.trim() !== formData.station?.trim()) return false;
+        if (
+          normalizeDate(b.booking_date) !== normalizeDate(formData.bookingDate)
+        )
+          return false;
+
+        const bookingStart = parse12HourTimeToMinutes(b.start_time);
+        const bookingEnd = bookingStart + parseDurationToMinutes(b.duration);
+
+        return slotStart >= bookingStart && slotStart < bookingEnd;
+      });
+    }
+  };
 
   const generateTimeSlots = () => {
     const slots = [];
-
     const start = 12 * 60;
     const end = 23 * 60 + 30;
     const interval = 30;
@@ -397,8 +478,11 @@ const BookingForm = ({
 
       let h12 = h24 > 12 ? h24 - 12 : h24;
       if (h12 === 0) h12 = 12;
-      const label = `${h12.toString().padStart(2, "0")}.${m.toString().padStart(2, "0")}`;
-      const value = `${h24.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`;
+
+      const label = `${h12.toString().padStart(2, "0")}:${m
+        .toString()
+        .padStart(2, "0")}`;
+      const value = label;
 
       slots.push({ label, value });
     }
@@ -888,7 +972,11 @@ const BookingForm = ({
                   </em>
                 </MenuItem>
                 {generateTimeSlots().map((t, i) => (
-                  <MenuItem key={i} value={t.value}>
+                  <MenuItem
+                    key={i}
+                    value={t.value}
+                    disabled={isSlotOverlapping(t.value)}
+                  >
                     {t.label}
                   </MenuItem>
                 ))}
