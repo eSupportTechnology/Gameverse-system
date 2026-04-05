@@ -35,6 +35,19 @@ const BookingForm = ({
   const [cancelConfirm, setCancelConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [nfcDialogOpen, setNfcDialogOpen] = useState(false);
+  const [rewards, setRewards] = useState({});
+  const [selectedRewards, setSelectedRewards] = useState({});
+  
+  const fetchRewards = async (cardNo) => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}/api/rewards/${cardNo}`);
+      if (res.data.success) {
+        setRewards(res.data.data || {});
+      }
+    } catch (err) {
+      console.error("Failed to fetch rewards");
+    }
+  };
   const normalizeDate = (date) => {
     if (!date) return "";
     return date.split("T")[0].trim();
@@ -349,6 +362,12 @@ const BookingForm = ({
       }
 
       onBookingCreated && onBookingCreated();
+      for (let type in selectedRewards) {
+        await axios.post(`${API_BASE_URL}/api/use-reward`, {
+          card_no: formData.nfcCardNumber,
+          type,
+        });
+      }
     } catch (error) {
       console.error("Error submitting booking:", error);
       alert(error.response?.data?.message || "Failed to submit booking");
@@ -508,11 +527,13 @@ const BookingForm = ({
           phoneNumber: user.phone_no,
           nfcCardNumber: cardUID,
         }));
+        await fetchRewards(cardUID);
       } else {
         setFormData((prev) => ({
           ...prev,
           nfcCardNumber: cardUID,
         }));
+        await fetchRewards(cardUID);
       }
     } catch (err) {
       console.error("Failed to fetch NFC user:", err);
@@ -520,6 +541,7 @@ const BookingForm = ({
         ...prev,
         nfcCardNumber: cardUID,
       }));
+      await fetchRewards(cardUID);
     }
   };
 
@@ -1091,7 +1113,50 @@ const BookingForm = ({
               )}
             </Box>
           )}
+          {Object.keys(rewards).length > 0 && (
+            <Box mt={3}>
+              <Typography sx={{ color: "#00E5FF", mb: 2 }}>
+                Available Rewards
+              </Typography>
 
+              {Object.entries(rewards).map(([type, data]) => (
+                <Box
+                  key={type}
+                  sx={{ mb: 2, p: 2, background: "#1F2937", borderRadius: 2 }}
+                >
+                  <Typography sx={{ color: "white", fontWeight: "bold" }}>
+                    {type} (x{data.count})
+                  </Typography>
+
+                  {data.rewards.map((reward, idx) => (
+                    <Box
+                      key={idx}
+                      onClick={() =>
+                        setSelectedRewards((prev) => ({
+                          ...prev,
+                          [type]: reward,
+                        }))
+                      }
+                      sx={{
+                        mt: 1,
+                        p: 1,
+                        borderRadius: 1,
+                        cursor: "pointer",
+                        background:
+                          selectedRewards[type] === reward
+                            ? "#0CD7FF"
+                            : "#111827",
+                        color:
+                          selectedRewards[type] === reward ? "black" : "white",
+                      }}
+                    >
+                      {reward}
+                    </Box>
+                  ))}
+                </Box>
+              ))}
+            </Box>
+          )}
           {/* Amount */}
           <Box
             mt={3}

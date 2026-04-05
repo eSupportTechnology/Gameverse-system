@@ -180,3 +180,6 @@ Route::get('/reports/total-pos-amount', [ReportsController::class, 'totalPosAmou
 
 Route::get('/reports/export-doc', [ReportsController::class, 'exportDoc']);
 Route::get('/nfc-users/by-card/{cardNo}', [NfcUserController::class, 'getByCard']);
+
+Route::get('/rewards/{cardNo}', [BookingController::class, 'getUserRewards']);
+Route::post('/use-reward', [BookingController::class, 'useReward']);

@@ -417,15 +417,16 @@ class BookingController extends Controller
 
             if ($totalPoints >= 10) {
                 // Determine next reward_count for this type
-                $existingRewards = array_filter($gift, fn($g) => $g['type'] === "$type Reward");
-                $rewardCount = count($existingRewards) + 1;
+                $key = "$type Reward";
 
-                // Add new reward entry
-                $gift[] = [
-                    'type' => "$type Reward",
-                    'rewards' => $rule['rewards'],
-                    'reward_count' => $rewardCount
-                ];
+                if (!isset($gift[$key])) {
+                    $gift[$key] = [
+                        'count' => 0,
+                        'rewards' => $rule['rewards']
+                    ];
+                }
+
+                $gift[$key]['count'] += 1;
 
                 // Reset points for this group's stations
                 foreach ($rule['stations'] as $s) {
@@ -438,6 +439,59 @@ class BookingController extends Controller
         $nfcUser->points = $points;
         $nfcUser->gift = $gift;
         $nfcUser->save();
+    }
+    public function useReward(Request $request)
+    {
+        $request->validate([
+            'card_no' => 'required',
+            'type' => 'required'
+        ]);
+
+        $user = NfcUser::where('card_no', $request->card_no)->first();
+
+        if (!$user) {
+            return response()->json(['success' => false], 404);
+        }
+
+        $gift = json_decode($user->gift, true) ?? [];
+
+        if (!isset($gift[$request->type]) || $gift[$request->type]['count'] <= 0) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No reward available'
+            ], 400);
+        }
+
+        // Decrease count
+        $gift[$request->type]['count'] -= 1;
+
+        $user->gift = $gift;
+        $user->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Reward used successfully'
+        ]);
+    }
+    public function getUserRewards($cardNo)
+    {
+        $user = NfcUser::where('card_no', $cardNo)->first();
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User not found'
+            ], 404);
+        }
+
+        $gift = is_array($user->gift)
+            ? $user->gift
+            : json_decode($user->gift, true);
+
+        return response()->json([
+            'success' => true,
+            'data' => $gift ?? []
+        ]);
     }
     /**
      * Private helper to format start_time in 12-hour PM format
