@@ -76,8 +76,8 @@ class PosSaleController extends Controller
 
             DB::commit();
 
-            // Update NFC points only if customer selected
-            if (!empty($request->customer_id)) {
+            // Update NFC points only if customer selected AND no reward was used
+            if (!empty($request->customer_id) && empty($request->used_reward)) {
                 $totalQuantity = $cartItems->sum('quantity');
                 $this->updateNfcPointsForPos($request->customer_id, $totalQuantity);
             }
