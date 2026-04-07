@@ -183,3 +183,6 @@ Route::get('/nfc-users/by-card/{cardNo}', [NfcUserController::class, 'getByCard'
 
 Route::get('/rewards/{cardNo}', [BookingController::class, 'getUserRewards']);
 Route::post('/use-reward', [BookingController::class, 'useReward']);
+
+Route::get('/rewards/{cardNo}', [PosSaleController::class, 'getUserRewards']);
+Route::post('/use-reward', [PosSaleController::class, 'useReward']);

@@ -20,15 +20,22 @@ class PosSaleController extends Controller
                 throw new \Exception('Cart is empty');
             }
 
-            $subtotal = $cartItems->sum(fn($c) => $c->posItem->price * $c->quantity);
+            // ✅ FIX — Support reward price (0)
+            $subtotal = $cartItems->sum(function ($c) {
+                $price = $c->price ?? $c->posItem->price;
+                return $price * $c->quantity;
+            });
+
             $discount = (float) ($request->discount ?? 0);
             $total = max($subtotal - $discount, 0);
 
             // Prepare items array
-            $itemsArray = $cartItems->map(fn($cart) => [
-                'item_id' => $cart->pos_item_id,
-                'quantity' => $cart->quantity
-            ])->toArray();
+            $itemsArray = $cartItems->map(function ($cart) {
+                return [
+                    'item_id' => $cart->pos_item_id,
+                    'quantity' => $cart->quantity
+                ];
+            })->toArray();
 
             // Create sale
             $sale = PosSale::create([
@@ -39,21 +46,27 @@ class PosSaleController extends Controller
                 'discount' => $discount,
                 'total' => $total,
                 'items' => json_encode($itemsArray),
+
+                // ✅ Store used reward
+                'used_reward' => json_encode($request->used_reward ?? [])
             ]);
 
             // Process each cart item
             foreach ($cartItems as $cart) {
+
+                $price = $cart->price ?? $cart->posItem->price;
+
                 SaleItem::create([
                     'sale_id' => $sale->id,
                     'item_id' => $cart->pos_item_id,
                     'quantity' => $cart->quantity,
-                    'unit_price' => $cart->posItem->price,
-                    'subtotal' => $cart->posItem->price * $cart->quantity,
+                    'unit_price' => $price,
+                    'subtotal' => $price * $cart->quantity,
                 ]);
 
                 // Update stock and paid amount
                 PosItem::where('id', $cart->pos_item_id)->update([
-                    'paid_amount' => DB::raw('paid_amount + ' . ($cart->posItem->price * $cart->quantity)),
+                    'paid_amount' => DB::raw('paid_amount + ' . ($price * $cart->quantity)),
                     'stock' => DB::raw('stock - ' . $cart->quantity),
                 ]);
             }
@@ -72,10 +85,11 @@ class PosSaleController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Checkout completed successfully',
-                'data' => $sale->load('items.item'),
+                'data' => $sale
             ], 201);
         } catch (\Exception $e) {
             DB::rollBack();
+
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),
@@ -88,33 +102,112 @@ class PosSaleController extends Controller
         $nfcUser = NfcUser::where('card_no', $customerId)->first();
         if (!$nfcUser) return;
 
-        // Decode safely
-        $points = is_array($nfcUser->points) ? $nfcUser->points : (json_decode($nfcUser->points, true) ?? []);
-        $gift   = is_array($nfcUser->gift) ? $nfcUser->gift : (json_decode($nfcUser->gift, true) ?? []);
+        $points = is_array($nfcUser->points)
+            ? $nfcUser->points
+            : (json_decode($nfcUser->points, true) ?? []);
 
-        // Increment Foodcourt points
+        $gift = is_array($nfcUser->gift)
+            ? $nfcUser->gift
+            : (json_decode($nfcUser->gift, true) ?? []);
+
+        // Ensure Foodcourt key exists
         $points['Foodcourt'] = ($points['Foodcourt'] ?? 0) + $totalQuantity;
 
-        // Add rewards
-        while ($points['Foodcourt'] >= 10) {
-            $existingRewards = array_filter($gift, fn($g) => $g['type'] === 'Foodcourt Reward');
-            $rewardCount = count($existingRewards) + 1;
-
-            $gift[] = [
-                'type' => 'Foodcourt Reward',
+        // Ensure reward structure exists
+        if (!isset($gift['Foodcourt Reward'])) {
+            $gift['Foodcourt Reward'] = [
+                'count' => 0,
                 'rewards' => [
                     '1 Free Coffee',
                     '1 Free Mojito',
                     '1 Free Brownie with Ice Cream'
-                ],
-                'reward_count' => $rewardCount
+                ]
             ];
+        }
 
+        // Add rewards
+        while ($points['Foodcourt'] >= 10) {
+            $gift['Foodcourt Reward']['count'] += 1;
             $points['Foodcourt'] -= 10;
         }
 
         $nfcUser->points = $points;
-        $nfcUser->gift   = $gift;
+        $nfcUser->gift = $gift;
         $nfcUser->save();
+    }
+
+
+    public function useReward(Request $request)
+    {
+        $request->validate([
+            'card_no' => 'required',
+            'type'    => 'required',
+            'sale_id' => 'nullable'
+        ]);
+
+        $user = NfcUser::where('card_no', $request->card_no)->first();
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User not found'
+            ], 404);
+        }
+
+        $gift = is_array($user->gift)
+            ? $user->gift
+            : (json_decode($user->gift, true) ?? []);
+
+        if (!isset($gift[$request->type]) || $gift[$request->type]['count'] <= 0) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No reward available'
+            ], 400);
+        }
+
+        // Deduct reward
+        $gift[$request->type]['count'] -= 1;
+
+        // Track used rewards
+        $usedRewards = is_array($user->used_rewards)
+            ? $user->used_rewards
+            : (json_decode($user->used_rewards, true) ?? []);
+
+        $usedRewards[] = [
+            'type' => $request->type,
+            'sale_id' => $request->sale_id ?? null,
+            'used_at' => now()
+        ];
+
+        $user->gift = $gift;
+        $user->used_rewards = $usedRewards;
+        $user->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Reward used successfully'
+        ]);
+    }
+
+
+    public function getUserRewards($cardNo)
+    {
+        $user = NfcUser::where('card_no', $cardNo)->first();
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User not found'
+            ], 404);
+        }
+
+        $gift = is_array($user->gift)
+            ? $user->gift
+            : (json_decode($user->gift, true) ?? []);
+
+        return response()->json([
+            'success' => true,
+            'data' => $gift
+        ]);
     }
 }

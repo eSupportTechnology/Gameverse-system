@@ -84,7 +84,8 @@ const PosSystem = () => {
 
   const handleOpenAddNFCUserDialog = () => setOpenAddNFCUserDialog(true);
   const handleCloseAddNFCUserDialog = () => setOpenAddNFCUserDialog(false);
-
+  const [rewards, setRewards] = useState({});
+  const [selectedRewards, setSelectedRewards] = useState({});
   // Cart operations
   const fetchCart = async () => {
     try {
@@ -275,7 +276,16 @@ const PosSystem = () => {
       setLoading(false);
     }
   };
-
+  const fetchRewards = async (cardNo) => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}/api/rewards/${cardNo}`);
+      if (res.data.success) {
+        setRewards(res.data.data || {});
+      }
+    } catch (err) {
+      console.error("Failed to fetch rewards");
+    }
+  };
   // Update/Edit item
   const handleUpdateItem = async () => {
     try {
@@ -395,25 +405,38 @@ const PosSystem = () => {
 
   const total = Math.max(subtotal - Number(discount || 0), 0);
 
-  const handlePayNow = async () => {
-    try {
-      await axios.post(`${API_BASE_URL}/api/pos/checkout`, {
-        customer_name: customerName,
-        customer_id: customerId,
-        discount: discount,
-        email: nfcFormData.email,
+ const handlePayNow = async () => {
+  try {
+    const saleResponse = await axios.post(`${API_BASE_URL}/api/pos/checkout`, {
+      customer_name: customerName,
+      customer_id: customerId,
+      discount: discount,
+      email: nfcFormData.email,
+      used_reward:
+        Object.keys(selectedRewards).length > 0 ? selectedRewards : null,
+    });
+
+    const saleId = saleResponse.data?.data?.id;
+
+    for (let type in selectedRewards) {
+      await axios.post(`${API_BASE_URL}/api/use-reward`, {
+        card_no: customerId,
+        type,
+        sale_id: saleId,
       });
-
-      setOpenCheckout(false);
-      setOpenPaymentSuccess(true);
-
-      fetchCart();
-      fetchItems();
-    } catch (err) {
-      toast.error(err.response?.data?.message || "Checkout failed");
     }
-  };
 
+    setOpenCheckout(false);
+    setOpenPaymentSuccess(true);
+
+    fetchCart();
+    fetchItems();
+
+  } catch (err) {
+    console.error(err);
+    toast.error(err.response?.data?.message || "Checkout failed");
+  }
+};
   const wsRef = useRef(null);
 
   const fetchUserByCardUID = async (cardUID) => {
@@ -438,6 +461,7 @@ const PosSystem = () => {
           email: user.email,
           avatar: user.avatar ? `${API_BASE_URL}/storage/${user.avatar}` : "",
         });
+        await fetchRewards(cardUID);
 
         setCustomerName(user.full_name);
         setCustomerId(user.nfc_card_number || cardUID);
@@ -450,6 +474,8 @@ const PosSystem = () => {
           nfcCardNumber: cardUID,
           avatar: "",
         });
+        await fetchRewards(cardUID);
+
         setCustomerName("");
         setCustomerId(cardUID);
         setScannedCardNumber(cardUID);
@@ -489,7 +515,7 @@ const PosSystem = () => {
 
     return () => ws.close();
   }, []);
-
+  console.log(rewards);
   return (
     <Box
       sx={{
@@ -769,6 +795,12 @@ const PosSystem = () => {
         </Box>
 
         <RightSection
+        aToken={aToken}
+          setCart={setCart}
+          setProducts={setProducts}
+          rewards={rewards}
+          selectedRewards={selectedRewards} // track selected rewards
+          setSelectedRewards={setSelectedRewards}
           scanIcon={scanIcon}
           addIcon={addIcon}
           openAddNFCUserDialog={openAddNFCUserDialog}

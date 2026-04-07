@@ -3,8 +3,13 @@ import { Box, Typography, TextField, IconButton, Button } from "@mui/material";
 import RemoveIcon from "@mui/icons-material/Remove";
 import AddIcon from "@mui/icons-material/Add";
 import AddNFCUserDialog from "./AddNFCUserDialog"; // make sure path is correct
+import { toast } from "react-toastify";
+import axios from "axios";
+import { API_BASE_URL } from "../apiConfig";
 
 export default function RightSection({
+  setCart,
+  setProducts,
   scanIcon,
   addIcon,
   openAddNFCUserDialog,
@@ -22,7 +27,80 @@ export default function RightSection({
   handleCreateNFCUser,
   scannedCardNumber,
   setScannedCardNumber,
+  rewards,
+  selectedRewards,
+  setSelectedRewards,
+  aToken,
 }) {
+  const rewardConfig = {
+    "1 Free Coffee": { itemName: "Coffee", quantity: 1 },
+    "1 Free Mojito": { itemName: "Mojito", quantity: 1 },
+    "1 Free Brownie with Ice Cream": { itemName: "Brownie", quantity: 1 },
+  };
+  const handleRewardClick = async (rewardType, rewardName) => {
+    const config = rewardConfig[rewardName];
+    if (!config) return;
+
+    const freeItem = products.find(
+      (p) => p.item_name.toLowerCase() === config.itemName.toLowerCase(),
+    );
+    if (!freeItem) return toast.error("Item not found in POS");
+    if (freeItem.stock < config.quantity)
+      return toast.error("Reward item is out of stock");
+
+    try {
+      // Add to backend cart with token
+      await axios.post(
+        `${API_BASE_URL}/api/cart/add`,
+        {
+          pos_item_id: freeItem.id,
+          qty: config.quantity,
+          is_reward: true,
+          reward_price: 0,
+        },
+        {
+          headers: { Authorization: `Bearer ${aToken}` }, // <-- important
+        },
+      );
+
+      // Update frontend cart immediately
+      const existingInCart = cart.find((c) => c.id === freeItem.id);
+      if (existingInCart) {
+        setCart((prev) =>
+          prev.map((c) =>
+            c.id === freeItem.id
+              ? { ...c, qty: c.qty + config.quantity, price: 0 }
+              : c,
+          ),
+        );
+      } else {
+        setCart((prev) => [
+          ...prev,
+          {
+            id: freeItem.id,
+            name: freeItem.item_name,
+            qty: config.quantity,
+            price: 0,
+          },
+        ]);
+      }
+
+      // Decrease stock locally
+      setProducts((prev) =>
+        prev.map((p) =>
+          p.id === freeItem.id ? { ...p, stock: p.stock - config.quantity } : p,
+        ),
+      );
+
+      // Track selected reward
+      setSelectedRewards((prev) => ({ ...prev, [rewardType]: rewardName }));
+
+      toast.success(`Reward "${rewardName}" added to cart!`);
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to add reward to cart");
+    }
+  };
   return (
     <Box
       sx={{
@@ -89,7 +167,47 @@ export default function RightSection({
             setFormData={setNfcFormData}
           />
         </Box>
+        {Object.entries(rewards).some(([_, r]) => r.count > 0) && (
+          <Box mt={3}>
+            <Typography sx={{ color: "#00E5FF", mb: 2 }}>
+              Available Rewards
+            </Typography>
 
+            {Object.entries(rewards)
+              .filter(([_, data]) => data.count > 0)
+              .map(([type, data]) => (
+                <Box
+                  key={type}
+                  sx={{ mb: 2, p: 2, background: "#1F2937", borderRadius: 2 }}
+                >
+                  <Typography sx={{ color: "white", fontWeight: "bold" }}>
+                    {type} (x{data.count})
+                  </Typography>
+
+                  {data.rewards.map((reward, idx) => (
+                    <Box
+                      key={idx}
+                      onClick={() => handleRewardClick(type, reward)}
+                      sx={{
+                        mt: 1,
+                        p: 1,
+                        borderRadius: 1,
+                        cursor: "pointer",
+                        background:
+                          selectedRewards[type] === reward
+                            ? "#0CD7FF"
+                            : "#111827",
+                        color:
+                          selectedRewards[type] === reward ? "black" : "white",
+                      }}
+                    >
+                      {reward}
+                    </Box>
+                  ))}
+                </Box>
+              ))}
+          </Box>
+        )}
         {/* Cart Section */}
         <Box
           sx={{
