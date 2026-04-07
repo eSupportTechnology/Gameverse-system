@@ -20,9 +20,28 @@ class PosSaleController extends Controller
                 throw new \Exception('Cart is empty');
             }
 
-            // ✅ FIX — Support reward price (0)
-            $subtotal = $cartItems->sum(function ($c) {
-                $price = $c->price ?? $c->posItem->price;
+            $usedRewards = $request->used_reward ?? [];
+
+            $subtotal = $cartItems->sum(function ($c) use ($usedRewards) {
+
+                $isRewardItem = false;
+
+                if (is_array($usedRewards)) {
+                    foreach ($usedRewards as $rewardName) {
+                        if (
+                            str_contains(
+                                strtolower($rewardName),
+                                strtolower($c->posItem->item_name)
+                            )
+                        ) {
+                            $isRewardItem = true;
+                            break;
+                        }
+                    }
+                }
+
+                $price = $isRewardItem ? 0 : $c->posItem->price;
+
                 return $price * $c->quantity;
             });
 
@@ -54,7 +73,16 @@ class PosSaleController extends Controller
             // Process each cart item
             foreach ($cartItems as $cart) {
 
-                $price = $cart->price ?? $cart->posItem->price;
+                $usedRewards = $request->used_reward ?? [];
+
+                $isRewardItem = collect($usedRewards)->contains(function ($rewardName) use ($cart) {
+                    return str_contains(
+                        strtolower($rewardName),
+                        strtolower($cart->posItem->item_name)
+                    );
+                });
+
+                $price = $isRewardItem ? 0 : $cart->posItem->price;
 
                 SaleItem::create([
                     'sale_id' => $sale->id,
