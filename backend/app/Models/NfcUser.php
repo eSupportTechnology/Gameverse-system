@@ -26,6 +26,7 @@ class NfcUser extends Model
     protected $casts = [
         'points' => 'array',
         'gift'   => 'array',
+        'used_rewards' => 'array',
     ];
 
     /**

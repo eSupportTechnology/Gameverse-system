@@ -37,7 +37,48 @@ const BookingForm = ({
   const [nfcDialogOpen, setNfcDialogOpen] = useState(false);
   const [rewards, setRewards] = useState({});
   const [selectedRewards, setSelectedRewards] = useState({});
-  
+  const rewardConfig = {
+    "1 hour free PlayStation (VR not included)": {
+      duration: "1h",
+      stations: [
+        "PS5 Station 1",
+        "PS5 Station 2",
+        "PS5 Station 3",
+        "PS5 Station 4",
+        "PS5 Station 5",
+      ],
+    },
+    "1 hour free Racing Simulator (VR not included)": {
+      duration: "1h",
+      stations: [
+        "Racing Simulator 1",
+        "Racing Simulator 2",
+        "Racing Simulator 3",
+        "Racing Simulator 4",
+      ],
+    },
+    "30 min free Racing Simulator (VR not included)": {
+      duration: "30m",
+      stations: [
+        "Racing Simulator 1",
+        "Racing Simulator 2",
+        "Racing Simulator 3",
+        "Racing Simulator 4",
+      ],
+    },
+    "1 hour free Billiards (Supreme zones) (Free coffee/drinks not included)": {
+      duration: "1h",
+      stations: ["Supreme Billiard 1", "Supreme Billiard 2"],
+    },
+    "1 hour free Billiards (Premium zones)": {
+      duration: "1h",
+      stations: [
+        "Premium Billiard 1",
+        "Premium Billiard 2",
+        "Premium Billiard 3",
+      ],
+    },
+  };
   const fetchRewards = async (cardNo) => {
     try {
       const res = await axios.get(`${API_BASE_URL}/api/rewards/${cardNo}`);
@@ -322,13 +363,16 @@ const BookingForm = ({
         duration: finalDuration,
         number_of_players: finalPlayers,
         amount: formData.amount,
+        used_reward:
+          Object.keys(selectedRewards).length > 0 ? selectedRewards : null,
       };
 
       const token = localStorage.getItem("aToken");
+      let bookingResponse;
 
       if (existingBooking) {
         // Update booking
-        await axios.put(
+        bookingResponse = await axios.put(
           `${API_BASE_URL}/api/bookings/${existingBooking.id}`,
           payload,
           {
@@ -341,12 +385,16 @@ const BookingForm = ({
         setUpdateSuccess(true); // show update dialog
       } else {
         // Create new booking
-        await axios.post(`${API_BASE_URL}/api/bookings`, payload, {
-          headers: {
-            Authorization: token ? `Bearer ${token}` : "",
-            "Content-Type": "application/json",
+        bookingResponse = await axios.post(
+          `${API_BASE_URL}/api/bookings`,
+          payload,
+          {
+            headers: {
+              Authorization: token ? `Bearer ${token}` : "",
+              "Content-Type": "application/json",
+            },
           },
-        });
+        );
         setcreateSuccess(true); // show create dialog
         setFormData({
           nfcCardNumber: "",
@@ -360,14 +408,18 @@ const BookingForm = ({
           amount: 0,
         });
       }
+      const bookingId = bookingResponse.data?.data?.id;
 
-      onBookingCreated && onBookingCreated();
+      // Use selected rewards
       for (let type in selectedRewards) {
         await axios.post(`${API_BASE_URL}/api/use-reward`, {
           card_no: formData.nfcCardNumber,
           type,
+          booking_id: bookingId,
         });
       }
+
+      onBookingCreated && onBookingCreated();
     } catch (error) {
       console.error("Error submitting booking:", error);
       alert(error.response?.data?.message || "Failed to submit booking");
@@ -417,6 +469,11 @@ const BookingForm = ({
   };
 
   useEffect(() => {
+    if (Object.keys(selectedRewards).length > 0) {
+      setFormData((prev) => ({ ...prev, amount: 0 }));
+      return;
+    }
+
     if (!formData.station || !formData.duration) return;
 
     const stationData = stations.find((s) => s.name === formData.station);
@@ -429,7 +486,13 @@ const BookingForm = ({
     );
 
     setFormData((prev) => ({ ...prev, amount: finalAmount }));
-  }, [formData.station, formData.duration, formData.vrPlay, stations]);
+  }, [
+    formData.station,
+    formData.duration,
+    formData.vrPlay,
+    stations,
+    selectedRewards,
+  ]);
 
   const isSlotOverlapping = (slotTime) => {
     if (!formData.station || !formData.bookingDate) return false;
@@ -575,7 +638,10 @@ const BookingForm = ({
 
     return () => ws.close();
   }, []);
-
+  const activeReward = Object.values(selectedRewards)[0];
+  const allowedStations = activeReward
+    ? rewardConfig[activeReward]?.stations || []
+    : null;
   return (
     <>
       <Dialog
@@ -805,11 +871,17 @@ const BookingForm = ({
                   </em>
                 </MenuItem>
 
-                {stations.map((station) => (
-                  <MenuItem key={station.id} value={station.name}>
-                    {station.name}
-                  </MenuItem>
-                ))}
+                {stations
+                  .filter((station) =>
+                    allowedStations
+                      ? allowedStations.includes(station.name)
+                      : true,
+                  )
+                  .map((station) => (
+                    <MenuItem key={station.id} value={station.name}>
+                      {station.name}
+                    </MenuItem>
+                  ))}
               </Select>
             </Box>
 
@@ -1018,7 +1090,10 @@ const BookingForm = ({
                 value={formData.duration}
                 onChange={(e) => handleInputChange("duration", e.target.value)}
                 fullWidth
-                disabled={!!getSlotDurationFromExistingBookings()} // Disable if duration exists
+                disabled={
+                  !!getSlotDurationFromExistingBookings() ||
+                  Object.keys(selectedRewards).length > 0
+                }
                 sx={{
                   backgroundColor: "#1F2937",
                   borderRadius: "6px",
@@ -1113,48 +1188,63 @@ const BookingForm = ({
               )}
             </Box>
           )}
-          {Object.keys(rewards).length > 0 && (
+          {Object.entries(rewards).some(([_, r]) => r.count > 0) && (
             <Box mt={3}>
               <Typography sx={{ color: "#00E5FF", mb: 2 }}>
                 Available Rewards
               </Typography>
 
-              {Object.entries(rewards).map(([type, data]) => (
-                <Box
-                  key={type}
-                  sx={{ mb: 2, p: 2, background: "#1F2937", borderRadius: 2 }}
-                >
-                  <Typography sx={{ color: "white", fontWeight: "bold" }}>
-                    {type} (x{data.count})
-                  </Typography>
+              {Object.entries(rewards)
+                .filter(([_, data]) => data.count > 0)
+                .map(([type, data]) => (
+                  <Box
+                    key={type}
+                    sx={{ mb: 2, p: 2, background: "#1F2937", borderRadius: 2 }}
+                  >
+                    <Typography sx={{ color: "white", fontWeight: "bold" }}>
+                      {type} (x{data.count})
+                    </Typography>
 
-                  {data.rewards.map((reward, idx) => (
-                    <Box
-                      key={idx}
-                      onClick={() =>
-                        setSelectedRewards((prev) => ({
-                          ...prev,
-                          [type]: reward,
-                        }))
-                      }
-                      sx={{
-                        mt: 1,
-                        p: 1,
-                        borderRadius: 1,
-                        cursor: "pointer",
-                        background:
-                          selectedRewards[type] === reward
-                            ? "#0CD7FF"
-                            : "#111827",
-                        color:
-                          selectedRewards[type] === reward ? "black" : "white",
-                      }}
-                    >
-                      {reward}
-                    </Box>
-                  ))}
-                </Box>
-              ))}
+                    {data.rewards.map((reward, idx) => (
+                      <Box
+                        key={idx}
+                        onClick={() => {
+                          const config = rewardConfig[reward];
+
+                          setSelectedRewards((prev) => ({
+                            ...prev,
+                            [type]: reward,
+                          }));
+
+                          if (config) {
+                            setFormData((prev) => ({
+                              ...prev,
+                              duration: config.duration,
+                              station: config.stations[0], // auto pick first station
+                              amount: 0, // FREE
+                            }));
+                          }
+                        }}
+                        sx={{
+                          mt: 1,
+                          p: 1,
+                          borderRadius: 1,
+                          cursor: "pointer",
+                          background:
+                            selectedRewards[type] === reward
+                              ? "#0CD7FF"
+                              : "#111827",
+                          color:
+                            selectedRewards[type] === reward
+                              ? "black"
+                              : "white",
+                        }}
+                      >
+                        {reward}
+                      </Box>
+                    ))}
+                  </Box>
+                ))}
             </Box>
           )}
           {/* Amount */}
@@ -1170,7 +1260,9 @@ const BookingForm = ({
               Amount
             </Typography>
             <Typography variant="h6" color="cyan">
-              LKR {formData.amount}
+              {Object.keys(selectedRewards).length > 0
+                ? "FREE"
+                : `LKR ${formData.amount}`}
             </Typography>
           </Box>
         </DialogContent>
