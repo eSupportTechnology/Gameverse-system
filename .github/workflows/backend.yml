@@ -22,6 +22,7 @@ jobs:
             --exclude='.git' \
             --exclude='.github' \
             --exclude='node_modules' \
+            --exclude='storage' \
             .
 
       - name: Deploy to cPanel via SCP
@@ -55,7 +56,7 @@ jobs:
             fi
 
             # Clean current deployment except .htaccess, .well-known, .env, and cgi-bin
-            cd /home/futuwgbp/admin-api.gameverse.lk/ && find . -maxdepth 1 ! -name "." ! -name ".htaccess" ! -name ".well-known" ! -name "cgi-bin" ! -name ".env" -exec rm -rf {} +
+            cd /home/futuwgbp/admin-api.gameverse.lk/ && find . -maxdepth 1 ! -name "." ! -name ".htaccess" ! -name ".well-known" ! -name "cgi-bin" ! -name ".env" ! -name "storage" -exec rm -rf {} +
 
             # Extract new deployment
             tar -xzf /home/futuwgbp/temp/deployment.tar.gz -C /home/futuwgbp/admin-api.gameverse.lk
