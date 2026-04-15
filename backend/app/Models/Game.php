@@ -14,8 +14,6 @@ class Game extends Model
         'location',
         'method',
         'price',
-        'balance',
-        'discount',
         'team_game',
     ];
 

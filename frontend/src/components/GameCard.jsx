@@ -29,7 +29,7 @@ const GameCard = ({ game: initialGame, onPlay, onUpdate }) => {
   if (!game || !game.title) return null;
 
   const quantity = Math.floor(
-    (game.price || 0) / (methodValue[game.method] || 1)
+    (game.price || 0) / (methodValue[game.method] || 1),
   );
 
   const handlePlayClick = async () => {
@@ -122,29 +122,23 @@ const GameCard = ({ game: initialGame, onPlay, onUpdate }) => {
           alignItems="center"
           mb={1.5}
         >
-          <Typography fontSize={13} color="#FFFFFF">
+          <Typography fontSize={13} color="#0CD7FF" fontWeight={600}>
             {(() => {
               const method = game.method;
 
+              let label = "Price";
+
               if (typeof method === "string") {
-                return method;
+                label = method;
+              } else if (method?.type === "Per Hour") {
+                label = "Per Hour";
+              } else if (method?.type === "Coin") {
+                label = "Per Coin";
+              } else if (method?.type === "Arrow") {
+                label = "Per Arrow";
               }
 
-              if (method?.type === "Per Hour") {
-                return `Per Hour [hours: ${method.hours ?? 0}, players: ${
-                  method.players ?? 0
-                }]`;
-              }
-
-              if (method?.type === "Coin") {
-                return ` Coins: ${method.coins ?? 0}`;
-              }
-
-              if (method?.type === "Arrow") {
-                return `Arrows: ${method.arrows ?? 0}`;
-              }
-
-              return "-";
+              return `${label}`;
             })()}
           </Typography>
 

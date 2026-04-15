@@ -9,12 +9,15 @@ import {
   Typography,
   IconButton,
   TextField,
+  InputAdornment,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import PaymentSuccess from "../assets/PaymentSuccess.png";
 import CancelPopup from "./CancelPopup";
 import axios from "axios";
 import { API_BASE_URL } from "../apiConfig";
+import AddNFCUserDialog from "./AddNFCUserDialog";
+import AddIcon from "@mui/icons-material/Add";
 
 const methodUnitPrice = {
   Coin: 100,
@@ -26,13 +29,34 @@ const CheckoutGame = ({ game, handleClose, onPlayUpdate }) => {
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
   const [selectedMethod, setSelectedMethod] = useState("");
+  const [nfcDialogOpen, setNfcDialogOpen] = useState(false);
 
   // Form states(editable fields)
   const [units, setUnits] = useState("0");
   const [players, setPlayers] = useState(1);
   const [discount, setDiscount] = useState(0);
   const [unitPrice, setUnitPrice] = useState(game.price);
+  const [formData, setFormData] = useState({
+    nfcCardNumber: "",
+    customerName: "",
+    phoneNumber: "",
+  });
 
+  const handleInputChange = (field, value) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+  const handleCreateNFCUser = (nfcData) => {
+    setFormData((prev) => ({
+      ...prev,
+      nfcCardNumber: nfcData.nfcCardNumber,
+      customerName: nfcData.fullName,
+      phoneNumber: nfcData.phoneNo.replace(/\s/g, ""),
+    }));
+    setNfcDialogOpen(false);
+  };
   const handleCancelOpen = () => setCancelOpen(true);
   const handleCancelClose = () => setCancelOpen(false);
   const handleConfirm = () => {
@@ -61,46 +85,43 @@ const CheckoutGame = ({ game, handleClose, onPlayUpdate }) => {
         return;
       }
 
-      let payload = {};
+      let methodPayload = {};
 
       if (selectedMethod === "Per Hour") {
-        payload = {
+        methodPayload = {
           type: "Per Hour",
           hours: Number(units),
           players: Number(players),
         };
       } else if (selectedMethod === "Coin") {
-        payload = {
+        methodPayload = {
           type: "Coin",
           coins: Number(units),
         };
       } else if (selectedMethod === "Arrow") {
-        payload = {
+        methodPayload = {
           type: "Arrow",
           arrows: Number(units),
         };
-      } else {
-        alert("Invalid payment method");
-        return;
       }
 
-      // Update method
-      const methodRes = await axios.post(
-        `${API_BASE_URL}/api/games/${gameId}/play`,
-        payload,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      // Update balance
       const balanceRes = await axios.post(
-        `${API_BASE_URL}/api/games/${gameId}/balance`,
-        { balance: Number(balance), discount: Number(discount) },
+        `${API_BASE_URL}/api/games/${gameId}/checkout`,
+        {
+          method: methodPayload, // ✅ EXACT JSON
 
-        { headers: { Authorization: `Bearer ${token}` } }
+          balance: Number(balance),
+          discount: Number(discount),
+
+          nfc_card_number: formData.nfcCardNumber,
+          customer_name: formData.customerName,
+          phone_number: formData.phoneNumber,
+        },
+        { headers: { Authorization: `Bearer ${token}` } },
       );
 
       // Update the parent state to reflect changes immediately
-      onPlayUpdate(gameId, methodRes.data.method);
+      onPlayUpdate(gameId, balanceRes.data.method);
 
       setPaymentSuccess(true);
     } catch (error) {
@@ -112,25 +133,34 @@ const CheckoutGame = ({ game, handleClose, onPlayUpdate }) => {
   useEffect(() => {
     if (game?.method) {
       setSelectedMethod(
-        typeof game.method === "string" ? game.method : game.method.type
+        typeof game.method === "string" ? game.method : game.method.type,
       );
     }
   }, [game]);
+  const handleOpenNfcDialog = () => {
+    setNfcDialogOpen(true);
+  };
 
+  // Close NFC dialog
+  const handleCloseNfcDialog = () => {
+    setNfcDialogOpen(false);
+  };
   return (
     <div>
       <Dialog
         open={Boolean(game)}
         onClose={handleClose}
+        maxWidth="sm"
+        fullWidth
         PaperProps={{
           sx: {
             bgcolor: "#0E111B",
-            borderRadius: "12px",
+            borderRadius: "16px",
             color: "#fff",
-            px: 2,
-            pb: 2,
-            width: "360px",
-            maxWidth: "90vw",
+            px: { xs: 3, sm: 4 }, // responsive horizontal padding
+            pb: { xs: 3, sm: 4 },
+            width: "100%",
+            maxWidth: 500, // increases width for bigger screens
           },
         }}
       >
@@ -153,16 +183,153 @@ const CheckoutGame = ({ game, handleClose, onPlayUpdate }) => {
         </Box>
 
         <DialogContent sx={{ py: 1 }}>
+          <Box display="flex" flexDirection="column" gap={1} mt={1}>
+            <Typography
+              variant="body2"
+              sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF" }}
+            >
+              NFC Card Number
+            </Typography>
+
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <TextField
+                variant="outlined"
+                fullWidth
+                size="small"
+                placeholder="Enter NFC Card Number"
+                value={formData.nfcCardNumber}
+                onChange={(e) =>
+                  handleInputChange("nfcCardNumber", e.target.value)
+                }
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <Box
+                        component="img"
+                        src="/images/nfc.png"
+                        alt="NFC"
+                        sx={{ width: 22, height: 22, cursor: "pointer" }}
+                      />
+                    </InputAdornment>
+                  ),
+                  sx: {
+                    backgroundColor: "#1F2937",
+                    borderRadius: "6px",
+                    "& input::placeholder": {
+                      color: "#9CA3AF",
+                      fontSize: "14px",
+                    },
+                    color: "white",
+                    fontWeight: 500,
+                  },
+                }}
+              />
+
+              <Box
+                sx={{
+                  width: 38,
+                  height: 38,
+                  backgroundColor: "#1F2937",
+                  borderRadius: "8px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "pointer",
+                  "&:hover": { backgroundColor: "#374151" },
+                }}
+                onClick={handleOpenNfcDialog}
+              >
+                <AddIcon sx={{ color: "white", fontSize: 22 }} />
+              </Box>
+            </Box>
+          </Box>
+
+          {/* Customer Name & Phone Number */}
+          <Box
+            display="grid"
+            gridTemplateColumns={{ xs: "1fr", md: "1fr 1fr" }}
+            gap={2}
+            mt={2}
+          >
+            {/* Customer Name */}
+            <Box display="flex" flexDirection="column" gap={1}>
+              <Typography
+                variant="body2"
+                sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF" }}
+              >
+                Customer Name
+              </Typography>
+              <TextField
+                variant="outlined"
+                fullWidth
+                size="small"
+                placeholder="Enter customer name"
+                value={formData.customerName}
+                onChange={(e) =>
+                  handleInputChange("customerName", e.target.value)
+                }
+                InputProps={{
+                  sx: {
+                    backgroundColor: "#1F2937",
+                    borderRadius: "6px",
+                    "& input::placeholder": {
+                      color: "#9CA3AF",
+                      fontSize: "14px",
+                    },
+                    color: "white",
+                    fontWeight: 500,
+                  },
+                }}
+              />
+            </Box>
+
+            {/* Phone */}
+            <Box display="flex" flexDirection="column" gap={1}>
+              <Typography
+                variant="body2"
+                sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF" }}
+              >
+                Phone Number
+              </Typography>
+              <TextField
+                variant="outlined"
+                fullWidth
+                size="small"
+                placeholder="Enter Phone number"
+                value={formData.phoneNumber}
+                onChange={(e) =>
+                  handleInputChange("phoneNumber", e.target.value)
+                }
+                inputProps={{
+                  inputMode: "numeric",
+                  pattern: "[0-9]*",
+                  maxLength: 15,
+                }}
+                InputProps={{
+                  sx: {
+                    backgroundColor: "#1F2937",
+                    borderRadius: "6px",
+                    "& input::placeholder": {
+                      color: "#9CA3AF",
+                      fontSize: "14px",
+                    },
+                    color: "white",
+                    fontWeight: 500,
+                  },
+                }}
+              />
+            </Box>
+          </Box>
           {/* Unit Price */}
           <Box display="flex" justifyContent="space-between" mb={1.5}>
             <Typography fontSize={14} color="#FFFFFF">
               {game.team_game
                 ? "1 Hour Price (per person):"
                 : game.method === "Arrow"
-                ? "1 Arrow Price:"
-                : game.method === "Coin"
-                ? "1 Coin Price:"
-                : "Unit Price:"}
+                  ? "1 Arrow Price:"
+                  : game.method === "Coin"
+                    ? "1 Coin Price:"
+                    : "Unit Price:"}
             </Typography>
             <TextField
               type="number"
@@ -220,10 +387,10 @@ const CheckoutGame = ({ game, handleClose, onPlayUpdate }) => {
               {game.team_game
                 ? "Hours:"
                 : game.method === "Arrow"
-                ? "Arrows:"
-                : game.method === "Coin"
-                ? "Coins:"
-                : "Unit Price:"}
+                  ? "Arrows:"
+                  : game.method === "Coin"
+                    ? "Coins:"
+                    : "Unit Price:"}
             </Typography>
             <TextField
               type="number"
@@ -363,6 +530,13 @@ const CheckoutGame = ({ game, handleClose, onPlayUpdate }) => {
             Pay Now
           </Button>
         </DialogActions>
+        <AddNFCUserDialog
+          open={nfcDialogOpen}
+          onClose={handleCloseNfcDialog}
+          onCreate={handleCreateNFCUser}
+          formData={formData}
+          setFormData={setFormData}
+        />
 
         {/* Payment Success */}
         <Dialog

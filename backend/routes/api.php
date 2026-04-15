@@ -19,7 +19,7 @@ use App\Http\Controllers\Api\GalleryController;
 use App\Http\Controllers\Api\TvScreenController;
 use App\Http\Controllers\Api\ReportsController;
 use App\Http\Controllers\CartController;
-
+use App\Http\Controllers\GameCheckoutController;
 
 // Public route
 Route::post('/admin/login', [AuthController::class, 'login']);
@@ -81,6 +81,7 @@ Route::get('/games', [GameController::class, 'index']);
 Route::get('/games/{id}', [GameController::class, 'show']);
 
 Route::post('/games/{id}/play', [GameController::class, 'play']);
+Route::post('/games/{id}/checkout', [GameCheckoutController::class, 'checkout']);
 
 // Pos System  Admin
 
