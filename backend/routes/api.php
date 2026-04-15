@@ -182,8 +182,14 @@ Route::get('/reports/total-pos-amount', [ReportsController::class, 'totalPosAmou
 Route::get('/reports/export-doc', [ReportsController::class, 'exportDoc']);
 Route::get('/nfc-users/by-card/{cardNo}', [NfcUserController::class, 'getByCard']);
 
+//booking rewards
 Route::get('/rewards/{cardNo}', [BookingController::class, 'getUserRewards']);
 Route::post('/use-reward', [BookingController::class, 'useReward']);
 
+//pos rewards
 Route::get('/rewards/{cardNo}', [PosSaleController::class, 'getUserRewards']);
 Route::post('/use-reward', [PosSaleController::class, 'useReward']);
+
+//game rewards
+Route::get('/rewards/{cardNo}', [GameCheckoutController::class, 'getUserRewards']);
+Route::post('/use-reward', [GameCheckoutController::class, 'useReward']);

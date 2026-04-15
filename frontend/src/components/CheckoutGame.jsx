@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Box,
   Dialog,
@@ -41,7 +41,31 @@ const CheckoutGame = ({ game, handleClose, onPlayUpdate }) => {
     customerName: "",
     phoneNumber: "",
   });
+  const [selectedRewards, setSelectedRewards] = useState({});
+  const [rewards, setRewards] = useState({});
 
+  const fetchRewards = async (cardNo) => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}/api/rewards/${cardNo}`);
+      console.log("rewards", res.data);
+
+      if (res.data.success) {
+        setRewards(res.data.data || {});
+      }
+    } catch (err) {
+      console.error("Failed to fetch rewards");
+    }
+  };
+
+  const getRewardByMethod = () => {
+    if (!rewards) return null;
+
+    if (selectedMethod === "Coin") return rewards.Arcade;
+    if (selectedMethod === "Arrow") return rewards.Archery;
+
+    return null;
+  };
+  const rewardData = getRewardByMethod();
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({
       ...prev,
@@ -73,60 +97,136 @@ const CheckoutGame = ({ game, handleClose, onPlayUpdate }) => {
     ? unitPrice * unitsNumber * playersNumber
     : unitPrice * unitsNumber;
   const discountNumber = Number(discount) || 0;
-  const balance = fullAmount - discountNumber;
 
+  const isFreeReward =
+    (selectedMethod === "Coin" && selectedRewards["5 Free Coins"]) ||
+    (selectedMethod === "Arrow" && selectedRewards["5 Free Arrows"]);
+
+  const balance = isFreeReward ? 0 : fullAmount - discountNumber;
   const token = localStorage.getItem("aToken");
 
-  // Handle method and payment
   const handlePay = async (gameId) => {
     try {
+      // ======================
+      // 1. VALIDATION
+      // ======================
       if (!selectedMethod) {
         alert("Payment method not selected");
         return;
       }
 
-      let methodPayload = {};
+      if (!units || Number(units) <= 0) {
+        alert("Please enter valid units");
+        return;
+      }
+
+      // ======================
+      // 2. BUILD METHOD PAYLOAD
+      // ======================
+      let methodPayload = null;
+
+      const unitValue = Number(units || 0);
+      const playerValue = Number(players || 1);
 
       if (selectedMethod === "Per Hour") {
         methodPayload = {
           type: "Per Hour",
-          hours: Number(units),
-          players: Number(players),
-        };
-      } else if (selectedMethod === "Coin") {
-        methodPayload = {
-          type: "Coin",
-          coins: Number(units),
-        };
-      } else if (selectedMethod === "Arrow") {
-        methodPayload = {
-          type: "Arrow",
-          arrows: Number(units),
+          hours: unitValue,
+          players: playerValue,
         };
       }
 
-      const balanceRes = await axios.post(
+      if (selectedMethod === "Coin") {
+        methodPayload = {
+          type: "Coin",
+          coins: unitValue,
+        };
+      }
+
+      if (selectedMethod === "Arrow") {
+        methodPayload = {
+          type: "Arrow",
+          arrows: unitValue,
+        };
+      }
+
+      if (!methodPayload) {
+        alert("Invalid payment method");
+        return;
+      }
+
+      // ======================
+      // 3. BUILD REQUEST PAYLOAD
+      // ======================
+      const payload = {
+        method: methodPayload,
+        balance: Number(balance || 0),
+        discount: Number(discount || 0),
+
+        nfc_card_number: formData.nfcCardNumber || null,
+        customer_name: formData.customerName || "",
+        phone_number: formData.phoneNumber || "",
+        used_reward:
+          Object.keys(selectedRewards).length > 0 ? selectedRewards : null,
+      };
+
+      console.log("PAYLOAD SENT:", payload);
+
+      // ======================
+      // 4. API CALL
+      // ======================
+      const res = await axios.post(
         `${API_BASE_URL}/api/games/${gameId}/checkout`,
+        payload,
         {
-          method: methodPayload, // ✅ EXACT JSON
-
-          balance: Number(balance),
-          discount: Number(discount),
-
-          nfc_card_number: formData.nfcCardNumber,
-          customer_name: formData.customerName,
-          phone_number: formData.phoneNumber,
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
         },
-        { headers: { Authorization: `Bearer ${token}` } },
       );
 
-      // Update the parent state to reflect changes immediately
-      onPlayUpdate(gameId, balanceRes.data.method);
+      const useSelectedRewards = async (gameId) => {
+        const entries = Object.entries(selectedRewards);
+        const checkoutId = res.data.data.id;
 
-      setPaymentSuccess(true);
+        for (const [rewardName, isSelected] of entries) {
+          if (!isSelected) continue;
+
+          await axios.post(`${API_BASE_URL}/api/use-reward`, {
+            card_no: formData.nfcCardNumber,
+            type: rewardName.includes("Coin")
+              ? "Arcade Reward"
+              : "Archery Reward",
+            game_checkout_id: checkoutId,
+          });
+        }
+      };
+      console.log("SUCCESS RESPONSE:", res.data);
+
+      // ======================
+      // 5. UPDATE UI
+      // ======================
+      if (res.data?.success) {
+        onPlayUpdate(gameId, res.data.data?.method);
+
+        setPaymentSuccess(true);
+        await useSelectedRewards(gameId);
+      } else {
+        alert("Payment failed");
+      }
     } catch (error) {
-      console.error("API Error:", error.response?.data || error);
-      alert("Payment failed. Check console.");
+      console.error("API ERROR FULL:", error);
+
+      console.error(
+        "SERVER RESPONSE:",
+        error.response?.data || "No response from server",
+      );
+
+      alert(
+        error.response?.data?.message ||
+          "Payment failed. Check console for details.",
+      );
     }
   };
 
@@ -137,6 +237,7 @@ const CheckoutGame = ({ game, handleClose, onPlayUpdate }) => {
       );
     }
   }, [game]);
+
   const handleOpenNfcDialog = () => {
     setNfcDialogOpen(true);
   };
@@ -145,6 +246,93 @@ const CheckoutGame = ({ game, handleClose, onPlayUpdate }) => {
   const handleCloseNfcDialog = () => {
     setNfcDialogOpen(false);
   };
+  const wsRef = useRef(null);
+
+  const fetchUserByCardUID = async (cardUID) => {
+    try {
+      const token = localStorage.getItem("aToken");
+
+      const res = await axios.get(
+        `${API_BASE_URL}/api/nfc-users/by-card/${cardUID}`,
+        { headers: { Authorization: token ? `Bearer ${token}` : "" } },
+      );
+
+      if (res.data.success && res.data.data) {
+        const user = res.data.data;
+        setFormData((prev) => ({
+          ...prev,
+          customerName: user.full_name,
+          phoneNumber: user.phone_no,
+          nfcCardNumber: cardUID,
+        }));
+        await fetchRewards(cardUID);
+      } else {
+        setFormData((prev) => ({
+          ...prev,
+          nfcCardNumber: cardUID,
+        }));
+        await fetchRewards(cardUID);
+      }
+    } catch (err) {
+      console.error("Failed to fetch NFC user:", err);
+      setFormData((prev) => ({
+        ...prev,
+        nfcCardNumber: cardUID,
+      }));
+      await fetchRewards(cardUID);
+    }
+  };
+
+  useEffect(() => {
+    const ws = new WebSocket("ws://localhost:6789");
+    wsRef.current = ws;
+
+    ws.onopen = () => console.log("WebSocket connected (Parent)");
+
+    ws.onmessage = (event) => {
+      const msg = JSON.parse(event.data);
+
+      if (msg.action === "card_detected") {
+        const cardUID = msg.uid.replace(/\s/g, ":");
+
+        fetchUserByCardUID(cardUID);
+      }
+
+      if (msg.action === "write_result") {
+        if (msg.success) {
+          toast.success("Data written to card successfully!");
+          fetchUserByCardUID(msg.userId);
+        } else {
+          toast.error("Failed to write to card");
+        }
+      }
+    };
+
+    ws.onclose = () => console.log("WebSocket disconnected");
+    ws.onerror = (err) => console.error("WebSocket error:", err);
+
+    return () => ws.close();
+  }, []);
+
+  useEffect(() => {
+    if (!rewardData) return;
+
+    const isSelected = Object.values(selectedRewards).some(Boolean);
+    if (!isSelected) return;
+
+    // Coin → Arcade reward
+    if (selectedMethod === "Coin" && selectedRewards["5 Free Coins"]) {
+      setUnits(5);
+      setUnitPrice(0);
+    }
+
+    // Arrow → Archery reward
+    if (selectedMethod === "Arrow" && selectedRewards["5 Free Arrows"]) {
+      setUnits(5);
+      setUnitPrice(0);
+    }
+  }, [selectedRewards, selectedMethod, rewardData]);
+
   return (
     <div>
       <Dialog
@@ -334,6 +522,11 @@ const CheckoutGame = ({ game, handleClose, onPlayUpdate }) => {
             <TextField
               type="number"
               value={unitPrice}
+              disabled={
+                (selectedMethod === "Coin" &&
+                  selectedRewards["5 Free Coins"]) ||
+                (selectedMethod === "Arrow" && selectedRewards["5 Free Arrows"])
+              }
               onChange={(e) => setUnitPrice(e.target.value)}
               inputProps={{ min: 0 }}
               InputProps={{
@@ -377,6 +570,14 @@ const CheckoutGame = ({ game, handleClose, onPlayUpdate }) => {
                 "& .MuiInputBase-root:before, & .MuiInputBase-root:after": {
                   display: "none",
                 },
+                "& .MuiInputBase-input.Mui-disabled": {
+                  WebkitTextFillColor: "#9CA3AF", // gray text
+                  color: "#9CA3AF",
+                },
+                "& .Mui-disabled": {
+                  backgroundColor: "#111827", // soft dark gray background
+                  borderRadius: "6px",
+                },
               }}
             />
           </Box>
@@ -395,6 +596,11 @@ const CheckoutGame = ({ game, handleClose, onPlayUpdate }) => {
             <TextField
               type="number"
               value={units}
+              disabled={
+                (selectedMethod === "Coin" &&
+                  selectedRewards["5 Free Coins"]) ||
+                (selectedMethod === "Arrow" && selectedRewards["5 Free Arrows"])
+              }
               onChange={(e) => setUnits(e.target.value)}
               sx={{
                 width: 70,
@@ -410,6 +616,14 @@ const CheckoutGame = ({ game, handleClose, onPlayUpdate }) => {
                   fontSize: 14,
                   padding: "4px 0",
                   lineHeight: 1.2,
+                },
+                "& .MuiInputBase-input.Mui-disabled": {
+                  WebkitTextFillColor: "#9CA3AF", // gray text
+                  color: "#9CA3AF",
+                },
+                "& .Mui-disabled": {
+                  backgroundColor: "#111827", // soft dark gray background
+                  borderRadius: "6px",
                 },
               }}
             />
@@ -530,6 +744,43 @@ const CheckoutGame = ({ game, handleClose, onPlayUpdate }) => {
             Pay Now
           </Button>
         </DialogActions>
+        {rewardData?.count > 0 && (
+          <Box mt={2} p={2} sx={{ background: "#1F2937", borderRadius: 2 }}>
+            <Typography fontSize={14} color="#fff">
+              🎁 Available Reward({rewardData.count})
+            </Typography>
+
+            {rewardData.rewards?.map((r, idx) => {
+              const isSelected = selectedRewards[r];
+
+              return (
+                <Box
+                  key={idx}
+                  onClick={() =>
+                    setSelectedRewards((prev) => ({
+                      ...prev,
+                      [r]: !prev[r],
+                    }))
+                  }
+                  sx={{
+                    mt: 1,
+                    p: 1,
+                    borderRadius: 1,
+                    cursor: "pointer",
+                    background: isSelected ? "#0CD7FF33" : "#111827",
+                    border: isSelected
+                      ? "1px solid #0CD7FF"
+                      : "1px solid #374151",
+                  }}
+                >
+                  <Typography fontSize={13} color="#fff">
+                    {r}
+                  </Typography>
+                </Box>
+              );
+            })}
+          </Box>
+        )}
         <AddNFCUserDialog
           open={nfcDialogOpen}
           onClose={handleCloseNfcDialog}
