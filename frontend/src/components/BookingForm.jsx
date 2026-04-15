@@ -81,7 +81,9 @@ const BookingForm = ({
   };
   const fetchRewards = async (cardNo) => {
     try {
-      const res = await axios.get(`${API_BASE_URL}/api/rewards/${cardNo}`);
+      const res = await axios.get(
+        `${API_BASE_URL}/api/booking-rewards/${cardNo}`,
+      );
       if (res.data.success) {
         setRewards(res.data.data || {});
       }
@@ -412,7 +414,7 @@ const BookingForm = ({
 
       // Use selected rewards
       for (let type in selectedRewards) {
-        await axios.post(`${API_BASE_URL}/api/use-reward`, {
+        await axios.post(`${API_BASE_URL}/api/booking-use-reward`, {
           card_no: formData.nfcCardNumber,
           type,
           booking_id: bookingId,

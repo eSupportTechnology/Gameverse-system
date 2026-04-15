@@ -278,7 +278,7 @@ const PosSystem = () => {
   };
   const fetchRewards = async (cardNo) => {
     try {
-      const res = await axios.get(`${API_BASE_URL}/api/rewards/${cardNo}`);
+      const res = await axios.get(`${API_BASE_URL}/api/pos-rewards/${cardNo}`);
       if (res.data.success) {
         setRewards(res.data.data || {});
       }
@@ -405,38 +405,40 @@ const PosSystem = () => {
 
   const total = Math.max(subtotal - Number(discount || 0), 0);
 
- const handlePayNow = async () => {
-  try {
-    const saleResponse = await axios.post(`${API_BASE_URL}/api/pos/checkout`, {
-      customer_name: customerName,
-      customer_id: customerId,
-      discount: discount,
-      email: nfcFormData.email,
-      used_reward:
-        Object.keys(selectedRewards).length > 0 ? selectedRewards : null,
-    });
+  const handlePayNow = async () => {
+    try {
+      const saleResponse = await axios.post(
+        `${API_BASE_URL}/api/pos/checkout`,
+        {
+          customer_name: customerName,
+          customer_id: customerId,
+          discount: discount,
+          email: nfcFormData.email,
+          used_reward:
+            Object.keys(selectedRewards).length > 0 ? selectedRewards : null,
+        },
+      );
 
-    const saleId = saleResponse.data?.data?.id;
+      const saleId = saleResponse.data?.data?.id;
 
-    for (let type in selectedRewards) {
-      await axios.post(`${API_BASE_URL}/api/use-reward`, {
-        card_no: customerId,
-        type,
-        sale_id: saleId,
-      });
+      for (let type in selectedRewards) {
+        await axios.post(`${API_BASE_URL}/api/pos-use-reward`, {
+          card_no: customerId,
+          type,
+          sale_id: saleId,
+        });
+      }
+
+      setOpenCheckout(false);
+      setOpenPaymentSuccess(true);
+
+      fetchCart();
+      fetchItems();
+    } catch (err) {
+      console.error(err);
+      toast.error(err.response?.data?.message || "Checkout failed");
     }
-
-    setOpenCheckout(false);
-    setOpenPaymentSuccess(true);
-
-    fetchCart();
-    fetchItems();
-
-  } catch (err) {
-    console.error(err);
-    toast.error(err.response?.data?.message || "Checkout failed");
-  }
-};
+  };
   const wsRef = useRef(null);
 
   const fetchUserByCardUID = async (cardUID) => {
@@ -795,7 +797,7 @@ const PosSystem = () => {
         </Box>
 
         <RightSection
-        aToken={aToken}
+          aToken={aToken}
           setCart={setCart}
           setProducts={setProducts}
           rewards={rewards}

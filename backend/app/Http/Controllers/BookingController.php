@@ -460,15 +460,41 @@ class BookingController extends Controller
 
         return response()->json(['success' => true, 'message' => 'Reward used successfully']);
     }
+    private function filterStationRewards($gift)
+    {
+        $allowedKeys = [
+            'PlayStation Reward',
+            'Racing Simulator Reward',
+            'Supreme Billiard Reward',
+            'Premium Billiard Reward',
+        ];
 
+        return collect($gift)
+            ->only($allowedKeys)
+            ->toArray();
+    }
     public function getUserRewards($cardNo)
     {
         $user = NfcUser::where('card_no', $cardNo)->first();
-        if (!$user) return response()->json(['success' => false, 'message' => 'User not found'], 404);
 
-        $gift = is_array($user->gift) ? $user->gift : (json_decode($user->gift, true) ?? []);
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User not found'
+            ], 404);
+        }
 
-        return response()->json(['success' => true, 'data' => $gift]);
+        $gift = is_array($user->gift)
+            ? $user->gift
+            : (json_decode($user->gift, true) ?? []);
+
+        // ✅ Filter ONLY station rewards
+        $filteredGift = $this->filterStationRewards($gift);
+
+        return response()->json([
+            'success' => true,
+            'data' => $filteredGift
+        ]);
     }
     /**
      * Private helper to format start_time in 12-hour PM format

@@ -46,8 +46,7 @@ const CheckoutGame = ({ game, handleClose, onPlayUpdate }) => {
 
   const fetchRewards = async (cardNo) => {
     try {
-      const res = await axios.get(`${API_BASE_URL}/api/rewards/${cardNo}`);
-      console.log("rewards", res.data);
+      const res = await axios.get(`${API_BASE_URL}/api/game-rewards/${cardNo}`);
 
       if (res.data.success) {
         setRewards(res.data.data || {});
@@ -193,7 +192,7 @@ const CheckoutGame = ({ game, handleClose, onPlayUpdate }) => {
         for (const [rewardName, isSelected] of entries) {
           if (!isSelected) continue;
 
-          await axios.post(`${API_BASE_URL}/api/use-reward`, {
+          await axios.post(`${API_BASE_URL}/api/game-use-reward`, {
             card_no: formData.nfcCardNumber,
             type: rewardName.includes("Coin")
               ? "Arcade Reward"

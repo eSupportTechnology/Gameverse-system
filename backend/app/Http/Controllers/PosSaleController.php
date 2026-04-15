@@ -233,9 +233,14 @@ class PosSaleController extends Controller
             ? $user->gift
             : (json_decode($user->gift, true) ?? []);
 
+        // ✅ Filter only Foodcourt Reward
+        $foodcourtReward = $gift['Foodcourt Reward'] ?? null;
+
         return response()->json([
             'success' => true,
-            'data' => $gift
+            'data' => [
+                'Foodcourt Reward' => $foodcourtReward
+            ]
         ]);
     }
 }
