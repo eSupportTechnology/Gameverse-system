@@ -189,7 +189,6 @@ export default function AddStationDialog({
     }
   };
 
-  console.log(formData);
   return (
     <>
       <Dialog

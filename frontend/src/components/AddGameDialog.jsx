@@ -151,8 +151,6 @@ const AddGameDialog = ({ open, onClose, initialData, onRefresh }) => {
         },
       });
 
-      console.log("Response received:", response.data);
-
       // Handle response
       if (response.data.success) {
         // Success case
