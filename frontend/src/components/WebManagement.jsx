@@ -78,6 +78,7 @@ const WebManagement = () => {
 
   const [openAddGame, setOpenAddGame] = useState(false);
   const [openEditGame, setOpenEditGame] = useState(false);
+  const [editGame, setEditGame] = useState(null);
   const [editDbGameData, setEditDbGameData] = useState(null);
   const [openEditDbGame, setOpenEditDbGame] = useState(false);
 
@@ -104,7 +105,6 @@ const WebManagement = () => {
   const [cancelOpen, setCancelOpen] = useState(false);
   const [openCategoryUpdate, setOpenCategoryUpdate] = useState(false);
   const [thumbUpdateSuccess, setThumbUpdateSuccess] = useState(false);
-  const [dbGames, setDbGames] = useState([]);
 
   const { globalSearch } = useContext(AppContext);
 
@@ -165,7 +165,7 @@ const WebManagement = () => {
         formData,
         {
           headers: { "Content-Type": "multipart/form-data" },
-        }
+        },
       );
 
       toast.success("Category updated successfully!");
@@ -198,61 +198,10 @@ const WebManagement = () => {
     setEditStationCategory(false);
   };
 
-  // Other game section - SIMPLIFIED
-  const handleAddGame = () => {
-    // Just refresh the games list from API
-    fetchGames();
-    console.log("Game added - refreshing list");
-  };
-
-  const handleUpdateGame = () => {
-    fetchGames();
-    console.log("Game updated - refreshing list");
-  };
-
   const handleRemoveGame = (game) => {
     setGameToRemove(game);
     setGameRemoveMessage(`Are you sure you want to remove "${game.title}"?`);
     setRemoveGame(true);
-  };
-
-  const removeGameConfirm = async () => {
-    if (!gameToRemove) return;
-
-    const token = localStorage.getItem("aToken");
-    if (!token) {
-      console.error("No token found");
-      toast.error("Unauthorized! Please login.");
-      return;
-    }
-
-    try {
-      let apiUrl = "";
-      if (gameToRemove.source === "portable") {
-        apiUrl = `${API_BASE_URL}/api/portal_games/${gameToRemove.id}`;
-      } else {
-        apiUrl = `${API_BASE_URL}/api/games/${gameToRemove.id}`;
-      }
-
-      await axios.delete(apiUrl, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      // Remove from frontend state
-      if (gameToRemove.source === "portable") {
-        setGames(games.filter((g) => g.id !== gameToRemove.id));
-      } else {
-        setDbGames(dbGames.filter((g) => g.id !== gameToRemove.id));
-      }
-
-      toast.success("Game removed successfully!");
-    } catch (err) {
-      console.error("Failed to remove game:", err);
-      toast.error("Failed to remove game");
-    } finally {
-      setRemoveGame(false);
-      setGameToRemove(null);
-    }
   };
 
   const cancelRemoveGame = () => {
@@ -308,7 +257,7 @@ const WebManagement = () => {
       };
 
       setEvent((prev) =>
-        prev.map((e) => (e.id === mappedEvent.id ? mappedEvent : e))
+        prev.map((e) => (e.id === mappedEvent.id ? mappedEvent : e)),
       );
 
       console.log("Event updated:", mappedEvent);
@@ -322,7 +271,7 @@ const WebManagement = () => {
   const handleRemoveEvent = (eventItem) => {
     setEventToRemove(eventItem);
     setEventRemoveMessage(
-      `Are you sure you want to remove "${eventItem.name}"?`
+      `Are you sure you want to remove "${eventItem.name}"?`,
     );
     setRemoveEvent(true);
   };
@@ -383,20 +332,6 @@ const WebManagement = () => {
     }
   };
 
-  // Remove
-  const handleRemovePhotoConfirm = async () => {
-    try {
-      await deleteGalleryPhoto(photoToRemove.id);
-      setGallery((prev) => prev.filter((p) => p.id !== photoToRemove.id));
-      toast.success("Photo removed!");
-    } catch {
-      toast.error("Failed to remove photo");
-    } finally {
-      setRemovePhoto(false);
-      setPhotoToRemove(null);
-    }
-  };
-
   const handleRemovePhoto = (index) => {
     setPhotoToRemove(index);
     setPhotoRemoveMessage("Are you want to remove this event?");
@@ -420,13 +355,7 @@ const WebManagement = () => {
     }
   }, [selectedCategory]);
 
-  // Fetch games from API
-  useEffect(() => {
-    fetchGames();
-    fetchDbGames();
-  }, []);
-
-  const fetchDbGames = async () => {
+  const fetchGames = async () => {
     const token = localStorage.getItem("aToken");
     if (!token) return;
 
@@ -438,80 +367,81 @@ const WebManagement = () => {
       const data = res.data?.data ?? res.data;
 
       if (Array.isArray(data)) {
-        const formattedGames = data.map((game) => ({
-          ...game,
-          image: game.thumbnail_url || "",
-        }));
-
-        setDbGames(formattedGames);
-        console.log("DB Games:", formattedGames);
+        setGames(
+          data.map((g) => ({
+            ...g,
+            image: g.thumbnail_url || "",
+          })),
+        );
       }
     } catch (err) {
-      console.error("Error fetching DB games:", err);
+      console.error("Error fetching games:", err);
     }
   };
-  console.log("first", dbGames);
-  const fetchGames = async () => {
-    const token = localStorage.getItem("aToken");
-    if (!token) return;
 
+  useEffect(() => {
+    fetchGames();
+  }, []);
+  // Booking Games
+  const filteredBookingGames = bookingGames.filter((item) => {
+    const title = item.title?.toLowerCase() || "";
+    const desc = item.desc?.toLowerCase() || "";
+    return (
+      !globalSearch ||
+      title.includes(globalSearch.toLowerCase()) ||
+      desc.includes(globalSearch.toLowerCase())
+    );
+  });
+
+  // Other Games (portal + DB games combined if needed)
+  const filteredGames = games.filter((game) => {
+    const title = game.title?.toLowerCase() || "";
+    return !globalSearch || title.includes(globalSearch.toLowerCase());
+  });
+
+  // Event & Tournaments
+  const filteredEvents = event.filter((e) => {
+    const name = e.name?.toLowerCase() || "";
+    return !globalSearch || name.includes(globalSearch.toLowerCase());
+  });
+
+  // Gallery
+  const filteredGallery = gallery.filter((g) => {
+    const title = g.title?.toLowerCase() || "";
+    return !globalSearch || title.includes(globalSearch.toLowerCase());
+  });
+  const handleSaveGame = () => {
+    setEditGame(null);
+    setOpenAddGame(false);
+    fetchGames();
+  };
+
+  const handleEditGame = (game) => {
+    setEditGame(game);
+    setOpenAddGame(true);
+  };
+
+  const handleDeleteGame = async () => {
+    if (!gameToRemove) return;
+
+    const token = localStorage.getItem("aToken");
     try {
-      const res = await axios.get(`${API_BASE_URL}/api/portal_games`, {
+      await axios.delete(`${API_BASE_URL}/api/games/${gameToRemove.id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      const data = res.data?.data ?? res.data;
-      if (Array.isArray(data)) {
-        // Map the API response to match your component's expected structure
-        const formattedGames = data.map((game) => ({
-          ...game,
-          image: game.thumbnail_url || game.image, // Use thumbnail_url from API
-        }));
-        setGames(formattedGames);
-        console.log("Fetched games:", formattedGames);
-      } else {
-        console.warn("Unexpected games response:", res.data);
-      }
+      toast.success("Game deleted successfully!");
+
+      // ✅ remove from UI instantly
+      setGames((prev) => prev.filter((g) => g.id !== gameToRemove.id));
     } catch (err) {
-      console.error("Failed to fetch games:", err);
+      console.error("Error deleting game:", err);
+      toast.error(err.response?.data?.message || "Failed to delete game.");
+    } finally {
+      setRemoveGame(false);
+      setGameToRemove(null);
     }
   };
-
-  const handleSaveGame = () => {
-    setEditDbGameData(null);
-    setOpenAddGame(false);
-    fetchDbGames();
-  };
-    // Booking Games
-const filteredBookingGames = bookingGames.filter((item) => {
-  const title = item.title?.toLowerCase() || "";
-  const desc = item.desc?.toLowerCase() || "";
-  return !globalSearch || title.includes(globalSearch.toLowerCase()) || desc.includes(globalSearch.toLowerCase());
-});
-
-// Other Games (portal + DB games combined if needed)
-const filteredGames = games.filter((game) => {
-  const title = game.title?.toLowerCase() || "";
-  return !globalSearch || title.includes(globalSearch.toLowerCase());
-});
-const filteredDbGames = dbGames.filter((game) => {
-  const title = game.title?.toLowerCase() || "";
-  return !globalSearch || title.includes(globalSearch.toLowerCase());
-});
-
-// Event & Tournaments
-const filteredEvents = event.filter((e) => {
-  const name = e.name?.toLowerCase() || "";
-  return !globalSearch || name.includes(globalSearch.toLowerCase());
-});
-
-// Gallery
-const filteredGallery = gallery.filter((g) => {
-  const title = g.title?.toLowerCase() || "";
-  return !globalSearch || title.includes(globalSearch.toLowerCase());
-});
-
-
   return (
     <div>
       <Box
@@ -618,7 +548,10 @@ const filteredGallery = gallery.filter((g) => {
                     background: "linear-gradient(to right, #0bbfe0, #732ed1)",
                   },
                 }}
-                onClick={() => setOpenAddGame(true)}
+                onClick={() => {
+                  setOpenAddGame(true);
+                  setEditGame(null);
+                }}
               >
                 + Add Games
               </Button>
@@ -826,12 +759,8 @@ const filteredGallery = gallery.filter((g) => {
             {activeCategory === "Other Games" && (
               <OtherGamesSection
                 games={filteredGames}
-                dbGames={filteredDbGames}
                 handleRemoveGame={handleRemoveGame}
-                setEditData={setEditData}
-                setOpenEditGame={setOpenEditGame}
-                setEditDbGameData={setEditDbGameData}
-                setOpenEditDbGame={setOpenEditDbGame}
+                onEditGame={handleEditGame}
               />
             )}
 
@@ -1240,33 +1169,20 @@ const filteredGallery = gallery.filter((g) => {
         open={thumbUpdateSuccess}
         onClose={() => setThumbUpdateSuccess(false)}
       />
-      {/* Games table edit dialog */}
-      <AddNewGame
-        open={openEditDbGame}
-        handleClose={() => setOpenEditDbGame(false)}
-        mode="edit"
-        initialData={editDbGameData}
-        onSubmit={handleSaveGame}
-      />
       {/* Add & Update Other Game Section */}
       <AddGameDialog
         open={openAddGame}
-        onClose={() => setOpenAddGame(false)}
-        onRefresh={handleAddGame}
-      />
-
-      <AddGameDialog
-        open={openEditGame}
-        onClose={() => setOpenEditGame(false)}
-        onRefresh={handleUpdateGame}
-        initialData={editData}
+        handleClose={() => setOpenAddGame(false)}
+        onSubmit={handleSaveGame}
+        initialData={editGame}
+        mode={editGame ? "edit" : "add"}
       />
 
       {/* Remove Game Confirm */}
       <RemovePopup
         open={removeGame}
         handleRemoveClose={cancelRemoveGame}
-        removeConfirm={removeGameConfirm}
+        removeConfirm={handleDeleteGame}
         message={gameRemoveMessage}
       />
 

@@ -1,65 +1,80 @@
-import React, { useEffect, useState } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogActions,
-  IconButton,
-  TextField,
-  Button,
-  Box,
-} from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import upload from "../assets/upload.png";
-import UpdateSuccessDialog from "./UpdateSuccess";
-import CancelPopup from "./CancelPopup";
+import {
+  Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  IconButton,
+  MenuItem,
+  TextField,
+  Typography,
+} from "@mui/material";
 import axios from "axios";
+import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
+import upload from "../assets/upload.png";
+import CancelPopup from "./CancelPopup";
 
 // Import your default images
+import { API_BASE_URL } from "../apiConfig";
 import arcadeImage from "../assets/arcade_machine.png";
 import archeryImage from "../assets/archery_gaming.png";
 import carromImage from "../assets/carom_gaming.png";
 import poolImage from "../assets/pool_gaming.jpg";
-import { API_BASE_URL } from "../apiConfig";
 
-// Map game names to their default images
+const paymentMethods = ["Coin", "Arrow", "Per Hour"];
 const defaultGameImages = {
   "Arcade Machine": arcadeImage,
   "Archery Gaming": archeryImage,
   "Carrom Gaming": carromImage,
   "Pool Gaming": poolImage,
 };
+const AddGameDialog = ({
+  open,
+  handleClose,
+  mode = "add",
+  initialData = {},
+  onSubmit,
+}) => {
+  const [createSuccess, setCreateSuccess] = useState(false);
+  const [cancelOpen, setCancelOpen] = useState(false);
 
-const AddGameDialog = ({ open, onClose, initialData, onRefresh }) => {
   const [title, setTitle] = useState("");
+  const [teamGame, setTeamGame] = useState(null); // rename to match backend
+  const [location, setLocation] = useState("");
+  const [method, setMethod] = useState("Coin");
+  const [price, setPrice] = useState("");
   const [desc, setDesc] = useState("");
   const [thumbnail, setThumbnail] = useState(null);
   const [file, setFile] = useState(null);
   const [autoThumbnail, setAutoThumbnail] = useState(null);
-  const [openUpdateSuccess, setOpenUpdateSuccess] = useState(false);
-  const [cancelOpen, setCancelOpen] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  // Reset form when dialog opens/closes
   useEffect(() => {
     if (open) {
-      if (initialData) {
-        setTitle(initialData.title || "");
-        setDesc(initialData.desc || "");
-        setThumbnail(initialData.thumbnail_url || null);
-        setFile(null);
-        setAutoThumbnail(null);
+      if (mode === "edit" && initialData) {
+        setTitle(initialData.title ?? "");
+        setTeamGame(initialData.team_game ?? null); // sync with backend
+        setLocation(initialData.location ?? "");
+        setPrice(initialData.price ?? "");
+
+        if (typeof initialData.method === "object") {
+          setMethod(initialData.method.type);
+        } else {
+          setMethod(initialData.method || "Coin");
+        }
       } else {
         setTitle("");
-        setDesc("");
-        setThumbnail(null);
-        setFile(null);
-        setAutoThumbnail(null);
+        setTeamGame(null);
+        setLocation("");
+        setMethod("Coin");
+        setPrice("");
       }
     }
-  }, [open, initialData]);
+  }, [open, mode, initialData]);
 
-  // Auto-detect thumbnail when title changes
   useEffect(() => {
     if (title && defaultGameImages[title] && !thumbnail && !file) {
       setAutoThumbnail(defaultGameImages[title]);
@@ -67,6 +82,9 @@ const AddGameDialog = ({ open, onClose, initialData, onRefresh }) => {
       setAutoThumbnail(null);
     }
   }, [title, thumbnail, file]);
+
+  const handleCancelOpen = () => setCancelOpen(true);
+  const handleCancelClose = () => setCancelOpen(false);
 
   const handleImageUpload = (e) => {
     const selectedFile = e.target.files[0];
@@ -84,7 +102,7 @@ const AddGameDialog = ({ open, onClose, initialData, onRefresh }) => {
 
   const handleConfirmCancel = () => {
     setCancelOpen(false);
-    onClose();
+    handleClose(false);
   };
 
   const getCurrentThumbnail = () => {
@@ -99,50 +117,74 @@ const AddGameDialog = ({ open, onClose, initialData, onRefresh }) => {
     return new File([blob], filename, { type: mimeType });
   };
 
+  const validateMethodForGame = (gameTitle, chosenMethod) => {
+    const lowerTitle = gameTitle.toLowerCase();
+    if (lowerTitle.includes("archery machine") && chosenMethod !== "Coin") {
+      toast.warning("⚠️ Archery Machine should use 'Coin' method only.");
+      return false;
+    }
+    if (
+      lowerTitle.includes("archery") &&
+      !lowerTitle.includes("machine") &&
+      chosenMethod !== "Arrow"
+    ) {
+      toast.warning("⚠️ Archery should use 'Arrow' method only.");
+      return false;
+    }
+    if (lowerTitle.includes("carrom") && chosenMethod !== "Per Hour") {
+      toast.warning("⚠️ Carrom should use 'Per Hour' method only.");
+      return false;
+    }
+    return true;
+  };
+
+  // Handle success dialog OK button
+  const handleSuccessOk = () => {
+    setCreateSuccess(false);
+    handleClose(); // Close the main form
+  };
+
   const handleSubmit = async () => {
-    // Frontend validation
-    if (!title.trim()) {
-      toast.error("Game name is required!");
+    const trimmedTitle = title.trim();
+    const trimmedLocation = location.trim();
+    const trimmedMethod = method.trim();
+
+    if (!trimmedTitle || !trimmedLocation || !price || teamGame === null) {
+      toast.error("All fields are required!");
       return;
+    }
+
+    if (!validateMethodForGame(trimmedTitle, trimmedMethod)) return;
+
+    const formData = new FormData();
+
+    // ✅ Basic fields
+    formData.append("title", trimmedTitle);
+    formData.append("location", trimmedLocation);
+    formData.append("method", trimmedMethod);
+    formData.append("price", Number(price));
+
+    // ✅ FIXED boolean issue
+    formData.append("team_game", teamGame ? 1 : 0);
+    // ✅ Description
+    formData.append("description", desc ? desc.trim() : "");
+
+    // ✅ Thumbnail (file OR default image)
+    if (file instanceof File) {
+      formData.append("thumbnail", file);
+    }
+
+    // ✅ For update (Laravel PUT fix)
+    if (mode === "edit") {
+      formData.append("_method", "PUT");
     }
 
     const token = localStorage.getItem("aToken");
-    if (!token) {
-      toast.error("Unauthorized! Please login.");
-      return;
-    }
-
-    setSaving(true);
-
     try {
-      const formData = new FormData();
-
-      // Always append title and description
-      formData.append("title", title.trim());
-      formData.append("desc", desc.trim());
-
-      // Handle thumbnail - only append if we have one
-      if (file) {
-        formData.append("thumbnail", file);
-      } else if (
-        autoThumbnail &&
-        defaultGameImages[title] &&
-        !initialData?.id
-      ) {
-        // Only use default image for NEW games, not when editing existing ones
-        const imageFile = await urlToFile(
-          defaultGameImages[title],
-          `${title.toLowerCase().replace(/\s+/g, "-")}.png`,
-          "image/png"
-        );
-        formData.append("thumbnail", imageFile);
-      }
-      // If editing existing game and no new thumbnail provided, backend keeps existing thumbnail
-
-      // Determine URL - both create and update use POST now
-      const url = initialData?.id
-        ? `${API_BASE_URL}/api/portal_games/${initialData.id}`
-        : `${API_BASE_URL}/api/portal_games`;
+      const url =
+        mode === "edit"
+          ? `${API_BASE_URL}/api/games/${initialData.id}`
+          : `${API_BASE_URL}/api/games`;
 
       const response = await axios.post(url, formData, {
         headers: {
@@ -151,51 +193,12 @@ const AddGameDialog = ({ open, onClose, initialData, onRefresh }) => {
         },
       });
 
-      // Handle response
-      if (response.data.success) {
-        // Success case
-        toast.success(
-          response.data.message ||
-            (initialData?.id
-              ? "Game updated successfully!"
-              : "Game added successfully!")
-        );
+      setCreateSuccess(true);
 
-        if (onRefresh) {
-          onRefresh();
-        }
-
-        onClose(); // Close dialog immediately on success
-      } else {
-        // Backend returned success: false
-        toast.error(response.data.message || "Failed to save game");
-      }
-    } catch (error) {
-      console.error("Error details:", error);
-
-      // Enhanced error handling
-      if (error.response) {
-        // Server responded with error status
-        const { status, data } = error.response;
-
-        if (status === 422 && data.errors) {
-          // Validation errors
-          const firstError = Object.values(data.errors)[0][0];
-          toast.error(firstError);
-        } else if (data.message) {
-          toast.error(data.message);
-        } else {
-          toast.error(`Error ${status}: Failed to save game`);
-        }
-      } else if (error.request) {
-        // Network error
-        toast.error("Network error. Please check your connection.");
-      } else {
-        // Other errors
-        toast.error("An unexpected error occurred.");
-      }
-    } finally {
-      setSaving(false);
+      if (onSubmit) onSubmit(response.data);
+    } catch (err) {
+      console.log(err.response?.data); // 👈 debug
+      toast.error(err.response?.data?.message || "Failed to save game.");
     }
   };
 
@@ -204,23 +207,21 @@ const AddGameDialog = ({ open, onClose, initialData, onRefresh }) => {
     setFile(null);
     setAutoThumbnail(null);
   };
-
   const currentThumbnail = getCurrentThumbnail();
 
   return (
     <>
       <Dialog
         open={open}
-        onClose={onClose}
         fullWidth
         maxWidth="xs"
         PaperProps={{
           sx: {
+            borderRadius: "12px",
             backgroundColor: "#111827",
             color: "white",
-            borderRadius: "12px",
-            border: "0.5px solid #374151",
-            p: 1,
+            py: 2,
+            border: "1px solid #374151",
           },
         }}
       >
@@ -229,41 +230,217 @@ const AddGameDialog = ({ open, onClose, initialData, onRefresh }) => {
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            fontWeight: "700",
-            fontSize: "18px",
-            py: 1,
+            px: 1,
           }}
         >
-          {initialData ? "Edit Game" : "Add Game"}
-          <IconButton onClick={onClose} sx={{ color: "#9CA3AF" }}>
+          <DialogTitle
+            sx={{ color: "#FFFFFF", fontSize: 18, fontWeight: "bold" }}
+          >
+            {mode === "edit" ? "Edit Game" : "Add New Game"}
+          </DialogTitle>
+          <IconButton
+            onClick={() => handleClose(false)}
+            sx={{ color: "#FFFFFF" }}
+          >
             <CloseIcon />
           </IconButton>
         </Box>
 
-        <DialogContent>
-          <p style={{ marginBottom: 6, fontSize: "14px", fontWeight: 500 }}>
-            Game Name
-          </p>
-          <TextField
-            fullWidth
-            placeholder="Enter Game Name"
-            variant="outlined"
-            value={title}
-            onChange={handleTitleChange}
-            InputProps={{
-              sx: {
-                backgroundColor: "#171C2D",
-                borderRadius: "8px",
-                color: "white",
-                border: "0.5px solid #374151",
-                "& .MuiInputBase-input": {
-                  padding: "12px 14px",
-                  fontSize: "14px",
+        <DialogContent dividers sx={{ py: 0, pb: 2 }}>
+          {/* Game Name */}
+          <Box mb={1}>
+            <Typography
+              variant="body2"
+              sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF" }}
+            >
+              Game Name
+            </Typography>
+            <TextField
+              variant="outlined"
+              fullWidth
+              size="small"
+              placeholder="Enter game name"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              InputProps={{
+                sx: {
+                  backgroundColor: "#1F2937",
+                  borderRadius: "6px",
+                  border: "1px solid #374151",
+                  color: "white",
                 },
-              },
-            }}
-          />
+              }}
+            />
+          </Box>
 
+          {/* Team Game Toggle */}
+          <Box mb={2}>
+            <Typography
+              variant="body2"
+              sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF", mb: 0.5 }}
+            >
+              Team Game
+            </Typography>
+            <Box display="flex" gap={2}>
+              <Box
+                onClick={() => setTeamGame(true)}
+                sx={{
+                  flex: 1,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  px: 2,
+                  py: 1,
+                  borderRadius: "8px",
+                  border: "1px solid rgba(255, 255, 255, 0.2)",
+                  backgroundColor:
+                    teamGame === true
+                      ? "rgba(255, 255, 255, 0.05)"
+                      : "transparent",
+                  cursor: "pointer",
+                }}
+              >
+                <Typography
+                  sx={{
+                    color:
+                      teamGame === true ? "#ffffff" : "rgba(255,255,255,0.6)",
+                    fontSize: 14,
+                  }}
+                >
+                  Yes
+                </Typography>
+                {teamGame === true && (
+                  <Box
+                    sx={{
+                      width: 10,
+                      height: 10,
+                      borderRadius: "50%",
+                      backgroundColor: "rgba(255,255,255,0.8)",
+                    }}
+                  />
+                )}
+              </Box>
+
+              <Box
+                onClick={() => setTeamGame(false)}
+                sx={{
+                  flex: 1,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  px: 2,
+                  py: 1,
+                  borderRadius: "8px",
+                  border: "1px solid rgba(255, 255, 255, 0.2)",
+                  backgroundColor:
+                    teamGame === false
+                      ? "rgba(255, 255, 255, 0.05)"
+                      : "transparent",
+                  cursor: "pointer",
+                }}
+              >
+                <Typography
+                  sx={{
+                    color:
+                      teamGame === false ? "#ffffff" : "rgba(255,255,255,0.6)",
+                    fontSize: 14,
+                  }}
+                >
+                  No
+                </Typography>
+                {teamGame === false && (
+                  <Box
+                    sx={{
+                      width: 10,
+                      height: 10,
+                      borderRadius: "50%",
+                      backgroundColor: "rgba(255,255,255,0.8)",
+                    }}
+                  />
+                )}
+              </Box>
+            </Box>
+          </Box>
+
+          {/* Location */}
+          <Box mb={1}>
+            <Typography
+              variant="body2"
+              sx={{ fontWeight: 500, fontSize: 14, color: "#FFFFFF" }}
+            >
+              Location
+            </Typography>
+            <TextField
+              variant="outlined"
+              fullWidth
+              size="small"
+              placeholder="Zone A, Zone B, etc."
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              InputProps={{
+                sx: {
+                  backgroundColor: "#1F2937",
+                  borderRadius: "6px",
+                  border: "1px solid #374151",
+                  color: "white",
+                },
+              }}
+            />
+          </Box>
+
+          {/* Method + Price */}
+          <Typography
+            variant="body2"
+            sx={{ fontSize: 12, color: "#9CA3AF", mb: 0.5 }}
+          >
+            Pricing Method
+          </Typography>
+          <Box
+            display="grid"
+            gridTemplateColumns={{ xs: "1fr", md: "1fr 1fr" }}
+            gap={2}
+            mt={1}
+          >
+            <TextField
+              select
+              fullWidth
+              size="small"
+              value={method}
+              onChange={(e) => setMethod(e.target.value)}
+              InputProps={{
+                sx: {
+                  backgroundColor: "#1F2937",
+                  borderRadius: "6px",
+                  border: "1px solid #374151",
+                  color: "white",
+                },
+              }}
+            >
+              {paymentMethods.map((m) => (
+                <MenuItem key={m} value={m}>
+                  {m}
+                </MenuItem>
+              ))}
+            </TextField>
+
+            <TextField
+              variant="outlined"
+              fullWidth
+              size="small"
+              type="number"
+              placeholder="Enter total price"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              InputProps={{
+                sx: {
+                  backgroundColor: "#1F2937",
+                  borderRadius: "6px",
+                  border: "1px solid #374151",
+                  color: "white",
+                },
+              }}
+            />
+          </Box>
           <p
             style={{
               marginTop: 15,
@@ -292,7 +469,6 @@ const AddGameDialog = ({ open, onClose, initialData, onRefresh }) => {
               },
             }}
           />
-
           <p
             style={{
               marginTop: 15,
@@ -395,7 +571,9 @@ const AddGameDialog = ({ open, onClose, initialData, onRefresh }) => {
                     cursor: "pointer",
                     color: title === gameName ? "black" : "white",
                   }}
-                  onClick={() => setTitle(gameName)}
+                  onClick={() => {
+                    if (!title) setTitle(gameName);
+                  }}
                 >
                   {gameName}
                 </Box>
@@ -404,48 +582,128 @@ const AddGameDialog = ({ open, onClose, initialData, onRefresh }) => {
           </Box>
         </DialogContent>
 
-        <DialogActions sx={{ px: 3, pb: 2, mt: 1 }}>
+        <DialogActions sx={{ px: 3 }}>
           <Button
-            onClick={() => setCancelOpen(true)}
-            disabled={saving}
+            onClick={handleCancelOpen}
+            variant="contained"
             sx={{
-              flex: 1,
-              borderRadius: "8px",
-              backgroundColor: "#1A1D2A",
-              color: "white",
-              fontSize: "14px",
+              fontSize: 16,
               fontWeight: "bold",
-              textTransform: "none",
+              backgroundColor: "#1F2937",
+              width: "50%",
+              py: 0.5,
             }}
           >
             Cancel
           </Button>
-
           <Button
             onClick={handleSubmit}
-            disabled={saving}
             variant="contained"
             sx={{
-              fontSize: "14px",
+              fontSize: 16,
               fontWeight: "bold",
-              flex: 1,
-              textTransform: "none",
-              borderRadius: "8px",
-              background: saving
-                ? "#6B7280"
-                : "linear-gradient(to right, #0CD7FF, #8A38F5)",
+              width: "50%",
+              py: 0.5,
+              background: "linear-gradient(to right, #0CD7FF, #8A38F5)",
             }}
           >
-            {saving ? "Saving..." : initialData ? "Update" : "Add"}
+            {mode === "edit" ? "Update" : "Create"}
           </Button>
         </DialogActions>
+
+        <CancelPopup
+          open={cancelOpen}
+          handleCancelClose={handleCancelClose}
+          handleConfirm={handleConfirmCancel}
+        />
       </Dialog>
 
-      <CancelPopup
-        open={cancelOpen}
-        handleCancelClose={() => setCancelOpen(false)}
-        handleConfirm={handleConfirmCancel}
-      />
+      {/* create Success Popup */}
+      <Dialog
+        open={createSuccess}
+        PaperProps={{
+          sx: {
+            bgcolor: "#0A192F",
+            borderRadius: "16px",
+            py: 2,
+            px: 8,
+            textAlign: "center",
+            color: "white",
+            border: "1px solid #3B4859",
+          },
+        }}
+      >
+        <DialogContent>
+          <Box sx={{ mb: 1, display: "flex", justifyContent: "center" }}>
+            <Box
+              sx={{
+                width: 80,
+                height: 80,
+                borderRadius: "50%",
+                border: "3px solid",
+                borderColor: "transparent",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                background:
+                  "linear-gradient(#0A192F, #0A192F) padding-box, linear-gradient(90deg, #00C6FF, #FF00CC) border-box",
+              }}
+            >
+              <svg
+                width="40"
+                height="40"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M5 13l4 4L19 7"
+                  stroke="url(#gradient)"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <defs>
+                  <linearGradient id="gradient" x1="5" y1="12" x2="19" y2="12">
+                    <stop offset="0%" stopColor="#00C6FF" />
+                    <stop offset="100%" stopColor="#FF00CC" />
+                  </linearGradient>
+                </defs>
+              </svg>
+            </Box>
+          </Box>
+          <Typography
+            variant="h6"
+            sx={{
+              background: "linear-gradient(90deg, #00C6FF, #FF00CC)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              fontSize: 24,
+              fontWeight: 600,
+              mb: 1,
+            }}
+          >
+            {mode === "edit" ? "Update Successful!" : "Create Successful!"}
+          </Typography>
+          <Button
+            onClick={handleSuccessOk}
+            sx={{
+              px: 8,
+              fontSize: 14,
+              textTransform: "capitalize",
+              borderRadius: "8px",
+              background:
+                "linear-gradient(90deg, rgba(12, 215, 255, 0.4) 0%, rgba(138, 56, 245, 0.4) 73%)",
+              color: "white",
+              "&:hover": {
+                background: "linear-gradient(90deg, #0CD7FF 0%, #8A38F5 73%)",
+              },
+            }}
+          >
+            Ok
+          </Button>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };

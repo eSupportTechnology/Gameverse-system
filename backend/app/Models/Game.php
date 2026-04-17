@@ -15,6 +15,8 @@ class Game extends Model
         'method',
         'price',
         'team_game',
+        'description',
+        'thumbnail',
     ];
 
     // Ensure team_game is always a boolean

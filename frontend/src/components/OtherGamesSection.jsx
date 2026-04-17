@@ -4,44 +4,62 @@ import EditIcon from "../assets/editicon.png";
 import arcadeImage from "../assets/arcade_machine.png";
 import archeryImage from "../assets/archery_gaming.png";
 import carromImage from "../assets/carom_gaming.png";
-import poolImage from "../assets/pool_gaming.jpg";
 import upload from "../assets/upload.png";
+import { API_BASE_URL } from "../apiConfig";
 
-const OtherGamesSection = ({
-  games,
-  dbGames,
-  handleRemoveGame,
-  setEditData,
-  setOpenEditGame,
-  setEditDbGameData,
-  setOpenEditDbGame,
-}) => {
-  const combinedGames = [
-    ...games.map((g) => ({ ...g, source: "portable" })),
-    ...dbGames.map((g) => ({ ...g, source: "db" })),
-  ];
+const BASE_URL = `${API_BASE_URL}/storage/`;
 
+const getGameDefaults = (item) => {
+  // ✅ FIX IMAGE SOURCE
+  let image = item.image || (item.thumbnail ? BASE_URL + item.thumbnail : null);
+
+  // ✅ FIX DESCRIPTION FIELD
+  let desc = item.description || item.desc;
+
+  const method = item.method?.toLowerCase();
+
+  // ✅ Only fallback if STILL missing
+  if (!image) {
+    switch (method) {
+      case "per hour":
+        image = carromImage;
+        break;
+      case "coin":
+        image = arcadeImage;
+        break;
+      case "arrow":
+        image = archeryImage;
+        break;
+      default:
+        image = upload;
+    }
+  }
+
+  if (!desc) {
+    switch (method) {
+      case "per hour":
+        desc = "Play by the hour on Carrom table";
+        break;
+      case "coin":
+        desc = "Enjoy coin-operated arcade games";
+        break;
+      case "arrow":
+        desc = "Test your aim with archery games";
+        break;
+      default:
+        desc = "Enjoy this exciting game!";
+    }
+  }
+
+  return { image, desc };
+};
+
+const OtherGamesSection = ({ games, handleRemoveGame, onEditGame }) => {
   return (
     <>
-      {combinedGames.map((item, index) => {
-        let displayImage = item.image;
-        let displayDesc = item.desc;
-
-        if (!displayImage || !displayDesc) {
-          if (item.method === "Per Hour") {
-            displayImage = displayImage || carromImage;
-            displayDesc = displayDesc || "Play by the hour on Carrom table";
-          } else if (item.method === "Coin") {
-            displayImage = displayImage || arcadeImage;
-            displayDesc = displayDesc || "Enjoy coin-operated arcade games";
-          } else if (item.method === "Arrow") {
-            displayImage = displayImage || archeryImage;
-            displayDesc = displayDesc || "Test your aim with archery games";
-          } else {
-            displayImage = displayImage || upload;
-            displayDesc = displayDesc || "Enjoy this exciting game!";
-          }
-        }
+      {games?.map((item, index) => {
+        const { image: displayImage, desc: displayDesc } =
+          getGameDefaults(item);
 
         return (
           <Box
@@ -49,7 +67,6 @@ const OtherGamesSection = ({
             sx={{
               borderRadius: "12px",
               overflow: "hidden",
-              height: "100%",
               position: "relative",
             }}
           >
@@ -69,17 +86,9 @@ const OtherGamesSection = ({
                 cursor: "pointer",
                 zIndex: 10,
               }}
-              onClick={() => {
-                if (item.source === "portable") {
-                  setEditData(item);
-                  setOpenEditGame(true);
-                } else {
-                  setEditDbGameData(item);
-                  setOpenEditDbGame(true);
-                }
-              }}
+              onClick={() => onEditGame(item)}
             >
-              <img src={EditIcon} alt="edit-icon" style={{ width: 16 }} />
+              <img src={EditIcon} alt="edit" style={{ width: 16 }} />
             </Box>
 
             {/* Card */}
@@ -98,34 +107,37 @@ const OtherGamesSection = ({
             >
               <Box
                 sx={{
-                  backgroundColor: "#000000",
+                  backgroundColor: "#000",
                   flexGrow: 1,
                   display: "flex",
                   flexDirection: "column",
                   borderRadius: "12px",
                 }}
               >
+                {/* ✅ Thumbnail ALWAYS correct */}
                 <img
                   src={displayImage}
-                  alt={item.title}
-                  style={{ width: "100%", height: "190px", objectFit: "cover" }}
+                  alt={item.title || "game"}
+                  style={{
+                    width: "100%",
+                    height: "190px",
+                    objectFit: "cover",
+                  }}
                 />
+
                 <Box sx={{ p: 2, textAlign: "center", flexGrow: 1 }}>
-                  <h3
-                    style={{
-                      fontSize: "16px",
-                      fontWeight: "500",
-                      color: "white",
-                    }}
-                  >
+                  {/* Title */}
+                  <h3 style={{ fontSize: 16, fontWeight: 500, color: "white" }}>
                     {item.title}
                   </h3>
+
+                  {/* ✅ Description ALWAYS correct */}
                   <p
                     style={{
-                      fontSize: "14px",
-                      fontWeight: "300",
+                      fontSize: 14,
+                      fontWeight: 300,
                       marginTop: 8,
-                      color: "#FFFFFF",
+                      color: "#fff",
                     }}
                   >
                     {displayDesc}

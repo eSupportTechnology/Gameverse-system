@@ -30,10 +30,18 @@ class GameController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'location' => 'required|string|max:255',
-            'method' => 'required|string|max:50',
+            'method' => 'required',
             'price' => 'required|numeric|min:0',
-            'team_game' => 'required|boolean', // Now required to always get true/false
+            'team_game' => 'required|boolean',
+            'description' => 'nullable|string',
+            'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
         ]);
+
+        $thumbnailPath = null;
+
+        if ($request->hasFile('thumbnail')) {
+            $thumbnailPath = $request->file('thumbnail')->store('games', 'public');
+        }
 
         $game = Game::create([
             'title' => $request->title,
@@ -41,6 +49,8 @@ class GameController extends Controller
             'method' => $request->method,
             'price' => $request->price,
             'team_game' => $request->team_game,
+            'description' => $request->description,
+            'thumbnail' => $thumbnailPath,
         ]);
 
         return response()->json($game, 201);
@@ -49,26 +59,31 @@ class GameController extends Controller
     // Update an existing game
     public function update(Request $request, $id)
     {
-        $game = Game::find($id);
-        if (!$game) {
-            return response()->json(['message' => 'Game not found'], 404);
-        }
+        $game = Game::findOrFail($id);
 
         $request->validate([
             'title' => 'required|string|max:255',
             'location' => 'required|string|max:255',
-            'method' => 'required|string|max:50',
+            'method' => 'required',
             'price' => 'required|numeric|min:0',
             'team_game' => 'required|boolean',
+            'description' => 'nullable|string',
+            'thumbnail' => 'nullable|image|max:2048',
         ]);
 
-        // Update fields individually
-        $game->title = $request->title;
-        $game->location = $request->location;
-        $game->method = $request->method;
-        $game->price = $request->price;
-        $game->team_game = $request->team_game; // works for true/false
-        $game->save();
+        if ($request->hasFile('thumbnail')) {
+            $thumbnailPath = $request->file('thumbnail')->store('games', 'public');
+            $game->thumbnail = $thumbnailPath;
+        }
+
+        $game->update([
+            'title' => $request->title,
+            'location' => $request->location,
+            'method' => $request->method,
+            'price' => $request->price,
+            'team_game' => $request->team_game,
+            'description' => $request->description,
+        ]);
 
         return response()->json($game);
     }
@@ -107,38 +122,37 @@ class GameController extends Controller
     }
 
     // Update game method based on play type
- public function play(Request $request, $id)
-{
-    $game = Game::findOrFail($id);
- 
-    if ($request->type === 'Per Hour') {
-        $game->method = [
-            'type' => 'Per Hour',
-            'hours' => (int) $request->hours,
-            'players' => (int) $request->players,
-        ];
+    public function play(Request $request, $id)
+    {
+        $game = Game::findOrFail($id);
+
+        if ($request->type === 'Per Hour') {
+            $game->method = [
+                'type' => 'Per Hour',
+                'hours' => (int) $request->hours,
+                'players' => (int) $request->players,
+            ];
+        }
+
+        if ($request->type === 'Coin') {
+            $game->method = [
+                'type' => 'Coin',
+                'coins' => (int) $request->coins,
+            ];
+        }
+
+        if ($request->type === 'Arrow') {
+            $game->method = [
+                'type' => 'Arrow',
+                'arrows' => (int) $request->arrows,
+            ];
+        }
+
+        $game->save();
+
+        return response()->json([
+            'message' => 'Method updated',
+            'method' => $game->method,
+        ]);
     }
-  
-    if ($request->type === 'Coin') {
-        $game->method = [
-            'type' => 'Coin',
-            'coins' => (int) $request->coins,
-        ];
-    }
-
-    if ($request->type === 'Arrow') {
-        $game->method = [
-            'type' => 'Arrow',
-            'arrows' => (int) $request->arrows,
-        ];
-    }
-
-    $game->save();
-
-    return response()->json([
-        'message' => 'Method updated',
-        'method' => $game->method,
-    ]);
-}
-
 }
