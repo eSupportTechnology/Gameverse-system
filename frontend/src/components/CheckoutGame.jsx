@@ -25,11 +25,12 @@ const methodUnitPrice = {
   "Per Hour": 75,
 };
 
-const CheckoutGame = ({ game, handleClose, onPlayUpdate }) => {
+const CheckoutGame = ({ game, handleClose, onPlayUpdate, onPaymentSuccess }) => {
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
   const [selectedMethod, setSelectedMethod] = useState("");
   const [nfcDialogOpen, setNfcDialogOpen] = useState(false);
+  const [receiptTemp, setReceiptTemp] = useState(null);
 
   // Form states(editable fields)
   const [units, setUnits] = useState("0");
@@ -83,8 +84,12 @@ const CheckoutGame = ({ game, handleClose, onPlayUpdate }) => {
   const handleCancelOpen = () => setCancelOpen(true);
   const handleCancelClose = () => setCancelOpen(false);
   const handleConfirm = () => {
-    setCancelOpen(false);
+    setPaymentSuccess(false);
     handleClose();
+
+    if (receiptTemp) {
+      onPaymentSuccess?.(receiptTemp);
+    }
   };
 
   if (!game) return null;
@@ -209,8 +214,16 @@ const CheckoutGame = ({ game, handleClose, onPlayUpdate }) => {
       if (res.data?.success) {
         onPlayUpdate(gameId, res.data.data?.method);
 
+      await useSelectedRewards(gameId);
+        const receipt = {
+          id: res.data.data.id,
+          title: game.title,
+          amount: balance,
+          date: new Date(),
+        };
+
+        setReceiptTemp(receipt);
         setPaymentSuccess(true);
-        await useSelectedRewards(gameId);
       } else {
         alert("Payment failed");
       }
