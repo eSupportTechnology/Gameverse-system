@@ -13,6 +13,7 @@ import {
   Select,
   TextField,
   Typography,
+  Divider,
 } from "@mui/material";
 import axios from "axios";
 import { useEffect, useRef, useState } from "react";
@@ -21,6 +22,8 @@ import AddNFCUserDialog from "./AddNFCUserDialog";
 import CreateSuccessDialog from "./CreateSuccessDialog";
 import UpdateSuccessDialog from "./UpdateSuccess";
 import { API_BASE_URL } from "../apiConfig";
+import dayjs from "dayjs";
+import jsPDF from "jspdf";
 
 const BookingForm = ({
   open,
@@ -37,6 +40,8 @@ const BookingForm = ({
   const [nfcDialogOpen, setNfcDialogOpen] = useState(false);
   const [rewards, setRewards] = useState({});
   const [selectedRewards, setSelectedRewards] = useState({});
+  const [showReceipt, setShowReceipt] = useState(false);
+const [createdBookings, setCreatedBookings] = useState([]);
   const rewardConfig = {
     "1 hour free PlayStation (VR not included)": {
       duration: "1h",
@@ -397,18 +402,10 @@ const BookingForm = ({
             },
           },
         );
-        setcreateSuccess(true); // show create dialog
-        setFormData({
-          nfcCardNumber: "",
-          customerName: "",
-          phoneNumber: "",
-          station: "",
-          bookingDate: "",
-          vrPlay: "",
-          startTime: "",
-          duration: "",
-          amount: 0,
-        });
+        const newBooking = bookingResponse.data?.data;
+        setCreatedBookings([newBooking]); // store booking
+        setShowReceipt(true);
+        setcreateSuccess(true);
       }
       const bookingId = bookingResponse.data?.data?.id;
 
@@ -644,6 +641,40 @@ const BookingForm = ({
   const allowedStations = activeReward
     ? rewardConfig[activeReward]?.stations || []
     : null;
+
+    const downloadReceipt = (booking) => {
+      const doc = new jsPDF();
+
+      doc.setFontSize(18);
+      doc.text("Gaming Session Receipt", 20, 20);
+
+      doc.setFontSize(12);
+      doc.text(`Order ID: ${booking.order_id || booking.id}`, 20, 35);
+      doc.text(
+        `Date: ${
+          booking.booking_date
+            ? dayjs(booking.booking_date).format("DD/MM/YYYY")
+            : "-"
+        }`,
+        20,
+        45
+      );
+      doc.text(`Station: ${booking.station || "-"}`, 20, 55);
+      doc.text(`Customer: ${booking.customer_name || "-"}`, 20, 65);
+      doc.text(`Phone: ${booking.phone_number || "-"}`, 20, 75);
+      doc.text(`VR Play: ${booking.vr_play || "No"}`, 20, 85);
+      doc.text(`Start Time: ${booking.start_time || "-"}`, 20, 95);
+      doc.text(`Duration: ${booking.duration || "-"}`, 20, 105);
+
+      doc.setFontSize(14);
+      doc.text(
+        `Amount Paid: LKR ${Number(booking.amount || 0).toFixed(2)}`,
+        20,
+        120
+      );
+
+      doc.save(`Receipt_${booking.customer_name}_${booking.id}.pdf`);
+    };
   return (
     <>
       <Dialog
@@ -1398,6 +1429,133 @@ const BookingForm = ({
         formData={nfcFormData}
         setFormData={setNfcFormData}
       />
+      {showReceipt && createdBookings.length > 0 && (
+        <Dialog
+        open={showReceipt}
+        onClose={() => setShowReceipt(false)}
+        fullWidth
+        maxWidth="sm"
+        PaperProps={{
+          sx: {
+            borderRadius: "16px",
+            background: "#0F172A",
+            color: "white",
+            p: 2,
+            border: "1px solid rgba(255,255,255,0.1)",
+          },
+        }}
+      >
+        <DialogTitle
+          sx={{
+            fontWeight: 600,
+            fontSize: 20,
+            textAlign: "center",
+            color: "#E5E7EB",
+          }}
+        >
+          Booking Receipt
+        </DialogTitle>
+
+        <DialogContent>
+          {createdBookings.map((b, i) => (
+            <Box
+              key={i}
+              sx={{
+                p: 2,
+                borderRadius: 3,
+                background: "rgba(255,255,255,0.05)",
+                border: "1px solid rgba(255,255,255,0.08)",
+                mb: 3,
+              }}
+            >
+              {[
+                ["Customer Name", b.customer_name || "-"],
+                ["Phone Number", b.phone_number || "-"],
+                ["Station", b.station || "-"],
+                ["VR Play", b.vr_play || "No"],
+                [
+                  "Date",
+                  b.booking_date
+                    ? dayjs(b.booking_date).format("DD/MM/YYYY")
+                    : "-",
+                ],
+                ["Start Time", b.start_time || "-"],
+                ["Duration", b.duration || "-"],
+              ].map(([label, value]) => (
+                <Box
+                  key={label}
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    mb: 1.2,
+                  }}
+                >
+                  <Typography sx={{ color: "#9CA3AF", fontSize: 14 }}>
+                    {label}
+                  </Typography>
+                  <Typography sx={{ color: "#fff", fontSize: 14 }}>
+                    {value}
+                  </Typography>
+                </Box>
+              ))}
+
+              <Divider sx={{ my: 2, borderColor: "rgba(255,255,255,0.1)" }} />
+
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  mb: 2,
+                }}
+              >
+                <Typography sx={{ color: "#9CA3AF" }}>Payment</Typography>
+                <Typography sx={{ color: "#22C55E", fontWeight: 600 }}>
+                  {b.amount === 0
+                    ? "FREE"
+                    : `LKR ${Number(b.amount).toFixed(2)}`}
+                </Typography>
+              </Box>
+
+              <Button
+                fullWidth
+                onClick={() => downloadReceipt(b)}
+                sx={{
+                  backgroundColor: "transparent",
+                  color: "#fff",
+                  textTransform: "none",
+                  fontWeight: 600,
+                  borderRadius: 999,
+                  py: 1.2,
+                  border: "1px solid rgba(255,255,255,0.7)",
+                  "&:hover": {
+                    backgroundColor: "#16A34A",
+                    border: "1px solid #16A34A",
+                  },
+                }}
+              >
+                Download Receipt
+              </Button>
+            </Box>
+          ))}
+        </DialogContent>
+
+        <DialogActions sx={{ justifyContent: "center", pb: 2 }}>
+          <Button
+            onClick={() => setShowReceipt(false)}
+            sx={{
+              px: 5,
+              borderRadius: "8px",
+              textTransform: "none",
+              background: "#1F2937",
+              color: "white",
+              "&:hover": { background: "#374151" },
+            }}
+          >
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
+      )}
     </>
   );
 };
