@@ -7,6 +7,11 @@ import {
   IconButton,
   TextField,
   Typography,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Divider,
 } from "@mui/material";
 import axios from "axios";
 import { useContext, useEffect, useRef, useState } from "react";
@@ -26,6 +31,8 @@ import RightSection from "./RightSectionPos";
 import UpdateSuccessDialog from "./UpdateSuccess";
 import { API_BASE_URL } from "../apiConfig";
 import { AppContext } from "../context/AppContext";
+import jsPDF from "jspdf";
+import dayjs from "dayjs";
 
 const initialCategories = ["All", "Drinks", "Snacks", "Dessert", "Ice Cream"];
 
@@ -86,6 +93,8 @@ const PosSystem = () => {
   const handleCloseAddNFCUserDialog = () => setOpenAddNFCUserDialog(false);
   const [rewards, setRewards] = useState({});
   const [selectedRewards, setSelectedRewards] = useState({});
+  const [openReceipt, setOpenReceipt] = useState(false);
+  const [receiptData, setReceiptData] = useState(null);
   // Cart operations
   const fetchCart = async () => {
     try {
@@ -419,7 +428,8 @@ const PosSystem = () => {
         },
       );
 
-      const saleId = saleResponse.data?.data?.id;
+      const saleData = saleResponse.data?.data;
+      const saleId = saleData?.id;
 
       for (let type in selectedRewards) {
         await axios.post(`${API_BASE_URL}/api/pos-use-reward`, {
@@ -428,6 +438,14 @@ const PosSystem = () => {
           sale_id: saleId,
         });
       }
+
+      setReceiptData({
+        sale: saleData,
+        cart: [...cart],
+        subtotal,
+        discount,
+        total,
+      });
 
       setOpenCheckout(false);
       setOpenPaymentSuccess(true);
@@ -518,6 +536,44 @@ const PosSystem = () => {
     return () => ws.close();
   }, []);
   console.log(rewards);
+  const downloadPOSReceipt = (saleData, cartItems) => {
+    const doc = new jsPDF();
+
+    doc.setFontSize(18);
+    doc.text("POS Receipt", 20, 20);
+
+    doc.setFontSize(12);
+    doc.text(`Sale ID: ${saleData.id}`, 20, 35);
+    doc.text(`Customer: ${saleData.customer_name || "-"}`, 20, 45);
+    doc.text(`Card: ${saleData.customer_id || "-"}`, 20, 55);
+    doc.text(`Date: ${dayjs().format("DD/MM/YYYY HH:mm")}`, 20, 65);
+
+    let y = 80;
+
+    doc.text("Items:", 20, y);
+    y += 10;
+
+    cartItems.forEach((item) => {
+      doc.text(
+        `${item.name} x${item.qty} = LKR ${item.price * item.qty}`,
+        20,
+        y,
+      );
+      y += 10;
+    });
+
+    y += 10;
+
+    const total = cartItems.reduce(
+      (sum, i) => sum + i.price * i.qty,
+      0,
+    );
+
+    doc.setFontSize(14);
+    doc.text(`TOTAL: LKR ${total.toFixed(2)}`, 20, y);
+
+    doc.save(`POS_Receipt_${saleData.id}.pdf`);
+  };
   return (
     <Box
       sx={{
@@ -882,7 +938,8 @@ const PosSystem = () => {
 
       <PaymentSuccessPopup
         open={openPaymentSuccess}
-        onClose={() => setOpenPaymentSuccess(false)}
+        onClose={() => {setOpenPaymentSuccess(false);
+          setOpenReceipt(true);}}
         icon={sucessIcon}
       />
 
@@ -894,6 +951,179 @@ const PosSystem = () => {
         open={editSuccess}
         onClose={() => seteditSuccess(false)}
       />
+    <Dialog
+        open={openReceipt}
+        onClose={() => setOpenReceipt(false)}
+        fullWidth
+        maxWidth="sm"
+        PaperProps={{
+          sx: {
+            borderRadius: "16px",
+            background: "#0F172A",
+            color: "white",
+            p: 2,
+            border: "1px solid rgba(255,255,255,0.1)",
+          },
+        }}
+      >
+        <DialogTitle
+          sx={{
+            fontWeight: 600,
+            fontSize: 20,
+            textAlign: "center",
+            color: "#E5E7EB",
+          }}
+        >
+          POS Receipt
+        </DialogTitle>
+
+        <DialogContent>
+          {receiptData && (
+            <Box
+              sx={{
+                p: 2,
+                borderRadius: 3,
+                background: "rgba(255,255,255,0.05)",
+                border: "1px solid rgba(255,255,255,0.08)",
+                mb: 3,
+              }}
+            >
+              {[
+                ["Sale ID", receiptData.sale?.id || "-"],
+                ["Customer Name", receiptData.sale?.customer_name || "-"],
+                ["Card Number", receiptData.sale?.customer_id || "-"],
+                [
+                  "Date",
+                  dayjs().format("DD/MM/YYYY HH:mm"),
+                ],
+              ].map(([label, value]) => (
+                <Box
+                  key={label}
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    mb: 1.2,
+                  }}
+                >
+                  <Typography sx={{ color: "#9CA3AF", fontSize: 14 }}>
+                    {label}
+                  </Typography>
+                  <Typography sx={{ color: "#fff", fontSize: 14 }}>
+                    {value}
+                  </Typography>
+                </Box>
+              ))}
+
+              <Divider sx={{ my: 2, borderColor: "rgba(255,255,255,0.1)" }} />
+
+              {/* ITEMS (same style as bookings list) */}
+              {receiptData.cart.map((item, i) => (
+                <Box
+                  key={i}
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    mb: 1.2,
+                  }}
+                >
+                  <Typography sx={{ color: "#9CA3AF", fontSize: 14 }}>
+                    {item.name} x{item.qty}
+                  </Typography>
+                  <Typography sx={{ color: "#fff", fontSize: 14 }}>
+                    LKR {item.price * item.qty}
+                  </Typography>
+                </Box>
+              ))}
+
+              <Divider sx={{ my: 2, borderColor: "rgba(255,255,255,0.1)" }} />
+
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  mb: 1,
+                }}
+              >
+                <Typography sx={{ color: "#9CA3AF", fontSize: 14 }}>
+                  Subtotal
+                </Typography>
+                <Typography sx={{ color: "#fff", fontSize: 14 }}>
+                  LKR {receiptData.subtotal}
+                </Typography>
+              </Box>
+
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  mb: 1,
+                }}
+              >
+                <Typography sx={{ color: "#9CA3AF", fontSize: 14 }}>
+                  Discount
+                </Typography>
+                <Typography sx={{ color: "#fff", fontSize: 14 }}>
+                  LKR {receiptData.discount}
+                </Typography>
+              </Box>
+
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  mt: 2,
+                }}
+              >
+                <Typography sx={{ color: "#fff", fontSize: 15, fontWeight: 600 }}>
+                  Total
+                </Typography>
+                <Typography sx={{ color: "#22C55E", fontSize: 15, fontWeight: 600 }}>
+                  LKR {receiptData.total}
+                </Typography>
+              </Box>
+
+              <Button
+                fullWidth
+                onClick={() =>
+                  downloadPOSReceipt(receiptData.sale, receiptData.cart)
+                }
+                sx={{
+                  mt: 3,
+                  backgroundColor: "transparent",
+                  color: "#fff",
+                  textTransform: "none",
+                  fontWeight: 600,
+                  borderRadius: 999,
+                  py: 1.2,
+                  border: "1px solid rgba(255,255,255,0.7)",
+                  "&:hover": {
+                    backgroundColor: "#16A34A",
+                    border: "1px solid #16A34A",
+                  },
+                }}
+              >
+                Download Receipt
+              </Button>
+            </Box>
+          )}
+        </DialogContent>
+
+        <DialogActions sx={{ justifyContent: "center", pb: 2 }}>
+          <Button
+            onClick={() => setOpenReceipt(false)}
+            sx={{
+              px: 5,
+              borderRadius: "8px",
+              textTransform: "none",
+              background: "#1F2937",
+              color: "white",
+              "&:hover": { background: "#374151" },
+            }}
+          >
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

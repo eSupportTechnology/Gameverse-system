@@ -7,6 +7,11 @@ import {
   ToggleButtonGroup,
   TextField,
   InputAdornment,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Divider,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import axios from "axios";
@@ -16,6 +21,8 @@ import GameCard from "./GameCard.jsx";
 import CheckoutGame from "./CheckoutGame.jsx";
 import { API_BASE_URL } from "../apiConfig.js";
 import { AppContext } from "../context/AppContext";
+import jsPDF from "jspdf";
+import dayjs from "dayjs";
 
 
 const GamesManagement = () => {
@@ -26,6 +33,8 @@ const GamesManagement = () => {
   const [editGame, setEditGame] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const { globalSearch } = useContext(AppContext);
+  const [showReceipt, setShowReceipt] = useState(false);
+  const [receiptData, setReceiptData] = useState(null);
   const token = localStorage.getItem("aToken");
 
   // Fetch all games (for admin)
@@ -100,6 +109,26 @@ const GamesManagement = () => {
     );
   };
 
+    const downloadReceipt = (game) => {
+    const doc = new jsPDF();
+
+    doc.setFontSize(18);
+    doc.text("Game Session Receipt", 20, 20);
+
+    doc.setFontSize(12);
+    doc.text(`Game: ${game.title}`, 20, 35);
+    doc.text(`Game ID: ${game.id}`, 20, 45);
+    doc.text(`Date: ${dayjs().format("DD/MM/YYYY HH:mm")}`, 20, 55);
+
+    doc.setFontSize(14);
+    doc.text(
+      `Amount Paid: LKR ${Number(game.amount || 0).toFixed(2)}`,
+      20,
+      70
+    );
+
+    doc.save(`Game_Receipt_${game.id}.pdf`);
+  };
   return (
     <Box sx={{ p: 2, bgcolor: "#1E1E1E", color: "#fff", minHeight: "100vh" }}>
       {/* Header */}
@@ -269,9 +298,129 @@ const GamesManagement = () => {
           <CheckoutGame
             game={selectedGame}
             handleClose={() => setSelectedGame(null)}
-            onPlayUpdate={handlePlayUpdate}
-          />
+            onPlayUpdate={(gameId, updatedMethod) => {
+              handlePlayUpdate(gameId, updatedMethod);
+            }}
+            onPaymentSuccess={(receipt) => {
+              setReceiptData(receipt);
+              setShowReceipt(true);
+            }}
+            />
         )}
+        <Dialog
+          open={showReceipt}
+          onClose={() => setShowReceipt(false)}
+          fullWidth
+          maxWidth="sm"
+          PaperProps={{
+            sx: {
+              borderRadius: "16px",
+              background: "#0F172A",
+              color: "white",
+              p: 2,
+              border: "1px solid rgba(255,255,255,0.1)",
+            },
+          }}
+        >
+          <DialogTitle
+            sx={{
+              fontWeight: 600,
+              fontSize: 20,
+              textAlign: "center",
+              color: "#E5E7EB",
+            }}
+          >
+            Game Receipt
+          </DialogTitle>
+
+          <DialogContent>
+            {receiptData && (
+              <Box
+                sx={{
+                  p: 2,
+                  borderRadius: 3,
+                  background: "rgba(255,255,255,0.05)",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                }}
+              >
+                {[
+                  ["Game Title", receiptData.title || "-"],
+                  ["Game ID", receiptData.id || "-"],
+                  ["Date", dayjs().format("DD/MM/YYYY HH:mm")],
+                ].map(([label, value]) => (
+                  <Box
+                    key={label}
+                    sx={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      mb: 1.4,
+                    }}
+                  >
+                    <Typography sx={{ color: "#9CA3AF", fontSize: 14 }}>
+                      {label}
+                    </Typography>
+                    <Typography sx={{ color: "#fff", fontSize: 14 }}>
+                      {value}
+                    </Typography>
+                  </Box>
+                ))}
+
+                <Divider sx={{ my: 2, borderColor: "rgba(255,255,255,0.1)" }} />
+
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  <Typography sx={{ color: "#9CA3AF", fontSize: 14 }}>
+                    Payment
+                  </Typography>
+                  <Typography sx={{ color: "#22C55E", fontWeight: 600 }}>
+                    LKR {Number(receiptData.amount || 0).toFixed(2)}
+                  </Typography>
+                </Box>
+
+                <Button
+                  fullWidth
+                  onClick={() => downloadReceipt(receiptData)}
+                  sx={{
+                    mt: 3,
+                    backgroundColor: "transparent",
+                    color: "#fff",
+                    textTransform: "none",
+                    fontWeight: 600,
+                    borderRadius: 999,
+                    py: 1.2,
+                    border: "1px solid rgba(255,255,255,0.7)",
+                    "&:hover": {
+                      backgroundColor: "#16A34A",
+                      border: "1px solid #16A34A",
+                    },
+                  }}
+                >
+                  Download Receipt
+                </Button>
+              </Box>
+            )}
+          </DialogContent>
+
+          <DialogActions sx={{ justifyContent: "center", pb: 2 }}>
+            <Button
+              onClick={() => setShowReceipt(false)}
+              sx={{
+                px: 5,
+                borderRadius: "8px",
+                textTransform: "none",
+                background: "#1F2937",
+                color: "white",
+                "&:hover": { background: "#374151" },
+              }}
+            >
+              Close
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Box>
     </Box>
   );
