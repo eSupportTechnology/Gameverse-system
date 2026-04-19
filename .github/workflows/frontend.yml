@@ -36,7 +36,7 @@ jobs:
 
       - name: Deploy to cPanel via lftp
         run: |
-          lftp -u '${{ secrets.FTP_USERNAME }},${{ secrets.FTP_PASSWORD }}' \
+          lftp -u '${{ vars.FTP_USERNAME }},${{ secrets.FTP_PASSWORD }}' \
             -e "set ssl:verify-certificate no; \
                 set ftp:ssl-allow yes; \
                 set ftp:ssl-protect-data true; \
@@ -49,4 +49,4 @@ jobs:
                   --verbose \
                   --parallel=4; \
                 bye" \
-            ftp.futureindustrylk.com
+            admin.gameverse.lk
