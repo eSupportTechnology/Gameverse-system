@@ -180,6 +180,9 @@ Route::get('/reports/total-games-amount', [ReportsController::class, 'totalGames
 Route::get('/reports/total-pos-amount', [ReportsController::class, 'totalPosAmount']);
 
 Route::get('/reports/export-doc', [ReportsController::class, 'exportDoc']);
+Route::get('/reports/bookings', [ReportsController::class, 'bookingsList']);
+Route::get('/reports/pos-sales', [ReportsController::class, 'posSalesList']);
+Route::get('/reports/game-checkouts', [ReportsController::class, 'gameCheckoutsList']);
 Route::get('/nfc-users/by-card/{cardNo}', [NfcUserController::class, 'getByCard']);
 
 //booking rewards

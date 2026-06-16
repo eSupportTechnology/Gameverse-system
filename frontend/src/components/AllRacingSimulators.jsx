@@ -46,6 +46,7 @@ const AllRacingSimulators = () => {
   const [timeVR, setTimeVR] = useState("");
   const [thumbnail, setThumbnail] = useState(null);
   const [thumbnailFile, setThumbnailFile] = useState(null);
+  const [allPricing, setAllPricing] = useState([]);
 
   const [openAddSuccess, setOpenAddSuccess] = useState(false);
   const [addMessage, setAddMessage] = useState("");
@@ -91,6 +92,7 @@ const AllRacingSimulators = () => {
     setTimeVR("30 Min");
     setThumbnail(null);
     setThumbnailFile(null);
+    setAllPricing([]);
     setOpenAddRacing(true);
   };
 
@@ -102,10 +104,14 @@ const AllRacingSimulators = () => {
     setSimulatorName(item.name);
     // setDescription(item.description);
     setLocation(item.location);
-    setPriceNormal(item.price);
-    setPriceVR(item.vrPrice);
-    setTimeNormal(item.timeNormal);
-    setTimeVR(item.timeVR);
+    const pricing = item.pricing || [];
+    setAllPricing(pricing);
+    const p0 = pricing[0];
+    const durLabel = (d) => d === 60 ? "1 Hour" : d === 15 ? "15 Min" : "30 Min";
+    setPriceNormal(p0?.price != null ? String(p0.price) : "");
+    setPriceVR(p0?.vrPrice != null ? String(p0.vrPrice) : "");
+    setTimeNormal(durLabel(p0?.duration));
+    setTimeVR(durLabel(p0?.duration));
     setThumbnail(
       item.thumbnail ? `${API_BASE_URL}/storage/${item.thumbnail}` : null,
     );
@@ -113,6 +119,26 @@ const AllRacingSimulators = () => {
     setOpenAddRacing(true);
 
     setOpenAddRacing(true);
+  };
+
+  const handleTimeNormalChange = (val) => {
+    setTimeNormal(val);
+    const dur = val.includes("Hour") ? 60 : val.includes("15") ? 15 : 30;
+    const match = allPricing.find((p) => p.duration === dur);
+    if (match) {
+      setPriceNormal(match.price != null ? String(match.price) : "");
+      if (match.vrPrice != null) setPriceVR(String(match.vrPrice));
+    } else {
+      setPriceNormal("");
+    }
+  };
+
+  const handleTimeVRChange = (val) => {
+    setTimeVR(val);
+    const dur = val.includes("Hour") ? 60 : val.includes("15") ? 15 : 30;
+    const match = allPricing.find((p) => p.duration === dur);
+    if (match && match.vrPrice != null) setPriceVR(String(match.vrPrice));
+    else setPriceVR("");
   };
 
   // save station (Add or Update)
@@ -126,26 +152,17 @@ const AllRacingSimulators = () => {
     const parseTime = (timeStr) => {
       if (!timeStr) return null;
       if (timeStr.includes("Hour")) return 60;
-      return 30; // default to 30 minutes
-    };
-
-    const payload = {
-      name: simulatorName,
-      location: location,
-      // description: description,
-      price: priceNormal,
-      time: parseTime(timeNormal),
-      vrPrice: priceVR || null,
-      vrTime: timeVR ? parseTime(timeVR) : null,
-      type: "Simulator",
+      if (timeStr.includes("15")) return 15;
+      return 30;
     };
 
     const form = new FormData();
-    for (const key in payload) {
-      if (payload[key] !== null && payload[key] !== "") {
-        form.append(key, payload[key]);
-      }
-    }
+    form.append("name", simulatorName);
+    form.append("location", location);
+    form.append("type", "Simulator");
+    form.append("pricing[0][duration]", parseTime(timeNormal) || 30);
+    form.append("pricing[0][price]", Number(priceNormal));
+    if (priceVR) form.append("pricing[0][vrPrice]", Number(priceVR));
 
     if (thumbnailFile) {
       form.append("thumbnail", thumbnailFile);
@@ -656,7 +673,7 @@ const AllRacingSimulators = () => {
                     fullWidth
                     defaultValue="30 Min"
                     value={timeNormal}
-                    onChange={(e) => setTimeNormal(e.target.value)}
+                    onChange={(e) => handleTimeNormalChange(e.target.value)}
                     sx={{
                       "& .MuiOutlinedInput-root fieldset": {
                         borderColor: "#374151",
@@ -665,6 +682,7 @@ const AllRacingSimulators = () => {
                       "& .MuiOutlinedInput-root": { height: 45 }, // align height
                     }}
                   >
+                    <MenuItem value="15 Min">15 Min</MenuItem>
                     <MenuItem value="30 Min">30 Min</MenuItem>
                     <MenuItem value="1 Hour">1 Hour</MenuItem>
                   </TextField>
@@ -729,7 +747,7 @@ const AllRacingSimulators = () => {
                     fullWidth
                     defaultValue="30 Min"
                     value={timeVR}
-                    onChange={(e) => setTimeVR(e.target.value)}
+                    onChange={(e) => handleTimeVRChange(e.target.value)}
                     sx={{
                       "& .MuiOutlinedInput-root fieldset": {
                         borderColor: "#374151",
@@ -738,6 +756,7 @@ const AllRacingSimulators = () => {
                       "& .MuiOutlinedInput-root": { height: 45 }, // align height
                     }}
                   >
+                    <MenuItem value="15 Min">15 Min</MenuItem>
                     <MenuItem value="30 Min">30 Min</MenuItem>
                     <MenuItem value="1 Hour">1 Hour</MenuItem>
                   </TextField>

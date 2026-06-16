@@ -8,11 +8,13 @@ import {
   TextField,
   Typography,
   Dialog,
-  DialogActions,
   DialogContent,
-  DialogTitle,
-  Divider,
 } from "@mui/material";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import DownloadIcon from "@mui/icons-material/Download";
+import PersonIcon from "@mui/icons-material/Person";
+import CreditCardIcon from "@mui/icons-material/CreditCard";
+import ShoppingBagIcon from "@mui/icons-material/ShoppingBag";
 import axios from "axios";
 import { useContext, useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
@@ -448,7 +450,7 @@ const PosSystem = () => {
       });
 
       setOpenCheckout(false);
-      setOpenPaymentSuccess(true);
+      setOpenReceipt(true);
 
       fetchCart();
       fetchItems();
@@ -536,43 +538,157 @@ const PosSystem = () => {
     return () => ws.close();
   }, []);
   console.log(rewards);
-  const downloadPOSReceipt = (saleData, cartItems) => {
-    const doc = new jsPDF();
+  const downloadPOSReceipt = (r) => {
+    if (!r) return;
+    const doc = new jsPDF({ unit: "mm", format: "a4" });
+    const pageW = 210;
+    const margin = 25;
+    const contentW = pageW - margin * 2;
 
-    doc.setFontSize(18);
-    doc.text("POS Receipt", 20, 20);
+    // Background
+    doc.setFillColor(8, 14, 26);
+    doc.rect(0, 0, pageW, 297, "F");
+    doc.setFillColor(12, 215, 255);
+    doc.rect(0, 0, pageW, 2.5, "F");
+    doc.setFillColor(13, 23, 45);
+    doc.rect(0, 2.5, pageW, 52, "F");
 
-    doc.setFontSize(12);
-    doc.text(`Sale ID: ${saleData.id}`, 20, 35);
-    doc.text(`Customer: ${saleData.customer_name || "-"}`, 20, 45);
-    doc.text(`Card: ${saleData.customer_id || "-"}`, 20, 55);
-    doc.text(`Date: ${dayjs().format("DD/MM/YYYY HH:mm")}`, 20, 65);
+    // Header
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(26);
+    doc.setTextColor(12, 215, 255);
+    doc.text("GAMEVERSE", pageW / 2, 20, { align: "center" });
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    doc.setTextColor(100, 116, 139);
+    doc.text("GAMING LOUNGE", pageW / 2, 27, { align: "center" });
+    doc.setDrawColor(30, 50, 80);
+    doc.setLineWidth(0.3);
+    doc.line(margin + 20, 31, pageW - margin - 20, 31);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+    doc.setTextColor(229, 231, 235);
+    doc.text("POS PAYMENT RECEIPT", pageW / 2, 39, { align: "center" });
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    doc.setTextColor(71, 85, 105);
+    doc.text(`Ref: #${String(r.sale?.id || "").padStart(6, "0")}`, pageW / 2, 47, { align: "center" });
+    doc.setDrawColor(12, 215, 255);
+    doc.setLineWidth(0.4);
+    doc.line(0, 54.5, pageW, 54.5);
 
-    let y = 80;
+    // Customer detail rows
+    const detailRows = [
+      ["Customer Name", r.sale?.customer_name || "-"],
+      ["Card Number",   r.sale?.customer_id   || "-"],
+      ["Date",          dayjs().format("DD/MM/YYYY HH:mm")],
+    ];
 
-    doc.text("Items:", 20, y);
-    y += 10;
-
-    cartItems.forEach((item) => {
-      doc.text(
-        `${item.name} x${item.qty} = LKR ${item.price * item.qty}`,
-        20,
-        y,
-      );
-      y += 10;
+    let y = 68;
+    detailRows.forEach(([label, value], idx) => {
+      if (idx % 2 === 0) {
+        doc.setFillColor(16, 26, 46);
+        doc.rect(margin, y - 5.5, contentW, 11, "F");
+      }
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9.5);
+      doc.setTextColor(100, 116, 139);
+      doc.text(label, margin + 4, y);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(229, 231, 235);
+      doc.text(String(value), pageW - margin - 4, y, { align: "right" });
+      y += 13;
     });
 
-    y += 10;
+    // Items header
+    y += 4;
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    doc.setTextColor(100, 116, 139);
+    doc.text("ITEMS", pageW / 2, y, { align: "center" });
+    y += 6;
 
-    const total = cartItems.reduce(
-      (sum, i) => sum + i.price * i.qty,
-      0,
-    );
+    r.cart.forEach((item, idx) => {
+      if (idx % 2 === 0) {
+        doc.setFillColor(16, 26, 46);
+        doc.rect(margin, y - 5.5, contentW, 11, "F");
+      }
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9.5);
+      doc.setTextColor(100, 116, 139);
+      doc.text(`${item.name} × ${item.qty}`, margin + 4, y);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(229, 231, 235);
+      doc.text(`LKR ${Number(item.price * item.qty).toFixed(2)}`, pageW - margin - 4, y, { align: "right" });
+      y += 13;
+    });
 
-    doc.setFontSize(14);
-    doc.text(`TOTAL: LKR ${total.toFixed(2)}`, 20, y);
+    // Dashed separator
+    y += 4;
+    doc.setDrawColor(30, 60, 100);
+    doc.setLineWidth(0.3);
+    doc.setLineDashPattern([2, 2], 0);
+    doc.line(margin, y, pageW - margin, y);
+    doc.setLineDashPattern([], 0);
 
-    doc.save(`POS_Receipt_${saleData.id}.pdf`);
+    // Payment summary
+    y += 12;
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    doc.setTextColor(100, 116, 139);
+    doc.text("PAYMENT SUMMARY", pageW / 2, y, { align: "center" });
+
+    y += 8;
+    doc.setFillColor(16, 26, 46);
+    doc.rect(margin, y - 5.5, contentW, 11, "F");
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9.5);
+    doc.setTextColor(100, 116, 139);
+    doc.text("Subtotal", margin + 4, y);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(229, 231, 235);
+    doc.text(`LKR ${Number(r.subtotal || 0).toFixed(2)}`, pageW - margin - 4, y, { align: "right" });
+    y += 13;
+
+    const disc = Number(r.discount || 0);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9.5);
+    doc.setTextColor(100, 116, 139);
+    doc.text("Discount", margin + 4, y);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(disc > 0 ? 253 : 229, disc > 0 ? 196 : 231, disc > 0 ? 0 : 235);
+    doc.text(`LKR ${disc.toFixed(2)}`, pageW - margin - 4, y, { align: "right" });
+    y += 8;
+
+    // Total box
+    const boxW = 100;
+    const boxX = (pageW - boxW) / 2;
+    doc.setFillColor(10, 22, 42);
+    doc.setDrawColor(12, 215, 255);
+    doc.setLineWidth(0.6);
+    doc.roundedRect(boxX, y, boxW, 24, 3, 3, "FD");
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    doc.setTextColor(100, 116, 139);
+    doc.text("TOTAL PAID", pageW / 2, y + 8, { align: "center" });
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(18);
+    doc.setTextColor(12, 215, 255);
+    doc.text(`LKR ${Number(r.total || 0).toFixed(2)}`, pageW / 2, y + 19, { align: "center" });
+
+    // Footer
+    doc.setDrawColor(20, 35, 60);
+    doc.setLineWidth(0.3);
+    doc.line(margin, 272, pageW - margin, 272);
+    doc.setFont("helvetica", "italic");
+    doc.setFontSize(8);
+    doc.setTextColor(55, 65, 81);
+    doc.text("Thank you for choosing Gameverse Gaming Lounge!", pageW / 2, 279, { align: "center" });
+    doc.text("We hope to see you again soon.", pageW / 2, 285, { align: "center" });
+    doc.setFillColor(12, 215, 255);
+    doc.rect(0, 294.5, pageW, 2.5, "F");
+
+    doc.save(`POSReceipt_${r.sale?.id || ""}.pdf`);
   };
   return (
     <Box
@@ -938,8 +1054,7 @@ const PosSystem = () => {
 
       <PaymentSuccessPopup
         open={openPaymentSuccess}
-        onClose={() => {setOpenPaymentSuccess(false);
-          setOpenReceipt(true);}}
+        onClose={() => setOpenPaymentSuccess(false)}
         icon={sucessIcon}
       />
 
@@ -955,174 +1070,120 @@ const PosSystem = () => {
         open={openReceipt}
         onClose={() => setOpenReceipt(false)}
         fullWidth
-        maxWidth="sm"
+        maxWidth="xs"
         PaperProps={{
           sx: {
-            borderRadius: "16px",
-            background: "#0F172A",
+            borderRadius: "20px",
+            background: "#080E1A",
             color: "white",
-            p: 2,
-            border: "1px solid rgba(255,255,255,0.1)",
+            overflow: "hidden",
+            border: "1px solid rgba(12,215,255,0.15)",
+            boxShadow: "0 0 40px rgba(12,215,255,0.08)",
+            maxHeight: "90vh",
+            overflowY: "auto",
+            "&::-webkit-scrollbar": { width: "4px" },
+            "&::-webkit-scrollbar-track": { background: "transparent" },
+            "&::-webkit-scrollbar-thumb": { background: "linear-gradient(#0CD7FF, #8A38F5)", borderRadius: "4px" },
           },
         }}
       >
-        <DialogTitle
-          sx={{
-            fontWeight: 600,
-            fontSize: 20,
-            textAlign: "center",
-            color: "#E5E7EB",
-          }}
-        >
-          POS Receipt
-        </DialogTitle>
-
-        <DialogContent>
-          {receiptData && (
-            <Box
-              sx={{
-                p: 2,
-                borderRadius: 3,
-                background: "rgba(255,255,255,0.05)",
-                border: "1px solid rgba(255,255,255,0.08)",
-                mb: 3,
-              }}
-            >
-              {[
-                ["Sale ID", receiptData.sale?.id || "-"],
-                ["Customer Name", receiptData.sale?.customer_name || "-"],
-                ["Card Number", receiptData.sale?.customer_id || "-"],
-                [
-                  "Date",
-                  dayjs().format("DD/MM/YYYY HH:mm"),
-                ],
-              ].map(([label, value]) => (
-                <Box
-                  key={label}
-                  sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    mb: 1.2,
-                  }}
-                >
-                  <Typography sx={{ color: "#9CA3AF", fontSize: 14 }}>
-                    {label}
-                  </Typography>
-                  <Typography sx={{ color: "#fff", fontSize: 14 }}>
-                    {value}
-                  </Typography>
-                </Box>
-              ))}
-
-              <Divider sx={{ my: 2, borderColor: "rgba(255,255,255,0.1)" }} />
-
-              {/* ITEMS (same style as bookings list) */}
-              {receiptData.cart.map((item, i) => (
-                <Box
-                  key={i}
-                  sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    mb: 1.2,
-                  }}
-                >
-                  <Typography sx={{ color: "#9CA3AF", fontSize: 14 }}>
-                    {item.name} x{item.qty}
-                  </Typography>
-                  <Typography sx={{ color: "#fff", fontSize: 14 }}>
-                    LKR {item.price * item.qty}
-                  </Typography>
-                </Box>
-              ))}
-
-              <Divider sx={{ my: 2, borderColor: "rgba(255,255,255,0.1)" }} />
-
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  mb: 1,
-                }}
-              >
-                <Typography sx={{ color: "#9CA3AF", fontSize: 14 }}>
-                  Subtotal
-                </Typography>
-                <Typography sx={{ color: "#fff", fontSize: 14 }}>
-                  LKR {receiptData.subtotal}
-                </Typography>
-              </Box>
-
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  mb: 1,
-                }}
-              >
-                <Typography sx={{ color: "#9CA3AF", fontSize: 14 }}>
-                  Discount
-                </Typography>
-                <Typography sx={{ color: "#fff", fontSize: 14 }}>
-                  LKR {receiptData.discount}
-                </Typography>
-              </Box>
-
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  mt: 2,
-                }}
-              >
-                <Typography sx={{ color: "#fff", fontSize: 15, fontWeight: 600 }}>
-                  Total
-                </Typography>
-                <Typography sx={{ color: "#22C55E", fontSize: 15, fontWeight: 600 }}>
-                  LKR {receiptData.total}
-                </Typography>
-              </Box>
-
-              <Button
-                fullWidth
-                onClick={() =>
-                  downloadPOSReceipt(receiptData.sale, receiptData.cart)
-                }
-                sx={{
-                  mt: 3,
-                  backgroundColor: "transparent",
-                  color: "#fff",
-                  textTransform: "none",
-                  fontWeight: 600,
-                  borderRadius: 999,
-                  py: 1.2,
-                  border: "1px solid rgba(255,255,255,0.7)",
-                  "&:hover": {
-                    backgroundColor: "#16A34A",
-                    border: "1px solid #16A34A",
-                  },
-                }}
-              >
-                Download Receipt
-              </Button>
+        <Box>
+          {/* Header */}
+          <Box sx={{ background: "linear-gradient(135deg, #0CD7FF22 0%, #8A38F522 100%)", borderBottom: "1px solid rgba(12,215,255,0.2)", px: 3, pt: 3, pb: 2.5, textAlign: "center" }}>
+            <Box sx={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 56, height: 56, borderRadius: "50%", background: "linear-gradient(135deg, #0CD7FF, #8A38F5)", mb: 1.5 }}>
+              <CheckCircleIcon sx={{ color: "#fff", fontSize: 30 }} />
             </Box>
-          )}
-        </DialogContent>
+            <Typography sx={{ fontWeight: 700, fontSize: 18, background: "linear-gradient(90deg, #0CD7FF, #8A38F5)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", letterSpacing: 0.5 }}>
+              Payment Confirmed!
+            </Typography>
+            <Typography sx={{ color: "#6B7280", fontSize: 12, mt: 0.4 }}>GAMEVERSE GAMING LOUNGE</Typography>
+            <Typography sx={{ color: "#4B5563", fontSize: 11, mt: 0.3 }}>
+              Ref: #{String(receiptData?.sale?.id || "").padStart(6, "0")}
+            </Typography>
+          </Box>
 
-        <DialogActions sx={{ justifyContent: "center", pb: 2 }}>
-          <Button
-            onClick={() => setOpenReceipt(false)}
-            sx={{
-              px: 5,
-              borderRadius: "8px",
-              textTransform: "none",
-              background: "#1F2937",
-              color: "white",
-              "&:hover": { background: "#374151" },
-            }}
-          >
-            Close
-          </Button>
-        </DialogActions>
+          {/* Tear-line */}
+          <Box sx={{ display: "flex", alignItems: "center", px: 1 }}>
+            <Box sx={{ width: 18, height: 18, borderRadius: "50%", background: "#080E1A", border: "1px solid rgba(12,215,255,0.15)", flexShrink: 0, ml: -1.2 }} />
+            <Box sx={{ flex: 1, borderTop: "2px dashed rgba(255,255,255,0.08)", mx: 1 }} />
+            <Box sx={{ width: 18, height: 18, borderRadius: "50%", background: "#080E1A", border: "1px solid rgba(12,215,255,0.15)", flexShrink: 0, mr: -1.2 }} />
+          </Box>
+
+          {/* Customer info */}
+          <Box sx={{ px: 3, pt: 2, pb: 1 }}>
+            {[
+              { icon: <PersonIcon sx={{ fontSize: 15, color: "#4B5563" }} />, label: "Customer", value: receiptData?.sale?.customer_name || "-" },
+              { icon: <CreditCardIcon sx={{ fontSize: 15, color: "#4B5563" }} />, label: "Card No", value: receiptData?.sale?.customer_id || "-" },
+            ].map(({ icon, label, value }) => (
+              <Box key={label} sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", py: 0.8, borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  {icon}
+                  <Typography sx={{ color: "#6B7280", fontSize: 13 }}>{label}</Typography>
+                </Box>
+                <Typography sx={{ color: "#E5E7EB", fontSize: 13, fontWeight: 500 }}>{value}</Typography>
+              </Box>
+            ))}
+          </Box>
+
+          {/* Items section */}
+          <Box sx={{ px: 3, pt: 0.5, pb: 1 }}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 0.5 }}>
+              <ShoppingBagIcon sx={{ fontSize: 15, color: "#4B5563" }} />
+              <Typography sx={{ color: "#6B7280", fontSize: 13 }}>Items</Typography>
+            </Box>
+            {receiptData?.cart?.map((item, i) => (
+              <Box key={i} sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", py: 0.7, borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+                <Typography sx={{ color: "#9CA3AF", fontSize: 12 }}>{item.name} × {item.qty}</Typography>
+                <Typography sx={{ color: "#E5E7EB", fontSize: 12, fontWeight: 500 }}>LKR {Number(item.price * item.qty).toFixed(2)}</Typography>
+              </Box>
+            ))}
+          </Box>
+
+          {/* Subtotal / Discount */}
+          <Box sx={{ px: 3, pb: 1 }}>
+            <Box sx={{ display: "flex", justifyContent: "space-between", py: 0.7, borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+              <Typography sx={{ color: "#6B7280", fontSize: 13 }}>Subtotal</Typography>
+              <Typography sx={{ color: "#E5E7EB", fontSize: 13, fontWeight: 500 }}>LKR {Number(receiptData?.subtotal || 0).toFixed(2)}</Typography>
+            </Box>
+            {Number(receiptData?.discount || 0) > 0 && (
+              <Box sx={{ display: "flex", justifyContent: "space-between", py: 0.7, borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+                <Typography sx={{ color: "#6B7280", fontSize: 13 }}>Discount</Typography>
+                <Typography sx={{ color: "#E5E7EB", fontSize: 13, fontWeight: 500 }}>LKR {Number(receiptData.discount).toFixed(2)}</Typography>
+              </Box>
+            )}
+          </Box>
+
+          {/* Tear-line */}
+          <Box sx={{ display: "flex", alignItems: "center", px: 1, mt: 1 }}>
+            <Box sx={{ width: 18, height: 18, borderRadius: "50%", background: "#080E1A", border: "1px solid rgba(12,215,255,0.15)", flexShrink: 0, ml: -1.2 }} />
+            <Box sx={{ flex: 1, borderTop: "2px dashed rgba(255,255,255,0.08)", mx: 1 }} />
+            <Box sx={{ width: 18, height: 18, borderRadius: "50%", background: "#080E1A", border: "1px solid rgba(12,215,255,0.15)", flexShrink: 0, mr: -1.2 }} />
+          </Box>
+
+          {/* Total amount */}
+          <Box sx={{ px: 3, pt: 2, pb: 1, textAlign: "center" }}>
+            <Typography sx={{ color: "#6B7280", fontSize: 11, letterSpacing: 2, textTransform: "uppercase", mb: 0.5 }}>
+              Total Paid
+            </Typography>
+            <Box sx={{ display: "inline-block", background: "linear-gradient(135deg, rgba(12,215,255,0.12), rgba(138,56,245,0.12))", border: "1px solid rgba(12,215,255,0.25)", borderRadius: "12px", px: 4, py: 1.2, mt: 0.5 }}>
+              <Typography sx={{ fontSize: 26, fontWeight: 800, background: "linear-gradient(90deg, #0CD7FF, #8A38F5)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", letterSpacing: 1 }}>
+                LKR {Number(receiptData?.total || 0).toFixed(2)}
+              </Typography>
+            </Box>
+          </Box>
+
+          {/* Buttons */}
+          <Box sx={{ px: 3, pb: 3, pt: 1.5 }}>
+            <Button fullWidth startIcon={<DownloadIcon />} onClick={() => downloadPOSReceipt(receiptData)}
+              sx={{ background: "linear-gradient(90deg, #0CD7FF, #8A38F5)", color: "#fff", textTransform: "none", fontWeight: 700, fontSize: 14, borderRadius: "10px", py: 1.2, "&:hover": { opacity: 0.88 } }}>
+              Download Receipt
+            </Button>
+            <Button fullWidth onClick={() => setOpenReceipt(false)}
+              sx={{ mt: 1.5, color: "#4B5563", textTransform: "none", fontSize: 13, "&:hover": { color: "#9CA3AF", background: "transparent" } }}>
+              Close
+            </Button>
+          </Box>
+        </Box>
       </Dialog>
     </Box>
   );

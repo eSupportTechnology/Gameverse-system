@@ -214,9 +214,23 @@ const BookingManagement = () => {
   const handleBookingSlotClick = (bookingsArray) => {
     if (!bookingsArray || bookingsArray.length === 0) return;
 
-    setSelectedBooking(bookingsArray);
+    // Multiple sessions may overlap the same slot (e.g. a 2h booking + a new 1h booking
+    // that starts mid-way). Group by start_time and pick the group with the most bookings
+    // (handles PlayStation multi-player). Ties fall to the first start_time encountered.
+    const groups = {};
+    bookingsArray.forEach((b) => {
+      const key = b.start_time;
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(b);
+    });
+    const primaryStartTime = Object.keys(groups).reduce((best, key) =>
+      groups[key].length > groups[best].length ? key : best
+    );
+    const sameSessionBookings = groups[primaryStartTime];
 
-    const status = bookingsArray[0].status;
+    setSelectedBooking(sameSessionBookings);
+
+    const status = sameSessionBookings[0].status;
     switch (status) {
       case "upcoming":
         setUpcomingDialogOpen(true);
@@ -549,8 +563,8 @@ const BookingManagement = () => {
                   (p) => p.duration === 60,
                 );
                 const oneHourPrice = oneHourPricing
-                  ? `$${oneHourPricing.price}/hr`
-                  : "$0/hr";
+                  ? `Rs. ${oneHourPricing.price}/hr`
+                  : "Rs. 0/hr";
 
                 return (
                   <Box
@@ -631,19 +645,32 @@ const BookingManagement = () => {
                         return occupiedSlots.includes(slot);
                       });
 
+                      // Group by start_time so overlapping sessions don't mix
+                      const slotGroups = {};
+                      bookingsForSlot.forEach((b) => {
+                        if (!slotGroups[b.start_time]) slotGroups[b.start_time] = [];
+                        slotGroups[b.start_time].push(b);
+                      });
+                      const primaryKey = Object.keys(slotGroups).reduce(
+                        (best, key) =>
+                          slotGroups[key].length > slotGroups[best].length ? key : best,
+                        Object.keys(slotGroups)[0] || "",
+                      );
+                      const displayBookings = slotGroups[primaryKey] || [];
+
                       return (
                         <Box
                           key={slot}
                           sx={{
                             minWidth: 56,
                             height: 56,
-                            border: bookingsForSlot.length
+                            border: displayBookings.length
                               ? `1px solid ${
-                                  statusColors[bookingsForSlot[0].status]
+                                  statusColors[displayBookings[0].status]
                                 }`
                               : "1px solid #222",
-                            bgcolor: bookingsForSlot.length
-                              ? statusColors[bookingsForSlot[0].status]
+                            bgcolor: displayBookings.length
+                              ? statusColors[displayBookings[0].status]
                               : "transparent",
                             display: "flex",
                             alignItems: "center",
@@ -652,10 +679,10 @@ const BookingManagement = () => {
                             mr: 1,
                             position: "relative",
                             overflow: "hidden",
-                            cursor: bookingsForSlot.length
+                            cursor: displayBookings.length
                               ? "pointer"
                               : "default",
-                            "&::after": bookingsForSlot.length
+                            "&::after": displayBookings.length
                               ? {
                                   content: '""',
                                   position: "absolute",
@@ -667,29 +694,29 @@ const BookingManagement = () => {
                                   borderRadius: "8px",
                                 }
                               : {},
-                            "&:hover": bookingsForSlot.length
+                            "&:hover": displayBookings.length
                               ? {
                                   transform: "scale(1.05)",
                                   transition: "transform 0.2s",
                                   boxShadow: `0 0 8px ${
-                                    statusColors[bookingsForSlot[0].status]
+                                    statusColors[displayBookings[0].status]
                                   }`,
                                 }
                               : {},
                           }}
                           onClick={() =>
-                            bookingsForSlot.length &&
-                            handleBookingSlotClick(bookingsForSlot)
+                            displayBookings.length &&
+                            handleBookingSlotClick(displayBookings)
                           }
                         >
-                          {bookingsForSlot.length > 0 && (
+                          {displayBookings.length > 0 && (
                             <Typography
                               fontSize={10}
                               fontWeight={400}
                               zIndex={1}
                               color="#FFFFFF"
                             >
-                              {bookingsForSlot
+                              {displayBookings
                                 .map((b) => b.customer_name)
                                 .join(", ")}
                             </Typography>
@@ -737,6 +764,8 @@ const BookingManagement = () => {
         onClose={() => setInProgressDialogOpen(false)}
         onEndSession={handleEndSession}
         bookings={selectedBooking || []}
+        allBookings={apiBookings}
+        stations={stations}
       />
 
       <CompletedBookingDialog

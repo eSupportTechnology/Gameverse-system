@@ -43,7 +43,9 @@ class BookingController extends Controller
                 'extended_time' => $b->extended_time ?? '0m',
                 'status' => $b->status,
                 'amount' => $b->amount,
+                'balance_amount' => $b->balance_amount ?? 0,
                 'number_of_players' => $b->number_of_players ?? 1,
+                'vr_play' => $b->vr_play ?? '',
             ];
         });
 
@@ -239,6 +241,7 @@ class BookingController extends Controller
                 'extended_time'     => 'nullable|string|max:20',
                 'payment_method'    => 'nullable|string|max:50',
                 'amount'            => 'numeric|min:0',
+                'balance_amount'    => 'nullable|numeric|min:0',
                 'status'            => 'in:pending,confirmed,cancelled,completed',
                 'vr_play'           => 'nullable|in:yes,no',
                 'number_of_players' => 'integer|min:1',
@@ -298,50 +301,59 @@ class BookingController extends Controller
                 }
             }
 
-            // -----------------------------------
-            // Pool / Simulator logic
-            // -----------------------------------
-            if (in_array($stationType, ['Pool', 'Simulator'])) {
-                if ($slotBookings->count() > 0) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'This station is already booked for this time'
-                    ], 409);
-                }
-            }
+            // Skip slot-capacity checks when only updating time/payment fields
+            $isTimeUpdateOnly = !array_key_exists('station', $data)
+                && !array_key_exists('booking_date', $data)
+                && !array_key_exists('start_time', $data)
+                && !array_key_exists('duration', $data)
+                && !array_key_exists('number_of_players', $data);
 
-            // -----------------------------------
-            // PlayStation logic
-            // -----------------------------------
-            if ($stationType === 'PlayStation') {
-
-                // Filter for exact start time
-                $slotBookings = Booking::where('station', $stationName)
-                    ->whereDate('booking_date', $bookingDate)
-                    ->where('start_time', $startTime)
-                    ->where('id', '!=', $booking->id)
-                    ->get();
-
-                if ($slotBookings->count() === 0) {
-                    // First booking
-                    if (empty($data['number_of_players'])) {
+            if (!$isTimeUpdateOnly) {
+                // -----------------------------------
+                // Pool / Simulator logic
+                // -----------------------------------
+                if (in_array($stationType, ['Pool', 'Simulator'])) {
+                    if ($slotBookings->count() > 0) {
                         return response()->json([
                             'success' => false,
-                            'message' => 'First PlayStation booking must define number of players'
-                        ], 422);
-                    }
-                } else {
-                    $capacity = $slotBookings->first()->number_of_players;
-
-                    if ($slotBookings->count() >= $capacity) {
-                        return response()->json([
-                            'success' => false,
-                            'message' => 'This slot is fully booked'
+                            'message' => 'This station is already booked for this time'
                         ], 409);
                     }
+                }
 
-                    // Force same capacity for consistency
-                    $data['number_of_players'] = $capacity;
+                // -----------------------------------
+                // PlayStation logic
+                // -----------------------------------
+                if ($stationType === 'PlayStation') {
+
+                    // Filter for exact start time
+                    $slotBookings = Booking::where('station', $stationName)
+                        ->whereDate('booking_date', $bookingDate)
+                        ->where('start_time', $startTime)
+                        ->where('id', '!=', $booking->id)
+                        ->get();
+
+                    if ($slotBookings->count() === 0) {
+                        // First booking
+                        if (empty($data['number_of_players'])) {
+                            return response()->json([
+                                'success' => false,
+                                'message' => 'First PlayStation booking must define number of players'
+                            ], 422);
+                        }
+                    } else {
+                        $capacity = $slotBookings->first()->number_of_players;
+
+                        if ($slotBookings->count() >= $capacity) {
+                            return response()->json([
+                                'success' => false,
+                                'message' => 'This slot is fully booked'
+                            ], 409);
+                        }
+
+                        // Force same capacity for consistency
+                        $data['number_of_players'] = $capacity;
+                    }
                 }
             }
 

@@ -31,7 +31,8 @@ class GameController extends Controller
             'title' => 'required|string|max:255',
             'location' => 'required|string|max:255',
             'method' => 'required',
-            'price' => 'required|numeric|min:0',
+            'price' => 'nullable|numeric|min:0',
+            'packages' => 'nullable|array',
             'team_game' => 'required|boolean',
             'description' => 'nullable|string',
             'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
@@ -43,11 +44,18 @@ class GameController extends Controller
             $thumbnailPath = $request->file('thumbnail')->store('games', 'public');
         }
 
+        $packages = null;
+        $isPackageMethod = in_array($request->method, ['Arrow', 'Per Minute']);
+        if ($isPackageMethod && $request->has('packages')) {
+            $packages = $request->packages;
+        }
+
         $game = Game::create([
             'title' => $request->title,
             'location' => $request->location,
             'method' => $request->method,
-            'price' => $request->price,
+            'price' => $request->price ?? 0,
+            'packages' => $packages,
             'team_game' => $request->team_game,
             'description' => $request->description,
             'thumbnail' => $thumbnailPath,
@@ -65,7 +73,8 @@ class GameController extends Controller
             'title' => 'required|string|max:255',
             'location' => 'required|string|max:255',
             'method' => 'required',
-            'price' => 'required|numeric|min:0',
+            'price' => 'nullable|numeric|min:0',
+            'packages' => 'nullable|array',
             'team_game' => 'required|boolean',
             'description' => 'nullable|string',
             'thumbnail' => 'nullable|image|max:2048',
@@ -76,11 +85,18 @@ class GameController extends Controller
             $game->thumbnail = $thumbnailPath;
         }
 
+        $packages = null;
+        $isPackageMethod = in_array($request->method, ['Arrow', 'Per Minute']);
+        if ($isPackageMethod && $request->has('packages')) {
+            $packages = $request->packages;
+        }
+
         $game->update([
             'title' => $request->title,
             'location' => $request->location,
             'method' => $request->method,
-            'price' => $request->price,
+            'price' => $request->price ?? 0,
+            'packages' => $packages,
             'team_game' => $request->team_game,
             'description' => $request->description,
         ]);
@@ -109,7 +125,6 @@ class GameController extends Controller
 
         $game = Game::findOrFail($id);
 
-        // Set the balance and discount from the checkout form
         $game->balance = $request->balance;
         $game->discount = $request->discount ?? 0;
         $game->save();
@@ -145,6 +160,13 @@ class GameController extends Controller
             $game->method = [
                 'type' => 'Arrow',
                 'arrows' => (int) $request->arrows,
+            ];
+        }
+
+        if ($request->type === 'Per Minute') {
+            $game->method = [
+                'type' => 'Per Minute',
+                'minutes' => (int) $request->minutes,
             ];
         }
 

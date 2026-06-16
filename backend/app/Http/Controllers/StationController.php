@@ -65,20 +65,20 @@ class StationController extends Controller
             'pricing.*.vrPrice'  => 'nullable|numeric|min:0',
         ]);
 
-        // Handle thumbnail upload
-        if ($request->hasFile('thumbnail')) {
-            $station->thumbnail = $request->file('thumbnail')->store('stations', 'public');
-        }
-
-        $station->update($request->only([
+        $data = $request->only([
             'name',
             'type',
             'location',
             'status',
             'bookings',
-            'thumbnail',
             'pricing',
-        ]));
+        ]);
+
+        if ($request->hasFile('thumbnail')) {
+            $data['thumbnail'] = $request->file('thumbnail')->store('stations', 'public');
+        }
+
+        $station->update($data);
 
         return response()->json($station);
     }

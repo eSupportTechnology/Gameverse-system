@@ -18,6 +18,7 @@ class Booking extends Model
         'extended_time',
         'payment_method',
         'amount',
+        'balance_amount',
         'status',
         'end_time',
         'vr_play',

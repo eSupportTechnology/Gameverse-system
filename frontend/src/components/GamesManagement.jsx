@@ -307,7 +307,7 @@ const GamesManagement = () => {
             }}
             />
         )}
-        <Dialog
+        {/* <Dialog
           open={showReceipt}
           onClose={() => setShowReceipt(false)}
           fullWidth
@@ -420,7 +420,7 @@ const GamesManagement = () => {
               Close
             </Button>
           </DialogActions>
-        </Dialog>
+        </Dialog> */}
       </Box>
     </Box>
   );

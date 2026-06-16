@@ -57,6 +57,7 @@ const AllPs5Stations = () => {
 
   const [stations, setStations] = useState([]);
   const [thumbnailFile, setThumbnailFile] = useState(null);
+  const [allPricing, setAllPricing] = useState([]);
 
   // --- OPEN ADD DIALOG ---
   const handleAdd = () => {
@@ -67,10 +68,11 @@ const AllPs5Stations = () => {
     // setDescription("");
     setPriceNormal("");
     setPriceVR("");
-    setTimeNormal("30");
+    setTimeNormal("30 Min");
     setTimeVR("");
     setThumbnail(null);
     setThumbnailFile(null);
+    setAllPricing([]);
     setOpenDialog(true);
   };
 
@@ -82,11 +84,13 @@ const AllPs5Stations = () => {
     setLocation(item.location);
     // setDescription(item.description);
 
-    setPriceNormal(item.price); // FIXED
-    setPriceVR(item.vrPrice); // FIXED
-
-    setTimeNormal(item.time === 60 ? "1 Hour" : "30 Min");
-    setTimeVR(item.vrTime === 60 ? "1 Hour" : "30 Min");
+    const pricing = item.pricing || [];
+    setAllPricing(pricing);
+    const p0 = pricing[0];
+    setPriceNormal(p0?.price != null ? String(p0.price) : "");
+    setPriceVR(p0?.vrPrice != null ? String(p0.vrPrice) : "");
+    setTimeNormal(p0?.duration === 60 ? "1 Hour" : "30 Min");
+    setTimeVR(p0?.duration === 60 ? "1 Hour" : "30 Min");
 
     setThumbnail(
       item.thumbnail ? `${API_BASE_URL}/storage/${item.thumbnail}` : null,
@@ -120,6 +124,26 @@ const AllPs5Stations = () => {
     setThumbnail(URL.createObjectURL(file));
   };
 
+  const handleTimeNormalChange = (val) => {
+    setTimeNormal(val);
+    const dur = val.includes("Hour") ? 60 : 30;
+    const match = allPricing.find((p) => p.duration === dur);
+    if (match) {
+      setPriceNormal(match.price != null ? String(match.price) : "");
+      if (match.vrPrice != null) setPriceVR(String(match.vrPrice));
+    } else {
+      setPriceNormal("");
+    }
+  };
+
+  const handleTimeVRChange = (val) => {
+    setTimeVR(val);
+    const dur = val.includes("Hour") ? 60 : 30;
+    const match = allPricing.find((p) => p.duration === dur);
+    if (match && match.vrPrice != null) setPriceVR(String(match.vrPrice));
+    else setPriceVR("");
+  };
+
   // save
   const handleSave = async () => {
     // Validation
@@ -134,23 +158,13 @@ const AllPs5Stations = () => {
       return 30; // default to 30 minutes
     };
 
-    const payload = {
-      name: stationName,
-      location: location,
-      // description: description,
-      price: priceNormal,
-      time: parseTime(timeNormal),
-      vrPrice: priceVR || null,
-      vrTime: timeVR ? parseTime(timeVR) : null,
-      type: "PlayStation",
-    };
-
     const form = new FormData();
-    for (const key in payload) {
-      if (payload[key] !== null && payload[key] !== "") {
-        form.append(key, payload[key]);
-      }
-    }
+    form.append("name", stationName);
+    form.append("location", location);
+    form.append("type", "PlayStation");
+    form.append("pricing[0][duration]", parseTime(timeNormal) || 30);
+    form.append("pricing[0][price]", Number(priceNormal));
+    if (priceVR) form.append("pricing[0][vrPrice]", Number(priceVR));
 
     if (thumbnailFile) {
       form.append("thumbnail", thumbnailFile);
@@ -671,7 +685,7 @@ const AllPs5Stations = () => {
                   fullWidth
                   defaultValue="30 Min"
                   value={timeNormal}
-                  onChange={(e) => setTimeNormal(e.target.value)}
+                  onChange={(e) => handleTimeNormalChange(e.target.value)}
                   sx={{
                     "& .MuiOutlinedInput-root fieldset": {
                       borderColor: "#374151",
@@ -744,7 +758,7 @@ const AllPs5Stations = () => {
                   fullWidth
                   defaultValue="30 Min"
                   value={timeVR}
-                  onChange={(e) => setTimeVR(e.target.value)}
+                  onChange={(e) => handleTimeVRChange(e.target.value)}
                   sx={{
                     "& .MuiOutlinedInput-root fieldset": {
                       borderColor: "#374151",

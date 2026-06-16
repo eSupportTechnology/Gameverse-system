@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -34,6 +34,21 @@ export default function AddStationDialog({
   const [pricingList, setPricingList] = useState([
     { duration: 30, price: "", vrPrice: "" },
   ]);
+
+  useEffect(() => {
+    if (open && isEditing && formData.pricing && Array.isArray(formData.pricing)) {
+      setPricingList(
+        formData.pricing.map((p) => ({
+          duration: p.duration,
+          price: p.price !== null && p.price !== undefined ? String(p.price) : "",
+          vrPrice: p.vrPrice !== null && p.vrPrice !== undefined ? String(p.vrPrice) : "",
+        }))
+      );
+    } else if (open && !isEditing) {
+      setPricingList([{ duration: 30, price: "", vrPrice: "" }]);
+    }
+  }, [open, isEditing]);
+
   const addDurationRow = () => {
     setPricingList([...pricingList, { duration: 60, price: "", vrPrice: "" }]);
   };
@@ -462,6 +477,9 @@ export default function AddStationDialog({
                     },
                   }}
                 >
+                  {formData.type === "Simulator" && (
+                    <MenuItem value={15}>15 Min</MenuItem>
+                  )}
                   <MenuItem value={30}>30 Min</MenuItem>
                   <MenuItem value={60}>1 Hour</MenuItem>
                 </TextField>

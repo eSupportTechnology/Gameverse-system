@@ -17,6 +17,12 @@ import { API_BASE_URL } from "../apiConfig";
 
 const methodValue = { Coin: 100, Arrow: 150, "Per Hour": 75 };
 
+const getMethodType = (method) => {
+  if (!method) return "";
+  if (typeof method === "object") return (method.type || "").toLowerCase();
+  return method.toLowerCase();
+};
+
 const GameCard = ({ game: initialGame, onPlay, onUpdate }) => {
   const [editOpen, setEditOpen] = useState(false);
   const [game, setGame] = useState(initialGame || {}); // default empty object
@@ -28,9 +34,16 @@ const GameCard = ({ game: initialGame, onPlay, onUpdate }) => {
   // Prevent undefined access
   if (!game || !game.title) return null;
 
-  const quantity = Math.floor(
-    (game.price || 0) / (methodValue[game.method] || 1),
-  );
+  const methodType = getMethodType(game.method);
+  const isArrow = methodType === "arrow";
+  const isPerMinute = methodType === "per minute";
+
+  const rawPkgs = game.packages;
+  const gamePackages = Array.isArray(rawPkgs)
+    ? rawPkgs
+    : rawPkgs && typeof rawPkgs === "object"
+      ? Object.values(rawPkgs)
+      : [];
 
   const handlePlayClick = async () => {
     const hours = parseInt(prompt("Enter hours", game.method.hours || 1));
@@ -58,12 +71,14 @@ const GameCard = ({ game: initialGame, onPlay, onUpdate }) => {
         bgcolor: "#171C2D",
         borderRadius: 0,
         boxShadow: "0px 0px 4px rgba(0,0,0,0.4)",
-        width: 280,
-        height: 185,
+        width: "100%",
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
         transition: "0.3s",
       }}
     >
-      <CardContent sx={{ px: 2, py: 1.5 }}>
+      <CardContent sx={{ px: 2, py: 1.5, display: "flex", flexDirection: "column", flexGrow: 1 }}>
         {/* Title + Edit Icon */}
         <Box display="flex" justifyContent="space-between" alignItems="center">
           <Typography
@@ -85,73 +100,101 @@ const GameCard = ({ game: initialGame, onPlay, onUpdate }) => {
         {/* Divider line */}
         <Divider sx={{ backgroundColor: "#2E3350", my: 1 }} />
 
-        {/* Team Game */}
-        <Box
-          display="flex"
-          justifyContent="space-between"
-          alignItems="center"
-          mb={0.4}
-        >
-          <Typography fontSize={13} color="#FFFFFF">
-            Team Game
-          </Typography>
-          <Typography fontSize={13} color="#FFFFFF" fontWeight={500}>
-            {game.team_game ? "Yes" : "No"}
-          </Typography>
+        {/* Grows to fill space, keeps Play button at bottom */}
+        <Box sx={{ flexGrow: 1 }}>
+          {/* Team Game */}
+          <Box
+            display="flex"
+            justifyContent="space-between"
+            alignItems="center"
+            mb={0.4}
+          >
+            <Typography fontSize={13} color="#FFFFFF">
+              Team Game
+            </Typography>
+            <Typography fontSize={13} color="#FFFFFF" fontWeight={500}>
+              {game.team_game ? "Yes" : "No"}
+            </Typography>
+          </Box>
+
+          {/* Location */}
+          <Box
+            display="flex"
+            justifyContent="space-between"
+            alignItems="center"
+            mb={0.4}
+          >
+            <Typography fontSize={13} color="#FFFFFF">
+              Location
+            </Typography>
+            <Typography fontSize={13} color="#FFFFFF" fontWeight={500}>
+              {game.location || "-"}
+            </Typography>
+          </Box>
+
+          {/* Method + Price / Arrow Packages / Minute Packages */}
+          {isArrow && gamePackages.length > 0 ? (
+            <Box mt={0.8}>
+              <Typography fontSize={12} color="#9CA3AF" mb={0.5}>
+                Arrow Packages
+              </Typography>
+              {gamePackages.map((pkg, i) => (
+                <Box
+                  key={i}
+                  display="flex"
+                  justifyContent="space-between"
+                  alignItems="center"
+                  sx={{ backgroundColor: "#1a1f30", borderRadius: "6px", px: 1.5, py: 0.5, mb: 0.5, border: "1px solid #2a2f45" }}
+                >
+                  <Typography fontSize={12} color="#0CD7FF" fontWeight={500}>{pkg.arrows} Arrows</Typography>
+                  <Typography fontSize={12} color="#fff" fontWeight={600}>Rs. {Number(pkg.price).toLocaleString()}</Typography>
+                </Box>
+              ))}
+            </Box>
+          ) : isPerMinute && gamePackages.length > 0 ? (
+            <Box mt={0.8}>
+              <Typography fontSize={12} color="#9CA3AF" mb={0.5}>
+                Minute Packages
+              </Typography>
+              {gamePackages.map((pkg, i) => (
+                <Box
+                  key={i}
+                  display="flex"
+                  justifyContent="space-between"
+                  alignItems="center"
+                  sx={{ backgroundColor: "#1a1f30", borderRadius: "6px", px: 1.5, py: 0.5, mb: 0.5, border: "1px solid #2a2f45" }}
+                >
+                  <Typography fontSize={12} color="#0CD7FF" fontWeight={500}>{pkg.minutes} Minutes</Typography>
+                  <Typography fontSize={12} color="#fff" fontWeight={600}>Rs. {Number(pkg.price).toLocaleString()}</Typography>
+                </Box>
+              ))}
+            </Box>
+          ) : (
+            <Box display="flex" justifyContent="space-between" alignItems="center" mt={0.8}>
+              <Typography fontSize={13} color="#0CD7FF" fontWeight={600}>
+                {(() => {
+                  const method = game.method;
+                  if (typeof method === "string") return method;
+                  if (method?.type === "Per Hour") return "Per Hour";
+                  if (method?.type === "Per Minute") return "Per Minute";
+                  if (method?.type === "Coin") return "Per Coin";
+                  if (method?.type === "Arrow") return "Per Arrow";
+                  return "Price";
+                })()}
+              </Typography>
+              <Typography fontSize={13} color="#0CD7FF" fontWeight={600}>
+                LKR {game.price || 0}
+              </Typography>
+            </Box>
+          )}
         </Box>
 
-        {/* Location */}
-        <Box
-          display="flex"
-          justifyContent="space-between"
-          alignItems="center"
-          mb={0.4}
-        >
-          <Typography fontSize={13} color="#FFFFFF">
-            Location
-          </Typography>
-          <Typography fontSize={13} color="#FFFFFF" fontWeight={500}>
-            {game.location || "-"}
-          </Typography>
-        </Box>
-
-        {/* Method + Price */}
-        <Box
-          display="flex"
-          justifyContent="space-between"
-          alignItems="center"
-          mb={1.5}
-        >
-          <Typography fontSize={13} color="#0CD7FF" fontWeight={600}>
-            {(() => {
-              const method = game.method;
-
-              let label = "Price";
-
-              if (typeof method === "string") {
-                label = method;
-              } else if (method?.type === "Per Hour") {
-                label = "Per Hour";
-              } else if (method?.type === "Coin") {
-                label = "Per Coin";
-              } else if (method?.type === "Arrow") {
-                label = "Per Arrow";
-              }
-
-              return `${label}`;
-            })()}
-          </Typography>
-
-          <Typography fontSize={13} color="#0CD7FF" fontWeight={600}>
-            LKR {game.price || 0}
-          </Typography>
-        </Box>
-
-        {/* Play Button */}
+        {/* Play Button — always at bottom */}
         <Button
           fullWidth
           variant="contained"
           sx={{
+            mt: 1.5,
             bgcolor: "#8A38F51F",
             color: "#FFFFFF",
             borderRadius: 0,

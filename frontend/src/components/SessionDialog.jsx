@@ -3,12 +3,14 @@ import CreditCardIcon from "@mui/icons-material/CreditCard";
 import SportsEsportsIcon from "@mui/icons-material/SportsEsports";
 import StarIcon from "@mui/icons-material/Star";
 import {
+  Alert,
   Box,
   Button,
   Dialog,
   DialogActions,
   DialogContent,
   IconButton,
+  Snackbar,
   TextField,
   Typography,
 } from "@mui/material";
@@ -25,6 +27,18 @@ import { API_BASE_URL } from "../apiConfig";
 
 // --- helpers ---
 const pad2 = (n) => String(n).padStart(2, "0");
+
+// Parses "15", "15m", "1h", "1h 30m" → total minutes as a number
+export const parseExtendedMinutes = (val) => {
+  if (!val) return 0;
+  const s = String(val);
+  const hourMatch = s.match(/(\d+)h/);
+  const minMatch  = s.match(/(\d+)m/);
+  const hours   = hourMatch ? parseInt(hourMatch[1], 10) : 0;
+  const minutes = minMatch  ? parseInt(minMatch[1],  10) : 0;
+  if (hours === 0 && minutes === 0) return parseInt(s, 10) || 0;
+  return hours * 60 + minutes;
+};
 
 export const minutesToHHMMDisplay = (minutes) => {
   const totalMinutes = Number(minutes) || 0;
@@ -64,12 +78,45 @@ const DetailRow = ({ label, value }) => (
 );
 
 // --- SessionDialog Component ---
-const SessionDialog = ({ open, onClose, onEndSession, bookings = [] }) => {
+const calculateExtendedPrice = (station, totalExtendedMinutes, vrPlay) => {
+  if (!station?.pricing?.length || !totalExtendedMinutes) return 0;
+
+  const isVR = String(vrPlay).toLowerCase() === "yes";
+  const pricingSorted = [...station.pricing].sort((a, b) => a.duration - b.duration);
+  const getPrice = (entry) =>
+    isVR && entry.vrPrice != null && entry.vrPrice > 0
+      ? entry.vrPrice
+      : entry.price || 0;
+
+  let remaining = totalExtendedMinutes;
+  let total = 0;
+
+  while (remaining > 0) {
+    // Largest tier that fits completely
+    const entry = [...pricingSorted].reverse().find((p) => p.duration <= remaining);
+
+    if (entry) {
+      const times = Math.floor(remaining / entry.duration);
+      total += getPrice(entry) * times;
+      remaining -= entry.duration * times;
+    } else {
+      // remaining < smallest tier → proportional price from smallest tier
+      const smallest = pricingSorted[0];
+      total += (getPrice(smallest) / smallest.duration) * remaining;
+      break;
+    }
+  }
+
+  return Math.round(total * 100) / 100;
+};
+
+const SessionDialog = ({ open, onClose, onEndSession, bookings = [], allBookings = [], stations = [] }) => {
   const [players, setPlayers] = useState([]);
   const [activeIndex, setActiveIndex] = useState(-1);
   const [customMinutes, setCustomMinutes] = useState(15);
   const [endSessionOpen, setEndSessionOpen] = useState(false);
   const [updateSuccessOpen, setUpdateSuccessOpen] = useState(false);
+  const [extendConflictError, setExtendConflictError] = useState(false);
 
   useEffect(() => {
     const safeBookings = Array.isArray(bookings) ? bookings : [];
@@ -131,12 +178,8 @@ const SessionDialog = ({ open, onClose, onEndSession, bookings = [] }) => {
   };
 
   useEffect(() => {
-    if (activeBooking) {
-      setCustomMinutes(Number(activeBooking.extended_time) || 15);
-    } else {
-      setCustomMinutes(15);
-    }
-  }, [activeIndex, activeBooking]);
+    setCustomMinutes(15);
+  }, [activeIndex]);
 
   const handleCustomChange = (e) => {
     const val = e.target.value.replace(/[^\d]/g, "");
@@ -144,27 +187,70 @@ const SessionDialog = ({ open, onClose, onEndSession, bookings = [] }) => {
     if (num <= 480) setCustomMinutes(num);
   };
 
+  const parse12HourTimeToMinutes = (timeStr) => {
+    if (!timeStr) return 0;
+    const [hourStr, minStr] = timeStr.split(":");
+    let hour = parseInt(hourStr, 10);
+    const min = parseInt(minStr, 10) || 0;
+    if (hour !== 12) hour += 12;
+    return hour * 60 + min;
+  };
+
   const handleUpdateTime = async () => {
     if (!activeBooking) return;
 
+    const existingExtended = parseExtendedMinutes(activeBooking.extended_time);
+    const updatedExtendedTime = existingExtended + Number(customMinutes);
+
+    // Conflict check: does the extended window overlap another booking on the same station/date?
+    const slotStartMin = parse12HourTimeToMinutes(activeBooking.start_time);
+    const slotDurMin = parseExtendedMinutes(activeBooking.duration);
+    const originalEndMin = slotStartMin + slotDurMin;
+    const newEndMin = originalEndMin + updatedExtendedTime;
+
+    const allBookingsArr = Array.isArray(allBookings) ? allBookings : [];
+    const hasConflict = allBookingsArr.some((b) => {
+      if (!b || !b.id) return false;
+      if (b.station !== activeBooking.station) return false;
+      if (b.booking_date !== activeBooking.booking_date) return false;
+      if (b.start_time === activeBooking.start_time) return false;
+      const otherStartMin = parse12HourTimeToMinutes(b.start_time);
+      return otherStartMin >= originalEndMin && otherStartMin < newEndMin;
+    });
+
+    if (hasConflict) {
+      setExtendConflictError(true);
+      return;
+    }
+
     try {
-      const updatedExtendedTime = Number(customMinutes);
 
       const slotBookings = players
         .map((p) => p.booking)
         .filter(
           (b) =>
             b &&
+            b.id !== null &&
             b.station === activeBooking.station &&
             b.start_time === activeBooking.start_time &&
             b.booking_date === activeBooking.booking_date,
         );
 
-      const updatePromises = slotBookings.map((b) =>
-        axios.put(`${API_BASE_URL}/api/bookings/${b.id}`, {
-          extended_time: String(updatedExtendedTime),
-        }),
-      );
+      const formattedExtendedTime = `${updatedExtendedTime}m`;
+
+      const stationData = stations.find((s) => s.name === activeBooking.station);
+
+      const updatePromises = slotBookings.map((b) => {
+        const priceForThisBooking = calculateExtendedPrice(
+          stationData,
+          updatedExtendedTime,
+          b.vr_play,
+        );
+        return axios.put(`${API_BASE_URL}/api/bookings/${b.id}`, {
+          extended_time: formattedExtendedTime,
+          balance_amount: priceForThisBooking,
+        });
+      });
 
       const responses = await Promise.all(updatePromises);
 
@@ -176,9 +262,18 @@ const SessionDialog = ({ open, onClose, onEndSession, bookings = [] }) => {
             if (!p.booking) return p;
             const match = slotBookings.find((b) => b.id === p.booking.id);
             if (match) {
+              const priceForThisBooking = calculateExtendedPrice(
+                stationData,
+                updatedExtendedTime,
+                p.booking.vr_play,
+              );
               return {
                 ...p,
-                booking: { ...p.booking, extended_time: updatedExtendedTime },
+                booking: {
+                  ...p.booking,
+                  extended_time: updatedExtendedTime,
+                  balance_amount: priceForThisBooking,
+                },
               };
             }
             return p;
@@ -489,7 +584,7 @@ const SessionDialog = ({ open, onClose, onEndSession, bookings = [] }) => {
                 <DetailRow label="Duration" value={activeBooking.duration} />
                 <DetailRow
                   label="Extended Time"
-                  value={minutesToHHMMDisplay(activeBooking.extended_time)}
+                  value={minutesToHHMMDisplay(parseExtendedMinutes(activeBooking.extended_time))}
                 />
               </Box>
 
@@ -529,12 +624,12 @@ const SessionDialog = ({ open, onClose, onEndSession, bookings = [] }) => {
           )}
 
           {/* Time Controls */}
-          {activeBooking && (
+          {activeBooking && (() => {
+            const stationData = stations.find((s) => s.name === activeBooking.station);
+            const livePrice = calculateExtendedPrice(stationData, customMinutes, activeBooking.vr_play);
+            return (
             <Box
               sx={{
-                display: "flex",
-                alignItems: "center",
-                gap: 1,
                 mb: 3,
                 bgcolor: "transparent",
                 p: 2,
@@ -542,6 +637,16 @@ const SessionDialog = ({ open, onClose, onEndSession, bookings = [] }) => {
                 border: "1px solid #152833",
               }}
             >
+              {/* Price preview */}
+              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1.5 }}>
+                <Typography sx={{ color: "#9CA3AF", fontSize: 13 }}>
+                  Extended Time Price
+                </Typography>
+                <Typography sx={{ color: "#0CD7FF", fontWeight: 700, fontSize: 15 }}>
+                  {livePrice > 0 ? `LKR ${livePrice.toFixed(2)}` : "—"}
+                </Typography>
+              </Box>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
               <Button
                 onClick={() => adjustBy(-15)}
                 sx={{
@@ -634,8 +739,10 @@ const SessionDialog = ({ open, onClose, onEndSession, bookings = [] }) => {
               >
                 Update Time
               </Button>
+              </Box>
             </Box>
-          )}
+            );
+          })()}
 
           {/* End Session button */}
           {activeBooking && (
@@ -691,6 +798,22 @@ const SessionDialog = ({ open, onClose, onEndSession, bookings = [] }) => {
         open={updateSuccessOpen}
         onClose={handleUpdateSuccessClose}
       />
+
+      {/* Extend Time Conflict Error */}
+      <Snackbar
+        open={extendConflictError}
+        autoHideDuration={4000}
+        onClose={() => setExtendConflictError(false)}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert
+          severity="error"
+          onClose={() => setExtendConflictError(false)}
+          sx={{ width: "100%", fontWeight: 600 }}
+        >
+          Cannot extend time — another booking is already in this slot.
+        </Alert>
+      </Snackbar>
     </>
   );
 };

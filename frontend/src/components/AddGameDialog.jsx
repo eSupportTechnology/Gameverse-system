@@ -24,7 +24,7 @@ import archeryImage from "../assets/archery_gaming.png";
 import carromImage from "../assets/carom_gaming.png";
 import poolImage from "../assets/pool_gaming.jpg";
 
-const paymentMethods = ["Coin", "Arrow", "Per Hour"];
+const paymentMethods = ["Coin", "Arrow", "Per Minute", "Per Hour"];
 const defaultGameImages = {
   "Arcade Machine": arcadeImage,
   "Archery Gaming": archeryImage,
@@ -46,6 +46,8 @@ const AddGameDialog = ({
   const [location, setLocation] = useState("");
   const [method, setMethod] = useState("Coin");
   const [price, setPrice] = useState("");
+  const [arrowPackages, setArrowPackages] = useState([{ arrows: "", price: "" }]);
+  const [minutePackages, setMinutePackages] = useState([{ minutes: "", price: "" }]);
   const [desc, setDesc] = useState("");
   const [thumbnail, setThumbnail] = useState(null);
   const [file, setFile] = useState(null);
@@ -54,16 +56,38 @@ const AddGameDialog = ({
 
   useEffect(() => {
     if (open) {
+      setThumbnail(null);
+      setFile(null);
       if (mode === "edit" && initialData) {
         setTitle(initialData.title ?? "");
         setTeamGame(initialData.team_game ?? null); // sync with backend
         setLocation(initialData.location ?? "");
         setPrice(initialData.price ?? "");
+        setDesc(initialData.description ?? "");
 
         if (typeof initialData.method === "object") {
           setMethod(initialData.method.type);
         } else {
           setMethod(initialData.method || "Coin");
+        }
+
+        const rawPkgs = initialData.packages;
+        const pkgs = Array.isArray(rawPkgs) ? rawPkgs : rawPkgs && typeof rawPkgs === "object" ? Object.values(rawPkgs) : [];
+
+        const methodType = typeof initialData.method === "object" ? initialData.method.type : initialData.method;
+
+        if (methodType === "Arrow") {
+          if (pkgs.length > 0) {
+            setArrowPackages(pkgs.map(p => ({ arrows: p.arrows, price: p.price })));
+          } else {
+            setArrowPackages([{ arrows: "", price: "" }]);
+          }
+        } else if (methodType === "Per Minute") {
+          if (pkgs.length > 0) {
+            setMinutePackages(pkgs.map(p => ({ minutes: p.minutes, price: p.price })));
+          } else {
+            setMinutePackages([{ minutes: "", price: "" }]);
+          }
         }
       } else {
         setTitle("");
@@ -71,6 +95,9 @@ const AddGameDialog = ({
         setLocation("");
         setMethod("Coin");
         setPrice("");
+        setDesc("");
+        setArrowPackages([{ arrows: "", price: "" }]);
+        setMinutePackages([{ minutes: "", price: "" }]);
       }
     }
   }, [open, mode, initialData]);
@@ -108,7 +135,8 @@ const AddGameDialog = ({
   const getCurrentThumbnail = () => {
     if (thumbnail) return thumbnail;
     if (autoThumbnail) return autoThumbnail;
-    return initialData?.thumbnail_url || null;
+    if (initialData?.thumbnail) return `${API_BASE_URL}/storage/${initialData.thumbnail}`;
+    return null;
   };
 
   const urlToFile = async (url, filename, mimeType) => {
@@ -149,9 +177,32 @@ const AddGameDialog = ({
     const trimmedLocation = location.trim();
     const trimmedMethod = method.trim();
 
-    if (!trimmedTitle || !trimmedLocation || !price || teamGame === null) {
+    if (!trimmedTitle || !trimmedLocation || teamGame === null) {
       toast.error("All fields are required!");
       return;
+    }
+
+    const isPackageMethod = trimmedMethod === "Arrow" || trimmedMethod === "Per Minute";
+
+    if (!isPackageMethod && !price) {
+      toast.error("Price is required!");
+      return;
+    }
+
+    if (trimmedMethod === "Arrow") {
+      const validPackages = arrowPackages.filter(p => p.arrows && p.price);
+      if (validPackages.length === 0) {
+        toast.error("Add at least one arrow package.");
+        return;
+      }
+    }
+
+    if (trimmedMethod === "Per Minute") {
+      const validPackages = minutePackages.filter(p => p.minutes && p.price);
+      if (validPackages.length === 0) {
+        toast.error("Add at least one minute package.");
+        return;
+      }
     }
 
     if (!validateMethodForGame(trimmedTitle, trimmedMethod)) return;
@@ -162,7 +213,25 @@ const AddGameDialog = ({
     formData.append("title", trimmedTitle);
     formData.append("location", trimmedLocation);
     formData.append("method", trimmedMethod);
-    formData.append("price", Number(price));
+    formData.append("price", isPackageMethod ? 0 : Number(price));
+
+    // ✅ Arrow packages
+    if (trimmedMethod === "Arrow") {
+      const validPackages = arrowPackages.filter(p => p.arrows && p.price);
+      validPackages.forEach((pkg, i) => {
+        formData.append(`packages[${i}][arrows]`, Number(pkg.arrows));
+        formData.append(`packages[${i}][price]`, Number(pkg.price));
+      });
+    }
+
+    // ✅ Minute packages
+    if (trimmedMethod === "Per Minute") {
+      const validPackages = minutePackages.filter(p => p.minutes && p.price);
+      validPackages.forEach((pkg, i) => {
+        formData.append(`packages[${i}][minutes]`, Number(pkg.minutes));
+        formData.append(`packages[${i}][price]`, Number(pkg.price));
+      });
+    }
 
     // ✅ FIXED boolean issue
     formData.append("team_game", teamGame ? 1 : 0);
@@ -397,7 +466,7 @@ const AddGameDialog = ({
           </Typography>
           <Box
             display="grid"
-            gridTemplateColumns={{ xs: "1fr", md: "1fr 1fr" }}
+            gridTemplateColumns={(method === "Arrow" || method === "Per Minute") ? "1fr" : { xs: "1fr", md: "1fr 1fr" }}
             gap={2}
             mt={1}
           >
@@ -423,24 +492,194 @@ const AddGameDialog = ({
               ))}
             </TextField>
 
-            <TextField
-              variant="outlined"
-              fullWidth
-              size="small"
-              type="number"
-              placeholder="Enter total price"
-              value={price}
-              onChange={(e) => setPrice(e.target.value)}
-              InputProps={{
-                sx: {
-                  backgroundColor: "#1F2937",
-                  borderRadius: "6px",
-                  border: "1px solid #374151",
-                  color: "white",
-                },
-              }}
-            />
+            {method !== "Arrow" && method !== "Per Minute" && (
+              <TextField
+                variant="outlined"
+                fullWidth
+                size="small"
+                type="number"
+                placeholder="Enter total price"
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+                InputProps={{
+                  sx: {
+                    backgroundColor: "#1F2937",
+                    borderRadius: "6px",
+                    border: "1px solid #374151",
+                    color: "white",
+                  },
+                }}
+              />
+            )}
           </Box>
+
+          {/* Arrow Packages */}
+          {method === "Arrow" && (
+            <Box mt={1.5}>
+              <Typography variant="body2" sx={{ fontSize: 13, color: "#9CA3AF", mb: 1 }}>
+                Arrow Packages
+              </Typography>
+              {arrowPackages.map((pkg, i) => (
+                <Box key={i} display="flex" gap={1} mb={1} alignItems="center">
+                  <TextField
+                    size="small"
+                    type="number"
+                    placeholder="Arrows"
+                    value={pkg.arrows}
+                    onChange={(e) => {
+                      const updated = [...arrowPackages];
+                      updated[i] = { ...updated[i], arrows: e.target.value };
+                      setArrowPackages(updated);
+                    }}
+                    InputProps={{
+                      sx: {
+                        backgroundColor: "#1F2937",
+                        borderRadius: "6px",
+                        border: "1px solid #374151",
+                        color: "white",
+                        fontSize: 13,
+                      },
+                    }}
+                    sx={{ flex: 1 }}
+                  />
+                  <TextField
+                    size="small"
+                    type="number"
+                    placeholder="Price (Rs.)"
+                    value={pkg.price}
+                    onChange={(e) => {
+                      const updated = [...arrowPackages];
+                      updated[i] = { ...updated[i], price: e.target.value };
+                      setArrowPackages(updated);
+                    }}
+                    InputProps={{
+                      sx: {
+                        backgroundColor: "#1F2937",
+                        borderRadius: "6px",
+                        border: "1px solid #374151",
+                        color: "white",
+                        fontSize: 13,
+                      },
+                    }}
+                    sx={{ flex: 1 }}
+                  />
+                  {arrowPackages.length > 1 && (
+                    <Box
+                      onClick={() => setArrowPackages(arrowPackages.filter((_, idx) => idx !== i))}
+                      sx={{
+                        cursor: "pointer",
+                        color: "#EF4444",
+                        fontWeight: "bold",
+                        fontSize: 18,
+                        lineHeight: 1,
+                        px: 0.5,
+                      }}
+                    >
+                      ×
+                    </Box>
+                  )}
+                </Box>
+              ))}
+              <Box
+                onClick={() => setArrowPackages([...arrowPackages, { arrows: "", price: "" }])}
+                sx={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 0.5,
+                  cursor: "pointer",
+                  color: "#0CD7FF",
+                  fontSize: 13,
+                  mt: 0.5,
+                }}
+              >
+                + Add Package
+              </Box>
+            </Box>
+          )}
+
+          {/* Per Minute Packages */}
+          {method === "Per Minute" && (
+            <Box mt={1.5}>
+              <Typography variant="body2" sx={{ fontSize: 13, color: "#9CA3AF", mb: 1 }}>
+                Minute Packages
+              </Typography>
+              {minutePackages.map((pkg, i) => (
+                <Box key={i} display="flex" gap={1} mb={1} alignItems="center">
+                  <TextField
+                    size="small"
+                    type="number"
+                    placeholder="Minutes"
+                    value={pkg.minutes}
+                    onChange={(e) => {
+                      const updated = [...minutePackages];
+                      updated[i] = { ...updated[i], minutes: e.target.value };
+                      setMinutePackages(updated);
+                    }}
+                    InputProps={{
+                      sx: {
+                        backgroundColor: "#1F2937",
+                        borderRadius: "6px",
+                        border: "1px solid #374151",
+                        color: "white",
+                        fontSize: 13,
+                      },
+                    }}
+                    sx={{ flex: 1 }}
+                  />
+                  <TextField
+                    size="small"
+                    type="number"
+                    placeholder="Price (Rs.)"
+                    value={pkg.price}
+                    onChange={(e) => {
+                      const updated = [...minutePackages];
+                      updated[i] = { ...updated[i], price: e.target.value };
+                      setMinutePackages(updated);
+                    }}
+                    InputProps={{
+                      sx: {
+                        backgroundColor: "#1F2937",
+                        borderRadius: "6px",
+                        border: "1px solid #374151",
+                        color: "white",
+                        fontSize: 13,
+                      },
+                    }}
+                    sx={{ flex: 1 }}
+                  />
+                  {minutePackages.length > 1 && (
+                    <Box
+                      onClick={() => setMinutePackages(minutePackages.filter((_, idx) => idx !== i))}
+                      sx={{
+                        cursor: "pointer",
+                        color: "#EF4444",
+                        fontWeight: "bold",
+                        fontSize: 18,
+                        lineHeight: 1,
+                        px: 0.5,
+                      }}
+                    >
+                      ×
+                    </Box>
+                  )}
+                </Box>
+              ))}
+              <Box
+                onClick={() => setMinutePackages([...minutePackages, { minutes: "", price: "" }])}
+                sx={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 0.5,
+                  cursor: "pointer",
+                  color: "#0CD7FF",
+                  fontSize: 13,
+                  mt: 0.5,
+                }}
+              >
+                + Add Package
+              </Box>
+            </Box>
+          )}
           <p
             style={{
               marginTop: 15,

@@ -14,6 +14,7 @@ class Game extends Model
         'location',
         'method',
         'price',
+        'packages',
         'team_game',
         'description',
         'thumbnail',
@@ -23,5 +24,6 @@ class Game extends Model
     protected $casts = [
         'team_game' => 'boolean',
         'method' => 'array',
+        'packages' => 'array',
     ];
 }

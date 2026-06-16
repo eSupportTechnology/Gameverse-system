@@ -9,16 +9,18 @@ import { API_BASE_URL } from "../apiConfig";
 
 const BASE_URL = `${API_BASE_URL}/storage/`;
 
-const getGameDefaults = (item) => {
-  // ✅ FIX IMAGE SOURCE
-  let image = item.image || (item.thumbnail ? BASE_URL + item.thumbnail : null);
+const getMethodType = (method) => {
+  if (!method) return "";
+  if (typeof method === "object") return (method.type || "").toLowerCase();
+  return method.toLowerCase();
+};
 
-  // ✅ FIX DESCRIPTION FIELD
+const getGameDefaults = (item) => {
+  let image = item.image || (item.thumbnail ? BASE_URL + item.thumbnail : null);
   let desc = item.description || item.desc;
 
-  const method = item.method?.toLowerCase();
+  const method = getMethodType(item.method);
 
-  // ✅ Only fallback if STILL missing
   if (!image) {
     switch (method) {
       case "per hour":
@@ -58,8 +60,17 @@ const OtherGamesSection = ({ games, handleRemoveGame, onEditGame }) => {
   return (
     <>
       {games?.map((item, index) => {
-        const { image: displayImage, desc: displayDesc } =
-          getGameDefaults(item);
+        const { image: displayImage, desc: displayDesc } = getGameDefaults(item);
+        const methodType = getMethodType(item.method);
+        const isArrow = methodType === "arrow";
+        const isPerMinute = methodType === "per minute";
+
+        const rawPkgs = item.packages;
+        const allPackages = Array.isArray(rawPkgs)
+          ? rawPkgs
+          : rawPkgs && typeof rawPkgs === "object"
+            ? Object.values(rawPkgs)
+            : [];
 
         return (
           <Box
@@ -97,7 +108,7 @@ const OtherGamesSection = ({ games, handleRemoveGame, onEditGame }) => {
                 borderRadius: "12px",
                 display: "flex",
                 flexDirection: "column",
-                height: 360,
+                minHeight: 360,
                 border: "1px solid transparent",
                 backgroundImage:
                   "linear-gradient(#0E111B, #0E111B), linear-gradient(180deg, #CF36E1, #15A2EF)",
@@ -114,7 +125,6 @@ const OtherGamesSection = ({ games, handleRemoveGame, onEditGame }) => {
                   borderRadius: "12px",
                 }}
               >
-                {/* ✅ Thumbnail ALWAYS correct */}
                 <img
                   src={displayImage}
                   alt={item.title || "game"}
@@ -126,22 +136,74 @@ const OtherGamesSection = ({ games, handleRemoveGame, onEditGame }) => {
                 />
 
                 <Box sx={{ p: 2, textAlign: "center", flexGrow: 1 }}>
-                  {/* Title */}
                   <h3 style={{ fontSize: 16, fontWeight: 500, color: "white" }}>
                     {item.title}
                   </h3>
 
-                  {/* ✅ Description ALWAYS correct */}
-                  <p
-                    style={{
-                      fontSize: 14,
-                      fontWeight: 300,
-                      marginTop: 8,
-                      color: "#fff",
-                    }}
-                  >
-                    {displayDesc}
-                  </p>
+                  {isArrow && allPackages.length > 0 ? (
+                    <Box sx={{ mt: 1 }}>
+                      {allPackages.map((pkg, i) => (
+                        <Box
+                          key={i}
+                          sx={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            backgroundColor: "#1a1f30",
+                            borderRadius: "8px",
+                            px: 2,
+                            py: 0.8,
+                            mb: 0.8,
+                            border: "1px solid #2a2f45",
+                          }}
+                        >
+                          <span style={{ color: "#0CD7FF", fontSize: 13, fontWeight: 500 }}>
+                            {pkg.arrows} Arrows
+                          </span>
+                          <span style={{ color: "#fff", fontSize: 13, fontWeight: 600 }}>
+                            Rs. {Number(pkg.price).toLocaleString()}
+                          </span>
+                        </Box>
+                      ))}
+                    </Box>
+                  ) : isPerMinute && allPackages.length > 0 ? (
+                    <Box sx={{ mt: 1 }}>
+                      {allPackages.map((pkg, i) => (
+                        <Box
+                          key={i}
+                          sx={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            backgroundColor: "#1a1f30",
+                            borderRadius: "8px",
+                            px: 2,
+                            py: 0.8,
+                            mb: 0.8,
+                            border: "1px solid #2a2f45",
+                          }}
+                        >
+                          <span style={{ color: "#0CD7FF", fontSize: 13, fontWeight: 500 }}>
+                            {pkg.minutes} Minutes
+                          </span>
+                          <span style={{ color: "#fff", fontSize: 13, fontWeight: 600 }}>
+                            Rs. {Number(pkg.price).toLocaleString()}
+                          </span>
+                        </Box>
+                      ))}
+                    </Box>
+                  ) : (
+                    <p
+                      style={{
+                        fontSize: 14,
+                        fontWeight: 300,
+                        marginTop: 8,
+                        color: "#fff",
+                      }}
+                    >
+                      {displayDesc}
+                    </p>
+                  )}
                 </Box>
               </Box>
             </Box>

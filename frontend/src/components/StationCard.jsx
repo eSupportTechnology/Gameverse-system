@@ -54,7 +54,7 @@ const StationCard = ({
         borderRadius: "12px",
         backgroundColor: "#0d1727ff",
         border: "1px solid rgba(255,255,255,0.08)",
-        height: "270px",
+        minHeight: "270px",
         display: "flex",
         flexDirection: "column",
         justifyContent: "space-between",
@@ -77,7 +77,8 @@ const StationCard = ({
           justifyContent: "space-between",
         }}
       >
-        <Box sx={{ flexGrow: 1, minHeight: "160px" }}>
+        {/* Top section — grows to absorb extra space */}
+        <Box sx={{ flexGrow: 1 }}>
           <Box
             sx={{
               display: "flex",
@@ -159,7 +160,6 @@ const StationCard = ({
               px: 2,
               py: 0.8,
               borderRadius: "6px",
-              mb: 1.2,
             }}
           >
             {station.pricing && station.pricing.length > 0 ? (
@@ -195,7 +195,10 @@ const StationCard = ({
               </Typography>
             )}
           </Box>
+        </Box>
 
+        {/* Bottom section — always pinned above the button */}
+        <Box sx={{ mt: 1.2, mb: 0.5 }}>
           {/* Location */}
           <Box
             sx={{ display: "flex", justifyContent: "space-between", mb: 0.4 }}

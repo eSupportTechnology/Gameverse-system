@@ -501,7 +501,24 @@ useEffect(() => {
             </Typography>
 
            <Box sx={{ display: "flex", flexDirection: "column", gap: 1.4 }}>
-            {nextInLine.map((p) => (
+            {nextInLine.length === 0 ? (
+              <Box
+                sx={{
+                  backgroundColor: "rgba(139,92,246,0.15)",
+                  border: "1px solid rgba(139,92,246,0.4)",
+                  borderRadius: 2,
+                  paddingY: 1.8,
+                  paddingX: 1.6,
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                <Typography sx={{ color: "rgba(255,255,255,0.4)", fontSize: 15, fontStyle: "italic" }}>
+                  No upcoming bookings
+                </Typography>
+              </Box>
+            ) : nextInLine.map((p) => (
               <Box
                 key={p.key}
                 sx={{

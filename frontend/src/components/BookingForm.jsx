@@ -1,5 +1,13 @@
 import AddIcon from "@mui/icons-material/Add";
 import CloseIcon from "@mui/icons-material/Close";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import PersonIcon from "@mui/icons-material/Person";
+import PhoneIcon from "@mui/icons-material/Phone";
+import SportsEsportsIcon from "@mui/icons-material/SportsEsports";
+import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
+import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import TimerIcon from "@mui/icons-material/Timer";
+import DownloadIcon from "@mui/icons-material/Download";
 import {
   Box,
   Button,
@@ -42,6 +50,12 @@ const BookingForm = ({
   const [selectedRewards, setSelectedRewards] = useState({});
   const [showReceipt, setShowReceipt] = useState(false);
 const [createdBookings, setCreatedBookings] = useState([]);
+const [playersData, setPlayersData] = useState([
+  { nfcCardNumber: "", customerName: "", phoneNumber: "" },
+]);
+const [activeNfcPlayerIdx, setActiveNfcPlayerIdx] = useState(0);
+const activeNfcIdxRef = useRef(0);
+const allowMultiRef = useRef(false);
   const rewardConfig = {
     "1 hour free PlayStation (VR not included)": {
       duration: "1h",
@@ -138,6 +152,15 @@ const [createdBookings, setCreatedBookings] = useState([]);
     }
   }, [existingBooking]);
 
+  useEffect(() => {
+    const count = Number(formData.numberOfPlayers) || 1;
+    setPlayersData((prev) =>
+      Array.from({ length: count }, (_, i) =>
+        prev[i] || { nfcCardNumber: "", customerName: "", phoneNumber: "" },
+      ),
+    );
+  }, [formData.numberOfPlayers]);
+
   const handleOpenNfcDialog = () => {
     setNfcDialogOpen(true);
   };
@@ -148,12 +171,27 @@ const [createdBookings, setCreatedBookings] = useState([]);
   };
 
   const handleCreateNFCUser = (nfcData) => {
-    setFormData((prev) => ({
-      ...prev,
-      nfcCardNumber: nfcData.nfcCardNumber,
-      customerName: nfcData.fullName,
-      phoneNumber: nfcData.phoneNo.replace(/\s/g, ""),
-    }));
+    if (allowMultiRef.current) {
+      const idx = activeNfcIdxRef.current;
+      setPlayersData((prev) =>
+        prev.map((p, i) =>
+          i === idx
+            ? {
+                nfcCardNumber: nfcData.nfcCardNumber,
+                customerName: nfcData.fullName,
+                phoneNumber: nfcData.phoneNo.replace(/\s/g, ""),
+              }
+            : p,
+        ),
+      );
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        nfcCardNumber: nfcData.nfcCardNumber,
+        customerName: nfcData.fullName,
+        phoneNumber: nfcData.phoneNo.replace(/\s/g, ""),
+      }));
+    }
     setNfcDialogOpen(false);
   };
 
@@ -170,6 +208,7 @@ const [createdBookings, setCreatedBookings] = useState([]);
 
   const handleConfirmCancel = () => {
     setCancelConfirm(false);
+    resetPlayersData();
     handleClose();
     setFormData({
       nfcCardNumber: "",
@@ -184,8 +223,28 @@ const [createdBookings, setCreatedBookings] = useState([]);
     });
   };
 
+  const resetPlayersData = () => {
+    setPlayersData([{ nfcCardNumber: "", customerName: "", phoneNumber: "" }]);
+    setActiveNfcPlayerIdx(0);
+    activeNfcIdxRef.current = 0;
+  };
+
   const handleSuccessOk = () => {
     setcreateSuccess(false);
+    resetPlayersData();
+    setFormData({
+      nfcCardNumber: "",
+      customerName: "",
+      phoneNumber: "",
+      station: "",
+      bookingDate: "",
+      vrPlay: "",
+      startTime: "",
+      duration: "",
+      numberOfPlayers: 1,
+      amount: 0,
+    });
+    setSelectedRewards({});
     handleClose();
   };
 
@@ -336,13 +395,28 @@ const [createdBookings, setCreatedBookings] = useState([]);
     const finalDuration = slotDuration || formData.duration;
     const finalPlayers = slotCapacity ?? formData.numberOfPlayers;
 
-    if (!formData.customerName.trim())
-      return alert("Customer name is required");
-    if (!formData.phoneNumber.trim()) return alert("Phone number is required");
-    if (!/^\d+$/.test(formData.phoneNumber))
-      return alert("Phone number must contain only numbers");
-    if (formData.phoneNumber.length < 9)
-      return alert("Phone number must be at least 9 digits long");
+    if (allowMultiplePlayers) {
+      for (let i = 0; i < playersData.length; i++) {
+        const p = playersData[i];
+        if (!p.customerName.trim())
+          return alert(`Player ${i + 1}: Customer name is required`);
+        if (!p.phoneNumber.trim())
+          return alert(`Player ${i + 1}: Phone number is required`);
+        if (!/^\d+$/.test(p.phoneNumber))
+          return alert(`Player ${i + 1}: Phone number must contain only numbers`);
+        if (p.phoneNumber.length < 9)
+          return alert(`Player ${i + 1}: Phone number must be at least 9 digits`);
+      }
+    } else {
+      if (!formData.customerName.trim())
+        return alert("Customer name is required");
+      if (!formData.phoneNumber.trim()) return alert("Phone number is required");
+      if (!/^\d+$/.test(formData.phoneNumber))
+        return alert("Phone number must contain only numbers");
+      if (formData.phoneNumber.length < 9)
+        return alert("Phone number must be at least 9 digits long");
+    }
+
     if (
       !formData.station ||
       !formData.bookingDate ||
@@ -350,8 +424,8 @@ const [createdBookings, setCreatedBookings] = useState([]);
       !formData.duration
     )
       return alert("Please fill in all required fields");
-    const result = validateSlot();
 
+    const result = validateSlot();
     if (!result.valid) {
       alert(result.message);
       return;
@@ -359,63 +433,108 @@ const [createdBookings, setCreatedBookings] = useState([]);
 
     setLoading(true);
     try {
-      const payload = {
-        nfc_card_number: formData.nfcCardNumber || null,
-        customer_name: formData.customerName,
-        phone_number: formData.phoneNumber,
-        station: formData.station,
-        booking_date: formData.bookingDate,
-        vr_play: formData.vrPlay,
-        start_time: formData.startTime,
-        duration: finalDuration,
-        number_of_players: finalPlayers,
-        amount: formData.amount,
-        used_reward:
-          Object.keys(selectedRewards).length > 0 ? selectedRewards : null,
-      };
-
       const token = localStorage.getItem("aToken");
-      let bookingResponse;
+      const stationData = stations.find((s) => s.name === formData.station);
+      const perPersonAmount = stationData
+        ? calculateAmount(stationData, finalDuration, formData.vrPlay, 1)
+        : 0;
 
-      if (existingBooking) {
-        // Update booking
-        bookingResponse = await axios.put(
-          `${API_BASE_URL}/api/bookings/${existingBooking.id}`,
-          payload,
-          {
-            headers: {
-              Authorization: token ? `Bearer ${token}` : "",
-              "Content-Type": "application/json",
+      if (allowMultiplePlayers && !existingBooking) {
+        // Create one booking per player sequentially
+        const newBookings = [];
+        for (const player of playersData) {
+          const res = await axios.post(
+            `${API_BASE_URL}/api/bookings`,
+            {
+              nfc_card_number: player.nfcCardNumber || null,
+              customer_name: player.customerName,
+              phone_number: player.phoneNumber,
+              station: formData.station,
+              booking_date: formData.bookingDate,
+              vr_play: formData.vrPlay,
+              start_time: formData.startTime,
+              duration: finalDuration,
+              number_of_players: finalPlayers,
+              amount: perPersonAmount,
+              used_reward:
+                Object.keys(selectedRewards).length > 0 ? selectedRewards : null,
             },
-          },
-        );
-        setUpdateSuccess(true); // show update dialog
-      } else {
-        // Create new booking
-        bookingResponse = await axios.post(
-          `${API_BASE_URL}/api/bookings`,
-          payload,
-          {
-            headers: {
-              Authorization: token ? `Bearer ${token}` : "",
-              "Content-Type": "application/json",
+            {
+              headers: {
+                Authorization: token ? `Bearer ${token}` : "",
+                "Content-Type": "application/json",
+              },
             },
-          },
-        );
-        const newBooking = bookingResponse.data?.data;
-        setCreatedBookings([newBooking]); // store booking
+          );
+          newBookings.push(res.data?.data);
+        }
+        setCreatedBookings(newBookings);
         setShowReceipt(true);
         setcreateSuccess(true);
-      }
-      const bookingId = bookingResponse.data?.data?.id;
 
-      // Use selected rewards
-      for (let type in selectedRewards) {
-        await axios.post(`${API_BASE_URL}/api/booking-use-reward`, {
-          card_no: formData.nfcCardNumber,
-          type,
-          booking_id: bookingId,
-        });
+        // Use rewards against first player's booking
+        const firstBookingId = newBookings[0]?.id;
+        for (let type in selectedRewards) {
+          await axios.post(`${API_BASE_URL}/api/booking-use-reward`, {
+            card_no: playersData[0].nfcCardNumber,
+            type,
+            booking_id: firstBookingId,
+          });
+        }
+      } else {
+        const payload = {
+          nfc_card_number: formData.nfcCardNumber || null,
+          customer_name: formData.customerName,
+          phone_number: formData.phoneNumber,
+          station: formData.station,
+          booking_date: formData.bookingDate,
+          vr_play: formData.vrPlay,
+          start_time: formData.startTime,
+          duration: finalDuration,
+          number_of_players: finalPlayers,
+          amount: formData.amount,
+          used_reward:
+            Object.keys(selectedRewards).length > 0 ? selectedRewards : null,
+        };
+
+        let bookingResponse;
+        if (existingBooking) {
+          bookingResponse = await axios.put(
+            `${API_BASE_URL}/api/bookings/${existingBooking.id}`,
+            payload,
+            {
+              headers: {
+                Authorization: token ? `Bearer ${token}` : "",
+                "Content-Type": "application/json",
+              },
+            },
+          );
+          setUpdateSuccess(true);
+        } else {
+          bookingResponse = await axios.post(
+            `${API_BASE_URL}/api/bookings`,
+            payload,
+            {
+              headers: {
+                Authorization: token ? `Bearer ${token}` : "",
+                "Content-Type": "application/json",
+              },
+            },
+          );
+          const newBooking = bookingResponse.data?.data;
+          setCreatedBookings([newBooking]);
+          setShowReceipt(true);
+          setcreateSuccess(true);
+        }
+
+        const bookingId = bookingResponse.data?.data?.id;
+        for (let type in selectedRewards) {
+          await axios.post(`${API_BASE_URL}/api/booking-use-reward`, {
+            card_no: formData.nfcCardNumber,
+            type,
+            booking_id: bookingId,
+          });
+        }
       }
 
       onBookingCreated && onBookingCreated();
@@ -433,10 +552,12 @@ const [createdBookings, setCreatedBookings] = useState([]);
   const allowMultiplePlayers =
     selectedStation && !["Pool", "Simulator"].includes(selectedStation.type);
 
+  allowMultiRef.current = allowMultiplePlayers;
+
   const showVRPlay =
     selectedStation?.pricing?.some((p) => p.vrPrice && p.vrPrice > 0) || false;
 
-  const calculateAmount = (station, selectedDuration, vrPlay) => {
+  const calculateAmount = (station, selectedDuration, vrPlay, numberOfPlayers = 1) => {
     if (!station || !selectedDuration || !station.pricing?.length) return 0;
 
     const durationMinutes = parseDurationToMinutes(selectedDuration);
@@ -464,6 +585,10 @@ const [createdBookings, setCreatedBookings] = useState([]);
       remaining -= priceEntry.duration * times;
     }
 
+    if (station.type === "PlayStation") {
+      total *= numberOfPlayers;
+    }
+
     return total;
   };
 
@@ -482,6 +607,7 @@ const [createdBookings, setCreatedBookings] = useState([]);
       stationData,
       formData.duration,
       formData.vrPlay,
+      formData.numberOfPlayers,
     );
 
     setFormData((prev) => ({ ...prev, amount: finalAmount }));
@@ -489,6 +615,7 @@ const [createdBookings, setCreatedBookings] = useState([]);
     formData.station,
     formData.duration,
     formData.vrPlay,
+    formData.numberOfPlayers,
     stations,
     selectedRewards,
   ]);
@@ -547,6 +674,36 @@ const [createdBookings, setCreatedBookings] = useState([]);
     }
   };
 
+  const todayStr = dayjs().format("YYYY-MM-DD");
+
+  const isPastTime = (timeValue) => {
+    if (formData.bookingDate !== todayStr) return false;
+    const [h12str, mStr] = timeValue.split(":");
+    const h12 = parseInt(h12str, 10);
+    const m = parseInt(mStr, 10);
+    const h24 = h12 === 12 ? 12 : h12 + 12;
+    const slotMinutes = h24 * 60 + m;
+    const now = dayjs();
+    return slotMinutes < now.hour() * 60 + now.minute();
+  };
+
+  // Start time ≥ 11 PM → limit duration to max 2 hours
+  const isLateStartTime = (() => {
+    if (!formData.startTime) return false;
+    const [h12str] = formData.startTime.split(":");
+    const h12 = parseInt(h12str, 10);
+    const h24 = h12 === 12 ? 12 : h12 + 12;
+    return h24 >= 23;
+  })();
+
+  const lateDurations = ["30m", "1h", "1h 30m", "2h"];
+
+  useEffect(() => {
+    if (isLateStartTime && formData.duration && !lateDurations.includes(formData.duration)) {
+      handleInputChange("duration", "");
+    }
+  }, [formData.startTime]);
+
   const generateTimeSlots = () => {
     const slots = [];
     const start = 12 * 60;
@@ -573,9 +730,10 @@ const [createdBookings, setCreatedBookings] = useState([]);
   const wsRef = useRef(null);
 
   const fetchUserByCardUID = async (cardUID) => {
+    const idx = activeNfcIdxRef.current;
+    const isMulti = allowMultiRef.current;
     try {
       const token = localStorage.getItem("aToken");
-
       const res = await axios.get(
         `${API_BASE_URL}/api/nfc-users/by-card/${cardUID}`,
         { headers: { Authorization: token ? `Bearer ${token}` : "" } },
@@ -583,26 +741,42 @@ const [createdBookings, setCreatedBookings] = useState([]);
 
       if (res.data.success && res.data.data) {
         const user = res.data.data;
-        setFormData((prev) => ({
-          ...prev,
-          customerName: user.full_name,
-          phoneNumber: user.phone_no,
-          nfcCardNumber: cardUID,
-        }));
+        if (isMulti) {
+          setPlayersData((prev) =>
+            prev.map((p, i) =>
+              i === idx
+                ? { nfcCardNumber: cardUID, customerName: user.full_name, phoneNumber: user.phone_no }
+                : p,
+            ),
+          );
+        } else {
+          setFormData((prev) => ({
+            ...prev,
+            customerName: user.full_name,
+            phoneNumber: user.phone_no,
+            nfcCardNumber: cardUID,
+          }));
+        }
         await fetchRewards(cardUID);
       } else {
-        setFormData((prev) => ({
-          ...prev,
-          nfcCardNumber: cardUID,
-        }));
+        if (isMulti) {
+          setPlayersData((prev) =>
+            prev.map((p, i) => (i === idx ? { ...p, nfcCardNumber: cardUID } : p)),
+          );
+        } else {
+          setFormData((prev) => ({ ...prev, nfcCardNumber: cardUID }));
+        }
         await fetchRewards(cardUID);
       }
     } catch (err) {
       console.error("Failed to fetch NFC user:", err);
-      setFormData((prev) => ({
-        ...prev,
-        nfcCardNumber: cardUID,
-      }));
+      if (isMulti) {
+        setPlayersData((prev) =>
+          prev.map((p, i) => (i === idx ? { ...p, nfcCardNumber: cardUID } : p)),
+        );
+      } else {
+        setFormData((prev) => ({ ...prev, nfcCardNumber: cardUID }));
+      }
       await fetchRewards(cardUID);
     }
   };
@@ -642,38 +816,149 @@ const [createdBookings, setCreatedBookings] = useState([]);
     ? rewardConfig[activeReward]?.stations || []
     : null;
 
-    const downloadReceipt = (booking) => {
-      const doc = new jsPDF();
+    const downloadReceipt = (bookings) => {
+      const bookingList = Array.isArray(bookings) ? bookings : [bookings];
+      const first = bookingList[0];
+      const totalPlayers = bookingList.length;
+      const doc = new jsPDF({ unit: "mm", format: "a4" });
+      const pageW = 210;
+      const margin = 25;
+      const contentW = pageW - margin * 2;
+      const totalAmount = bookingList.reduce((sum, b) => sum + Number(b.amount || 0), 0);
 
-      doc.setFontSize(18);
-      doc.text("Gaming Session Receipt", 20, 20);
+      bookingList.forEach((booking, pageIdx) => {
+        if (pageIdx > 0) doc.addPage();
+        const perPersonAmount = Number(booking.amount || 0);
 
-      doc.setFontSize(12);
-      doc.text(`Order ID: ${booking.order_id || booking.id}`, 20, 35);
-      doc.text(
-        `Date: ${
-          booking.booking_date
-            ? dayjs(booking.booking_date).format("DD/MM/YYYY")
-            : "-"
-        }`,
-        20,
-        45
-      );
-      doc.text(`Station: ${booking.station || "-"}`, 20, 55);
-      doc.text(`Customer: ${booking.customer_name || "-"}`, 20, 65);
-      doc.text(`Phone: ${booking.phone_number || "-"}`, 20, 75);
-      doc.text(`VR Play: ${booking.vr_play || "No"}`, 20, 85);
-      doc.text(`Start Time: ${booking.start_time || "-"}`, 20, 95);
-      doc.text(`Duration: ${booking.duration || "-"}`, 20, 105);
+        // ── Dark page background ──
+        doc.setFillColor(8, 14, 26);
+        doc.rect(0, 0, pageW, 297, "F");
 
-      doc.setFontSize(14);
-      doc.text(
-        `Amount Paid: LKR ${Number(booking.amount || 0).toFixed(2)}`,
-        20,
-        120
-      );
+        // ── Cyan top accent bar ──
+        doc.setFillColor(12, 215, 255);
+        doc.rect(0, 0, pageW, 2.5, "F");
 
-      doc.save(`Receipt_${booking.customer_name}_${booking.id}.pdf`);
+        // ── Header block ──
+        doc.setFillColor(13, 23, 45);
+        doc.rect(0, 2.5, pageW, 52, "F");
+
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(26);
+        doc.setTextColor(12, 215, 255);
+        doc.text("GAMEVERSE", pageW / 2, 20, { align: "center" });
+
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(8);
+        doc.setTextColor(100, 116, 139);
+        doc.text("GAMING LOUNGE", pageW / 2, 27, { align: "center" });
+
+        doc.setDrawColor(30, 50, 80);
+        doc.setLineWidth(0.3);
+        doc.line(margin + 20, 31, pageW - margin - 20, 31);
+
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(11);
+        doc.setTextColor(229, 231, 235);
+        doc.text("BOOKING RECEIPT", pageW / 2, 39, { align: "center" });
+
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(8);
+        doc.setTextColor(71, 85, 105);
+        const refText = totalPlayers > 1
+          ? `Ref: #${String(booking.id || "").padStart(6, "0")}  •  Player ${pageIdx + 1} of ${totalPlayers}`
+          : `Ref: #${String(booking.id || "").padStart(6, "0")}`;
+        doc.text(refText, pageW / 2, 47, { align: "center" });
+
+        doc.setDrawColor(12, 215, 255);
+        doc.setLineWidth(0.4);
+        doc.line(0, 54.5, pageW, 54.5);
+
+        // ── Detail rows ──
+        const rows = [
+          ["Customer Name", booking.customer_name || "-"],
+          ["Phone Number",  booking.phone_number  || "-"],
+          ["Station",       booking.station        || "-"],
+          ["Date",          booking.booking_date ? dayjs(booking.booking_date).format("DD/MM/YYYY") : "-"],
+          ["Start Time",    booking.start_time    || "-"],
+          ["Duration",      booking.duration      || "-"],
+          ["VR Play",       booking.vr_play       || "No"],
+        ];
+
+        let y = 68;
+        rows.forEach(([label, value], idx) => {
+          if (idx % 2 === 0) {
+            doc.setFillColor(16, 26, 46);
+            doc.rect(margin, y - 5.5, contentW, 11, "F");
+          }
+          doc.setFont("helvetica", "normal");
+          doc.setFontSize(9.5);
+          doc.setTextColor(100, 116, 139);
+          doc.text(label, margin + 4, y);
+          doc.setFont("helvetica", "bold");
+          doc.setTextColor(229, 231, 235);
+          doc.text(String(value), pageW - margin - 4, y, { align: "right" });
+          y += 13;
+        });
+
+        // ── Dashed divider ──
+        y += 4;
+        doc.setDrawColor(30, 60, 100);
+        doc.setLineWidth(0.3);
+        doc.setLineDashPattern([2, 2], 0);
+        doc.line(margin, y, pageW - margin, y);
+        doc.setLineDashPattern([], 0);
+
+        // ── Amount section ──
+        y += 12;
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(8);
+        doc.setTextColor(100, 116, 139);
+        doc.text("AMOUNT PER PERSON", pageW / 2, y, { align: "center" });
+
+        y += 5;
+        const boxW = 90;
+        const boxX = (pageW - boxW) / 2;
+        doc.setFillColor(10, 22, 42);
+        doc.setDrawColor(12, 215, 255);
+        doc.setLineWidth(0.6);
+        doc.roundedRect(boxX, y, boxW, 20, 3, 3, "FD");
+
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(20);
+        doc.setTextColor(12, 215, 255);
+        doc.text(
+          perPersonAmount === 0 ? "FREE" : `LKR ${perPersonAmount.toFixed(2)}`,
+          pageW / 2, y + 13.5, { align: "center" }
+        );
+
+        if (totalPlayers > 1) {
+          y += 27;
+          doc.setFont("helvetica", "normal");
+          doc.setFontSize(8.5);
+          doc.setTextColor(71, 85, 105);
+          doc.text(
+            `Total for ${totalPlayers} players: LKR ${totalAmount.toFixed(2)}`,
+            pageW / 2, y, { align: "center" }
+          );
+        }
+
+        // ── Footer ──
+        doc.setDrawColor(20, 35, 60);
+        doc.setLineWidth(0.3);
+        doc.line(margin, 272, pageW - margin, 272);
+
+        doc.setFont("helvetica", "italic");
+        doc.setFontSize(8);
+        doc.setTextColor(55, 65, 81);
+        doc.text("Thank you for choosing Gameverse Gaming Lounge!", pageW / 2, 279, { align: "center" });
+        doc.text("We hope to see you again soon.", pageW / 2, 285, { align: "center" });
+
+        doc.setFillColor(12, 215, 255);
+        doc.rect(0, 294.5, pageW, 2.5, "F");
+      });
+
+      doc.save(`Receipt_${first.station || "booking"}_${first.id || ""}.pdf`);
+      setShowReceipt(false);
     };
   return (
     <>
@@ -711,7 +996,141 @@ const [createdBookings, setCreatedBookings] = useState([]);
         </Box>
 
         <DialogContent dividers sx={{ py: 0, pb: 2 }}>
-          {/* NFC Card Number */}
+
+          {/* Per-player fields (PlayStation only) */}
+          {allowMultiplePlayers ? (
+            <Box mt={1}>
+              {playersData.map((player, idx) => (
+                <Box
+                  key={idx}
+                  sx={{
+                    mb: 2,
+                    p: 2,
+                    bgcolor: "#18212F",
+                    borderRadius: 2,
+                    border: idx === activeNfcPlayerIdx
+                      ? "1px solid #0CD7FF"
+                      : "1px solid #374151",
+                  }}
+                >
+                  <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1.5 }}>
+                    <Typography sx={{ color: "#0CD7FF", fontWeight: 700, fontSize: 13 }}>
+                      Player {idx + 1}
+                    </Typography>
+                    <Button
+                      size="small"
+                      onClick={() => {
+                        setActiveNfcPlayerIdx(idx);
+                        activeNfcIdxRef.current = idx;
+                      }}
+                      sx={{
+                        fontSize: 11,
+                        textTransform: "none",
+                        color: idx === activeNfcPlayerIdx ? "#0CD7FF" : "#6B7280",
+                        minWidth: 0,
+                        px: 1,
+                      }}
+                    >
+                      {idx === activeNfcPlayerIdx ? "● NFC Active" : "Set NFC"}
+                    </Button>
+                  </Box>
+
+                  {/* NFC */}
+                  <Box sx={{ display: "flex", gap: 1, mb: 1.5 }}>
+                    <TextField
+                      variant="outlined"
+                      fullWidth
+                      size="small"
+                      placeholder="NFC Card Number (optional)"
+                      value={player.nfcCardNumber}
+                      onChange={(e) =>
+                        setPlayersData((prev) =>
+                          prev.map((p, i) =>
+                            i === idx ? { ...p, nfcCardNumber: e.target.value } : p,
+                          ),
+                        )
+                      }
+                      InputProps={{
+                        sx: {
+                          backgroundColor: "#1F2937",
+                          borderRadius: "6px",
+                          "& input::placeholder": { color: "#9CA3AF", fontSize: "13px" },
+                          color: "white",
+                        },
+                      }}
+                    />
+                    <Box
+                      sx={{
+                        width: 38, height: 38,
+                        backgroundColor: "#1F2937",
+                        borderRadius: "8px",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        cursor: "pointer",
+                        "&:hover": { backgroundColor: "#374151" },
+                      }}
+                      onClick={() => {
+                        setActiveNfcPlayerIdx(idx);
+                        activeNfcIdxRef.current = idx;
+                        setNfcDialogOpen(true);
+                      }}
+                    >
+                      <AddIcon sx={{ color: "white", fontSize: 20 }} />
+                    </Box>
+                  </Box>
+
+                  {/* Name & Phone */}
+                  <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1.5 }}>
+                    <TextField
+                      variant="outlined"
+                      size="small"
+                      placeholder="Customer Name"
+                      value={player.customerName}
+                      onChange={(e) =>
+                        setPlayersData((prev) =>
+                          prev.map((p, i) =>
+                            i === idx ? { ...p, customerName: e.target.value } : p,
+                          ),
+                        )
+                      }
+                      InputProps={{
+                        sx: {
+                          backgroundColor: "#1F2937",
+                          borderRadius: "6px",
+                          "& input::placeholder": { color: "#9CA3AF", fontSize: "13px" },
+                          color: "white",
+                        },
+                      }}
+                    />
+                    <TextField
+                      variant="outlined"
+                      size="small"
+                      placeholder="Phone Number"
+                      value={player.phoneNumber}
+                      inputProps={{ inputMode: "numeric", pattern: "[0-9]*", maxLength: 15 }}
+                      onChange={(e) =>
+                        setPlayersData((prev) =>
+                          prev.map((p, i) =>
+                            i === idx
+                              ? { ...p, phoneNumber: e.target.value.replace(/\D/g, "") }
+                              : p,
+                          ),
+                        )
+                      }
+                      InputProps={{
+                        sx: {
+                          backgroundColor: "#1F2937",
+                          borderRadius: "6px",
+                          "& input::placeholder": { color: "#9CA3AF", fontSize: "13px" },
+                          color: "white",
+                        },
+                      }}
+                    />
+                  </Box>
+                </Box>
+              ))}
+            </Box>
+          ) : (
+          <>{/* NFC Card Number — single player */}
           <Box display="flex" flexDirection="column" gap={1} mt={1}>
             <Typography
               variant="body2"
@@ -849,6 +1268,8 @@ const [createdBookings, setCreatedBookings] = useState([]);
               />
             </Box>
           </Box>
+          </>
+          )}
 
           {/* Station & Date */}
           <Box
@@ -932,6 +1353,7 @@ const [createdBookings, setCreatedBookings] = useState([]);
                 fullWidth
                 size="small"
                 value={formData.bookingDate}
+                inputProps={{ min: todayStr }}
                 onChange={(e) =>
                   handleInputChange("bookingDate", e.target.value)
                 }
@@ -1102,7 +1524,7 @@ const [createdBookings, setCreatedBookings] = useState([]);
                   <MenuItem
                     key={i}
                     value={t.value}
-                    disabled={isSlotOverlapping(t.value)}
+                    disabled={isSlotOverlapping(t.value) || isPastTime(t.value)}
                   >
                     {t.label}
                   </MenuItem>
@@ -1158,10 +1580,10 @@ const [createdBookings, setCreatedBookings] = useState([]);
                 <MenuItem value="1h">1 hour</MenuItem>
                 <MenuItem value="1h 30m">1 hour 30 min</MenuItem>
                 <MenuItem value="2h">2 hour</MenuItem>
-                <MenuItem value="2h 30m">2 hour 30 min</MenuItem>
-                <MenuItem value="3h">3 hour</MenuItem>
-                <MenuItem value="3h 30m">3 hour 30 min</MenuItem>
-                <MenuItem value="4h">4 hour</MenuItem>
+                <MenuItem value="2h 30m" disabled={isLateStartTime}>2 hour 30 min</MenuItem>
+                <MenuItem value="3h" disabled={isLateStartTime}>3 hour</MenuItem>
+                <MenuItem value="3h 30m" disabled={isLateStartTime}>3 hour 30 min</MenuItem>
+                <MenuItem value="4h" disabled={isLateStartTime}>4 hour</MenuItem>
               </Select>
             </Box>
           </Box>
@@ -1171,8 +1593,7 @@ const [createdBookings, setCreatedBookings] = useState([]);
                 Number of Players
               </Typography>
 
-              <TextField
-                type="number"
+              <Select
                 size="small"
                 fullWidth
                 value={
@@ -1183,38 +1604,34 @@ const [createdBookings, setCreatedBookings] = useState([]);
                 disabled={!isFirstBookingInSlot()}
                 onChange={(e) => {
                   if (!isFirstBookingInSlot()) return;
-
-                  let value = e.target.value;
-                  if (value === "") {
-                    setFormData((prev) => ({
-                      ...prev,
-                      numberOfPlayers: value,
-                    }));
-                    return;
-                  }
-
-                  if (/^[0-9\b]+$/.test(value)) {
-                    value = Number(value);
-                    // Cap at 4
-                    if (value > 4) value = 4;
-                    setFormData((prev) => ({
-                      ...prev,
-                      numberOfPlayers: value,
-                    }));
-                  }
+                  setFormData((prev) => ({
+                    ...prev,
+                    numberOfPlayers: e.target.value,
+                  }));
                 }}
-                onBlur={() => {
-                  if (!isFirstBookingInSlot()) return;
-                  let value = Number(formData.numberOfPlayers);
-                  if (isNaN(value) || value < 1) value = 1;
-                  else if (value > 4) value = 4;
-                  setFormData((prev) => ({ ...prev, numberOfPlayers: value }));
+                sx={{
+                  backgroundColor: "#1F2937",
+                  color: "white",
+                  "& .MuiOutlinedInput-notchedOutline": { borderColor: "#374151" },
+                  "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "#6B7280" },
+                  "& .MuiSelect-icon": { color: "#fff" },
                 }}
-                InputProps={{
-                  sx: { backgroundColor: "#1F2937", color: "white" },
-                  inputProps: { min: 1, max: 4 },
+                MenuProps={{
+                  PaperProps: {
+                    sx: {
+                      backgroundColor: "#1F2937",
+                      color: "white",
+                      "& .MuiMenuItem-root:hover": { backgroundColor: "#374151" },
+                    },
+                  },
                 }}
-              />
+              >
+                {[1, 2, 3, 4].map((n) => (
+                  <MenuItem key={n} value={n}>
+                    {n}
+                  </MenuItem>
+                ))}
+              </Select>
 
               {!isFirstBookingInSlot() && (
                 <Typography variant="caption" color="#9CA3AF"></Typography>
@@ -1290,13 +1707,31 @@ const [createdBookings, setCreatedBookings] = useState([]);
             }}
           >
             <Typography variant="h6" color="cyan">
-              Amount
+              {allowMultiplePlayers && Number(formData.numberOfPlayers) > 1
+                ? "Per Person"
+                : "Amount"}
             </Typography>
-            <Typography variant="h6" color="cyan">
-              {Object.keys(selectedRewards).length > 0
-                ? "FREE"
-                : `LKR ${formData.amount}`}
-            </Typography>
+            <Box sx={{ textAlign: "right" }}>
+              <Typography variant="h6" color="cyan">
+                {Object.keys(selectedRewards).length > 0
+                  ? "FREE"
+                  : allowMultiplePlayers && Number(formData.numberOfPlayers) > 1
+                  ? `LKR ${
+                      (() => {
+                        const sd = stations.find((s) => s.name === formData.station);
+                        return sd
+                          ? calculateAmount(sd, formData.duration, formData.vrPlay, 1).toFixed(2)
+                          : "0.00";
+                      })()
+                    }`
+                  : `LKR ${formData.amount}`}
+              </Typography>
+              {allowMultiplePlayers && Number(formData.numberOfPlayers) > 1 && Object.keys(selectedRewards).length === 0 && (
+                <Typography sx={{ color: "#6B7280", fontSize: 12 }}>
+                  Total: LKR {formData.amount}
+                </Typography>
+              )}
+            </Box>
           </Box>
         </DialogContent>
 
@@ -1431,130 +1866,134 @@ const [createdBookings, setCreatedBookings] = useState([]);
       />
       {showReceipt && createdBookings.length > 0 && (
         <Dialog
-        open={showReceipt}
-        onClose={() => setShowReceipt(false)}
-        fullWidth
-        maxWidth="sm"
-        PaperProps={{
-          sx: {
-            borderRadius: "16px",
-            background: "#0F172A",
-            color: "white",
-            p: 2,
-            border: "1px solid rgba(255,255,255,0.1)",
-          },
-        }}
-      >
-        <DialogTitle
-          sx={{
-            fontWeight: 600,
-            fontSize: 20,
-            textAlign: "center",
-            color: "#E5E7EB",
+          open={showReceipt}
+          onClose={() => setShowReceipt(false)}
+          fullWidth
+          maxWidth="xs"
+          PaperProps={{
+            sx: {
+              borderRadius: "20px",
+              background: "#080E1A",
+              color: "white",
+              overflow: "hidden",
+              border: "1px solid rgba(12,215,255,0.15)",
+              boxShadow: "0 0 40px rgba(12,215,255,0.08)",
+              maxHeight: "90vh",
+              overflowY: "auto",
+              "&::-webkit-scrollbar": { width: "4px" },
+              "&::-webkit-scrollbar-track": { background: "transparent" },
+              "&::-webkit-scrollbar-thumb": {
+                background: "linear-gradient(#0CD7FF, #8A38F5)",
+                borderRadius: "4px",
+              },
+            },
           }}
         >
-          Booking Receipt
-        </DialogTitle>
-
-        <DialogContent>
-          {createdBookings.map((b, i) => (
-            <Box
-              key={i}
-              sx={{
-                p: 2,
-                borderRadius: 3,
-                background: "rgba(255,255,255,0.05)",
-                border: "1px solid rgba(255,255,255,0.08)",
-                mb: 3,
-              }}
-            >
-              {[
-                ["Customer Name", b.customer_name || "-"],
-                ["Phone Number", b.phone_number || "-"],
-                ["Station", b.station || "-"],
-                ["VR Play", b.vr_play || "No"],
-                [
-                  "Date",
-                  b.booking_date
-                    ? dayjs(b.booking_date).format("DD/MM/YYYY")
-                    : "-",
-                ],
-                ["Start Time", b.start_time || "-"],
-                ["Duration", b.duration || "-"],
-              ].map(([label, value]) => (
-                <Box
-                  key={label}
-                  sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    mb: 1.2,
-                  }}
-                >
-                  <Typography sx={{ color: "#9CA3AF", fontSize: 14 }}>
-                    {label}
+          {(() => {
+            const first = createdBookings[0];
+            const totalPlayers = createdBookings.length;
+            const perPerson = Number(first?.amount || 0);
+            const total = createdBookings.reduce((s, b) => s + Number(b.amount || 0), 0);
+            const sessionRows = [
+              { icon: <SportsEsportsIcon sx={{ fontSize: 15 }} />, label: "Station", value: first?.station || "-" },
+              { icon: <CalendarTodayIcon sx={{ fontSize: 15 }} />, label: "Date", value: first?.booking_date ? dayjs(first.booking_date).format("DD/MM/YYYY") : "-" },
+              { icon: <AccessTimeIcon sx={{ fontSize: 15 }} />, label: "Start Time", value: first?.start_time || "-" },
+              { icon: <TimerIcon sx={{ fontSize: 15 }} />, label: "Duration", value: first?.duration || "-" },
+              { icon: <SportsEsportsIcon sx={{ fontSize: 15 }} />, label: "VR Play", value: first?.vr_play || "No" },
+            ];
+            return (
+              <Box>
+                {/* Header */}
+                <Box sx={{ background: "linear-gradient(135deg, #0CD7FF22 0%, #8A38F522 100%)", borderBottom: "1px solid rgba(12,215,255,0.2)", px: 3, pt: 3, pb: 2.5, textAlign: "center" }}>
+                  <Box sx={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 56, height: 56, borderRadius: "50%", background: "linear-gradient(135deg, #0CD7FF, #8A38F5)", mb: 1.5 }}>
+                    <CheckCircleIcon sx={{ color: "#fff", fontSize: 30 }} />
+                  </Box>
+                  <Typography sx={{ fontWeight: 700, fontSize: 18, background: "linear-gradient(90deg, #0CD7FF, #8A38F5)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", letterSpacing: 0.5 }}>
+                    Booking Confirmed!
                   </Typography>
-                  <Typography sx={{ color: "#fff", fontSize: 14 }}>
-                    {value}
-                  </Typography>
+                  <Typography sx={{ color: "#6B7280", fontSize: 12, mt: 0.4 }}>GAMEVERSE GAMING LOUNGE</Typography>
+                  {totalPlayers > 1 && (
+                    <Typography sx={{ color: "#0CD7FF", fontSize: 12, mt: 0.5, fontWeight: 600 }}>
+                      {totalPlayers} Players
+                    </Typography>
+                  )}
                 </Box>
-              ))}
 
-              <Divider sx={{ my: 2, borderColor: "rgba(255,255,255,0.1)" }} />
+                {/* Tear-line */}
+                <Box sx={{ display: "flex", alignItems: "center", px: 1 }}>
+                  <Box sx={{ width: 18, height: 18, borderRadius: "50%", background: "#080E1A", border: "1px solid rgba(12,215,255,0.15)", flexShrink: 0, ml: -1.2 }} />
+                  <Box sx={{ flex: 1, borderTop: "2px dashed rgba(255,255,255,0.08)", mx: 1 }} />
+                  <Box sx={{ width: 18, height: 18, borderRadius: "50%", background: "#080E1A", border: "1px solid rgba(12,215,255,0.15)", flexShrink: 0, mr: -1.2 }} />
+                </Box>
 
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  mb: 2,
-                }}
-              >
-                <Typography sx={{ color: "#9CA3AF" }}>Payment</Typography>
-                <Typography sx={{ color: "#22C55E", fontWeight: 600 }}>
-                  {b.amount === 0
-                    ? "FREE"
-                    : `LKR ${Number(b.amount).toFixed(2)}`}
-                </Typography>
+                {/* Players list */}
+                <Box sx={{ px: 3, pt: 2, pb: 1 }}>
+                  {createdBookings.map((b, i) => (
+                    <Box key={i} sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", py: 0.8, borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                        <PersonIcon sx={{ fontSize: 15, color: "#4B5563" }} />
+                        <Typography sx={{ color: "#6B7280", fontSize: 13 }}>Player {i + 1}</Typography>
+                      </Box>
+                      <Box sx={{ textAlign: "right" }}>
+                        <Typography sx={{ color: "#E5E7EB", fontSize: 13, fontWeight: 500 }}>{b.customer_name || "-"}</Typography>
+                        <Typography sx={{ color: "#6B7280", fontSize: 11 }}>{b.phone_number || "-"}</Typography>
+                      </Box>
+                    </Box>
+                  ))}
+                </Box>
+
+                {/* Session details */}
+                <Box sx={{ px: 3, pt: 1, pb: 1 }}>
+                  {sessionRows.map(({ icon, label, value }) => (
+                    <Box key={label} sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", py: 0.8, borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 1, color: "#4B5563" }}>
+                        {icon}
+                        <Typography sx={{ color: "#6B7280", fontSize: 13 }}>{label}</Typography>
+                      </Box>
+                      <Typography sx={{ color: "#E5E7EB", fontSize: 13, fontWeight: 500 }}>{value}</Typography>
+                    </Box>
+                  ))}
+                </Box>
+
+                {/* Tear-line */}
+                <Box sx={{ display: "flex", alignItems: "center", px: 1, mt: 1 }}>
+                  <Box sx={{ width: 18, height: 18, borderRadius: "50%", background: "#080E1A", border: "1px solid rgba(12,215,255,0.15)", flexShrink: 0, ml: -1.2 }} />
+                  <Box sx={{ flex: 1, borderTop: "2px dashed rgba(255,255,255,0.08)", mx: 1 }} />
+                  <Box sx={{ width: 18, height: 18, borderRadius: "50%", background: "#080E1A", border: "1px solid rgba(12,215,255,0.15)", flexShrink: 0, mr: -1.2 }} />
+                </Box>
+
+                {/* Amount */}
+                <Box sx={{ px: 3, pt: 2, pb: 1, textAlign: "center" }}>
+                  <Typography sx={{ color: "#6B7280", fontSize: 11, letterSpacing: 2, textTransform: "uppercase", mb: 0.5 }}>
+                    Amount Per Person
+                  </Typography>
+                  <Box sx={{ display: "inline-block", background: "linear-gradient(135deg, rgba(12,215,255,0.12), rgba(138,56,245,0.12))", border: "1px solid rgba(12,215,255,0.25)", borderRadius: "12px", px: 4, py: 1.2, mt: 0.5 }}>
+                    <Typography sx={{ fontSize: 26, fontWeight: 800, background: "linear-gradient(90deg, #0CD7FF, #8A38F5)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", letterSpacing: 1 }}>
+                      {perPerson === 0 ? "FREE" : `LKR ${perPerson.toFixed(2)}`}
+                    </Typography>
+                  </Box>
+                  {totalPlayers > 1 && (
+                    <Typography sx={{ color: "#4B5563", fontSize: 11, mt: 0.8 }}>
+                      Total for {totalPlayers} players: LKR {total.toFixed(2)}
+                    </Typography>
+                  )}
+                </Box>
+
+                {/* Download + Close */}
+                <Box sx={{ px: 3, pb: 3, pt: 1.5 }}>
+                  <Button fullWidth startIcon={<DownloadIcon />} onClick={() => downloadReceipt(createdBookings)}
+                    sx={{ background: "linear-gradient(90deg, #0CD7FF, #8A38F5)", color: "#fff", textTransform: "none", fontWeight: 700, fontSize: 14, borderRadius: "10px", py: 1.2, "&:hover": { opacity: 0.88 } }}>
+                    Download Receipt{totalPlayers > 1 ? ` (${totalPlayers} copies)` : ""}
+                  </Button>
+                  <Button fullWidth onClick={() => setShowReceipt(false)}
+                    sx={{ mt: 1.5, color: "#4B5563", textTransform: "none", fontSize: 13, "&:hover": { color: "#9CA3AF", background: "transparent" } }}>
+                    Close
+                  </Button>
+                </Box>
               </Box>
-
-              <Button
-                fullWidth
-                onClick={() => downloadReceipt(b)}
-                sx={{
-                  backgroundColor: "transparent",
-                  color: "#fff",
-                  textTransform: "none",
-                  fontWeight: 600,
-                  borderRadius: 999,
-                  py: 1.2,
-                  border: "1px solid rgba(255,255,255,0.7)",
-                  "&:hover": {
-                    backgroundColor: "#16A34A",
-                    border: "1px solid #16A34A",
-                  },
-                }}
-              >
-                Download Receipt
-              </Button>
-            </Box>
-          ))}
-        </DialogContent>
-
-        <DialogActions sx={{ justifyContent: "center", pb: 2 }}>
-          <Button
-            onClick={() => setShowReceipt(false)}
-            sx={{
-              px: 5,
-              borderRadius: "8px",
-              textTransform: "none",
-              background: "#1F2937",
-              color: "white",
-              "&:hover": { background: "#374151" },
-            }}
-          >
-            Close
-          </Button>
-        </DialogActions>
-      </Dialog>
+            );
+          })()}
+        </Dialog>
       )}
     </>
   );

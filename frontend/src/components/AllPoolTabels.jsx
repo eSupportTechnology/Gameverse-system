@@ -45,6 +45,7 @@ const AllPoolTabels = () => {
   const [thumbnail, setThumbnail] = useState(null);
 
   const [thumbnailFile, setThumbnailFile] = useState(null);
+  const [allPricing, setAllPricing] = useState([]);
 
   const [openAddSuccess, setOpenAddSuccess] = useState(false);
   const [addMessage, setAddMessage] = useState("");
@@ -86,7 +87,7 @@ const AllPoolTabels = () => {
     setTime("30 Min");
     setThumbnail(null);
     setThumbnailFile(null);
-
+    setAllPricing([]);
     setOpenAddPool(true);
   };
 
@@ -98,14 +99,25 @@ const AllPoolTabels = () => {
     setTableName(item.name);
     setLocation(item.location);
     // setDescription(item.description);
-    setPrice(item.price);
-    setTime(item.time === 60 ? "1 Hour" : "30 Min");
+    const pricing = item.pricing || [];
+    setAllPricing(pricing);
+    const p0 = pricing[0];
+    setPrice(p0?.price != null ? String(p0.price) : "");
+    setTime(p0?.duration === 60 ? "1 Hour" : "30 Min");
     setThumbnail(
       item.thumbnail ? `${API_BASE_URL}/storage/${item.thumbnail}` : null,
     );
     setThumbnailFile(null);
 
     setOpenAddPool(true);
+  };
+
+  const handleTimeChange = (val) => {
+    setTime(val);
+    const dur = val.includes("Hour") ? 60 : 30;
+    const match = allPricing.find((p) => p.duration === dur);
+    if (match) setPrice(match.price != null ? String(match.price) : "");
+    else setPrice("");
   };
 
   // save Pool (Add or Update)
@@ -122,21 +134,12 @@ const AllPoolTabels = () => {
       return 30; // default to 30 minutes
     };
 
-    const payload = {
-      name: tableName,
-      location: location,
-      // description: description,
-      price: price,
-      time: parseTime(time),
-      type: "Pool",
-    };
-
     const form = new FormData();
-    for (const key in payload) {
-      if (payload[key] !== null && payload[key] !== "") {
-        form.append(key, payload[key]);
-      }
-    }
+    form.append("name", tableName);
+    form.append("location", location);
+    form.append("type", "Pool");
+    form.append("pricing[0][duration]", parseTime(time) || 30);
+    form.append("pricing[0][price]", Number(price));
 
     if (thumbnailFile) {
       form.append("thumbnail", thumbnailFile);
@@ -645,7 +648,7 @@ const AllPoolTabels = () => {
                     fullWidth
                     defaultValue="30 Min"
                     value={time}
-                    onChange={(e) => setTime(e.target.value)}
+                    onChange={(e) => handleTimeChange(e.target.value)}
                     sx={{
                       "& .MuiOutlinedInput-root fieldset": {
                         borderColor: "#374151",

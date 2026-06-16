@@ -9,7 +9,8 @@ use Illuminate\Http\Request;
 use App\Models\PosSale;
 use App\Models\SaleItem;
 use Carbon\Carbon;
-use App\Models\Game;;
+use App\Models\Game;
+use App\Models\GameCheckout;
 use Illuminate\Support\Facades\DB;
 use App\Models\NfcUser;
 use PhpOffice\PhpWord\PhpWord;
@@ -18,30 +19,23 @@ use Illuminate\Support\Facades\Schema;
 
 class ReportsController extends Controller
 {
-    // NEW CUSTOMERS 
+    // TOTAL NFC USERS COUNT
     public function newCustomersCount(Request $request)
     {
-        $query = NfcUser::query();
-
-        if ($request->has('filter')) {
-            $start = $this->getDateRange($request->filter);
-            $query->where('created_at', '>=', $start);
-        }
-
         return response()->json([
             'success' => true,
-            'count' => $query->count()
+            'count' => NfcUser::count()
         ]);
     }
 
-    // ✅ TOTAL BOOKINGS COUNT
+    // TOTAL BOOKINGS COUNT
     public function totalBookingsCount(Request $request)
     {
         $query = Booking::query();
 
         if ($request->has('filter')) {
-            $start = $this->getDateRange($request->filter);
-            $query->where('created_at', '>=', $start);
+            [$start, $end] = $this->getDateRange($request->filter);
+            $query->whereBetween('created_at', [$start, $end]);
         }
 
         return response()->json([
@@ -60,31 +54,19 @@ class ReportsController extends Controller
 
     
     public function productsSold(Request $request)
-{
-    $query = PosSale::query();
+    {
+        $query = PosSale::query();
 
-    if ($request->has('filter')) {
-        [$start, $end] = $this->getDateRange($request->filter);
-        $query->whereBetween('created_at', [$start, $end]);
-    }
-
-    $productsSold = 0;
-
-    // Loop through sales and sum quantity from items JSON
-    $query->get()->each(function ($sale) use (&$productsSold) {
-        $items = $sale->items; // make sure items is casted to array in PosSale model
-        if (is_array($items)) {
-            foreach ($items as $item) {
-                $productsSold += $item['quantity'] ?? 0;
-            }
+        if ($request->has('filter')) {
+            [$start, $end] = $this->getDateRange($request->filter);
+            $query->whereBetween('created_at', [$start, $end]);
         }
-    });
 
-    return response()->json([
-        'success' => true,
-        'products_sold' => $productsSold
-    ]);
-}
+        return response()->json([
+            'success' => true,
+            'products_sold' => $query->count()
+        ]);
+    }
 
 
 
@@ -102,9 +84,10 @@ class ReportsController extends Controller
             default => Carbon::today(),
         };
 
-        $bookingsAmount = Booking::where('created_at', '>=', $start)->sum('amount');
+        $bookings = Booking::where('created_at', '>=', $start)->get();
+        $bookingsAmount = $bookings->sum(fn($b) => floatval($b->amount ?? 0) + floatval($b->balance_amount ?? 0));
         $productsAmount = PosSale::where('created_at', '>=', $start)->sum('total');
-        $GamesAmount = Game::where('created_at', '>=', $start)->sum('price');
+        $GamesAmount = GameCheckout::where('created_at', '>=', $start)->sum('balance');
 
         return response()->json([
             'success' => true,
@@ -120,28 +103,28 @@ class ReportsController extends Controller
     public function totalBookingsAmount(Request $request)
     {
         $query = Booking::query();
-        
+
         if ($request->has('filter')) {
-            $start = $this->getDateRange($request->filter);
-            $query->where('created_at', '>=', $start);
+            [$start, $end] = $this->getDateRange($request->filter);
+            $query->whereBetween('created_at', [$start, $end]);
         }
 
-        $total = $query->sum('amount');
+        $total = $query->get()->sum(fn($b) => floatval($b->amount ?? 0) + floatval($b->balance_amount ?? 0));
 
         return response()->json(['success' => true, 'total' => $total]);
     }
 
-    // games total section
+    // games total section — sums balance paid from game_checkouts
     public function totalGamesAmount(Request $request)
     {
-        $query = Game::query();
+        $query = GameCheckout::query();
 
         if ($request->has('filter')) {
-            $start = $this->getDateRange($request->filter);
-            $query->where('created_at', '>=', $start);
+            [$start, $end] = $this->getDateRange($request->filter);
+            $query->whereBetween('created_at', [$start, $end]);
         }
 
-        $total = $query->sum('price'); 
+        $total = $query->sum('balance');
         return response()->json(['success' => true, 'total' => $total]);
     }
 
@@ -151,12 +134,64 @@ class ReportsController extends Controller
         $query = PosSale::query();
 
         if ($request->has('filter')) {
-            $start = $this->getDateRange($request->filter);
-            $query->where('created_at', '>=', $start);
+            [$start, $end] = $this->getDateRange($request->filter);
+            $query->whereBetween('created_at', [$start, $end]);
         }
 
         $total = $query->sum('total');
         return response()->json(['success' => true, 'total' => $total]);
+    }
+
+    public function bookingsList(Request $request)
+    {
+        $query = Booking::query();
+
+        if ($request->has('date') && $request->date) {
+            $query->whereDate('booking_date', $request->date);
+        }
+
+        if ($request->has('station') && $request->station) {
+            $query->where('station', $request->station);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $query->orderBy('booking_date', 'desc')->orderBy('start_time', 'asc')->get()
+        ]);
+    }
+
+    public function posSalesList(Request $request)
+    {
+        $query = PosSale::query();
+
+        if ($request->has('date') && $request->date) {
+            $query->whereDate('created_at', $request->date);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $query->orderBy('created_at', 'desc')->get()
+        ]);
+    }
+
+    public function gameCheckoutsList(Request $request)
+    {
+        $query = GameCheckout::query();
+
+        if ($request->has('date') && $request->date) {
+            $query->whereDate('created_at', $request->date);
+        }
+
+        $checkouts = $query->orderBy('created_at', 'desc')->get()->map(function ($c) {
+            $game = Game::find($c->game_id);
+            $c->game_title = $game ? $game->title : '-';
+            return $c;
+        });
+
+        return response()->json([
+            'success' => true,
+            'data' => $checkouts
+        ]);
     }
 
     // Helper function to get start date based on filter
@@ -195,8 +230,9 @@ class ReportsController extends Controller
         [$start, $end] = $this->getDateRange($filter);
 
         // Calculate totals
-        $bookingsTotal = Booking::whereBetween('created_at', [$start, $end])->sum('amount');
-        $gamesTotal = Game::whereBetween('created_at', [$start, $end])->sum('price');
+        $bookingRows = Booking::whereBetween('created_at', [$start, $end])->get();
+        $bookingsTotal = $bookingRows->sum(fn($b) => floatval($b->amount ?? 0) + floatval($b->balance_amount ?? 0));
+        $gamesTotal = GameCheckout::whereBetween('created_at', [$start, $end])->sum('balance');
         $posTotal = PosSale::whereBetween('created_at', [$start, $end])->sum('total');
 
         $totalSales = $bookingsTotal + $gamesTotal + $posTotal;
@@ -331,7 +367,7 @@ class ReportsController extends Controller
         $section->addText("Other Games Sales Details", ['bold' => true, 'size' => 15]);
         $section->addTextBreak(1);
 
-        $games = Game::whereBetween('created_at', [$start, $end])->get();
+        $gameCheckouts = GameCheckout::whereBetween('created_at', [$start, $end])->get();
 
         $gamesTable = $section->addTable([
             'borderSize' => 6,
@@ -339,15 +375,17 @@ class ReportsController extends Controller
         ]);
 
         $gamesTable->addRow();
-        $gamesTable->addCell(2500)->addText("Game ID", ['bold' => true]);
-        $gamesTable->addCell(3000)->addText("Balance", ['bold' => true]);
-        $gamesTable->addCell(2500)->addText("Date", ['bold' => true]);
+        $gamesTable->addCell(2000)->addText("Checkout ID", ['bold' => true]);
+        $gamesTable->addCell(2500)->addText("Customer", ['bold' => true]);
+        $gamesTable->addCell(2500)->addText("Balance Paid", ['bold' => true]);
+        $gamesTable->addCell(2000)->addText("Date", ['bold' => true]);
 
-        foreach ($games as $game) {
+        foreach ($gameCheckouts as $gc) {
             $gamesTable->addRow();
-            $gamesTable->addCell()->addText($game->id);
-            $gamesTable->addCell()->addText("LKR " . number_format($game->balance));
-            $gamesTable->addCell()->addText($game->created_at->format('Y-m-d'));
+            $gamesTable->addCell()->addText($gc->id);
+            $gamesTable->addCell()->addText($gc->customer_name ?? '-');
+            $gamesTable->addCell()->addText("LKR " . number_format($gc->balance));
+            $gamesTable->addCell()->addText($gc->created_at->format('Y-m-d'));
         }
 
         $section->addTextBreak(3);

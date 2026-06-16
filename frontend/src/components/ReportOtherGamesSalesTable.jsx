@@ -1,40 +1,44 @@
 import React, { useEffect, useState } from "react";
-import { Box, Typography } from "@mui/material";
+import { Box } from "@mui/material";
 import axios from "axios";
 import { API_BASE_URL } from "../apiConfig";
 
+const formatMethod = (method) => {
+  if (!method) return "-";
+  const type = method.type || "";
+  if (type === "Coin") return `Coin × ${method.coins ?? 0}`;
+  if (type === "Arrow") return `Arrow × ${method.arrows ?? 0}`;
+  if (type === "Per Hour") {
+    const hrs = method.hours ?? 0;
+    const players = method.players;
+    return players ? `${hrs}h × ${players} players` : `${hrs}h`;
+  }
+  if (type === "Per Minute") return `${method.minutes ?? 0} min`;
+  return type;
+};
+
 const ReportOtherGamesSalesTable = ({ date }) => {
-  const [games, setGames] = useState([]);
+  const [checkouts, setCheckouts] = useState([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    fetchGames();
+    fetchCheckouts();
   }, [date]);
 
-  const fetchGames = async () => {
+  const fetchCheckouts = async () => {
     try {
       setLoading(true);
       const token = localStorage.getItem("aToken");
-
-      const res = await axios.get(`${API_BASE_URL}/api/games`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      const apiData = Array.isArray(res.data.data)
-        ? res.data.data
-        : Array.isArray(res.data)
-        ? res.data
-        : [];
-
-      const filteredGames = apiData.filter((game) => {
-        const gameDate = new Date(game.created_at).toISOString().split("T")[0];
-        return gameDate === date;
-      });
-
-      setGames(filteredGames);
-    } catch (error) {
-      console.error("Failed to fetch games", error);
-      setGames([]);
+      const res = await axios.get(
+        `${API_BASE_URL}/api/reports/game-checkouts?date=${date}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      if (res.data.success) {
+        setCheckouts(res.data.data || []);
+      }
+    } catch (err) {
+      console.error("Failed to fetch game checkouts", err);
+      setCheckouts([]);
     } finally {
       setLoading(false);
     }
@@ -57,72 +61,63 @@ const ReportOtherGamesSalesTable = ({ date }) => {
   };
 
   return (
-    <Box
-      sx={{
-        mt: 3,
-        backgroundColor: "#0A0F1A",
-        p: 3,
-        borderRadius: "12px",
-        color: "#fff",
-      }}
-    >
+    <Box sx={{ mt: 3, backgroundColor: "#0A0F1A", p: 3, borderRadius: "12px" }}>
       <Box
         sx={{
           backgroundColor: "#111827",
           borderRadius: "10px",
           overflow: "hidden",
-          maxHeight: "450px",
+          maxHeight: "500px",
           overflowY: "auto",
-          scrollbarWidth: "none",
-          "&::-webkit-scrollbar": {
-            display: "none",
-          },
+          "&::-webkit-scrollbar": { width: "6px" },
+          "&::-webkit-scrollbar-thumb": { background: "#334155", borderRadius: "4px" },
         }}
       >
-        {/* Table Header */}
+        {/* Header */}
         <Box
           sx={{
             display: "grid",
-            gridTemplateColumns: "1fr 1fr 1fr 1fr",
+            gridTemplateColumns: "0.5fr 1.5fr 1.5fr 1.5fr 1.5fr 1fr 1fr",
             borderBottom: "1px solid #1F2937",
-            "& > div": {
-              borderRight: "1px solid #1F2937",
-              "&:last-child": { borderRight: "none" },
-            },
+            "& > div": { borderRight: "1px solid #1F2937", "&:last-child": { borderRight: "none" } },
           }}
         >
-          <Box sx={tableHeaderStyle}>Time</Box>
-          <Box sx={tableHeaderStyle}>Playing Method</Box>
-          <Box sx={tableHeaderStyle}>Quantity</Box>
-          <Box sx={tableHeaderStyle}>Revenue</Box>
+          {["#", "Customer", "Phone", "Game", "Method", "Discount", "Balance Paid"].map((h) => (
+            <Box key={h} sx={tableHeaderStyle}>{h}</Box>
+          ))}
         </Box>
 
-        {/* Table Rows */}
-        {games.map((game) => (
+        {loading && (
+          <Box sx={{ p: 3, textAlign: "center", color: "#9ca3af" }}>Loading game sales...</Box>
+        )}
+        {!loading && checkouts.length === 0 && (
+          <Box sx={{ p: 3, textAlign: "center", color: "#9ca3af" }}>No game sales found</Box>
+        )}
+
+        {checkouts.map((row, idx) => (
           <Box
-            key={game.id}
+            key={row.id}
             sx={{
               display: "grid",
-              gridTemplateColumns: "1fr 1fr 1fr 1fr",
+              gridTemplateColumns: "0.5fr 1.5fr 1.5fr 1.5fr 1.5fr 1fr 1fr",
               borderBottom: "1px solid #1F2937",
-
               "&:hover": { backgroundColor: "#1a2433" },
-              "& > div": {
-                borderRight: "1px solid #1F2937",
-                "&:last-child": { borderRight: "none" },
-              },
+              "& > div": { borderRight: "1px solid #1F2937", "&:last-child": { borderRight: "none" } },
             }}
           >
+            <Box sx={tableRowStyle}>{idx + 1}</Box>
+            <Box sx={tableRowStyle}>{row.customer_name || "-"}</Box>
+            <Box sx={tableRowStyle}>{row.phone_number || "-"}</Box>
+            <Box sx={tableRowStyle}>{row.game_title || "-"}</Box>
+            <Box sx={tableRowStyle}>{formatMethod(row.method)}</Box>
             <Box sx={tableRowStyle}>
-              {new Date(game.created_at).toTimeString().slice(0, 5)}
+              {Number(row.discount || 0) > 0
+                ? `LKR ${Number(row.discount).toFixed(2)}`
+                : "-"}
             </Box>
-            <Box sx={tableRowStyle}>
-            {typeof game.method === "object"
-              ? `${game.method.type} ` : game.method}
+            <Box sx={{ ...tableRowStyle, color: "#0CD7FF", fontWeight: 600 }}>
+              LKR {Number(row.balance || 0).toFixed(2)}
             </Box>
-
-            <Box sx={tableRowStyle}>{game.quantity}</Box>
-            <Box sx={tableRowStyle}>{game.price}</Box>
           </Box>
         ))}
       </Box>
