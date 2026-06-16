@@ -10,9 +10,9 @@ import {
   MenuItem,
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import InboxOutlinedIcon from "@mui/icons-material/InboxOutlined";
 import React, { useEffect, useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
-import { AllRacing } from "../assets/assets";
 import CloseIcon from "@mui/icons-material/Close";
 import upload from "../assets/upload.png";
 import EditIcon from "../assets/editicon.png";
@@ -388,6 +388,15 @@ const AllRacingSimulators = () => {
               alignItems: "stretch",
             }}
           >
+            {filteredSimulators.length === 0 && (
+              <Box sx={{ gridColumn: "1 / -1", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", py: 10, gap: 2 }}>
+                <Box sx={{ width: 72, height: 72, borderRadius: "50%", background: "linear-gradient(135deg, #0CD7FF22, #8A38F522)", border: "1px solid #0CD7FF44", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <InboxOutlinedIcon sx={{ fontSize: 34, color: "#0CD7FF" }} />
+                </Box>
+                <Typography sx={{ fontSize: 16, fontWeight: 600, color: "#9CA3AF" }}>No Simulators Found</Typography>
+                <Typography sx={{ fontSize: 13, color: "#4B5563" }}>No racing simulators have been added yet</Typography>
+              </Box>
+            )}
             {filteredSimulators.map((item, index) => (
               <Box
                 key={index}
@@ -555,6 +564,23 @@ const AllRacingSimulators = () => {
                     color: "white",
                     padding: "12px 14px",
                     fontSize: 14,
+                  },
+                },
+              }}
+              SelectProps={{
+                MenuProps: {
+                  PaperProps: {
+                    sx: {
+                      backgroundColor: "#171C2D",
+                      color: "white",
+                      border: "0.5px solid #374151",
+                      "& .MuiMenuItem-root": {
+                        fontSize: 14,
+                        "&:hover": { backgroundColor: "#1F2937" },
+                        "&.Mui-selected": { backgroundColor: "#1F2937", color: "#0CD7FF" },
+                        "&.Mui-selected:hover": { backgroundColor: "#1F2937" },
+                      },
+                    },
                   },
                 },
               }}

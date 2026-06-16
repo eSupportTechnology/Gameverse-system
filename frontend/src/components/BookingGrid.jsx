@@ -7,7 +7,7 @@ import {
   Button,
   Chip,
 } from "@mui/material";
-//import { sampleBookings } from '../assets/assets.js';
+import EventBusyOutlinedIcon from "@mui/icons-material/EventBusyOutlined";
 import BookingDetails from "./BookingDetails.jsx";
 
 // status colors mapping
@@ -58,7 +58,40 @@ const BookingGrid = ({
           alignItems: "stretch",
         }}
       >
-        {/* First display API bookings */}
+        {apiBookings.length === 0 && (
+          <Box
+            sx={{
+              gridColumn: "1 / -1",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              py: 10,
+              gap: 2,
+            }}
+          >
+            <Box
+              sx={{
+                width: 72,
+                height: 72,
+                borderRadius: "50%",
+                background: "linear-gradient(135deg, #0CD7FF22, #8A38F522)",
+                border: "1px solid #0CD7FF44",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <EventBusyOutlinedIcon sx={{ fontSize: 34, color: "#0CD7FF" }} />
+            </Box>
+            <Typography sx={{ fontSize: 16, fontWeight: 600, color: "#9CA3AF" }}>
+              No Bookings Found
+            </Typography>
+            <Typography sx={{ fontSize: 13, color: "#4B5563" }}>
+              No bookings match your current filter
+            </Typography>
+          </Box>
+        )}
         {apiBookings.map((booking, i) => {
           const statusColor =
             statusColors[booking.status.toLowerCase()] || "#9CA3AF";

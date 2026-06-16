@@ -12,11 +12,11 @@ import {
   TextField,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
+import InboxOutlinedIcon from "@mui/icons-material/InboxOutlined";
 import React, { useEffect, useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import AddGameDialog from "./AddGameDialog";
 import AddEventDialog from "./AddEventDialog";
-import { BookingGames, OtherGames, Event, Gallery } from "../assets/assets";
 import AddGalleyDialog from "./AddGalleyDialog";
 import EditIcon from "../assets/editicon.png";
 import CloseIcon from "@mui/icons-material/Close";
@@ -71,9 +71,9 @@ const WebManagement = () => {
   const navigate = useNavigate();
 
   const [bookingGames, setBookingGames] = useState([]);
-  const [games, setGames] = useState(OtherGames);
-  const [event, setEvent] = useState(Event);
-  const [gallery, setGallery] = useState(Gallery);
+  const [games, setGames] = useState([]);
+  const [event, setEvent] = useState([]);
+  const [gallery, setGallery] = useState([]);
   const [activeCategory, setActiveCategory] = useState("Booking Games");
 
   const [openAddGame, setOpenAddGame] = useState(false);
@@ -627,7 +627,17 @@ const WebManagement = () => {
             }}
           >
             {/* Booking Games section */}
+            {activeCategory === "Booking Games" && filteredBookingGames.length === 0 && (
+              <Box sx={{ gridColumn: "1 / -1", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", py: 10, gap: 2 }}>
+                <Box sx={{ width: 64, height: 64, borderRadius: "50%", background: "linear-gradient(135deg, #0CD7FF22, #8A38F522)", border: "1px solid #0CD7FF44", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <InboxOutlinedIcon sx={{ fontSize: 30, color: "#0CD7FF" }} />
+                </Box>
+                <Typography sx={{ fontSize: 15, fontWeight: 600, color: "#9CA3AF" }}>No Booking Games Found</Typography>
+                <Typography sx={{ fontSize: 13, color: "#4B5563" }}>No items match your search</Typography>
+              </Box>
+            )}
             {activeCategory === "Booking Games" &&
+              filteredBookingGames.length > 0 &&
               filteredBookingGames.map((item, index) => (
                 <Box
                   key={index}
@@ -756,7 +766,16 @@ const WebManagement = () => {
                   </Box>
                 </Box>
               ))}
-            {activeCategory === "Other Games" && (
+            {activeCategory === "Other Games" && filteredGames.length === 0 && (
+              <Box sx={{ gridColumn: "1 / -1", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", py: 10, gap: 2 }}>
+                <Box sx={{ width: 64, height: 64, borderRadius: "50%", background: "linear-gradient(135deg, #0CD7FF22, #8A38F522)", border: "1px solid #0CD7FF44", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <InboxOutlinedIcon sx={{ fontSize: 30, color: "#0CD7FF" }} />
+                </Box>
+                <Typography sx={{ fontSize: 15, fontWeight: 600, color: "#9CA3AF" }}>No Games Found</Typography>
+                <Typography sx={{ fontSize: 13, color: "#4B5563" }}>No other games have been added yet</Typography>
+              </Box>
+            )}
+            {activeCategory === "Other Games" && filteredGames.length > 0 && (
               <OtherGamesSection
                 games={filteredGames}
                 handleRemoveGame={handleRemoveGame}
@@ -765,7 +784,17 @@ const WebManagement = () => {
             )}
 
             {/* Event & Tournaments section */}
+            {activeCategory === "Event & Tournaments" && filteredEvents.length === 0 && (
+              <Box sx={{ gridColumn: "1 / -1", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", py: 10, gap: 2 }}>
+                <Box sx={{ width: 64, height: 64, borderRadius: "50%", background: "linear-gradient(135deg, #0CD7FF22, #8A38F522)", border: "1px solid #0CD7FF44", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <InboxOutlinedIcon sx={{ fontSize: 30, color: "#0CD7FF" }} />
+                </Box>
+                <Typography sx={{ fontSize: 15, fontWeight: 600, color: "#9CA3AF" }}>No Events Found</Typography>
+                <Typography sx={{ fontSize: 13, color: "#4B5563" }}>No events or tournaments have been added</Typography>
+              </Box>
+            )}
             {activeCategory === "Event & Tournaments" &&
+              filteredEvents.length > 0 &&
               filteredEvents.map((item, index) => (
                 <Box
                   key={index}
@@ -782,8 +811,8 @@ const WebManagement = () => {
                       position: "absolute",
                       top: 10,
                       right: 10,
-                      width: 30,
-                      height: 30,
+                      width: 36,
+                      height: 36,
                       borderRadius: "50%",
                       backgroundColor: "#C500FFCC",
                       display: "flex",
@@ -802,9 +831,11 @@ const WebManagement = () => {
 
                   <Box
                     sx={{
+                      backgroundColor: "#000000",
                       borderRadius: "12px",
                       display: "flex",
                       flexDirection: "column",
+                      height: 400,
                       border: "1px solid transparent",
                       backgroundImage:
                         "linear-gradient(#0E111B, #0E111B), linear-gradient(180deg, #CF36E1, #15A2EF)",
@@ -819,21 +850,37 @@ const WebManagement = () => {
                         display: "flex",
                         flexDirection: "column",
                         borderRadius: "12px",
-                        height: 295,
                       }}
                     >
-                      {/* IMAGE */}
-                      <img
-                        src={item.image}
-                        alt={item.name}
-                        style={{
-                          width: "100%",
-                          height: "196px",
-                          objectFit: "cover",
-                        }}
-                      />
-
-                      {/* TEXT CONTENT */}
+                      {item.image ? (
+                        <img
+                          src={item.image}
+                          alt={item.name}
+                          style={{
+                            width: "100%",
+                            height: "240px",
+                            objectFit: "cover",
+                          }}
+                        />
+                      ) : (
+                        <Box
+                          sx={{
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            height: "240px",
+                            backgroundColor: "#0E111B",
+                          }}
+                        >
+                          <img
+                            src={upload}
+                            alt="upload"
+                            style={{ width: 30, height: 30, marginBottom: 6 }}
+                          />
+                          Upload thumbnail
+                        </Box>
+                      )}
                       <Box sx={{ p: 2, textAlign: "center", flexGrow: 1 }}>
                         <h3
                           style={{
@@ -855,17 +902,18 @@ const WebManagement = () => {
                             WebkitTextFillColor: "transparent",
                           }}
                         >
-                          {new Date(item.date).toLocaleDateString("en-US", {
-                            month: "short",
-                            day: "numeric",
-                            year: "numeric",
-                          })}
+                          {item.date
+                            ? new Date(item.date).toLocaleDateString("en-US", {
+                                month: "short",
+                                day: "numeric",
+                                year: "numeric",
+                              })
+                            : ""}
                         </p>
                       </Box>
                     </Box>
                   </Box>
 
-                  {/* BUTTON */}
                   <Box sx={{ py: 2 }}>
                     <button
                       className="card-button-red"
@@ -878,7 +926,17 @@ const WebManagement = () => {
               ))}
 
             {/* Gallery section */}
+            {activeCategory === "Gallery" && filteredGallery.length === 0 && (
+              <Box sx={{ gridColumn: "1 / -1", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", py: 10, gap: 2 }}>
+                <Box sx={{ width: 64, height: 64, borderRadius: "50%", background: "linear-gradient(135deg, #0CD7FF22, #8A38F522)", border: "1px solid #0CD7FF44", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <InboxOutlinedIcon sx={{ fontSize: 30, color: "#0CD7FF" }} />
+                </Box>
+                <Typography sx={{ fontSize: 15, fontWeight: 600, color: "#9CA3AF" }}>No Gallery Items Found</Typography>
+                <Typography sx={{ fontSize: 13, color: "#4B5563" }}>No images have been added to the gallery</Typography>
+              </Box>
+            )}
             {activeCategory === "Gallery" &&
+              filteredGallery.length > 0 &&
               filteredGallery.map((item, index) => (
                 <Box
                   key={index}
@@ -889,14 +947,14 @@ const WebManagement = () => {
                     position: "relative",
                   }}
                 >
-                  {/* EDIT ICON BUTTON */}
+                  {/* DELETE ICON BUTTON */}
                   <Box
                     sx={{
                       position: "absolute",
                       top: 10,
                       right: 10,
-                      width: 30,
-                      height: 30,
+                      width: 36,
+                      height: 36,
                       borderRadius: "50%",
                       backgroundColor: "#C500FFCC",
                       display: "flex",
@@ -912,9 +970,11 @@ const WebManagement = () => {
 
                   <Box
                     sx={{
+                      backgroundColor: "#000000",
                       borderRadius: "12px",
                       display: "flex",
                       flexDirection: "column",
+                      height: 400,
                       border: "1px solid transparent",
                       backgroundImage:
                         "linear-gradient(#0E111B, #0E111B), linear-gradient(180deg, #CF36E1, #15A2EF)",
@@ -924,25 +984,44 @@ const WebManagement = () => {
                   >
                     <Box
                       sx={{
+                        backgroundColor: "#000000",
                         flexGrow: 1,
                         display: "flex",
                         flexDirection: "column",
                         borderRadius: "12px",
-                        height: 248,
                       }}
                     >
-                      {/* IMAGE */}
                       <img
                         src={item.image}
-                        alt={item.title}
+                        alt={item.title || "Gallery Photo"}
                         style={{
-                          borderRadius: "12px",
                           width: "100%",
-                          height: "100%",
+                          height: "240px",
                           objectFit: "cover",
+                          borderRadius: "12px 12px 0 0",
                         }}
                       />
+                      <Box sx={{ p: 2, textAlign: "center", flexGrow: 1 }}>
+                        <h3
+                          style={{
+                            fontSize: "16px",
+                            fontWeight: "500",
+                            color: "white",
+                          }}
+                        >
+                          {item.title || "Gallery Photo"}
+                        </h3>
+                      </Box>
                     </Box>
+                  </Box>
+
+                  <Box sx={{ py: 2 }}>
+                    <button
+                      className="card-button-red"
+                      onClick={() => handleRemovePhoto(index)}
+                    >
+                      Remove
+                    </button>
                   </Box>
                 </Box>
               ))}

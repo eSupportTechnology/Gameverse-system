@@ -8,7 +8,6 @@ import {
   FormControl,
 } from "@mui/material";
 import { toast } from "react-toastify";
-import { revenueData } from "../assets/assets";
 import ReportCards from "./ReportCards";
 import SalesChart from "./ReportSalesChart";
 import QuickActions from "./ReportQuickActions";
@@ -110,23 +109,6 @@ useEffect(() => {
     }
   };
 
-  // Get current data based on date filter
-  const getCurrentData = () => {
-    const filterMap = {
-      today: "Today",
-      yesterday: "Yesterday",
-      week: "This Week",
-      month: "This Month",
-      year: "This Year",
-    };
-
-    return (
-      revenueData.find((data) => data.period === filterMap[dateFilter]) ||
-      revenueData[0]
-    );
-  };
-
-  const currentData = getCurrentData();
 
   const [newCustomersCount, setNewCustomersCount] = useState(0);
 

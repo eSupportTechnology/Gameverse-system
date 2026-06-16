@@ -1325,17 +1325,29 @@ const allowMultiRef = useRef(false);
                   </em>
                 </MenuItem>
 
-                {stations
-                  .filter((station) =>
-                    allowedStations
-                      ? allowedStations.includes(station.name)
-                      : true,
-                  )
-                  .map((station) => (
-                    <MenuItem key={station.id} value={station.name}>
-                      {station.name}
-                    </MenuItem>
-                  ))}
+                {(() => {
+                  const stationNameOrder = [
+                    "PS5 Station 1", "PS5 Station 2", "PS5 Station 3", "PS5 Station 4", "PS5 Station 5",
+                    "Racing Simulator 1", "Racing Simulator 2", "Racing Simulator 3", "Racing Simulator 4",
+                    "Supreme Billiard 1", "Supreme Billiard 2",
+                    "Premium Billiard 1", "Premium Billiard 2", "Premium Billiard 3",
+                    "PS5+VR", "8 Ball Pool (Supreme)", "8 Ball Pool (Premium)", "CRS+VR (PS V R2)", "Car Racing Simulator",
+                  ];
+                  return [...stations]
+                    .filter((station) =>
+                      allowedStations ? allowedStations.includes(station.name) : true,
+                    )
+                    .sort((a, b) => {
+                      const ai = stationNameOrder.indexOf(a.name);
+                      const bi = stationNameOrder.indexOf(b.name);
+                      return (ai === -1 ? stationNameOrder.length : ai) - (bi === -1 ? stationNameOrder.length : bi);
+                    })
+                    .map((station) => (
+                      <MenuItem key={station.id} value={station.name}>
+                        {station.name}
+                      </MenuItem>
+                    ));
+                })()}
               </Select>
             </Box>
 

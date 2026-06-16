@@ -108,7 +108,7 @@ const OtherGamesSection = ({ games, handleRemoveGame, onEditGame }) => {
                 borderRadius: "12px",
                 display: "flex",
                 flexDirection: "column",
-                minHeight: 360,
+                height: 400,
                 border: "1px solid transparent",
                 backgroundImage:
                   "linear-gradient(#0E111B, #0E111B), linear-gradient(180deg, #CF36E1, #15A2EF)",
@@ -130,7 +130,7 @@ const OtherGamesSection = ({ games, handleRemoveGame, onEditGame }) => {
                   alt={item.title || "game"}
                   style={{
                     width: "100%",
-                    height: "190px",
+                    height: "240px",
                     objectFit: "cover",
                   }}
                 />

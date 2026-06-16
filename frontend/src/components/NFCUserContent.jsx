@@ -23,6 +23,7 @@ import {
 import SearchIcon from "@mui/icons-material/Search";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import BadgeOutlinedIcon from "@mui/icons-material/BadgeOutlined";
 import AddNFCUserDialog from "./AddNFCUserDialog";
 import EditNFCUserDialog from "./EditNFCUserDialog";
 import DeleteConfirmDialog from "./DeleteConfirmDialog";
@@ -31,7 +32,6 @@ import { toast } from "react-toastify";
 import UpdateSuccessDialog from "./UpdateSuccess";
 import { API_BASE_URL } from "../apiConfig";
 import { AppContext } from "../context/AppContext";
-//import { nfcUsers } from "../assets/assets";
 
 export default function NFCUserContent() {
   const [users, setUsers] = useState([]);
@@ -537,6 +537,43 @@ export default function NFCUserContent() {
                 </TableRow>
               </TableHead>
               <TableBody>
+                {filteredUsers.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={8} sx={{ borderBottom: "none", py: 0 }}>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          py: 8,
+                          gap: 2,
+                        }}
+                      >
+                        <Box
+                          sx={{
+                            width: 64,
+                            height: 64,
+                            borderRadius: "50%",
+                            background: "linear-gradient(135deg, #0CD7FF22, #8A38F522)",
+                            border: "1px solid #0CD7FF44",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                          }}
+                        >
+                          <BadgeOutlinedIcon sx={{ fontSize: 30, color: "#0CD7FF" }} />
+                        </Box>
+                        <Typography sx={{ fontSize: 15, fontWeight: 600, color: "#9CA3AF" }}>
+                          No Customers Found
+                        </Typography>
+                        <Typography sx={{ fontSize: 13, color: "#4B5563" }}>
+                          No NFC customers match your search
+                        </Typography>
+                      </Box>
+                    </TableCell>
+                  </TableRow>
+                )}
                 {filteredUsers.map((user) => (
                   <TableRow
                     key={user.id}

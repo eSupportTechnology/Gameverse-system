@@ -1,4 +1,5 @@
 import StarIcon from "@mui/icons-material/Star";
+import InboxOutlinedIcon from "@mui/icons-material/InboxOutlined";
 import {
   Box,
   Button,
@@ -845,9 +846,13 @@ const PosSystem = () => {
               }}
             >
               {filteredProducts.length === 0 && (
-                <Typography color="gray" textAlign="center">
-                  No items found
-                </Typography>
+                <Box sx={{ gridColumn: "1 / -1", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", py: 10, gap: 2 }}>
+                  <Box sx={{ width: 72, height: 72, borderRadius: "50%", background: "linear-gradient(135deg, #0CD7FF22, #8A38F522)", border: "1px solid #0CD7FF44", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <InboxOutlinedIcon sx={{ fontSize: 34, color: "#0CD7FF" }} />
+                  </Box>
+                  <Typography sx={{ fontSize: 16, fontWeight: 600, color: "#9CA3AF" }}>No Items Found</Typography>
+                  <Typography sx={{ fontSize: 13, color: "#4B5563" }}>No products match your search</Typography>
+                </Box>
               )}
 
               {filteredProducts.map((item) => (

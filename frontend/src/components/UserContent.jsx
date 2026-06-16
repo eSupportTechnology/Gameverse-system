@@ -9,6 +9,7 @@ import {
   IconButton,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
+import PeopleOutlineIcon from "@mui/icons-material/PeopleOutline";
 import editIcon from "../assets/editicon.png";
 import deleteIcon from "../assets/deleteicon.png";
 import AddUserDialog from "./AddUserDialog";
@@ -294,20 +295,47 @@ export default function UserManagement() {
           </Box>
 
           {/* Table Rows */}
-          {users
-            .filter((user) => {
+          {(() => {
+            const filteredUsers = users.filter((user) => {
               const name = user.fullName?.toLowerCase() || "";
-
-              const matchLocal =
-                !searchQuery || name.includes(searchQuery.toLowerCase());
-
-              const matchGlobal =
-                !globalSearch || name.includes(globalSearch.toLowerCase());
-
+              const matchLocal = !searchQuery || name.includes(searchQuery.toLowerCase());
+              const matchGlobal = !globalSearch || name.includes(globalSearch.toLowerCase());
               return matchLocal && matchGlobal;
-            })
-
-            .map((user, idx) => (
+            });
+            if (filteredUsers.length === 0) return (
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  py: 8,
+                  gap: 2,
+                }}
+              >
+                <Box
+                  sx={{
+                    width: 64,
+                    height: 64,
+                    borderRadius: "50%",
+                    background: "linear-gradient(135deg, #0CD7FF22, #8A38F522)",
+                    border: "1px solid #0CD7FF44",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <PeopleOutlineIcon sx={{ fontSize: 30, color: "#0CD7FF" }} />
+                </Box>
+                <Typography sx={{ fontSize: 15, fontWeight: 600, color: "#9CA3AF" }}>
+                  No Users Found
+                </Typography>
+                <Typography sx={{ fontSize: 13, color: "#4B5563" }}>
+                  No users match your search
+                </Typography>
+              </Box>
+            );
+            return filteredUsers.map((user, idx) => (
               <Box
                 key={idx}
                 sx={{
@@ -387,7 +415,8 @@ export default function UserManagement() {
                   </Box>
                 </Box>
               </Box>
-            ))}
+            ));
+          })()}
         </Box>
       </Box>
 

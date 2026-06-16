@@ -14,6 +14,7 @@ import {
   Divider,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
+import InboxOutlinedIcon from "@mui/icons-material/InboxOutlined";
 import axios from "axios";
 import { toast } from "react-toastify";
 import AddNewGame from "./AddNewGame";
@@ -289,9 +290,13 @@ const GamesManagement = () => {
             ))}
           </Box>
         ) : (
-          <Typography color="gray" textAlign="center" mt={4}>
-            No games found.
-          </Typography>
+          <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", py: 10, gap: 2 }}>
+            <Box sx={{ width: 72, height: 72, borderRadius: "50%", background: "linear-gradient(135deg, #0CD7FF22, #8A38F522)", border: "1px solid #0CD7FF44", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <InboxOutlinedIcon sx={{ fontSize: 34, color: "#0CD7FF" }} />
+            </Box>
+            <Typography sx={{ fontSize: 16, fontWeight: 600, color: "#9CA3AF" }}>No Games Found</Typography>
+            <Typography sx={{ fontSize: 13, color: "#4B5563" }}>No games match your search</Typography>
+          </Box>
         )}
 
         {selectedGame && (
