@@ -16,10 +16,13 @@ import CloseIcon from "@mui/icons-material/Close";
 import PersonIcon from "@mui/icons-material/Person";
 import CameraAltIcon from "@mui/icons-material/CameraAlt";
 import CancelPopup from "./CancelPopup";
+import CreateSuccessDialog from "./CreateSuccessDialog";
+import UpdateSuccessDialog from "./UpdateSuccess";
 import scan from "../assets/scan.png";
 import axios from "axios";
 import { API_BASE_URL } from "../apiConfig";
 import { toast } from "react-toastify";
+import { useLoading } from "../context/LoadingContext";
 
 export default function AddNFCUserDialog({
   open,
@@ -30,9 +33,13 @@ export default function AddNFCUserDialog({
   userId = null,
   refreshUsers,
 }) {
+  const { setLoading } = useLoading();
   const [openCancelPopup, setOpenCancelPopup] = useState(false);
   const [errors, setErrors] = useState({});
   const [imagePreview, setImagePreview] = useState(null);
+  const originalDataRef = useRef(null);
+  const [createSuccessOpen, setCreateSuccessOpen] = useState(false);
+  const [updateSuccessOpen, setUpdateSuccessOpen] = useState(false);
 
   // Initialize form data with activeUser
   const initializeFormData = () => ({
@@ -171,27 +178,23 @@ export default function AddNFCUserDialog({
 
     if (!validateForm()) return;
 
+    setLoading(true);
     try {
       const token = localStorage.getItem("aToken");
-
-      const formDataPayload = new FormData();
-      formDataPayload.append("full_name", formData.fullName);
-      formDataPayload.append("email", formData.email);
-      formDataPayload.append("phone_no", formData.phoneNo);
-      formDataPayload.append("nic_number", formData.nicNumber);
-      formDataPayload.append("card_no", formData.nfcCardNumber);
-      formDataPayload.append(
-        "status",
-        formData.activeUser ? "active" : "inactive",
-      );
-
-      if (formData.profileImage instanceof File) {
-        formDataPayload.append("avatar", formData.profileImage);
-      }
 
       let res;
 
       if (mode === "add") {
+        const formDataPayload = new FormData();
+        formDataPayload.append("full_name", formData.fullName);
+        formDataPayload.append("email", formData.email);
+        formDataPayload.append("phone_no", formData.phoneNo);
+        formDataPayload.append("nic_number", formData.nicNumber);
+        formDataPayload.append("card_no", formData.nfcCardNumber);
+        formDataPayload.append("status", formData.activeUser ? "active" : "inactive");
+        if (formData.profileImage instanceof File)
+          formDataPayload.append("avatar", formData.profileImage);
+
         res = await axios.post(
           `${API_BASE_URL}/api/nfc-users`,
           formDataPayload,
@@ -215,14 +218,31 @@ export default function AddNFCUserDialog({
             );
           }
 
-          toast.success("User created successfully!");
+          setCreateSuccessOpen(true);
         }
       } else {
-        formDataPayload.append("_method", "PUT");
+        const orig = originalDataRef.current || {};
+        const editPayload = new FormData();
+        editPayload.append("_method", "PUT");
+
+        if (formData.fullName !== orig.fullName)
+          editPayload.append("full_name", formData.fullName);
+        if (formData.email !== orig.email)
+          editPayload.append("email", formData.email);
+        if (formData.phoneNo !== orig.phoneNo)
+          editPayload.append("phone_no", formData.phoneNo);
+        if (formData.nicNumber !== orig.nicNumber)
+          editPayload.append("nic_number", formData.nicNumber);
+        if (formData.nfcCardNumber !== orig.nfcCardNumber)
+          editPayload.append("card_no", formData.nfcCardNumber);
+        if (formData.activeUser !== orig.activeUser)
+          editPayload.append("status", formData.activeUser ? "active" : "inactive");
+        if (formData.profileImage instanceof File)
+          editPayload.append("avatar", formData.profileImage);
 
         res = await axios.post(
           `${API_BASE_URL}/api/nfc-users/${userId}`,
-          formDataPayload,
+          editPayload,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -232,32 +252,40 @@ export default function AddNFCUserDialog({
         );
 
         if (res.data.success) {
-          toast.success("User updated successfully!");
+          setUpdateSuccessOpen(true);
         }
       }
-      setFormData(initializeFormData());
-      setErrors({});
-      setImagePreview(null);
-
-      if (refreshUsers) refreshUsers();
-      onClose();
+      // cleanup happens when the success dialog is closed
     } catch (err) {
       console.error("Error submitting user:", err);
       toast.error(
         err.response?.data?.message ||
           `Failed to ${mode === "add" ? "create" : "update"} user`,
       );
+    } finally {
+      setLoading(false);
     }
   };
   useEffect(() => {
-    if (mode === "edit") {
+    if (open && mode === "edit") {
+      originalDataRef.current = { ...formData };
       setImagePreview(formData.profileImage || null);
     }
-
-    if (mode === "add") {
+    if (open && mode === "add") {
+      originalDataRef.current = null;
       setImagePreview(null);
     }
-  }, [mode]);
+  }, [open, mode]);
+
+  const handleSuccessClose = () => {
+    setCreateSuccessOpen(false);
+    setUpdateSuccessOpen(false);
+    setFormData(initializeFormData());
+    setErrors({});
+    setImagePreview(null);
+    if (refreshUsers) refreshUsers();
+    onClose();
+  };
 
   return (
     <>
@@ -762,6 +790,16 @@ export default function AddNFCUserDialog({
         open={openCancelPopup}
         handleCancelClose={handleCloseCancelPopup}
         handleConfirm={handleConfirmCancel}
+      />
+
+      <CreateSuccessDialog
+        open={createSuccessOpen}
+        onClose={handleSuccessClose}
+      />
+
+      <UpdateSuccessDialog
+        open={updateSuccessOpen}
+        onClose={handleSuccessClose}
       />
     </>
   );

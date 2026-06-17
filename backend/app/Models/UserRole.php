@@ -14,6 +14,7 @@ class UserRole extends Model
 
     protected $fillable = [
         'fullname',
+        'contact_no',
         'username',
         'email',
         'password',
@@ -23,7 +24,6 @@ class UserRole extends Model
         'last_login_at',
         'must_reset_password',
         'temp_password_created_at',
-
     ];
 
     protected $hidden = [

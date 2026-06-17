@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useContext } from "react";
+import React, { useState, useEffect, useCallback, useContext, useRef } from "react";
 import {
   Box,
   Typography,
@@ -22,6 +22,7 @@ import GameCard from "./GameCard.jsx";
 import CheckoutGame from "./CheckoutGame.jsx";
 import { API_BASE_URL } from "../apiConfig.js";
 import { AppContext } from "../context/AppContext";
+import { useLoading } from "../context/LoadingContext";
 import jsPDF from "jspdf";
 import dayjs from "dayjs";
 
@@ -34,13 +35,13 @@ const GamesManagement = () => {
   const [editGame, setEditGame] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const { globalSearch } = useContext(AppContext);
+  const { setLoading } = useLoading();
   const [showReceipt, setShowReceipt] = useState(false);
   const [receiptData, setReceiptData] = useState(null);
   const token = localStorage.getItem("aToken");
 
-  // Fetch all games (for admin)
-  const fetchGames = useCallback(async () => {
-    console.log(" Fetch.........");
+  const fetchGames = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
     try {
       const res = await axios.get(`${API_BASE_URL}/api/games`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -51,16 +52,19 @@ const GamesManagement = () => {
         ? res.data
         : [];
       setGames(data);
-      console.log("FetchGames successful. Number of items:", data.length);
     } catch (error) {
       console.error("Error fetching games:", error);
-      toast.error("Failed to fetch games.");
+      if (!silent) toast.error("Failed to fetch games.");
       setGames([]);
+    } finally {
+      if (!silent) setLoading(false);
     }
   }, [token]);
 
   useEffect(() => {
-    fetchGames();
+    fetchGames(false);
+    const interval = setInterval(() => fetchGames(true), 30000);
+    return () => clearInterval(interval);
   }, [fetchGames]);
 
   const categories = [{ label: "All Games" }];
@@ -82,7 +86,7 @@ const GamesManagement = () => {
   const handleSaveGame = () => {
     setEditGame(null);
     setOpenAddGame(false);
-    fetchGames();
+    fetchGames(true);
   };
 
   const handleEditGame = (game) => {

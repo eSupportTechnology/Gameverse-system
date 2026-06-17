@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -12,13 +12,23 @@ import {
   Typography,
   Switch,
   Avatar,
+  InputAdornment,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import RefreshIcon from "@mui/icons-material/Refresh";
 import CancelPopup from "./CancelPopup";
 import { toast } from "react-toastify";
 import axios from "axios";
 import { API_BASE_URL } from "../apiConfig";
+import { useLoading } from "../context/LoadingContext";
+
+const generatePassword = () => {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
+  return Array.from({ length: 8 }, () =>
+    chars[Math.floor(Math.random() * chars.length)]
+  ).join("");
+};
 
 export default function AddUserDialog({
   open,
@@ -33,6 +43,13 @@ export default function AddUserDialog({
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  useEffect(() => {
+    if (open && !isEditing) {
+      setFormData((prev) => ({ ...prev, password: generatePassword() }));
+    }
+  }, [open, isEditing]);
+
+  const { setLoading: setGlobalLoading } = useLoading();
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [openCancelPopup, setOpenCancelPopup] = React.useState(false);
@@ -66,17 +83,18 @@ export default function AddUserDialog({
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setGlobalLoading(true);
     setMessage("");
 
     if (
       !formData.fullname ||
       !formData.contactNo ||
       !formData.username ||
-      !formData.email ||
-      (!isEditing && !formData.password)
+      !formData.email
     ) {
       toast.error("Please fill all required fields.");
       setLoading(false);
+      setGlobalLoading(false);
       return;
     }
 
@@ -89,7 +107,7 @@ export default function AddUserDialog({
 
       const data = new FormData();
       data.append("fullname", formData.fullname);
-      data.append("contactNo", formData.contactNo);
+      data.append("contact_no", formData.contactNo);
       data.append("username", formData.username);
       data.append("email", formData.email);
       data.append("role", formData.role);
@@ -131,16 +149,6 @@ export default function AddUserDialog({
         });
       }
       setLoading(false);
-      setMessage(response.data.message || "User saved");
-      console.log("Temp password from backend:", response.data.temp_password);
-      if (response.data.hasOwnProperty("temp_password")) {
-        toast.info(
-          `Temporary password (dev only): ${response.data.temp_password}`
-        );
-      } else {
-        toast.success("User created and (if configured) email sent to user.");
-      }
-
       onCreate(response.data.user, true);
 
       // Reset form
@@ -159,6 +167,7 @@ export default function AddUserDialog({
       toast.error(err.response?.data?.message || "Request failed");
     } finally {
       setLoading(false);
+      setGlobalLoading(false);
     }
   };
 
@@ -176,6 +185,7 @@ export default function AddUserDialog({
           borderRadius: "8px",
           width: "480px",
           border: "1px solid #374151",
+          maxHeight: "90vh",
         },
       }}
     >
@@ -224,7 +234,7 @@ export default function AddUserDialog({
         </label>
       </Box>
 
-      <DialogContent>
+      <DialogContent sx={{ overflowY: "auto" }}>
         <Typography variant="subtitle2">Full Name</Typography>
         <TextField
           margin="dense"
@@ -341,25 +351,48 @@ export default function AddUserDialog({
           }}
         />
 
-        <Typography variant="subtitle2">password</Typography>
-        <TextField
-          margin="dense"
-          name="password"
-          value={formData.password || ""}
-          onChange={handleChange}
-          fullWidth
-          placeholder="*********"
-          required
-          sx={{
-            mb: 2,
-            backgroundColor: "#171C2D",
-            "& .MuiOutlinedInput-root": {
-              borderRadius: "10px",
-              color: "white",
-              "& fieldset": { borderColor: "#374151" },
-            },
-          }}
-        />
+        {!isEditing && (
+          <>
+            <Typography variant="subtitle2">
+              Password <span style={{ color: "#5C5E7A", fontSize: "12px", fontWeight: 400 }}>(auto-generated)</span>
+            </Typography>
+            <TextField
+              margin="dense"
+              name="password"
+              value={formData.password || ""}
+              onChange={handleChange}
+              fullWidth
+              placeholder="Enter password or use auto-generated"
+              sx={{
+                mb: 2,
+                backgroundColor: "#171C2D",
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: "10px",
+                  color: "white",
+                  "& fieldset": { borderColor: "#374151" },
+                },
+              }}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      onClick={() =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          password: generatePassword(),
+                        }))
+                      }
+                      title="Regenerate password"
+                      sx={{ color: "#94a3b8", "&:hover": { color: "#CF36E1" } }}
+                    >
+                      <RefreshIcon fontSize="small" />
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+            />
+          </>
+        )}
 
         <Box display="flex" alignItems="center" gap={1}>
           <Typography variant="subtitle2" sx={{ color: "#94a3b8" }}>

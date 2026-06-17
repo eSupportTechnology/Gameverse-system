@@ -10,13 +10,15 @@ import {
   MenuItem,
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import RemoveIcon from "@mui/icons-material/Remove";
+import AddIcon from "@mui/icons-material/Add";
 import InboxOutlinedIcon from "@mui/icons-material/InboxOutlined";
 import React, { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import CloseIcon from "@mui/icons-material/Close";
 import upload from "../assets/upload.png";
 import EditIcon from "../assets/editicon.png";
-import ThumbnailUpdate from "./ThumbnailUpdate";
+import CreateSuccessDialog from "./CreateSuccessDialog";
 import UpdateSuccessDialog from "./UpdateSuccess";
 import CancelPopup from "./CancelPopup";
 import RemovePopup from "./RemovePopup";
@@ -39,13 +41,9 @@ const AllPoolTabels = () => {
   // form fields
   const [tableName, setTableName] = useState("");
   const [location, setLocation] = useState("");
-  // const [description, setDescription] = useState("");
-  const [price, setPrice] = useState("");
-  const [time, setTime] = useState("");
   const [thumbnail, setThumbnail] = useState(null);
-
   const [thumbnailFile, setThumbnailFile] = useState(null);
-  const [allPricing, setAllPricing] = useState([]);
+  const [pricingList, setPricingList] = useState([{ duration: 30, price: "", vrPrice: "" }]);
 
   const [openAddSuccess, setOpenAddSuccess] = useState(false);
   const [addMessage, setAddMessage] = useState("");
@@ -78,16 +76,20 @@ const AllPoolTabels = () => {
     }
   };
 
+  const addDurationRow = () => setPricingList((prev) => [...prev, { duration: 60, price: "", vrPrice: "" }]);
+  const removeDurationRow = (i) => setPricingList((prev) => prev.filter((_, idx) => idx !== i));
+  const handleDurationChange = (i, val) => {
+    if (pricingList.some((p, idx) => p.duration === val && idx !== i)) { alert("This duration already exists."); return; }
+    const updated = [...pricingList]; updated[i].duration = val; setPricingList(updated);
+  };
+
   // open ADD dialog
   const handleAdd = () => {
     setDialogMode("add");
     setTableName("");
-    // setDescription("");
-    setPrice("");
-    setTime("30 Min");
+    setPricingList([{ duration: 30, price: "", vrPrice: "" }]);
     setThumbnail(null);
     setThumbnailFile(null);
-    setAllPricing([]);
     setOpenAddPool(true);
   };
 
@@ -98,12 +100,16 @@ const AllPoolTabels = () => {
 
     setTableName(item.name);
     setLocation(item.location);
-    // setDescription(item.description);
     const pricing = item.pricing || [];
-    setAllPricing(pricing);
-    const p0 = pricing[0];
-    setPrice(p0?.price != null ? String(p0.price) : "");
-    setTime(p0?.duration === 60 ? "1 Hour" : "30 Min");
+    setPricingList(
+      pricing.length > 0
+        ? pricing.map((p) => ({
+            duration: p.duration,
+            price: p.price != null ? String(p.price) : "",
+            vrPrice: p.vrPrice != null ? String(p.vrPrice) : "",
+          }))
+        : [{ duration: 30, price: "", vrPrice: "" }]
+    );
     setThumbnail(
       item.thumbnail ? `${API_BASE_URL}/storage/${item.thumbnail}` : null,
     );
@@ -112,34 +118,21 @@ const AllPoolTabels = () => {
     setOpenAddPool(true);
   };
 
-  const handleTimeChange = (val) => {
-    setTime(val);
-    const dur = val.includes("Hour") ? 60 : 30;
-    const match = allPricing.find((p) => p.duration === dur);
-    if (match) setPrice(match.price != null ? String(match.price) : "");
-    else setPrice("");
-  };
-
   // save Pool (Add or Update)
   const handleSave = async () => {
-    // Validation
-    if (!tableName || !price) {
+    if (!tableName || pricingList.some((p) => !p.price)) {
       return alert("Please fill all required fields");
     }
-
-    // Convert time strings to minutes
-    const parseTime = (timeStr) => {
-      if (!timeStr) return null;
-      if (timeStr.includes("Hour")) return 60;
-      return 30; // default to 30 minutes
-    };
 
     const form = new FormData();
     form.append("name", tableName);
     form.append("location", location);
     form.append("type", "Pool");
-    form.append("pricing[0][duration]", parseTime(time) || 30);
-    form.append("pricing[0][price]", Number(price));
+    pricingList.forEach((item, i) => {
+      form.append(`pricing[${i}][duration]`, item.duration);
+      form.append(`pricing[${i}][price]`, Number(item.price));
+      if (item.vrPrice) form.append(`pricing[${i}][vrPrice]`, Number(item.vrPrice));
+    });
 
     if (thumbnailFile) {
       form.append("thumbnail", thumbnailFile);
@@ -168,9 +161,8 @@ const AllPoolTabels = () => {
         },
       });
 
-      toast.success(
-        `Table ${dialogMode === "edit" ? "updated" : "created"} successfully!`,
-      );
+      if (dialogMode === "edit") setOpenUpdateSuccess(true);
+      else setOpenAddSuccess(true);
       setOpenAddPool(false);
       fetchPools(); // refresh list
     } catch (err) {
@@ -645,77 +637,72 @@ const AllPoolTabels = () => {
               }}
             /> */}
 
-            {/* Pricing Normal */}
+            {/* Pricing Details */}
             <Box sx={{ mt: 2 }}>
-              <p style={{ marginBottom: 1, fontSize: "14px", fontWeight: 500 }}>
-                Pricing Details (Normal)
+              <p style={{ marginBottom: 8, fontSize: "14px", fontWeight: 500 }}>
+                Pricing Details
               </p>
-              <Box
-                sx={{
-                  display: "flex",
-                  gap: 2,
-                }}
-              >
-                {/* TIME */}
-                <Box sx={{ flex: 1 }}>
-                  <p
-                    style={{
-                      marginBottom: 6,
-                      fontSize: 12,
-                      fontWeight: 200,
-                      color: "#9CA3AF",
-                    }}
-                  >
-                    Time
-                  </p>
-
+              {pricingList.map((item, index) => (
+                <Box key={index} display="flex" gap={1.5} mb={2} alignItems="center">
                   <TextField
                     select
-                    fullWidth
-                    defaultValue="30 Min"
-                    value={time}
-                    onChange={(e) => handleTimeChange(e.target.value)}
+                    size="small"
+                    value={item.duration}
+                    onChange={(e) => handleDurationChange(index, parseInt(e.target.value))}
                     sx={{
-                      "& .MuiOutlinedInput-root fieldset": {
-                        borderColor: "#374151",
-                      },
-                      "& .MuiSelect-select": { color: "#9CA3AF" },
-                      "& .MuiOutlinedInput-root": { height: 45 }, // align height
+                      flex: 1,
+                      "& .MuiOutlinedInput-root fieldset": { borderColor: "#374151" },
+                      "& .MuiSelect-select": { color: "white" },
+                      "& .MuiSvgIcon-root": { color: "white" },
                     }}
+                    SelectProps={{ MenuProps: { PaperProps: { sx: { backgroundColor: "#171C2D", color: "white" } } } }}
                   >
-                    <MenuItem value="30 Min">30 Min</MenuItem>
-                    <MenuItem value="1 Hour">1 Hour</MenuItem>
+                    <MenuItem value={30}>30 Min</MenuItem>
+                    <MenuItem value={60}>1 Hour</MenuItem>
                   </TextField>
-                </Box>
-
-                {/* PRICE */}
-                <Box sx={{ flex: 1 }}>
-                  <p
-                    style={{
-                      marginBottom: 6,
-                      fontSize: 12,
-                      fontWeight: 200,
-                      color: "#9CA3AF",
-                    }}
-                  >
-                    Price
-                  </p>
 
                   <TextField
-                    fullWidth
-                    placeholder="LKR 000"
-                    value={price}
-                    onChange={(e) => setPrice(e.target.value)}
+                    type="number"
+                    size="small"
+                    placeholder="Normal Price"
+                    value={item.price}
+                    onChange={(e) => { const u = [...pricingList]; u[index].price = e.target.value; setPricingList(u); }}
                     sx={{
-                      input: { color: "white" },
-                      "& .MuiOutlinedInput-root fieldset": {
-                        borderColor: "#374151",
-                      },
-                      "& .MuiOutlinedInput-root": { height: 45 },
+                      flex: 1,
+                      "& .MuiOutlinedInput-root fieldset": { borderColor: "#374151" },
+                      "& .MuiInputBase-input::placeholder": { color: "#9CA3AF", opacity: 1 },
                     }}
+                    inputProps={{ style: { color: "white" } }}
                   />
+
+                  <TextField
+                    type="number"
+                    size="small"
+                    placeholder="VR Price"
+                    value={item.vrPrice}
+                    onChange={(e) => { const u = [...pricingList]; u[index].vrPrice = e.target.value; setPricingList(u); }}
+                    sx={{
+                      flex: 1,
+                      "& .MuiOutlinedInput-root fieldset": { borderColor: "#374151" },
+                      "& .MuiInputBase-input::placeholder": { color: "#9CA3AF", opacity: 1 },
+                    }}
+                    inputProps={{ style: { color: "white" } }}
+                  />
+
+                  {pricingList.length > 1 && (
+                    <IconButton onClick={() => removeDurationRow(index)} size="small">
+                      <RemoveIcon sx={{ color: "red" }} />
+                    </IconButton>
+                  )}
                 </Box>
-              </Box>
+              ))}
+              <Button
+                onClick={addDurationRow}
+                startIcon={<AddIcon />}
+                sx={{ textTransform: "none", color: "#0CD7FF", fontSize: 13 }}
+              >
+                Add Duration
+              </Button>
             </Box>
 
             {/* Thumbnail Upload */}
@@ -822,10 +809,9 @@ const AllPoolTabels = () => {
       </Box>
 
       {/* Table add success dialog */}
-      <ThumbnailUpdate
+      <CreateSuccessDialog
         open={openAddSuccess}
         onClose={() => setOpenAddSuccess(false)}
-        message={addMessage}
       />
 
       {/* update success dialog */}

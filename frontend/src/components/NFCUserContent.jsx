@@ -32,8 +32,10 @@ import { toast } from "react-toastify";
 import UpdateSuccessDialog from "./UpdateSuccess";
 import { API_BASE_URL } from "../apiConfig";
 import { AppContext } from "../context/AppContext";
+import { useLoading } from "../context/LoadingContext";
 
 export default function NFCUserContent() {
+  const { setLoading } = useLoading();
   const [users, setUsers] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [addDialogOpen, setAddDialogOpen] = useState(false);
@@ -59,10 +61,13 @@ export default function NFCUserContent() {
 
   // Fetch users from backend on component mount
   useEffect(() => {
-    fetchUsers();
+    fetchUsers(false);
+    const interval = setInterval(() => fetchUsers(true), 30000);
+    return () => clearInterval(interval);
   }, []);
 
-  const fetchUsers = async () => {
+  const fetchUsers = async (silent = false) => {
+    if (!silent) setLoading(true);
     try {
       const token = localStorage.getItem("aToken");
       const res = await axios.get(`${API_BASE_URL}/api/nfc-users`, {
@@ -74,15 +79,9 @@ export default function NFCUserContent() {
       if (res.data.success) {
         // Merge backend data with dummy data
         const backendUsers = res.data.data.map((user) => {
-          // Format phone number: XXX XXXXXXX
-          let formattedPhone = user.phone_no;
-          if (user.phone_no) {
-            const numericPhone = user.phone_no.replace(/\D/g, "");
-            if (numericPhone.length === 10) {
-              formattedPhone =
-                numericPhone.slice(0, 3) + " " + numericPhone.slice(3);
-            }
-          }
+          const formattedPhone = user.phone_no
+            ? user.phone_no.replace(/\D/g, "")
+            : "";
 
           // Build avatar URL - only use storage URL for actual uploaded files
           let avatarUrl = "/images/user.png";
@@ -120,13 +119,15 @@ export default function NFCUserContent() {
       }
     } catch (err) {
       console.error("Error fetching NFC users:", err);
-      toast.error("Failed to load users from backend");
+      if (!silent) toast.error("Failed to load users from backend");
       // // Keep dummy data if fetch fails with flag
       // const dummyUsersWithFlag = nfcUsers.map(user => ({
       //   ...user,
       //   isDummy: true,
       // }));
       // setUsers(dummyUsersWithFlag);
+    } finally {
+      if (!silent) setLoading(false);
     }
   };
 
@@ -197,6 +198,7 @@ export default function NFCUserContent() {
   };
 
   const confirmDelete = async () => {
+    setLoading(true);
     try {
       const token = localStorage.getItem("aToken");
       const res = await axios.delete(
@@ -211,12 +213,14 @@ export default function NFCUserContent() {
       if (res.data.success) {
         toast.success("User deleted successfully");
         setDeleteDialogOpen(false);
-        fetchUsers(); // Refresh the list
+        fetchUsers(true);
       }
     } catch (err) {
       console.error("Error deleting user:", err);
       toast.error(err.response?.data?.message || "Failed to delete user");
       setDeleteDialogOpen(false);
+    } finally {
+      setLoading(false);
     }
   };
 

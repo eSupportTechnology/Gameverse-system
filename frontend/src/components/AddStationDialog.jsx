@@ -173,8 +173,6 @@ export default function AddStationDialog({
         },
       });
 
-      toast.success(`Station ${editing ? "updated" : "created"} successfully!`);
-
       if (editing) {
         onCreate(res.data.data || res.data, true);
       } else {

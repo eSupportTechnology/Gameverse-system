@@ -50,3 +50,29 @@ code {
   background-color: transparent;
   border: 2px solid white;
 }
+
+/* ── Custom scrollbar — applied everywhere ── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0F111F;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, #CF36E1, #33B2F7);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(to bottom, #d94ef3, #55c4ff);
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #CF36E1 #0F111F;
+}
+

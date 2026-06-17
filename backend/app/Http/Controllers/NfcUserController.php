@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 
 class NfcUserController extends Controller
 {
@@ -122,16 +123,28 @@ class NfcUserController extends Controller
             $user = NfcUser::findOrFail($id);
 
             $validator = Validator::make($request->all(), [
-                'full_name'  => 'required|string|max:255',
-                'email'  => 'required|string|max:255',
-                'phone_no'   => 'required|string|regex:/^\+?[0-9]{7,15}$/|unique:nfc_users,phone_no',
-                'nic_number' => 'required|string|unique:nfc_users,nic_number,' . $id,
+                'full_name'  => 'sometimes|required|string|max:255',
+                'email'      => 'sometimes|required|string|max:255',
+                'phone_no'   => [
+                    'sometimes', 'required', 'string',
+                    'regex:/^\+?[0-9]{7,15}$/',
+                    Rule::unique('nfc_users', 'phone_no')->ignore($id),
+                ],
+                'nic_number' => [
+                    'sometimes', 'required', 'string',
+                    Rule::unique('nfc_users', 'nic_number')->ignore($id),
+                ],
+                'card_no'    => [
+                    'sometimes', 'required', 'string',
+                    Rule::unique('nfc_users', 'card_no')->ignore($id),
+                ],
                 'avatar'     => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-                'status'     => 'nullable|in:active,inactive'
+                'status'     => 'nullable|in:active,inactive',
             ], [
-                'phone_no.regex'  => 'Enter a valid phone number',
-                'phone_no.unique' => 'This phone number is already registered',
-                'nic_number.unique' => 'This NIC number is already registered'
+                'phone_no.regex'    => 'Enter a valid phone number',
+                'phone_no.unique'   => 'This phone number is already registered',
+                'nic_number.unique' => 'This NIC number is already registered',
+                'card_no.unique'    => 'This NFC card number is already registered',
             ]);
 
             if ($validator->fails()) {
@@ -141,25 +154,25 @@ class NfcUserController extends Controller
                 ], 422);
             }
 
+            // Build update payload — only fields present in the request
+            $updateData = [];
+            if ($request->filled('full_name'))  $updateData['full_name']  = $request->full_name;
+            if ($request->filled('email'))       $updateData['email']       = $request->email;
+            if ($request->filled('phone_no'))    $updateData['phone_no']    = $request->phone_no;
+            if ($request->filled('nic_number'))  $updateData['nic_number']  = $request->nic_number;
+            if ($request->filled('card_no'))     $updateData['card_no']     = $request->card_no;
+            if ($request->has('status'))         $updateData['status']      = $request->status ?? $user->status;
+
             // Handle avatar update
             if ($request->hasFile('avatar')) {
-                // Delete old avatar if it exists and is a valid storage path
                 if ($user->avatar && str_starts_with($user->avatar, 'avatars/')) {
                     Storage::disk('public')->delete($user->avatar);
                 }
-
-                $user->avatar = $request->file('avatar')
+                $updateData['avatar'] = $request->file('avatar')
                     ->store('avatars/nfc_users', 'public');
             }
 
-            $user->update([
-                'full_name'  => $request->full_name,
-                'email'  => $request->email,
-                'phone_no'   => $request->phone_no,
-                'nic_number' => $request->nic_number,
-                'status'     => $request->status ?? $user->status,
-                'avatar'     => $user->avatar
-            ]);
+            $user->update($updateData);
 
             return response()->json([
                 'success' => true,

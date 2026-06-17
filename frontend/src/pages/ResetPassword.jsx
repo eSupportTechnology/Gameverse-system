@@ -1,5 +1,6 @@
 import React, { useContext, useState } from "react";
-import { Box, Button, TextField, Typography } from "@mui/material";
+import { Box, Button, TextField, Typography, InputAdornment, IconButton } from "@mui/material";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { AdminContext } from "../context/AdminContext";
@@ -8,6 +9,8 @@ import { API_BASE_URL } from "../apiConfig";
 const ResetPassword = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const { loginRole, aToken, setAToken, oToken } = useContext(AdminContext);
 
@@ -35,14 +38,12 @@ const ResetPassword = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      toast.success("Password reset successful, please login again");
+      toast.success("Password reset successful, please login again.");
 
-      // Clear the correct token
-      if (loginRole === "admin") {
-        localStorage.removeItem("aToken");
-      } else {
-        localStorage.removeItem("oToken");
-      }
+      // Clear token and reset flag
+      localStorage.removeItem("aToken");
+      localStorage.removeItem("oToken");
+      localStorage.removeItem("mustResetPassword");
 
       // Redirect to login
       window.location.href = "/admin/login";
@@ -89,7 +90,7 @@ const ResetPassword = () => {
 
         <form onSubmit={handleReset}>
           <TextField
-            type="password"
+            type={showPassword ? "text" : "password"}
             label="New Password"
             size="small"
             variant="outlined"
@@ -99,6 +100,17 @@ const ResetPassword = () => {
             onChange={(e) => setPassword(e.target.value)}
             required
             InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    onClick={() => setShowPassword((v) => !v)}
+                    edge="end"
+                    sx={{ color: "#9CA3AF" }}
+                  >
+                    {showPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
+                  </IconButton>
+                </InputAdornment>
+              ),
               sx: {
                 backgroundColor: "#1F2937",
                 borderRadius: "6px",
@@ -110,14 +122,12 @@ const ResetPassword = () => {
               sx: {
                 color: "#9CA3AF",
                 fontSize: "14px",
-                "&.Mui-focused": {
-                  color: "skyblue",
-                },
+                "&.Mui-focused": { color: "skyblue" },
               },
             }}
           />
           <TextField
-            type="password"
+            type={showConfirm ? "text" : "password"}
             label="Confirm Password"
             size="small"
             variant="outlined"
@@ -127,6 +137,17 @@ const ResetPassword = () => {
             onChange={(e) => setConfirmPassword(e.target.value)}
             required
             InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    onClick={() => setShowConfirm((v) => !v)}
+                    edge="end"
+                    sx={{ color: "#9CA3AF" }}
+                  >
+                    {showConfirm ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
+                  </IconButton>
+                </InputAdornment>
+              ),
               sx: {
                 backgroundColor: "#1F2937",
                 borderRadius: "6px",
@@ -138,9 +159,7 @@ const ResetPassword = () => {
               sx: {
                 color: "#9CA3AF",
                 fontSize: "14px",
-                "&.Mui-focused": {
-                  color: "skyblue",
-                },
+                "&.Mui-focused": { color: "skyblue" },
               },
             }}
           />

@@ -42,10 +42,10 @@ class SendTempPassword extends Mailable implements ShouldQueue
     public function content(): Content
     {
         return new Content(
-            markdown: 'emails.temp_password',
+            view: 'emails.temp_password',
             with: [
-                'name' => $this->user->fullname,
-                'email' => $this->user->email,
+                'name'         => $this->user->fullname,
+                'email'        => $this->user->email,
                 'tempPassword' => $this->tempPassword,
             ],
         );

@@ -13,7 +13,7 @@ import {
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import InboxOutlinedIcon from "@mui/icons-material/InboxOutlined";
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState, useContext, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import AddGameDialog from "./AddGameDialog";
 import AddEventDialog from "./AddEventDialog";
@@ -23,6 +23,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import upload from "../assets/upload.png";
 import CancelPopup from "./CancelPopup";
 import UpdateSuccessDialog from "./UpdateSuccess";
+import CreateSuccessDialog from "./CreateSuccessDialog";
 import ThumbnailUpdate from "./ThumbnailUpdate";
 import RemovePopup from "./RemovePopup";
 import axios from "axios";
@@ -36,6 +37,7 @@ import poolTable from "../assets/pool_table.jpg";
 import racingSimulator from "../assets/racing_simulators.jpg";
 import { API_BASE_URL } from "../apiConfig";
 import { AppContext } from "../context/AppContext";
+import { useLoading } from "../context/LoadingContext";
 
 const categories = [
   { label: "Booking Games" },
@@ -69,6 +71,7 @@ const typeDisplayTitles = {
 
 const WebManagement = () => {
   const navigate = useNavigate();
+  const { setLoading } = useLoading();
 
   const [bookingGames, setBookingGames] = useState([]);
   const [games, setGames] = useState([]);
@@ -105,6 +108,9 @@ const WebManagement = () => {
   const [cancelOpen, setCancelOpen] = useState(false);
   const [openCategoryUpdate, setOpenCategoryUpdate] = useState(false);
   const [thumbUpdateSuccess, setThumbUpdateSuccess] = useState(false);
+  const [eventCreateSuccess, setEventCreateSuccess] = useState(false);
+  const [eventUpdateSuccess, setEventUpdateSuccess] = useState(false);
+  const [photoAddSuccess, setPhotoAddSuccess] = useState(false);
 
   const { globalSearch } = useContext(AppContext);
 
@@ -145,7 +151,12 @@ const WebManagement = () => {
   };
 
   useEffect(() => {
-    fetchStations();
+    const initialLoad = async () => {
+      setLoading(true);
+      await fetchStations();
+      setLoading(false);
+    };
+    initialLoad();
   }, []);
 
   const handleUpdate = async () => {
@@ -168,7 +179,7 @@ const WebManagement = () => {
         },
       );
 
-      toast.success("Category updated successfully!");
+      setOpenCategoryUpdate(true);
       fetchStations(); // refresh categories
       setEditStationCategory(false);
     } catch (err) {
@@ -231,6 +242,7 @@ const WebManagement = () => {
             : "",
         },
       ]);
+      setEventCreateSuccess(true);
     } catch (err) {
       console.error("Error adding event:", err);
       toast.error("Failed to add event");
@@ -238,6 +250,7 @@ const WebManagement = () => {
   };
 
   const handleUpdateEvent = async (updatedEvent) => {
+    setEventUpdateSuccess(true);
     try {
       const eventData = {
         name: updatedEvent.name,
@@ -259,10 +272,8 @@ const WebManagement = () => {
       setEvent((prev) =>
         prev.map((e) => (e.id === mappedEvent.id ? mappedEvent : e)),
       );
-
-      console.log("Event updated:", mappedEvent);
-      toast.success("Event updated successfully!");
     } catch (err) {
+      setEventUpdateSuccess(false);
       console.error("Error updating event:", err);
       toast.error("Failed to update event");
     }
@@ -298,25 +309,37 @@ const WebManagement = () => {
 
   useEffect(() => {
     const fetchAllEvents = async () => {
-      const eventsFromApi = await getEvents();
-      const mappedEvents = eventsFromApi.map((e) => ({
-        id: e.id,
-        name: e.name || "No Name",
-        date: e.date || null,
-        image: e.thumbnail ? `${API_BASE_URL}/storage/${e.thumbnail}` : "",
-      }));
-
-      setEvent(mappedEvents);
+      setLoading(true);
+      try {
+        const eventsFromApi = await getEvents();
+        const mappedEvents = eventsFromApi.map((e) => ({
+          id: e.id,
+          name: e.name || "No Name",
+          date: e.date || null,
+          image: e.thumbnail ? `${API_BASE_URL}/storage/${e.thumbnail}` : "",
+        }));
+        setEvent(mappedEvents);
+      } catch (err) {
+        console.error("Failed to fetch events:", err);
+      } finally {
+        setLoading(false);
+      }
     };
-
     fetchAllEvents();
   }, []);
 
   // Gallery section
   useEffect(() => {
     const fetchGallery = async () => {
-      const data = await getGallery();
-      setGallery(data);
+      setLoading(true);
+      try {
+        const data = await getGallery();
+        setGallery(data);
+      } catch (err) {
+        console.error("Failed to fetch gallery:", err);
+      } finally {
+        setLoading(false);
+      }
     };
     fetchGallery();
   }, []);
@@ -326,7 +349,7 @@ const WebManagement = () => {
     try {
       const newPhoto = await addGalleryPhoto(file);
       setGallery((prev) => [...prev, newPhoto]);
-      toast.success("Photo added successfully!");
+      setPhotoAddSuccess(true);
     } catch {
       toast.error("Failed to add photo");
     }
@@ -380,7 +403,12 @@ const WebManagement = () => {
   };
 
   useEffect(() => {
-    fetchGames();
+    const loadGames = async () => {
+      setLoading(true);
+      await fetchGames();
+      setLoading(false);
+    };
+    loadGames();
   }, []);
   // Booking Games
   const filteredBookingGames = bookingGames.filter((item) => {
@@ -1298,6 +1326,21 @@ const WebManagement = () => {
         handleRemoveClose={cancelRemovePhoto}
         removeConfirm={removePhotoConfirm}
         message={photoRemoveMessage}
+      />
+
+      <CreateSuccessDialog
+        open={eventCreateSuccess}
+        onClose={() => setEventCreateSuccess(false)}
+      />
+
+      <UpdateSuccessDialog
+        open={eventUpdateSuccess}
+        onClose={() => setEventUpdateSuccess(false)}
+      />
+
+      <CreateSuccessDialog
+        open={photoAddSuccess}
+        onClose={() => setPhotoAddSuccess(false)}
       />
     </div>
   );

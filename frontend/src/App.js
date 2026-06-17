@@ -35,35 +35,40 @@ import User from "./pages/Users";
 import ValuableOffersScreen from "./pages/ValuableOffersScreen";
 import WebPortal from "./pages/WebPortal";
 
+import LoadingOverlay from "./components/LoadingOverlay";
 import "./App.css";
-
-
 
 function App() {
   const { aToken, oToken, loginRole } = useContext(AdminContext);
+  const mustReset = localStorage.getItem("mustResetPassword") === "1";
 
   return (
     <Router>
+      <LoadingOverlay />
       <Routes>
+
+        {/* Always accessible — never blocked by auth or mustReset */}
+        <Route path="/admin/login" element={<Login />} />
         <Route path="/reset-password" element={<ResetPassword />} />
 
+        {/* Logged in but must reset password — block everything else */}
+        {(aToken || oToken) && mustReset && (
+          <Route path="*" element={<Navigate to="/reset-password" replace />} />
+        )}
+
         {/* ===================== ADMIN ROUTES ===================== */}
-        {aToken && loginRole === "admin" && (
+        {aToken && loginRole === "admin" && !mustReset && (
           <>
             <Route path="/" element={<Booking />} />
             <Route path="/stations/*" element={<Station />} />
             <Route path="/pos/*" element={<Pos />} />
             <Route path="/bookings" element={<Booking />} />
             <Route path="/games" element={<OtherGames />} />
-            <Route path="/users" element={<User />} /> {/* admin-only */}
+            <Route path="/users" element={<User />} />
             <Route path="/nfc-users" element={<NFCUsers />} />
             <Route path="/reports" element={<Reports />} />
             <Route path="/web-portal/*" element={<WebPortal />} />
-          
-
-            {/* TV Screens */}
             <Route path="/tv-screens" element={<TVScreenControl />} />
-            {/* <Route path="/tv-slider" element={<TVAutoSlider />} /> */}
             <Route path="/ps5-station1" element={<PS5Station1TVScreen />} />
             <Route path="/ps5-station2" element={<PS5Station2TVScreen />} />
             <Route path="/ps5-station3" element={<PS5Station3TVScreen />} />
@@ -79,15 +84,13 @@ function App() {
             <Route path="/premium-billiard2" element={<PremiumBilliardTV2 />} />
             <Route path="/premium-billiard3" element={<PremiumBilliardTV3 />} />
             <Route path="/valuable-offers" element={<ValuableOffersScreen />} />
-            {/* fallback */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </>
         )}
 
         {/* ===================== OPERATOR ROUTES ===================== */}
-        {oToken && loginRole === "operator" && (
+        {oToken && loginRole === "operator" && !mustReset && (
           <>
-            {/* Shared routes accessible to operator (all except Users & Roles) */}
             <Route path="/" element={<Booking />} />
             <Route path="/stations/*" element={<Station />} />
             <Route path="/pos/*" element={<Pos />} />
@@ -112,23 +115,16 @@ function App() {
             <Route path="/premium-billiard2" element={<PremiumBilliardTV2 />} />
             <Route path="/premium-billiard3" element={<PremiumBilliardTV3 />} />
             <Route path="/valuable-offers" element={<ValuableOffersScreen />} />
-
-            {/* Block Users & Roles */}
             <Route path="/users" element={<Navigate to="/" replace />} />
-
-            {/* fallback */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </>
         )}
 
-        {/* ===================== LOGIN ROUTES ===================== */}
+        {/* Not logged in — redirect everything to login */}
         {!aToken && !oToken && (
-          <>
-            <Route path="/admin/login" element={<Login />} />
-            <Route path="/" element={<Navigate to="/admin/login" replace />} />
-            <Route path="*" element={<Navigate to="/admin/login" replace />} />
-          </>
+          <Route path="*" element={<Navigate to="/admin/login" replace />} />
         )}
+
       </Routes>
       <ToastContainer
         position="top-right"

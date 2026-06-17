@@ -21,7 +21,8 @@ use App\Http\Controllers\Api\ReportsController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\GameCheckoutController;
 
-// Public route
+// Public routes
+Route::post('/login', [AuthController::class, 'unifiedLogin']);
 Route::post('/admin/login', [AuthController::class, 'login']);
 Route::post('/operator/login', [AuthController::class, 'operatoLogin']);
 // routes/api.php

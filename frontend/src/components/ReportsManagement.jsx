@@ -16,62 +16,57 @@ import axios from "axios";
 import { API_BASE_URL } from "../apiConfig";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
+import { useLoading } from "../context/LoadingContext";
 
 const ReportsManagement = () => {
+  const { setLoading } = useLoading();
   const [dateFilter, setDateFilter] = useState("today");
   const [viewMode, setViewMode] = useState("overview");
   const [openTab, setOpenTab] = useState(1);
   const [totalSales, setTotalSales] = useState(0);
   const [productsSold, setProductsSold] = useState(0);
-  
 
-//Fetched Total Sales
   useEffect(() => {
-  const fetchAllTotals = async () => {
-    try {
-      const bookingsRes = await axios.get(
-        `${API_BASE_URL}/api/reports/total-bookings-amount?filter=${dateFilter}`
-      );
-      const gamesRes = await axios.get(
-        `${API_BASE_URL}/api/reports/total-games-amount?filter=${dateFilter}`
-      );
-      const posRes = await axios.get(
-        `${API_BASE_URL}/api/reports/total-pos-amount?filter=${dateFilter}`
-      );
+    const fetchAllTotals = async () => {
+      setLoading(true);
+      try {
+        const [bookingsRes, gamesRes, posRes] = await Promise.all([
+          axios.get(`${API_BASE_URL}/api/reports/total-bookings-amount?filter=${dateFilter}`),
+          axios.get(`${API_BASE_URL}/api/reports/total-games-amount?filter=${dateFilter}`),
+          axios.get(`${API_BASE_URL}/api/reports/total-pos-amount?filter=${dateFilter}`),
+        ]);
 
-      const bookingsTotal = bookingsRes.data.success ? Number(bookingsRes.data.total) : 0;
-      const gamesTotal = gamesRes.data.success ? Number(gamesRes.data.total) : 0;
-      const posTotal = posRes.data.success ? Number(posRes.data.total) : 0;
+        const bookingsTotal = bookingsRes.data.success ? Number(bookingsRes.data.total) : 0;
+        const gamesTotal = gamesRes.data.success ? Number(gamesRes.data.total) : 0;
+        const posTotal = posRes.data.success ? Number(posRes.data.total) : 0;
 
-      setTotalSales(bookingsTotal + gamesTotal + posTotal);
-
-    } catch (error) {
-      console.error("Error fetching total sales", error);
-    }
-  };
-
-  fetchAllTotals();
-}, [dateFilter]);
-
-
-//To fetch Products SOld
-useEffect(() => {
-  const fetchProductsSold = async () => {
-    try {
-      const res = await axios.get(
-        `${API_BASE_URL}/api/reports/products-sold?filter=${dateFilter}`
-      );
-
-      if (res.data.success) {
-        setProductsSold(res.data.products_sold);
+        setTotalSales(bookingsTotal + gamesTotal + posTotal);
+      } catch (error) {
+        console.error("Error fetching total sales", error);
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error("Error fetching products sold", error);
-    }
-  };
+    };
 
-  fetchProductsSold();
-}, [dateFilter]);
+    fetchAllTotals();
+  }, [dateFilter]);
+
+  useEffect(() => {
+    const fetchProductsSold = async () => {
+      try {
+        const res = await axios.get(
+          `${API_BASE_URL}/api/reports/products-sold?filter=${dateFilter}`
+        );
+        if (res.data.success) {
+          setProductsSold(res.data.products_sold);
+        }
+      } catch (error) {
+        console.error("Error fetching products sold", error);
+      }
+    };
+
+    fetchProductsSold();
+  }, [dateFilter]);
 
   // Handle date filter changes
   const handleDateFilterChange = (newFilter) => {

@@ -1,15 +1,16 @@
 import React, { useContext, useState } from "react";
-import { Box, Button, TextField, Typography, Container } from "@mui/material";
+import { Box, Button, TextField, Typography, InputAdornment, IconButton } from "@mui/material";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { AdminContext } from "../context/AdminContext";
-import { useNavigate } from "react-router-dom";
 import { AppContext } from "../context/AppContext";
 import { API_BASE_URL } from "../apiConfig";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const { loginUser } = useContext(AppContext);
 
@@ -19,42 +20,38 @@ const Login = () => {
   const onSubmitHandler = async (e) => {
     e.preventDefault();
     try {
-      let res;
+      const res = await axios.post(`${API_BASE_URL}/api/login`, { email, password });
 
-      if (loginRole === "admin") {
-        res = await axios.post(`${API_BASE_URL}/api/admin/login`, {
-          email,
-          password,
-        });
-        localStorage.setItem("aToken", res.data.token);
-        setAToken(res.data.token);
-        localStorage.setItem("loginRole", res.data.user.role);
-        setLoginRole(res.data.user.role);
-      } else if (loginRole === "operator") {
-        res = await axios.post(`${API_BASE_URL}/api/operator/login`, {
-          email,
-          password,
-        });
-        localStorage.setItem("oToken", res.data.token);
-        setOToken(res.data.token);
-        localStorage.setItem("loginRole", res.data.user.role);
-        setLoginRole(res.data.user.role);
+      const { token, role, must_reset_password } = res.data;
+
+      // Store token under the right key based on actual role returned
+      if (role === "operator") {
+        localStorage.setItem("oToken", token);
+        setOToken(token);
+      } else {
+        localStorage.setItem("aToken", token);
+        setAToken(token);
       }
 
-      const { must_reset_password } = res.data;
+      localStorage.setItem("loginRole", role);
+      setLoginRole(role);
 
       // Store user info in context + localStorage
       loginUser(res.data.user);
 
+      // Persist reset flag so routing enforces it across reloads
+      localStorage.setItem("mustResetPassword", must_reset_password ? "1" : "0");
+
       if (must_reset_password) {
-        toast.info("You must reset your password before continuing");
+        toast.info("You must reset your password before continuing.");
         window.location.href = "/reset-password";
       } else {
-        toast.success(`${loginRole} login successful!`);
+        toast.success("Login successful!");
         window.location.href = "/";
       }
     } catch (error) {
-      toast.error("Invalid credentials");
+      const msg = error.response?.data?.message || "Invalid credentials";
+      toast.error(msg);
     }
   };
 
@@ -144,12 +141,23 @@ const Login = () => {
               fullWidth
               size="small"
               variant="outlined"
-              type="password"
+              type={showPassword ? "text" : "password"}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
               placeholder="Enter password"
               InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      onClick={() => setShowPassword((v) => !v)}
+                      edge="end"
+                      sx={{ color: "#9CA3AF" }}
+                    >
+                      {showPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
                 sx: {
                   backgroundColor: "#1F2937",
                   borderRadius: "6px",

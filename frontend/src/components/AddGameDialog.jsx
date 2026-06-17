@@ -39,6 +39,7 @@ const AddGameDialog = ({
   onSubmit,
 }) => {
   const [createSuccess, setCreateSuccess] = useState(false);
+  const [submittedMode, setSubmittedMode] = useState("add");
   const [cancelOpen, setCancelOpen] = useState(false);
 
   const [title, setTitle] = useState("");
@@ -262,6 +263,7 @@ const AddGameDialog = ({
         },
       });
 
+      setSubmittedMode(mode);
       setCreateSuccess(true);
 
       if (onSubmit) onSubmit(response.data);
@@ -922,7 +924,7 @@ const AddGameDialog = ({
               mb: 1,
             }}
           >
-            {mode === "edit" ? "Update Successful!" : "Create Successful!"}
+            {submittedMode === "edit" ? "Update Successful!" : "Create Successful!"}
           </Typography>
           <Button
             onClick={handleSuccessOk}

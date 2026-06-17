@@ -14,8 +14,10 @@ import AddStationDialog from "./AddStationDialog";
 import StationsGrid from "./StationsGrid";
 import { API_BASE_URL } from "../apiConfig";
 import { AppContext } from "../context/AppContext";
+import { useLoading } from "../context/LoadingContext";
 
 export default function StationManagement() {
+  const { setLoading } = useLoading();
   const [tab, setTab] = useState(0);
   const [stations, setStations] = useState([]);
   const [bookings, setBookings] = useState([]);
@@ -42,7 +44,7 @@ export default function StationManagement() {
     ...Array.from(new Set(stations.map((s) => s.type))),
   ];
 
-  const fetchStations = async () => {
+  const fetchStations = async (silent = false) => {
     try {
       const res = await axios.get(`${API_BASE_URL}/api/stations`);
       setStations(res.data);
@@ -51,18 +53,27 @@ export default function StationManagement() {
     }
   };
 
-  const fetchBookings = async () => {
+  const fetchBookings = async (silent = false) => {
     try {
       const res = await axios.get(`${API_BASE_URL}/api/bookings`);
       setBookings(res.data);
     } catch (err) {
-      console.error("Failed to fetch stations", err);
+      console.error("Failed to fetch bookings", err);
     }
   };
 
   useEffect(() => {
-    fetchBookings();
-    fetchStations();
+    const initialLoad = async () => {
+      setLoading(true);
+      await Promise.all([fetchStations(true), fetchBookings(true)]);
+      setLoading(false);
+    };
+    initialLoad();
+    const interval = setInterval(() => {
+      fetchStations(true);
+      fetchBookings(true);
+    }, 10000);
+    return () => clearInterval(interval);
   }, []);
 
   const handleTabChange = (event, newValue) => setTab(newValue);

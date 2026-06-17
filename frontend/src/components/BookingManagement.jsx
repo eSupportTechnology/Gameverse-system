@@ -8,7 +8,6 @@ import {
   ToggleButtonGroup,
   Paper,
   TextField,
-  CircularProgress,
 } from "@mui/material";
 import BookingForm from "./BookingForm";
 import BookingGrid from "./BookingGrid";
@@ -18,6 +17,7 @@ import CompletedBookingDialog from "./CompletedBookingDialog"; // For Completed
 import axios from "axios";
 import { API_BASE_URL } from "../apiConfig";
 import { AppContext } from "../context/AppContext";
+import { useLoading } from "../context/LoadingContext";
 
 export const parseDurationToMinutes = (duration) => {
   if (!duration) return 60;
@@ -39,13 +39,13 @@ export const formatBookingDate = (bookingDate) => {
 };
 
 const BookingManagement = () => {
+  const { setLoading } = useLoading();
   const [view, setView] = React.useState("timeline");
   const [date, setDate] = React.useState(
     new Date().toISOString().split("T")[0],
   );
   const [openDialog, setOpenDialog] = useState(false);
   const [apiBookings, setApiBookings] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [selectedBooking, setSelectedBooking] = useState(null);
 
@@ -128,22 +128,22 @@ const BookingManagement = () => {
   const autoUpdateStatuses = async () => {
     try {
       await axios.post(`${API_BASE_URL}/api/auto-update-bookings`);
-      fetchBookings(); // Refresh bookings after updating
+      fetchBookings(true); // silent refresh after auto-update
     } catch (error) {
       console.error("Error auto-updating statuses:", error);
     }
   };
 
   useEffect(() => {
-    fetchBookings();
+    fetchBookings(false);
     const interval = setInterval(() => {
       autoUpdateStatuses();
     }, 10000);
     return () => clearInterval(interval);
   }, []);
 
-  const fetchBookings = async () => {
-    setLoading(true);
+  const fetchBookings = async (silent = false) => {
+    if (!silent) setLoading(true);
     try {
       const response = await axios.get(`${API_BASE_URL}/api/bookings`);
 
@@ -192,10 +192,9 @@ const BookingManagement = () => {
       }
     } catch (error) {
       console.error("Error fetching bookings:", error);
-      // Use mock data if API fails
       setApiBookings([]);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
@@ -736,16 +735,9 @@ const BookingManagement = () => {
         <Box sx={scrollbarStyles}>
           <BookingGrid
             apiBookings={filteredBookings}
-            loading={loading}
             onBookingUpdated={refreshBookings}
             stations={stations}
           />
-        </Box>
-      )}
-
-      {loading && (
-        <Box position="fixed" bottom={20} right={20} zIndex={9999}>
-          <CircularProgress size={30} sx={{ color: "#0CD7FF" }} />
         </Box>
       )}
 

@@ -5,15 +5,18 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 import AdminContextProvider from './context/AdminContext';
 import AppContextProvider from './context/AppContext';
+import { LoadingProvider } from './context/LoadingContext';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <AppContextProvider>
-      <AdminContextProvider>
-        <App />
-      </AdminContextProvider>
-    </AppContextProvider>
+    <LoadingProvider>
+      <AppContextProvider>
+        <AdminContextProvider>
+          <App />
+        </AdminContextProvider>
+      </AppContextProvider>
+    </LoadingProvider>
   </React.StrictMode>
 );
 

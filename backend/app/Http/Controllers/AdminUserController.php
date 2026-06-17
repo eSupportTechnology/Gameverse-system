@@ -21,9 +21,9 @@ class AdminUserController extends Controller
             // Manual validation for more control
             $validator = Validator::make($request->all(), [
                 'fullname'      => 'required|string|max:255',
+                'contact_no'    => 'nullable|string|max:20',
                 'username'      => 'required|string|max:50|unique:userroles,username',
                 'email'         => 'required|email|unique:userroles,email',
-                // password now optional on creation (we generate if omitted)
                 'password'      => 'nullable|string|min:6',
                 'role'          => 'required|in:admin,operator',
                 'active_status' => 'sometimes|boolean',
@@ -59,7 +59,7 @@ class AdminUserController extends Controller
                 Log::error('get send password: ');
             } else {
                 // generate a strong temporary password
-                $tempPasswordForEmail = Str::random(12); // 12 chars
+                $tempPasswordForEmail = Str::random(8);
                 $passwordToStore = Hash::make($tempPasswordForEmail);
                 $mustReset = true;
                 $tempPasswordCreatedAt = now();
@@ -68,6 +68,7 @@ class AdminUserController extends Controller
 
             $userData = [
                 'fullname'      => $validated['fullname'],
+                'contact_no'    => $validated['contact_no'] ?? null,
                 'username'      => $validated['username'],
                 'email'         => $validated['email'],
                 'password'      => $passwordToStore,
@@ -128,6 +129,7 @@ class AdminUserController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'fullname'      => 'required|string|max:255',
+            'contact_no'    => 'nullable|string|max:20',
             'username'      => 'required|string|max:255|unique:userroles,username,' . $id,
             'email'         => 'required|email|unique:userroles,email,' . $id,
             'role'          => 'required|in:admin,operator',
@@ -147,6 +149,7 @@ class AdminUserController extends Controller
 
         // Update fields
         $user->fullname = $request->fullname;
+        $user->contact_no = $request->contact_no;
         $user->username = $request->username;
         $user->email = $request->email;
         $user->role = $request->role;

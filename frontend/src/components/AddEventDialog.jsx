@@ -65,7 +65,6 @@ useEffect(() => {
       thumbnail: thumbnailFile,
     });
 
-    setOpenUpdateSucess(true);
     onClose();
   };
 

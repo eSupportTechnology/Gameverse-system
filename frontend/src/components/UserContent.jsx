@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext, useRef } from "react";
 import {
   Box,
   Typography,
@@ -20,6 +20,7 @@ import CreateSuccessDialog from "./CreateSuccessDialog";
 import axios from "axios";
 import { API_BASE_URL } from "../apiConfig";
 import { AppContext } from "../context/AppContext";
+import { useLoading } from "../context/LoadingContext";
 
 export default function UserManagement() {
   const [open, setOpen] = useState(false);
@@ -27,6 +28,8 @@ export default function UserManagement() {
   const [createSuccessOpen, setCreateSuccessOpen] = useState(false);
   const [users, setUsers] = useState([]);
   const { globalSearch } = useContext(AppContext);
+  const { setLoading } = useLoading();
+  const isFirstLoad = useRef(true);
 
 
   const [formData, setFormData] = useState({
@@ -63,29 +66,35 @@ export default function UserManagement() {
   });
 
   // Fetch users from backend
+  const fetchUsers = async (silent = false) => {
+    if (!silent) setLoading(true);
+    try {
+      const res = await axios.get(`${API_BASE_URL}/api/users`);
+
+      const formattedUsers = res.data.map((user) => ({
+        id: user.id,
+        fullName: user.fullname,
+        contactNo: user.contact_no || "",
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        status: user.active_status ? "Active" : "Inactive",
+        lastLogin: user.last_login_at || "N/A",
+        avatar: user.avatar || "/images/default.png",
+      }));
+
+      setUsers(formattedUsers);
+    } catch (err) {
+      console.error("Error fetching users:", err);
+    } finally {
+      if (!silent) setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const res = await axios.get(`${API_BASE_URL}/api/users`);
-
-        const formattedUsers = res.data.map((user) => ({
-          id: user.id,
-          fullName: user.fullname,
-          username: user.username,
-          email: user.email,
-          role: user.role,
-          status: user.active_status ? "Active" : "Inactive",
-          lastLogin: user.last_login_at || "N/A",
-          avatar: user.avatar || "/images/default.png",
-        }));
-
-        setUsers(formattedUsers);
-      } catch (err) {
-        console.error("Error fetching users:", err);
-      }
-    };
-
-    fetchUsers();
+    fetchUsers(false);
+    const interval = setInterval(() => fetchUsers(true), 30000);
+    return () => clearInterval(interval);
   }, []);
 
   const handleOpen = () => {
@@ -109,6 +118,7 @@ export default function UserManagement() {
     setFormData({
       id: user.id,
       fullname: user.fullName,
+      contactNo: user.contactNo || "",
       username: user.username || "",
       email: user.email || "",
       role: user.role,
@@ -129,6 +139,7 @@ export default function UserManagement() {
     if (deleteIndex === null) return;
 
     const userId = users[deleteIndex].id;
+    setLoading(true);
     try {
       const token = localStorage.getItem("aToken");
 
@@ -143,6 +154,8 @@ export default function UserManagement() {
       setDeleteSuccessOpen(true);
     } catch (error) {
       console.error("Delete failed:", error);
+    } finally {
+      setLoading(false);
     }
   };
 

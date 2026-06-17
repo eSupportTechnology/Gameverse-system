@@ -10,6 +10,43 @@ use Illuminate\Support\Facades\Log;
 
 class AuthController extends Controller
 {
+    public function unifiedLogin(Request $request)
+    {
+        $request->validate([
+            'email'    => 'required|email',
+            'password' => 'required',
+        ]);
+
+        $user = UserRole::where('email', $request->email)->first();
+
+        if (!$user || !Hash::check($request->password, $user->password)) {
+            return response()->json(['message' => 'Invalid credentials'], 401);
+        }
+
+        if (!$user->active_status) {
+            return response()->json(['message' => 'Account is inactive. Contact your administrator.'], 403);
+        }
+
+        $user->update(['last_login_at' => now()]);
+
+        $token = $user->createToken('user-token')->plainTextToken;
+
+        return response()->json([
+            'token' => $token,
+            'role'  => $user->role,
+            'must_reset_password' => $user->must_reset_password,
+            'user'  => [
+                'id'           => $user->id,
+                'fullname'     => $user->fullname,
+                'username'     => $user->username,
+                'email'        => $user->email,
+                'role'         => $user->role,
+                'last_login_at'=> $user->last_login_at,
+                'avatar'       => $user->avatar ? url($user->avatar) : url('images/default.png'),
+            ],
+        ]);
+    }
+
     public function login(Request $request)
     {
         $request->validate([
