@@ -1,4 +1,4 @@
-import { useContext } from "react";
+import { lazy, Suspense, useContext } from "react";
 import {
   Navigate,
   Route,
@@ -8,32 +8,33 @@ import {
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { AdminContext } from "./context/AdminContext";
-import Booking from "./pages/Booking";
-import Login from "./pages/Login";
-import NFCUsers from "./pages/NFCUsers";
-import OtherGames from "./pages/OtherGames";
-import Pos from "./pages/Pos";
-import PremiumBilliardTV1 from "./pages/PremiumBilliards/PremiumBilliardTV1";
-import PremiumBilliardTV2 from "./pages/PremiumBilliards/PremiumBilliardTV2";
-import PremiumBilliardTV3 from "./pages/PremiumBilliards/PremiumBilliardTV3";
-import PS5Station1TVScreen from "./pages/PS5Stations/PS5Station1TVScreen";
-import PS5Station2TVScreen from "./pages/PS5Stations/PS5Station2TVScreen";
-import PS5Station3TVScreen from "./pages/PS5Stations/PS5Station3TVScreen";
-import PS5Station4TVScreen from "./pages/PS5Stations/PS5Station4TVScreen";
-import PS5Station5TVScreen from "./pages/PS5Stations/PS5Station5TVScreen";
-import RacingSimulatorTV1 from "./pages/RacingSimulators/RacingSimulatorTV1";
-import RacingSimulatorTV2 from "./pages/RacingSimulators/RacingSimulatorTV2";
-import RacingSimulatorTV3 from "./pages/RacingSimulators/RacingSimulatorTV3";
-import RacingSimulatorTV4 from "./pages/RacingSimulators/RacingSimulatorTV4";
-import Reports from "./pages/Reports";
-import ResetPassword from "./pages/ResetPassword";
-import Station from "./pages/Station";
-import SupremeBilliardTV1 from "./pages/SupremeBilliards/SupremeBilliardTV1";
-import SupremeBilliardTV2 from "./pages/SupremeBilliards/SupremeBilliardTV2";
-import TVScreenControl from "./pages/TVScreenControl";
-import User from "./pages/Users";
-import ValuableOffersScreen from "./pages/ValuableOffersScreen";
-import WebPortal from "./pages/WebPortal";
+
+const Booking = lazy(() => import("./pages/Booking"));
+const Login = lazy(() => import("./pages/Login"));
+const NFCUsers = lazy(() => import("./pages/NFCUsers"));
+const OtherGames = lazy(() => import("./pages/OtherGames"));
+const Pos = lazy(() => import("./pages/Pos"));
+const PremiumBilliardTV1 = lazy(() => import("./pages/PremiumBilliards/PremiumBilliardTV1"));
+const PremiumBilliardTV2 = lazy(() => import("./pages/PremiumBilliards/PremiumBilliardTV2"));
+const PremiumBilliardTV3 = lazy(() => import("./pages/PremiumBilliards/PremiumBilliardTV3"));
+const PS5Station1TVScreen = lazy(() => import("./pages/PS5Stations/PS5Station1TVScreen"));
+const PS5Station2TVScreen = lazy(() => import("./pages/PS5Stations/PS5Station2TVScreen"));
+const PS5Station3TVScreen = lazy(() => import("./pages/PS5Stations/PS5Station3TVScreen"));
+const PS5Station4TVScreen = lazy(() => import("./pages/PS5Stations/PS5Station4TVScreen"));
+const PS5Station5TVScreen = lazy(() => import("./pages/PS5Stations/PS5Station5TVScreen"));
+const RacingSimulatorTV1 = lazy(() => import("./pages/RacingSimulators/RacingSimulatorTV1"));
+const RacingSimulatorTV2 = lazy(() => import("./pages/RacingSimulators/RacingSimulatorTV2"));
+const RacingSimulatorTV3 = lazy(() => import("./pages/RacingSimulators/RacingSimulatorTV3"));
+const RacingSimulatorTV4 = lazy(() => import("./pages/RacingSimulators/RacingSimulatorTV4"));
+const Reports = lazy(() => import("./pages/Reports"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const Station = lazy(() => import("./pages/Station"));
+const SupremeBilliardTV1 = lazy(() => import("./pages/SupremeBilliards/SupremeBilliardTV1"));
+const SupremeBilliardTV2 = lazy(() => import("./pages/SupremeBilliards/SupremeBilliardTV2"));
+const TVScreenControl = lazy(() => import("./pages/TVScreenControl"));
+const User = lazy(() => import("./pages/Users"));
+const ValuableOffersScreen = lazy(() => import("./pages/ValuableOffersScreen"));
+const WebPortal = lazy(() => import("./pages/WebPortal"));
 
 import LoadingOverlay from "./components/LoadingOverlay";
 import "./App.css";
@@ -45,6 +46,7 @@ function App() {
   return (
     <Router>
       <LoadingOverlay />
+      <Suspense fallback={null}>
       <Routes>
 
         {/* Always accessible — never blocked by auth or mustReset */}
@@ -126,6 +128,7 @@ function App() {
         )}
 
       </Routes>
+      </Suspense>
       <ToastContainer
         position="top-right"
         autoClose={5000}
